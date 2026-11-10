@@ -293,6 +293,21 @@ addEventListener('resize', () => {
   camDirty = true;
 });
 
+// Вез panel: fades to transparent when the pointer leaves or after a moment of no use
+const bar = document.querySelector('.bar');
+let barTimer = 0;
+const barWake = (ms) => {
+  bar.classList.remove('idle');
+  clearTimeout(barTimer);
+  barTimer = setTimeout(() => { if (!bar.matches(':hover') && !bar.contains(document.activeElement) && !popups.some((p) => p.menu.classList.contains('open'))) bar.classList.add('idle'); }, ms);
+};
+bar.addEventListener('pointerenter', () => { bar.classList.remove('idle'); clearTimeout(barTimer); });
+bar.addEventListener('pointerleave', () => barWake(1200));
+bar.addEventListener('pointerdown', () => barWake(3000));
+bar.addEventListener('focusin', () => barWake(3000));
+bar.addEventListener('focusout', () => barWake(1200));
+setTimeout(() => barWake(0), 3500); // show it at first, then fade
+
 // mobile popups (places, options); on desktop the groups are shown inline
 const popups = [...document.querySelectorAll('.pop-toggle')].map((btn) => ({ btn, menu: document.getElementById(btn.getAttribute('aria-controls')) }));
 const closePopups = (except) => popups.forEach((p) => { if (p !== except) { p.menu.classList.remove('open'); p.btn.setAttribute('aria-expanded', 'false'); } });

@@ -20,10 +20,24 @@
       .code { display: inline-block; font-family: 'Rubik Mono One', 'Lora', sans-serif; font-weight: 400; font-size: 19px; letter-spacing: 0.04em; line-height: 1;
               color: #fff8ec; background: #d8643c; padding: 6px 8px 5px; border-radius: 8px; border: 2px solid var(--ink);
               box-shadow: 2px 2px 0 var(--ink); transform: rotate(-5deg); text-shadow: 1.5px 1.5px 0 rgba(75, 52, 40, 0.55); }
-      .bar { position: fixed; left: 22px; bottom: 18px; display: flex; gap: 6px; flex-wrap: wrap; }
-      .bar button { font: inherit; font-size: 13px; color: var(--ink); background: #fbf6ee; border: 1.5px solid var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer; box-shadow: 2px 2px 0 rgba(75, 52, 40, 0.35); }
+      /* Вез: linen panel framed by cross-stitch bands; the panel fades away when idle */
+      :root { --linen: #f4ede0; --linen-hi: #fbf7ef; --indigo: #1f2a44; --wine: #7a1f1a; --stitch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10'%3E%3Cpath d='M0 5 L6 0.5 L12 5 L6 9.5 Z' fill='none' stroke='%237a1f1a' stroke-width='1.5'/%3E%3Crect x='5' y='4' width='2' height='2' fill='%231f2a44'/%3E%3C/svg%3E"); }
+      .bar { position: fixed; left: 22px; bottom: 18px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+             padding: 16px 12px; background: var(--linen); border: 1.5px solid var(--indigo); border-radius: 12px;
+             transition: background-color 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease; box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); }
+      .bar::before, .bar::after { content: ''; position: absolute; left: 6px; right: 6px; height: 10px; background: var(--stitch) repeat-x center;
+                                  pointer-events: none; transition: opacity 0.6s ease; }
+      .bar::before { top: 3px; }
+      .bar::after { bottom: 3px; }
+      .bar.idle { background-color: transparent; border-color: transparent; box-shadow: none; }
+      .bar.idle::before, .bar.idle::after { opacity: 0; }
+      .bar button { font: inherit; font-size: 13px; color: var(--indigo); background: var(--linen-hi); border: 1.5px solid var(--indigo); border-radius: 6px;
+                    padding: 6px 12px; cursor: pointer; box-shadow: 1.5px 1.5px 0 rgba(31, 42, 68, 0.3); transition: background-color 0.15s, color 0.15s; }
       .bar button:hover { background: #fff; }
-      .bar button.off { opacity: 0.5; }
+      .bar button:focus-visible { outline: 2px solid var(--wine); outline-offset: 2px; }
+      .bar button.off { opacity: 0.55; }
+      .bar #fly { background: var(--wine); border-color: var(--wine); color: var(--linen-hi); }
+      .bar #fly:hover { background: #8e2a23; }
       .places { display: contents; }
       .pop-toggle { display: none; }
       #status { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; font-size: 18px; }
@@ -102,7 +116,7 @@
         .me { right: 12px; top: 12px; padding: 0; width: 40px; height: 40px; justify-content: center; }
         .me-name { display: none; }
         .me svg { width: 18px; height: 18px; }
-        .bar { left: 12px; right: 12px; bottom: 30px; gap: 5px; }
+        .bar { left: 12px; right: 12px; bottom: 30px; gap: 5px; padding: 14px 8px; }
         .bar button { font-size: 12px; padding: 5px 10px; }
         .attr { left: 12px; right: auto; bottom: 6px; font-size: 10px; }
         .fly-top { top: 60px; }
@@ -118,10 +132,10 @@
          desktop keeps the full bar */
       @media (max-width: 560px), (orientation: portrait) and (any-pointer: coarse) and (max-width: 1180px) {
         .pop-toggle { display: inline-block; }
-        .bar button.pop-toggle[aria-expanded="true"], .bar button.pop-toggle[aria-expanded="true"]:hover { background: var(--ink); color: #fff8ec; }
+        .bar button.pop-toggle[aria-expanded="true"], .bar button.pop-toggle[aria-expanded="true"]:hover { background: var(--indigo); color: var(--linen-hi); }
         .bar { flex-wrap: nowrap; }
-        .places { display: none; position: absolute; left: 0; bottom: calc(100% + 8px); flex-direction: column; gap: 6px; padding: 10px;
-                  background: #fbf6ee; border: 1.5px solid var(--ink); border-radius: 16px; box-shadow: 3px 3px 0 rgba(75, 52, 40, 0.35); }
+        .places { display: none; position: absolute; left: 0; bottom: calc(100% + 8px); flex-direction: column; gap: 6px; padding: 18px 10px;
+                  background: var(--linen) var(--stitch) repeat-x 0 3px; border: 1.5px solid var(--indigo); border-radius: 12px; box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); }
         .places.open { display: flex; }
         .places.tools { left: auto; right: 0; }
         .places button { text-align: left; font-size: 14px; padding: 8px 14px; box-shadow: none; }
