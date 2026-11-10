@@ -222,6 +222,15 @@ for (const el of raw.elements) {
   }
 }
 
+// fortress outlines (Kale): buildings inside stay low unless tagged otherwise
+const castleGrid = new PolyGrid(60);
+for (const el of raw.elements) {
+  if (el.tags?.historic === 'castle' && el.type === 'way') {
+    const pts = (el.geometry || []).filter(Boolean).map((g) => proj(g.lat, g.lon));
+    if (pts.length > 3) castleGrid.add([pts.slice(0, -1)]);
+  }
+}
+
 function buildingInfo(el, poly) {
   const t = el.tags;
   const outer = poly[0];
@@ -236,6 +245,11 @@ function buildingInfo(el, poly) {
   const mh = parseNum(t.min_height) ?? (parseNum(t['building:min_level']) != null ? parseNum(t['building:min_level']) * 3.2 : 0);
   const rv = rnd(el.id, 1), rv2 = rnd(el.id, 2);
   let kind = null;
+  // defensive towers of the fortress: stone, ~14 m, battlements (see src/city.js)
+  if (t.man_made === 'tower' && /defensive|fortification/.test(t['tower:type'] || '')) {
+    return { h: Math.max(h ?? 14, 6), mh: 0, lv: 1, old, a, kind: 'fortress' };
+  }
+  const inCastle = castleGrid.hit(cx, cz);
   if (h == null && levels == null) {
     const ob = obb(outer);
     const aspect = ob ? ob.L / Math.max(ob.W, 0.5) : 1, wid = ob ? ob.W * 2 : 10;
@@ -262,6 +276,7 @@ function buildingInfo(el, poly) {
       if (apt) levels = Math.max(levels, rv2 < 0.5 ? 3 : 4);
       if (!old && dSq < 900 && a > 150) levels += Math.floor(rv2 * 3);
     }
+    if (inCastle) levels = Math.min(levels, 2);
   }
   if (h == null) h = levels * 3.1 + (type === 'roof' ? 0.5 : 0.6);
   if (type === 'roof') return { h: Math.max(h, 3.5), mh: Math.max(h - 0.6, 3), lv: 1, old, a, kind };
@@ -311,7 +326,7 @@ for (const el of raw.elements) {
         r: poly.map(flat),
         h: r1(info.h), mh: r1(info.mh), lv: info.lv,
         old: info.old ? 1 : 0,
-        t: info.kind === 'ind' ? 'industrial' : t.building,
+        t: info.kind === 'ind' ? 'industrial' : info.kind === 'fortress' ? 'fortress' : t.building,
         rs: t['roof:shape'] || null,
         w: /mosque|church|cathedral|chapel|religious/.test(t.building) || t.amenity === 'place_of_worship' ? (t.religion === 'muslim' || t.building === 'mosque' ? 'mosque' : 'church') : null,
         c: t['building:colour'] || null,

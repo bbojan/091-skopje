@@ -532,8 +532,10 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     const tileCol = C(b.old ? pick(PAL.tileOld, rnd()) : pick(PAL.tile, rnd()));
     const style = Math.max(1, b.lv) + Math.min(rnd(), 0.999);
     const ind = b.t === 'industrial';
+    const fort = b.t === 'fortress';
     if (ind) fcol = C(pick(PAL.industrial, rnd()));
-    const hasWin = b.h >= 2.4 && !ind && b.t !== 'roof' && b.t !== 'garage' && b.t !== 'carport';
+    if (fort) { fcol = C(PAL.stone); roof = 'flat'; }
+    const hasWin = b.h >= 2.4 && !ind && !fort && b.t !== 'roof' && b.t !== 'garage' && b.t !== 'carport';
     // parapet on flat roofs: walls rise above the roof, with an inner lip and cap
     let pp = roof === 'flat' && b.t !== 'roof' && (b.lv >= 2 || ind) && fpArea > 60 && outer.length <= 80 ? 0.7 + rnd() * 0.35 : 0;
     const inner = pp ? insetRing(outer, 0.32) : null;
@@ -598,6 +600,18 @@ export function* computeCitySteps(data, terrain, opts = {}) {
           const inward = [-dz * sg, 0, dx * sg];
           B.quad([q0[0], h, q0[1]], [q1[0], h, q1[1]], [q1[0], h + pp, q1[1]], [q0[0], h + pp, q0[1]], lip, inward);
           B.quad([o0[0], h + pp, o0[1]], [o1[0], h + pp, o1[1]], [q1[0], h + pp, q1[1]], [q0[0], h + pp, q0[1]], cap, UP);
+        }
+      }
+      // fortress towers: stone battlements around the top
+      if (fort) {
+        const ring = outer, n = ring.length;
+        for (let i = 0; i < n; i++) {
+          const [ax, az] = ring[i], [bx, bz] = ring[(i + 1) % n];
+          const len = Math.hypot(bx - ax, bz - az), m = Math.max(1, Math.floor(len / 2.4));
+          for (let k = 0; k < m; k++) {
+            const tt = (k + 0.5) / m;
+            B.box(ax + (bx - ax) * tt, az + (bz - az) * tt, h, 1.2, 1.2, 1.3, Math.atan2(bz - az, bx - ax), fcol, NO);
+          }
         }
       }
       if (ind && fpArea > 500) {
