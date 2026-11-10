@@ -163,6 +163,23 @@
       .help a { color: #b84a26; }
       .help .opt { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 4px; padding: 10px 12px; border: 1.5px solid var(--ink); border-radius: 12px; background: #fff; font-size: 14px; line-height: 1.45; cursor: pointer; }
       .help .opt input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: #d8643c; flex: none; }
+
+      /* Вез styling for the help dialog: linen, indigo stitch lines, wine accents */
+      dialog.help { background: var(--linen); color: var(--indigo); border: 1.5px solid var(--indigo); border-radius: 14px; box-shadow: 4px 5px 0 rgba(31, 42, 68, 0.3); }
+      dialog.help::backdrop { background: rgba(31, 42, 68, 0.35); }
+      dialog.help::before, dialog.help::after { content: ''; position: absolute; left: 8px; right: 8px; height: 10px; background: var(--stitch) repeat-x center; pointer-events: none; z-index: 1; }
+      dialog.help::before { top: 4px; }
+      dialog.help::after { bottom: 4px; }
+      .help .inner { padding: 28px 26px 26px; }
+      .help h3 { color: var(--wine); opacity: 1; display: flex; align-items: center; gap: 8px; }
+      .help h3::before { content: ''; width: 14px; height: 10px; flex: none; background: var(--stitch) no-repeat center; }
+      .help td { border-bottom: 1px dashed rgba(31, 42, 68, 0.28); }
+      .help kbd { color: var(--indigo); background: var(--linen-hi); border-color: var(--indigo); }
+      .help .close { top: 20px; color: var(--indigo); background: var(--linen-hi); border-color: var(--indigo); box-shadow: 1.5px 1.5px 0 rgba(31, 42, 68, 0.3); }
+      .help .tagline { background: var(--wine); color: var(--linen-hi); box-shadow: 2px 2px 0 var(--indigo); }
+      .help a { color: var(--wine); }
+      .help .opt { background: var(--linen-hi); border-color: var(--indigo); }
+      .help .opt input { accent-color: var(--wine); }
     </style>
   </head>
   <body>
