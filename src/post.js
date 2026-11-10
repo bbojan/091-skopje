@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { MAX_CLOUDS } from './atmos.js';
 
 const FS_VERT = /* glsl */ `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
 
@@ -21,6 +22,7 @@ export class InkRenderer {
     this.acc = [new THREE.WebGLRenderTarget(1, 1, hf), new THREE.WebGLRenderTarget(1, 1, hf)];
     this.normalMat = new THREE.MeshNormalMaterial();
     this.ink = true;
+    this.skipNormal = []; // additive glows etc. that must not create ink lines
     this.frame = 0;
     this.maxSamples = 24;
     this.liveBlend = 0.22;
@@ -37,13 +39,28 @@ export class InkRenderer {
         inkColor: { value: new THREE.Color('#3f2a20') },
         paper: { value: new THREE.Color('#f2e8d8') },
         haze: { value: new THREE.Color('#ece4ee') },
+        grade: { value: new THREE.Vector3(1.03, 1.0, 0.96) },
+        projInv: { value: new THREE.Matrix4() },
+        camWorld: { value: new THREE.Matrix4() },
+        sunDir: { value: new THREE.Vector3(0, 1, 0) },
+        clouds: { value: Array.from({ length: MAX_CLOUDS }, () => new THREE.Vector4()) },
+        cloudShade: { value: 0.24 },
         seed: { value: 0 },
       },
       vertexShader: FS_VERT,
       fragmentShader: /* glsl */ `
         uniform sampler2D tColor, tNormal, tDepth;
         uniform vec2 texel; uniform float px, near, far, focal, inkOn, seed;
-        uniform vec3 inkColor, paper, haze;
+        uniform vec3 inkColor, paper, haze, grade;
+        uniform mat4 projInv, camWorld;
+        uniform vec3 sunDir;
+        uniform vec4 clouds[${MAX_CLOUDS}];
+        uniform float cloudShade;
+        vec3 worldPos(vec2 uv) {
+          float d = texture2D(tDepth, uv).x;
+          vec4 v = projInv * vec4(uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
+          return (camWorld * vec4(v.xyz / v.w, 1.0)).xyz;
+        }
         varying vec2 vUv;
         float linZ(vec2 uv) {
           float d = texture2D(tDepth, uv).x;
@@ -85,6 +102,19 @@ export class InkRenderer {
           ao = ao / 4.0;
           col = mix(col, col * vec3(0.70, 0.70, 0.86), ao * 0.75);
 
+          // --- drifting cloud shadows: project the pixel along the sun to each cloud
+          if (cloudShade > 0.001) {
+            vec3 wp = worldPos(vUv);
+            float sh = 0.0;
+            for (int i = 0; i < ${MAX_CLOUDS}; i++) {
+              vec4 cl = clouds[i];
+              vec2 q = wp.xz + sunDir.xz * ((cl.w - wp.y) / max(sunDir.y, 0.15));
+              float dd = length((q - cl.xy) / vec2(cl.z, cl.z * 0.8));
+              sh = max(sh, 1.0 - smoothstep(0.45, 1.0, dd));
+            }
+            col = mix(col, col * vec3(0.72, 0.74, 0.88), sh * cloudShade);
+          }
+
           // --- ink lines: thicker silhouettes from depth, finer creases from normals
           vec2 o1 = texel * px;
           float de = depthEdge(o1 * 1.3, c);
@@ -101,7 +131,7 @@ export class InkRenderer {
           // --- grade: gentle warmth + saturation
           float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
           col = mix(vec3(lum), col, 1.12);
-          col = col * vec3(1.03, 1.0, 0.96) + vec3(0.012, 0.008, 0.02);
+          col = col * grade + vec3(0.012, 0.008, 0.02) * grade.r;
           // ink takes on a darker version of the local colour
           vec3 ink = mix(inkColor * 0.5, col * 0.28, 0.45);
           col = mix(col, ink, edge);
@@ -181,6 +211,7 @@ export class InkRenderer {
       camera.setViewOffset(W, H, jx, jy, W, H);
     }
 
+
     const bg = scene.background;
     scene.background = null;
     r.setClearColor(0x000000, 0);
@@ -188,13 +219,18 @@ export class InkRenderer {
     r.clear();
     r.render(scene, camera);
     if (this.ink) {
+      const hidden = this.skipNormal.filter((o) => o.visible);
+      for (const o of hidden) o.visible = false;
       scene.overrideMaterial = this.normalMat;
       r.setRenderTarget(this.normalRT);
       r.clear();
       r.render(scene, camera);
       scene.overrideMaterial = null;
+      for (const o of hidden) o.visible = true;
     }
     scene.background = bg;
+    u.projInv.value.copy(camera.projectionMatrixInverse);
+    u.camWorld.value.copy(camera.matrixWorld);
     if (n > 0) camera.clearViewOffset();
 
     this._pass(this.compMat, this.compRT);

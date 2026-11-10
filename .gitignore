@@ -5,3 +5,4 @@ dist/
 data/*.json
 data/terrarium/
 data/*.log
+!data/aerialway.json

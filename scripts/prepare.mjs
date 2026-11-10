@@ -115,7 +115,51 @@ const out = {
   trees: [],
   towers: [],
   crosses: [],
+  landmarks: {},
 };
+// hand-modelled landmarks (rendered by src/landmarks.js instead of generic geometry)
+const LANDMARK_IDS = { stoneBridge: 411079115, fountain: 176160189, porta: 239422349 };
+const SKIP_BUILDINGS = new Set([LANDMARK_IDS.porta]);
+for (const el of raw.elements) {
+  if (el.type !== 'way') continue;
+  const pts = wayPts(el.geometry || []);
+  if (el.id === LANDMARK_IDS.stoneBridge) out.landmarks.stoneBridge = flat(pts);
+  if (el.id === LANDMARK_IDS.fountain) { const r = dropLast(pts); out.landmarks.warrior = centroid(r).map(r1); }
+  if (el.id === LANDMARK_IDS.porta) out.landmarks.porta = flat(dropLast(pts));
+}
+// exact positions of named places (area-weighted centroid of the largest matching shape)
+const PLACE_NAMES = {
+  square: 'Плоштад Македонија', porta: 'Порта Македонија', park: 'Градски парк', zoo: 'Зоолошка градина Скопје',
+  arena: 'Национална арена Тодор Проески', bazaar: 'Стара скопска чаршија', kale: 'Скопско Кале',
+};
+const areaCentroid = (r) => {
+  let a = 0, cx = 0, cz = 0;
+  for (let i = 0, n = r.length; i < n; i++) {
+    const [x1, z1] = r[i], [x2, z2] = r[(i + 1) % n], f = x1 * z2 - x2 * z1;
+    a += f; cx += (x1 + x2) * f; cz += (z1 + z2) * f;
+  }
+  return Math.abs(a) < 1e-6 ? centroid(r) : [cx / (3 * a), cz / (3 * a)];
+};
+out.places = {};
+for (const [key, name] of Object.entries(PLACE_NAMES)) {
+  let best = null;
+  for (const el of raw.elements) {
+    if (el.tags?.name !== name) continue;
+    for (const poly of polygonsOf(el)) {
+      const a = Math.abs(area(poly[0]));
+      if (!best || a > best.a) best = { a, c: areaCentroid(poly[0]) };
+    }
+  }
+  if (best) out.places[key] = best.c.map(r1);
+}
+// Vodno gondola (separate small download: data/aerialway.json)
+if (fs.existsSync('data/aerialway.json')) {
+  const aw = JSON.parse(fs.readFileSync('data/aerialway.json', 'utf8'));
+  for (const el of aw.elements) {
+    if (el.type === 'way' && el.tags?.aerialway === 'gondola') out.landmarks.gondola = flat(wayPts(el.geometry || []));
+  }
+  out.landmarks.pylons = aw.elements.filter((e) => e.type === 'node' && e.tags?.aerialway === 'pylon').flatMap((e) => proj(e.lat, e.lon).map(r1));
+}
 
 const ROAD_W = {
   motorway: 18, trunk: 16, primary: 14, secondary: 12, tertiary: 10,
@@ -256,7 +300,7 @@ for (const el of raw.elements) {
     if (!t.building) continue;
   }
 
-  if (t.building && t.building !== 'no' && !t['building:part']) {
+  if (t.building && t.building !== 'no' && !t['building:part'] && !SKIP_BUILDINGS.has(el.id)) {
     if (t.location === 'underground' || t.layer && parseNum(t.layer) < 0) continue;
     for (const poly of polygonsOf(el)) {
       if (!inBox(poly[0], 2)) continue;

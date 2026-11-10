@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { mulberry32, toPts, ringArea, obb, pipPoly, PolyGrid, SegGrid, PointHash } from './geo.js';
+import { mulberry32, toPts, ringArea, obb, pipPoly, PolyGrid, SegGrid, PointHash, rowCrossings, bbox } from './geo.js';
 
 const C = (h) => new THREE.Color(h);
 const pick = (arr, r) => arr[Math.floor(r * arr.length) % arr.length];
@@ -50,6 +50,28 @@ class FBuf {
   }
   take() { const r = this.a.slice(0, this.n); this.a = null; return r; }
 }
+const ITEM = { position: 3, normal: 3, color: 3, aFacade: 4, uv: 2 };
+// geometry <-> plain data (typed arrays only)
+function dataFromGeo(g) {
+  const a = {};
+  for (const k in g.attributes) a[k] = g.attributes[k].array;
+  return { a, index: g.index ? g.index.array : null };
+}
+function geoFromData(d) {
+  const g = new THREE.BufferGeometry();
+  for (const k in d.a) g.setAttribute(k, new THREE.BufferAttribute(d.a[k], ITEM[k]));
+  if (d.index) g.setIndex(new THREE.BufferAttribute(d.index, 1));
+  g.computeBoundingSphere();
+  return freeOnUpload(g);
+}
+// all ArrayBuffers inside a city description (for zero-copy postMessage)
+export function transferables(obj, out = new Set()) {
+  if (!obj || typeof obj !== 'object') return out;
+  if (ArrayBuffer.isView(obj)) { out.add(obj.buffer); return out; }
+  for (const k in obj) transferables(obj[k], out);
+  return out;
+}
+
 // drop the CPU copy once the GPU has the data
 function freeOnUpload(geo) {
   for (const k in geo.attributes) geo.attributes[k].onUpload(function () { this.array = null; });
@@ -143,14 +165,11 @@ class Builder {
     }
   }
   get empty() { return this.p.n === 0; }
+  // plain typed arrays, so the build can run in a worker and transfer them
   build() {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(this.p.take(), 3));
-    g.setAttribute('normal', new THREE.BufferAttribute(this.n.take(), 3));
-    g.setAttribute('color', new THREE.BufferAttribute(this.c.take(), 3));
-    if (this.f) g.setAttribute('aFacade', new THREE.BufferAttribute(this.f.take(), 4));
-    g.computeBoundingSphere();
-    return freeOnUpload(g);
+    const a = { position: this.p.take(), normal: this.n.take(), color: this.c.take() };
+    if (this.f) a.aFacade = this.f.take();
+    return { a };
   }
 }
 const NO = [0, 0, 0, -1];
@@ -183,14 +202,19 @@ export function carGeometry() {
 export const CAR_COLORS = ['#f6f3ee', '#f6f3ee', '#d9d4cf', '#e04b3c', '#3a6fb5', '#2f3540', '#f2c84b', '#8fb8cf', '#b8bcc4', '#5aa36a'];
 
 // ---------------------------------------------------------------- materials
+// shared, animated uniforms (time of day, clock) used by several materials
+export const SHARED = { uNight: { value: 0 }, uTime: { value: 0 } };
+
 function facadeMaterial(clippingPlanes) {
   const m = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes, shadowSide: THREE.DoubleSide });
   m.onBeforeCompile = (sh) => {
+    sh.uniforms.uNight = SHARED.uNight;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute vec4 aFacade;\nvarying vec4 vFacade;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFacade = aFacade;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec4 vFacade;')
+      .replace('#include <common>', '#include <common>\nvarying vec4 vFacade;\nuniform float uNight;\nfloat gWin = 0.0;\nvec3 gWinCol = vec3(0.0);\nfloat h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }')
+      .replace('#include <opaque_fragment>', 'outgoingLight += gWinCol * gWin * uNight;\n#include <opaque_fragment>')
       .replace(
         '#include <color_fragment>',
         /* glsl */ `#include <color_fragment>
@@ -215,6 +239,11 @@ function facadeMaterial(clippingPlanes) {
           float inside = step(v, top - 0.45) * step(0.6, v);
           float win = wx * wy * inside;
           float detail = 1.0 - smoothstep(0.25, 0.6, max(aa.x, aa.y));
+          // night: a random share of windows glow warm; far away it averages out
+          float cellH = h21(vec2(floor(fu) + rs * 91.0, fi + rs * 37.0));
+          float lit = step(cellH, shop ? 0.8 : 0.45);
+          gWin = mix(0.12 * inside, win * lit, detail) * (shop ? 1.5 : 1.0);
+          gWinCol = mix(vec3(1.0, 0.62, 0.26), vec3(1.0, 0.82, 0.5), h21(vec2(cellH, rs))) * 1.15;
           vec3 glass = shop ? vec3(0.22, 0.27, 0.36) : mix(vec3(0.26, 0.32, 0.44), vec3(0.40, 0.36, 0.33), step(0.6, fract(rs * 3.7)));
           diffuseColor.rgb = mix(diffuseColor.rgb, glass, win * 0.78 * detail);
           diffuseColor.rgb *= 1.0 - win * 0.12 * (1.0 - detail);
@@ -255,7 +284,7 @@ function facadeMaterial(clippingPlanes) {
         }`
       );
   };
-  m.customProgramCacheKey = () => 'facade-v3';
+  m.customProgramCacheKey = () => 'facade-v4';
   return m;
 }
 
@@ -279,10 +308,21 @@ function toonFoliage(clippingPlanes) {
 }
 
 // ---------------------------------------------------------------- main
+// Convenience: compute + assemble on the main thread (fallback without workers)
 export function buildCity(data, terrain, opts) {
-  const { clippingPlanes, chunkSize = 1000 } = opts;
+  return assembleCity(computeCity(data, terrain, opts), opts);
+}
+
+// Phase 1: OSM data + terrain → typed-array chunk descriptions.
+// A generator that yields each finished stage name, so the caller can update a
+// progress bar between stages; computeCity() just runs it to the end.
+export function computeCity(data, terrain, opts = {}) {
+  const it = computeCitySteps(data, terrain, opts);
+  for (;;) { const r = it.next(); if (r.done) return r.value; }
+}
+export function* computeCitySteps(data, terrain, opts = {}) {
+  const { chunkSize = 1000 } = opts;
   const { w: W, h: H } = data.meta;
-  const group = new THREE.Group();
   const halfW = W / 2, halfH = H / 2;
   const inside = (x, z, m = 0) => Math.abs(x) < halfW - m && Math.abs(z) < halfH - m;
   const T = (x, z) => terrain.at(x, z);
@@ -320,23 +360,42 @@ export function buildCity(data, terrain, opts) {
 
   // ---------------- terrain chunks + skirt
   const cellsPer = Math.round(chunkSize / terrain.cell);
-  const groundMat = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes });
   const cG = C(PAL.ground), cH = C(PAL.hill);
+  // Large natural areas are painted into the terrain's vertex colours (scanline
+  // raster at the terrain resolution) instead of being clipped into geometry.
+  const PAINT = new Set(['wood', 'scrub', 'grass', 'park', 'cemetery', 'fortress', 'dirt', 'campus', 'play']);
+  const kindList = Object.keys(PAL.area);
+  const kindCol = kindList.map((k) => C(PAL.area[k]));
+  const paint = new Uint8Array(terrain.nx * terrain.nz); // 0 = bare ground, else kind index + 1
+  const xs = [];
+  for (const a of areas) {
+    if (!PAINT.has(a.k) || a.a < 20000) continue;
+    a.painted = true;
+    const [, bz0, , bz1] = bbox(a.poly[0]);
+    const ki = kindList.indexOf(a.k) + 1;
+    const j0 = Math.max(0, Math.ceil((bz0 - terrain.z0) / terrain.cell)), j1 = Math.min(terrain.nz - 1, Math.floor((bz1 - terrain.z0) / terrain.cell));
+    for (let j = j0; j <= j1; j++) {
+      rowCrossings(a.poly, terrain.z0 + j * terrain.cell, xs);
+      for (let s2 = 0; s2 + 1 < xs.length; s2 += 2) {
+        const i0 = Math.max(0, Math.ceil((xs[s2] - terrain.x0) / terrain.cell)), i1 = Math.min(terrain.nx - 1, Math.floor((xs[s2 + 1] - terrain.x0) / terrain.cell));
+        for (let i = i0; i <= i1; i++) paint[j * terrain.nx + i] = ki;
+      }
+    }
+  }
   const terrainMeshes = new Map(); // chunk index → { hi, lo, rect }
   for (let j = 0; j < CZ; j++)
     for (let i = 0; i < CX; i++) {
       const i0 = i * cellsPer, j0 = j * cellsPer;
       const i1 = Math.min(terrain.nx - 1, i0 + cellsPer), j1 = Math.min(terrain.nz - 1, j0 + cellsPer);
       if (i1 <= i0 || j1 <= j0) continue;
-      const g = terrain.chunkGeometry(i0, j0, i1, j1, (c, y, ny) => {
-        c.copy(cG).lerp(cH, THREE.MathUtils.smoothstep(y, 70, 220) * 0.85);
+      const g = terrain.chunkGeometry(i0, j0, i1, j1, (c, y, ny, gi, gj) => {
+        const k = paint[gj * terrain.nx + gi];
+        if (k) c.copy(kindCol[k - 1]);
+        else c.copy(cG).lerp(cH, THREE.MathUtils.smoothstep(y, 70, 220) * 0.85);
         c.multiplyScalar(0.94 + 0.06 * ny);
       });
-      const hi = new THREE.Mesh(freeOnUpload(g), groundMat);
-      hi.receiveShadow = true;
-      const lo = new THREE.Mesh(freeOnUpload(terrain.lowGeometry(i0, j0, i1, j1, 3)), groundMat);
-      lo.receiveShadow = true;
-      lo.visible = false;
+      const hi = dataFromGeo(g);
+      const lo = dataFromGeo(terrain.lowGeometry(i0, j0, i1, j1, 3));
       const rect = [terrain.x0 + i0 * terrain.cell, terrain.z0 + j0 * terrain.cell, terrain.x0 + i1 * terrain.cell, terrain.z0 + j1 * terrain.cell];
       terrainMeshes.set(j * CX + i, { hi, lo, rect });
     }
@@ -362,6 +421,7 @@ export function buildCity(data, terrain, opts) {
     skirt.quad([a[0] + ox, base, a[1] + oz], [b[0] + ox, base, b[1] + oz], [b[0] + ox, base + 22, b[1] + oz], [a[0] + ox, base + 22, a[1] + oz], C(PAL.slabDark), out);
   }
 
+  yield 'terrain';
   // ---------------- draped areas
   const drapeTri = (tri, yo, col) => {
     terrain.clipTriangle(tri, (piece, i, j) => {
@@ -371,6 +431,7 @@ export function buildCity(data, terrain, opts) {
     });
   };
   for (const a of areas) {
+    if (a.painted) continue;
     const contour = a.poly[0].map(([x, z]) => new THREE.Vector2(x, z));
     const holes = a.poly.slice(1).map((r) => r.map(([x, z]) => new THREE.Vector2(x, z)));
     let faces;
@@ -430,6 +491,7 @@ export function buildCity(data, terrain, opts) {
     for (let i = 0; i < pts.length - 1; i++) roadGrid.add(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], 3);
   }
 
+  yield 'ground';
   // ---------------- buildings
   const towers = data.towers.slice();
   const domes = [];
@@ -566,6 +628,7 @@ export function buildCity(data, terrain, opts) {
     }
   }
 
+  yield 'buildings';
   // ---------------- backyard sheds & parked cars (fuller blocks)
   const occupied = new PointHash(2.5);
   const rsh = mulberry32(99);
@@ -650,6 +713,7 @@ export function buildCity(data, terrain, opts) {
     B.geometry(cone, M.compose(V(t.x, body + 2.5, t.z), Q, V(t.r * 1.05, 5, t.r * 1.05)), C(PAL.lead));
   }
   for (const cr of data.crosses || []) {
+    if (/Millennium|Милениум/.test(cr.name)) continue; // lattice model in landmarks.js
     const B = chunk(cr.x, cr.z).build;
     B.yOff = T(cr.x, cr.z) - 0.5;
     const golden = /golden|злат/i.test(cr.name);
@@ -671,7 +735,16 @@ export function buildCity(data, terrain, opts) {
       const ga = T(ax, az), gb = T(bx, bz);
       const B = chunk((ax + bx) / 2, (az + bz) / 2).build;
       B.yOff = Math.min(ga, gb) - 1;
-      B.box((ax + bx) / 2, (az + bz) / 2, 0, len + wl.w * 0.9, wl.w, wl.h + Math.abs(ga - gb) + 1, Math.atan2(bz - az, bx - ax), col, NO);
+      const wallH = wl.h + Math.abs(ga - gb) + 1, ang = Math.atan2(bz - az, bx - ax);
+      B.box((ax + bx) / 2, (az + bz) / 2, 0, len + wl.w * 0.9, wl.w, wallH, ang, col, NO);
+      // battlements: merlons along the wall top
+      if (wl.w >= 2) {
+        const n = Math.floor(len / 2.6);
+        for (let k = 0; k < n; k++) {
+          const t = (k + 0.5) / n;
+          B.box(ax + (bx - ax) * t, az + (bz - az) * t, wallH, 1.3, wl.w + 0.1, 1.3, ang, col, NO);
+        }
+      }
     }
     for (const [x, z] of pts) {
       if (!inside(x, z)) continue;
@@ -681,6 +754,7 @@ export function buildCity(data, terrain, opts) {
     }
   }
 
+  yield 'cars';
   // ---------------- trees
   const addTree = (list, x, z, r, v) => chunk(x, z)[list].push([x, z, r, v]);
   const placeOk = (x, z, d) =>
@@ -707,16 +781,23 @@ export function buildCity(data, terrain, opts) {
     const x0 = Math.max(Math.min(...xs), -halfW), x1 = Math.min(Math.max(...xs), halfW);
     const z0 = Math.max(Math.min(...zs), -halfH), z1 = Math.min(Math.max(...zs), halfH);
     const forest = a.k === 'wood';
-    for (let x = x0; x < x1; x += step)
-      for (let z = z0; z < z1; z += step) {
-        if (rr() > prob) continue;
-        const px = x + (rr() - 0.5) * step * 0.9, pz = z + (rr() - 0.5) * step * 0.9;
-        if (!pipPoly(px, pz, a.poly)) continue;
-        const isC = rr() < cypressP;
-        const rad = isC ? 1.1 + rr() * 0.7 : rMin + rr() * rSpan;
-        if (!placeOk(px, pz, isC ? 2.2 : rad * (forest ? 1.25 : 1.15))) continue;
-        addTree(isC ? 'cyp' : 'trees', px, pz, rad, forest ? -rr() - 0.001 : rr());
+    // walk scanline spans instead of testing every point against the polygon
+    const cross = [];
+    for (let z = z0 + rr() * step * 0.5; z < z1; z += step) {
+      rowCrossings(a.poly, z, cross);
+      for (let k = 0; k + 1 < cross.length; k += 2) {
+        const sx0 = Math.max(cross[k], x0), sx1 = Math.min(cross[k + 1], x1);
+        for (let x = sx0 + rr() * step * 0.5; x < sx1; x += step) {
+          if (rr() > prob) continue;
+          const px = Math.min(Math.max(x + (rr() - 0.5) * step * 0.9, cross[k] + 0.6), cross[k + 1] - 0.6);
+          const pz = z + (rr() - 0.5) * step * 0.6;
+          const isC = rr() < cypressP;
+          const rad = isC ? 1.1 + rr() * 0.7 : rMin + rr() * rSpan;
+          if (!placeOk(px, pz, isC ? 2.2 : rad * (forest ? 1.25 : 1.15))) continue;
+          addTree(isC ? 'cyp' : 'trees', px, pz, rad, forest ? -rr() - 0.001 : rr());
+        }
       }
+    }
   }
   // street trees
   const rs = mulberry32(777);
@@ -741,46 +822,133 @@ export function buildCity(data, terrain, opts) {
   }
   // courtyard infill near buildings
   const greenGrid = new PolyGrid(40);
-  for (const a of areas) if (['wood', 'park', 'grass', 'scrub', 'cemetery', 'play', 'fortress'].includes(a.k)) greenGrid.add(a.poly, a);
+  for (const a of areas) if (!a.painted && ['wood', 'park', 'grass', 'scrub', 'cemetery', 'play', 'fortress'].includes(a.k)) greenGrid.add(a.poly, a);
+  const paintedAt = (x, z) => paint[Math.round((z - terrain.z0) / terrain.cell) * terrain.nx + Math.round((x - terrain.x0) / terrain.cell)];
   const ri = mulberry32(4242);
   for (let x = -halfW + 6; x < halfW - 6; x += 7)
     for (let z = -halfH + 6; z < halfH - 6; z += 7) {
       if (ri() > 0.3) continue;
       const px = x + (ri() - 0.5) * 6, pz = z + (ri() - 0.5) * 6;
-      if (greenGrid.hit(px, pz) || bGrid.hit(px, pz, 2.2) || blockGrid.hit(px, pz) || roadGrid.near(px, pz, 2.2)) continue;
+      if (paintedAt(px, pz) || greenGrid.hit(px, pz) || bGrid.hit(px, pz, 2.2) || blockGrid.hit(px, pz) || roadGrid.near(px, pz, 2.2)) continue;
       if (!bGrid.hit(px, pz, 14)) continue;
       const isC = ri() < 0.06;
       const rad = isC ? 1.1 + ri() * 0.5 : 2.3 + ri() * 1.8;
       if (occupied.tryAdd(px, pz, rad * 1.3)) addTree(isC ? 'cyp' : 'trees', px, pz, rad, ri());
     }
 
-  // tree geometry: hi = cluster of smooth lobes, lo = cheap single lobe
-  const lobes = [[0, 0, 0, 1], [0.55, -0.1, 0.25, 0.68], [-0.5, -0.05, -0.3, 0.7], [0.05, 0.45, -0.15, 0.66], [-0.2, -0.15, 0.55, 0.6]];
-  const blobHi = mergeGeometries(lobes.map(([x, y, z, s]) => new THREE.IcosahedronGeometry(s, 1).translate(x, y, z)));
-  const blobLo = mergeGeometries([new THREE.IcosahedronGeometry(1.12, 0), new THREE.IcosahedronGeometry(0.7, 0).translate(0.1, 0.5, 0)]);
-  const cypHi = mergeGeometries([new THREE.IcosahedronGeometry(1, 1).scale(1, 2.6, 1), new THREE.IcosahedronGeometry(0.7, 1).scale(1, 2.0, 1).translate(0, 1.9, 0)]);
-  const cypLo = new THREE.IcosahedronGeometry(1, 0).scale(1, 3.0, 1);
-  const treeMat = toonFoliage(clippingPlanes);
-  const mkTrees = (list, geo, cols, forestCols, hScale) => {
-    const mesh = new THREE.InstancedMesh(geo, treeMat, list.length);
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), ax = new THREE.Vector3(0, 1, 0);
-    const col = new THREE.Color();
+  yield 'trees';
+  // ---------------- pack per-chunk instance data
+  const blobH = (r, sy) => sy * 0.95 + 1.6 + r * 0.3;
+  const cypH = (r, sy) => sy * 2.6 + 0.5;
+  const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), sv = new THREE.Vector3(), pv = new THREE.Vector3(), ax = new THREE.Vector3(0, 1, 0);
+  const col = new THREE.Color();
+  const packTrees = (list, cols, forestCols, hScale) => {
+    const m = new Float32Array(list.length * 16), c = new Float32Array(list.length * 3);
     list.forEach(([x, z, r, v0], i) => {
       const forest = v0 < 0, v = Math.abs(v0);
       q.setFromAxisAngle(ax, v * 6.283);
       const sy = r * (0.85 + v * 0.2);
-      s.set(r, sy, r);
-      p.set(x, T(x, z) + hScale(r, sy), z);
-      mesh.setMatrixAt(i, m.compose(p, q, s));
+      mtx.compose(pv.set(x, T(x, z) + hScale(r, sy), z), q, sv.set(r, sy, r)).toArray(m, i * 16);
       const pal = forest ? forestCols : cols;
-      col.set(pal[Math.floor(v * 97) % pal.length]).offsetHSL((v - 0.5) * 0.02, 0, (((v * 31) % 1) - 0.5) * 0.06);
-      mesh.setColorAt(i, col);
+      col.set(pal[Math.floor(v * 97) % pal.length]).offsetHSL((v - 0.5) * 0.02, 0, (((v * 31) % 1) - 0.5) * 0.06).toArray(c, i * 3);
     });
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
+    return { m, c, n: list.length };
+  };
+  // far trees: a ~30% subset drawn larger so canopies still read as continuous
+  const farSubset = (list) => list.filter((t) => (Math.abs(t[3]) * 7.77) % 1 < 0.3).map(([x, z, r, v]) => [x, z, r * 1.55, v]);
+  const packSet = (list, cols, fcols, hScale) => (list.length ? { hi: packTrees(list, cols, fcols, hScale), far: packTrees(farSubset(list), cols, fcols, hScale) } : null);
+  const packCars = (list) => {
+    if (!list.length) return null;
+    const m = new Float32Array(list.length * 16), c = new Float32Array(list.length * 3);
+    list.forEach(([x, z, ang, v], i) => {
+      q.setFromAxisAngle(ax, -ang);
+      mtx.compose(pv.set(x, T(x, z) + 1.0, z), q, sv.set(1, 1, 1)).toArray(m, i * 16);
+      col.set(CAR_COLORS[Math.floor(v * CAR_COLORS.length)]).toArray(c, i * 3);
+    });
+    return { m, c, n: list.length };
+  };
+  const out = [];
+  let treeCount = 0, carCount = 0;
+  for (const [k, tm] of terrainMeshes) {
+    const c = chunks.get(k);
+    const d = { rect: tm.rect, y: T((tm.rect[0] + tm.rect[2]) / 2, (tm.rect[1] + tm.rect[3]) / 2), terrainHi: tm.hi, terrainLo: tm.lo, ground: null, build: null, trees: null, forest: null, cyp: null, cars: null };
+    if (c) {
+      if (!c.ground.empty) d.ground = c.ground.build();
+      if (!c.build.empty) d.build = c.build.build();
+      d.trees = packSet(c.trees.filter((t) => t[3] >= 0), PAL.trees, PAL.forest, blobH);
+      d.forest = packSet(c.trees.filter((t) => t[3] < 0), PAL.trees, PAL.forest, blobH);
+      d.cyp = packSet(c.cyp, PAL.cypress, PAL.cypress, cypH);
+      d.cars = packCars(c.cars);
+      treeCount += c.trees.length + c.cyp.length;
+      carCount += c.cars.length;
+    }
+    out.push(d);
+  }
+  yield 'pack';
+  return {
+    chunks: out,
+    skirt: skirt.build(),
+    roadList: roadList.map((r) => ({ k: r.k, w: r.w, b: r.b, kind: r.kind, pts: r.pts })),
+    stats: { buildings: buildings.length, trees: treeCount, parked: carCount, roads: roadList.length, chunks: chunks.size },
+  };
+}
+
+// Phase 2 (main thread): typed arrays → meshes, materials and LOD switching
+export function assembleCity(desc, opts) {
+  const { clippingPlanes } = opts;
+  const group = new THREE.Group();
+  const groundMat = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes });
+  // gentle moving glints on water (detected by its palette colour)
+  const waterLin = C(PAL.area.water), poolLin = C(PAL.area.pool);
+  groundMat.onBeforeCompile = (sh) => {
+    sh.uniforms.uTime = SHARED.uTime;
+    sh.uniforms.uWater = { value: new THREE.Vector3(waterLin.r, waterLin.g, waterLin.b) };
+    sh.uniforms.uPool = { value: new THREE.Vector3(poolLin.r, poolLin.g, poolLin.b) };
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWPos = position;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;\nuniform float uTime;\nuniform vec3 uWater, uPool;')
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        float wm = 1.0 - smoothstep(0.012, 0.045, min(distance(diffuseColor.rgb, uWater), distance(diffuseColor.rgb, uPool)));
+        if (wm > 0.0) {
+          vec2 p = vWPos.xz;
+          float fw = clamp(length(fwidth(p)) * 0.08, 0.0, 1.0);
+          // long streaks along the river's length (the Vardar runs west → east),
+          // sliding downstream; narrow across the current
+          float along = sin(p.x * 0.034 - uTime * 0.9 + sin(p.y * 0.045) * 1.6);
+          float across = sin(p.y * 0.45 + sin(p.x * 0.012) * 2.2);
+          float w1 = along * across;
+          float w2 = sin(p.x * 0.012 - uTime * 0.25 + p.y * 0.01);
+          float glint = smoothstep(0.5, 0.92, w1) * (1.0 - fw);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86, 0.95, 1.0), glint * 0.42 * wm);
+          diffuseColor.rgb *= 1.0 - wm * 0.06 * w2;
+        }`);
+  };
+  groundMat.customProgramCacheKey = () => 'ground-water-v3';
+
+  const facadeMat = facadeMaterial(clippingPlanes);
+  const treeMat = toonFoliage(clippingPlanes);
+  const carMat = new THREE.MeshLambertMaterial({ clippingPlanes });
+  // tree geometry per detail level
+  const lobes = [[0, 0, 0, 1], [0.55, -0.1, 0.25, 0.68], [-0.5, -0.05, -0.3, 0.7], [0.05, 0.45, -0.15, 0.66], [-0.2, -0.15, 0.55, 0.6]];
+  const blobHi = mergeGeometries(lobes.map(([x, y, z, s]) => new THREE.IcosahedronGeometry(s, 1).translate(x, y, z)));
+  const blobMid = mergeGeometries(lobes.slice(0, 3).map(([x, y, z, s]) => new THREE.IcosahedronGeometry(s * 1.08, 1).translate(x, y, z)));
+  const blobLo = mergeGeometries([new THREE.IcosahedronGeometry(1.12, 0), new THREE.IcosahedronGeometry(0.7, 0).translate(0.1, 0.5, 0)]);
+  const blobFar = new THREE.IcosahedronGeometry(1.15, 0);
+  const cypHi = mergeGeometries([new THREE.IcosahedronGeometry(1, 1).scale(1, 2.6, 1), new THREE.IcosahedronGeometry(0.7, 1).scale(1, 2.0, 1).translate(0, 1.9, 0)]);
+  const cypLo = new THREE.IcosahedronGeometry(1, 0).scale(1, 3.0, 1);
+  const carGeo = carGeometry();
+
+  const inst = (geo, mat, pk) => {
+    const mesh = new THREE.InstancedMesh(geo, mat, 0);
+    mesh.count = pk.n;
+    mesh.instanceMatrix = new THREE.InstancedBufferAttribute(pk.m, 16);
+    mesh.instanceColor = new THREE.InstancedBufferAttribute(pk.c, 3);
     mesh.computeBoundingSphere();
     mesh.instanceMatrix.onUpload(function () { this.array = null; });
     mesh.instanceColor.onUpload(function () { this.array = null; });
+    mesh.castShadow = mesh.receiveShadow = true;
     return mesh;
   };
   // another detail level reusing the same per-instance GPU buffers
@@ -793,76 +961,42 @@ export function buildCity(data, terrain, opts) {
     m.castShadow = m.receiveShadow = true;
     return m;
   };
-  const blobH = (r, sy) => sy * 0.95 + 1.6 + r * 0.3;
-  const cypH = (r, sy) => sy * 2.6 + 0.5;
 
-  // ---------------- assemble chunks (3 detail levels per chunk)
-  const facadeMat = facadeMaterial(clippingPlanes);
-  const blobFar = new THREE.IcosahedronGeometry(1.15, 0);
-  const cypFar = new THREE.IcosahedronGeometry(1, 0).scale(1, 3.0, 1);
-  // far trees: a ~30% subset drawn larger so canopies still read as continuous
-  const farSubset = (list) => list.filter((t) => (Math.abs(t[3]) * 7.77) % 1 < 0.3).map(([x, z, r, v]) => [x, z, r * 1.55, v]);
   const lodChunks = [];
-  let treeCount = 0, carCount = 0;
-  const carGeo = carGeometry();
-  const carMat = new THREE.MeshLambertMaterial({ clippingPlanes });
-  for (const [k, tm] of terrainMeshes) {
-    const c = chunks.get(k);
-    const L = { rect: tm.rect, y: T((tm.rect[0] + tm.rect[2]) / 2, (tm.rect[1] + tm.rect[3]) / 2), terrainHi: tm.hi, terrainLo: tm.lo, ground: null, tex: null, hi: [], lo: [], far: [] };
-    group.add(tm.hi, tm.lo);
-    if (c && !c.ground.empty) {
-      L.ground = new THREE.Mesh(c.ground.build(), groundMat);
+  for (const d of desc.chunks) {
+    const L = { rect: d.rect, y: d.y, terrainHi: new THREE.Mesh(geoFromData(d.terrainHi), groundMat), terrainLo: new THREE.Mesh(geoFromData(d.terrainLo), groundMat), ground: null, tex: null, hi: [], lo: [], far: [] };
+    L.terrainHi.receiveShadow = L.terrainLo.receiveShadow = true;
+    L.terrainLo.visible = false;
+    group.add(L.terrainHi, L.terrainLo);
+    if (d.ground) {
+      L.ground = new THREE.Mesh(geoFromData(d.ground), groundMat);
       L.ground.receiveShadow = true;
       group.add(L.ground);
     }
-    if (c && !c.build.empty) {
-      const m = new THREE.Mesh(c.build.build(), facadeMat);
+    if (d.build) {
+      const m = new THREE.Mesh(geoFromData(d.build), facadeMat);
       m.castShadow = m.receiveShadow = true;
       group.add(m);
     }
-    if (c) {
-      if (c.trees.length) {
-        L.hi.push(mkTrees(c.trees, blobHi, PAL.trees, PAL.forest, blobH));
-        L.lo.push(share(L.hi[L.hi.length - 1], blobLo));
-        const f = farSubset(c.trees);
-        if (f.length) L.far.push(mkTrees(f, blobFar, PAL.trees, PAL.forest, blobH));
-      }
-      if (c.cyp.length) {
-        L.hi.push(mkTrees(c.cyp, cypHi, PAL.cypress, PAL.cypress, cypH));
-        L.lo.push(share(L.hi[L.hi.length - 1], cypLo));
-        const f = farSubset(c.cyp);
-        if (f.length) L.far.push(mkTrees(f, cypFar, PAL.cypress, PAL.cypress, cypH));
-      }
-      treeCount += c.trees.length + c.cyp.length;
+    for (const [set, hiGeo, loGeo, farGeo] of [[d.trees, blobHi, blobLo, blobFar], [d.forest, blobMid, blobLo, blobFar], [d.cyp, cypHi, cypLo, cypLo]]) {
+      if (!set) continue;
+      const hi = inst(hiGeo, treeMat, set.hi);
+      L.hi.push(hi);
+      L.lo.push(share(hi, loGeo));
+      if (set.far.n) L.far.push(inst(farGeo, treeMat, set.far));
     }
-    if (c && c.cars.length) {
-      const m = new THREE.InstancedMesh(carGeo, carMat, c.cars.length);
-      const mx = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), pos = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
-      const col = new THREE.Color();
-      c.cars.forEach(([x, z, ang, v], i) => {
-        q.setFromAxisAngle(up, -ang);
-        m.setMatrixAt(i, mx.compose(pos.set(x, T(x, z) + 1.0, z), q, one));
-        m.setColorAt(i, col.set(CAR_COLORS[Math.floor(v * CAR_COLORS.length)]));
-      });
-      m.computeBoundingSphere();
-      m.receiveShadow = true;
+    if (d.cars) {
+      const m = inst(carGeo, carMat, d.cars);
+      m.castShadow = false;
       L.hi.push(m);
-      carCount += c.cars.length;
     }
     for (const m of [...L.hi, ...L.lo, ...L.far]) group.add(m);
     lodChunks.push(L);
   }
-  const skirtMesh = new THREE.Mesh(skirt.build(), new THREE.MeshLambertMaterial({ vertexColors: true }));
-  group.add(skirtMesh);
+  group.add(new THREE.Mesh(geoFromData(desc.skirt), new THREE.MeshLambertMaterial({ vertexColors: true })));
 
-  const { updateLOD, bakeGround } = makeLOD(lodChunks, group, clippingPlanes);
-  const chunkCount = chunks.size;
-  chunks.clear();
-
-  return {
-    group, updateLOD, bakeGround, roadList,
-    stats: { buildings: buildings.length, trees: treeCount, parked: carCount, roads: roadList.length, chunks: chunkCount },
-  };
+  const { updateLOD, bakeGround, setLODScale } = makeLOD(lodChunks, group, clippingPlanes);
+  return { group, updateLOD, bakeGround, setLODScale, roadList: desc.roadList, stats: desc.stats };
 }
 
 // LOD switching + far-ground baking. Kept outside buildCity so its closures
@@ -927,7 +1061,9 @@ function makeLOD(lodChunks, group, clippingPlanes) {
   }
 
   const tmp = new THREE.Vector3();
-  const LOD = { treesHi: 1250, treesLo: 3600, ground: 4300 };
+  const LOD0 = { treesHi: 1250, treesLo: 3600, ground: 4300 };
+  const LOD = { ...LOD0 };
+  function setLODScale(k) { for (const key in LOD0) LOD[key] = LOD0[key] * k; }
   function updateLOD(camera) {
     const p = camera.position;
     for (const L of lodChunks) {
@@ -944,5 +1080,5 @@ function makeLOD(lodChunks, group, clippingPlanes) {
       L.terrainLo.visible = !!farGround;
     }
   }
-  return { updateLOD, bakeGround };
+  return { updateLOD, bakeGround, setLODScale };
 }

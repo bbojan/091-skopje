@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from './geo.js';
 import { carGeometry, CAR_COLORS } from './city.js';
+import { glowTexture } from './sky.js';
 
 // Agents walk/drive back and forth along OSM polylines.
 class Paths {
@@ -145,5 +146,22 @@ export function createTraffic(city, terrain, opts = {}) {
     for (const m of [carMesh, busMesh, torsoMesh, headMesh]) m.instanceMatrix.needsUpdate = true;
   }
   update(0.001);
-  return { group, update, counts: { cars: cars.length, people: people.length } };
+  // headlights: an additive glow on the road ahead, sharing the car transforms
+  const beamGeo = new THREE.PlaneGeometry(11, 5.5).rotateX(-Math.PI / 2).translate(7.5, 0.35, 0);
+  const beamMat = new THREE.MeshBasicMaterial({ map: glowTexture(), color: '#ffe2a8', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, clippingPlanes: opts.clippingPlanes });
+  const beams = [];
+  for (const src of [carMesh, busMesh]) {
+    const b = new THREE.InstancedMesh(beamGeo, beamMat, src.count);
+    b.instanceMatrix = src.instanceMatrix;
+    b.frustumCulled = false;
+    b.renderOrder = 2;
+    b.visible = false;
+    group.add(b);
+    beams.push(b);
+  }
+  function setNight(f) {
+    beamMat.opacity = 0.7 * THREE.MathUtils.smoothstep(f, 0.15, 0.9);
+    for (const b of beams) b.visible = f > 0.1;
+  }
+  return { group, update, setNight, glows: beams, counts: { cars: cars.length, people: people.length } };
 }

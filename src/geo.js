@@ -191,3 +191,20 @@ export class PointHash {
     return true;
   }
 }
+
+// x coordinates where row z crosses the polygon's rings (even-odd), sorted.
+// Pairs [out[0], out[1]], [out[2], out[3]] … are the inside spans.
+export function rowCrossings(poly, z, out = []) {
+  out.length = 0;
+  for (const ring of poly) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const az = ring[j][1], bz = ring[i][1];
+      if ((az > z) !== (bz > z)) {
+        const ax = ring[j][0], bx = ring[i][0];
+        out.push(ax + ((z - az) * (bx - ax)) / (bz - az));
+      }
+    }
+  }
+  out.sort((a, b) => a - b);
+  return out;
+}

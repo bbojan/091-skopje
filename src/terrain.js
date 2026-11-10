@@ -76,7 +76,7 @@ export class Terrain {
         pos[k] = this.x0 + gi * this.cell; pos[k + 1] = y; pos[k + 2] = this.z0 + gj * this.cell;
         const n = this.normal(gi, gj);
         nor[k] = n.x; nor[k + 1] = n.y; nor[k + 2] = n.z;
-        colorFn(c, y, n.y);
+        colorFn(c, y, n.y, gi, gj);
         col[k] = c.r; col[k + 1] = c.g; col[k + 2] = c.b;
       }
     const idx = [];

@@ -176,6 +176,7 @@ export function createFlight({ scene, camera, terrain, bounds }) {
   let invertY = false;
   const st = { active: false, pos: new THREE.Vector3(), yaw: 0, pitch: 0, bank: 0, speed: SPEED, warn: '' };
   const input = { left: 0, right: 0, up: 0, down: 0, boost: false };
+  const pad = { turn: 0, climb: 0, boost: false }; // analog gamepad input, set each frame
   const camPos = new THREE.Vector3(), look = new THREE.Vector3();
   const fwd = new THREE.Vector3();
 
@@ -223,8 +224,9 @@ export function createFlight({ scene, camera, terrain, bounds }) {
   function update(dt) {
     if (!st.active) return;
     dt = Math.min(dt, 0.05);
-    let turn = input.right - input.left;
-    let climb = (input.up - input.down) * (invertY ? -1 : 1);
+    let turn = THREE.MathUtils.clamp(input.right - input.left + pad.turn, -1, 1);
+    let climb = THREE.MathUtils.clamp(input.up - input.down + pad.climb, -1, 1) * (invertY ? -1 : 1);
+    const boosting = input.boost || pad.boost;
     st.warn = '';
 
     // keep inside the map: steer back toward the centre near the edges
@@ -244,7 +246,7 @@ export function createFlight({ scene, camera, terrain, bounds }) {
     if (agl < MIN_AGL + 25) { climb = Math.max(climb, (MIN_AGL + 25 - agl) / 25); if (agl < MIN_AGL + 5) st.warn = 'Премногу ниско!'; }
     if (st.pos.y > MAX_ALT) climb = Math.min(climb, -0.5);
 
-    st.speed += ((input.boost ? BOOST : SPEED) - st.speed) * (1 - Math.exp(-dt * 1.6));
+    st.speed += ((boosting ? BOOST : SPEED) - st.speed) * (1 - Math.exp(-dt * 1.6));
     st.yaw += turn * TURN * dt * (0.8 + 0.2 * (SPEED / st.speed));
     st.bank += (-turn * 0.65 - st.bank) * (1 - Math.exp(-dt * 3));
     st.pitch += (climb * 0.32 - st.pitch) * (1 - Math.exp(-dt * 2.2));
@@ -257,7 +259,7 @@ export function createFlight({ scene, camera, terrain, bounds }) {
 
     plane.position.copy(st.pos);
     plane.rotation.set(st.pitch, -st.yaw, st.bank, 'YXZ');
-    plane.userData.prop.rotation.z += dt * (input.boost ? 60 : 35);
+    plane.userData.prop.rotation.z += dt * (boosting ? 60 : 35);
 
     // chase camera: behind and above, looking a little ahead
     const back = 62 + (st.speed - SPEED) * 0.12;
@@ -272,12 +274,13 @@ export function createFlight({ scene, camera, terrain, bounds }) {
   }
 
   return {
-    plane, start, stop, update, input,
+    plane, start, stop, update, input, pad,
     setInvertY(v) { invertY = !!v; },
     get active() { return st.active; },
+    get yaw() { return st.yaw; },
     get pos() { return st.pos; },
     get hud() {
-      return { kmh: Math.round(st.speed * 3.6), alt: Math.round(st.pos.y - terrain.at(st.pos.x, st.pos.z)), warn: st.warn, boost: input.boost };
+      return { kmh: Math.round(st.speed * 3.6), alt: Math.round(st.pos.y - terrain.at(st.pos.x, st.pos.z)), warn: st.warn, boost: input.boost || pad.boost };
     },
   };
 }

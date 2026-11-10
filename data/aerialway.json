@@ -1,0 +1,104 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-10T21:56:14Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 1830721335,
+  "lat": 41.9747494,
+  "lon": 21.4056061,
+  "tags": {
+    "aerialway": "pylon"
+  }
+},
+{
+  "type": "node",
+  "id": 1830721339,
+  "lat": 41.9655218,
+  "lon": 21.3946193,
+  "tags": {
+    "aerialway": "station",
+    "int_name": "Zhichnichka stanica - vrv Vodno",
+    "name": "Жичничка станица - врв Водно",
+    "public_transport": "station"
+  }
+},
+{
+  "type": "node",
+  "id": 1830721340,
+  "lat": 41.9762863,
+  "lon": 21.4074550,
+  "tags": {
+    "aerialway": "station",
+    "int_name": "Zhichnica do Mileniumski krst - Vodno",
+    "name": "Жичница до Милениумски крст - Водно",
+    "name:en": "Ropeway to Millennium Cross - Vodno",
+    "public_transport": "station"
+  }
+},
+{
+  "type": "node",
+  "id": 12656159453,
+  "lat": 41.9758211,
+  "lon": 21.4068953,
+  "tags": {
+    "aerialway": "pylon"
+  }
+},
+{
+  "type": "node",
+  "id": 13655015268,
+  "lat": 41.9727664,
+  "lon": 21.4032206,
+  "tags": {
+    "aerialway": "pylon"
+  }
+},
+{
+  "type": "way",
+  "id": 172141444,
+  "bounds": {
+    "minlat": 41.9655218,
+    "minlon": 21.3946193,
+    "maxlat": 41.9762863,
+    "maxlon": 21.4074550
+  },
+  "nodes": [
+    1830721340,
+    12656159453,
+    1830721335,
+    13655015268,
+    1830721338,
+    1830721341,
+    1830721342,
+    1830721333,
+    1830721343,
+    1830721339
+  ],
+  "geometry": [
+    { "lat": 41.9762863, "lon": 21.4074550 },
+    { "lat": 41.9758211, "lon": 21.4068953 },
+    { "lat": 41.9747494, "lon": 21.4056061 },
+    { "lat": 41.9727664, "lon": 21.4032206 },
+    { "lat": 41.9716677, "lon": 21.4019161 },
+    { "lat": 41.9707099, "lon": 21.4007261 },
+    { "lat": 41.9691465, "lon": 21.3989452 },
+    { "lat": 41.9668147, "lon": 21.3961273 },
+    { "lat": 41.9663824, "lon": 21.3956460 },
+    { "lat": 41.9655218, "lon": 21.3946193 }
+  ],
+  "tags": {
+    "aerialway": "gondola",
+    "aerialway:capacity": "1160",
+    "layer": "1",
+    "name": "Вод на жичницата „Милениумски крст“"
+  }
+}
+
+  ]
+}
