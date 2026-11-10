@@ -18,7 +18,9 @@ const status = document.getElementById('status');
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 // Render resolution adapts to frame time. 1.5x is the top level: still frames
 // are supersampled by temporal accumulation anyway. Phones start lower.
-const MOBILE = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
+const MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) // iPadOS reports a Mac
+  || matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 600;
 const QUALITY = [1.5, 1.25, 1.0, 0.8].map((q) => Math.min(window.devicePixelRatio, q));
 let qLevel = MOBILE ? 2 : 0;
 let dpr = QUALITY[qLevel];
@@ -145,7 +147,7 @@ async function init() {
   // build on the main thread in stages, letting the progress bar repaint between them
   // (a background worker gets throttled to a fraction of this speed)
   terrain = new Terrain(tm, new Uint16Array(tb));
-  const steps = computeCitySteps(data, terrain);
+  const steps = computeCitySteps(data, terrain, { density: MOBILE ? 0.5 : 1 });
   let desc;
   for (;;) {
     const r = steps.next();
@@ -170,8 +172,8 @@ async function init() {
   if (MOBILE) city.setLODScale(0.65);
   showProgress('assemble', 1);
   await nextFrame();
-  city.bakeGround(renderer);
-  traffic = createTraffic(city, terrain, { clippingPlanes: planes });
+  city.bakeGround(renderer, MOBILE ? 256 : 512);
+  traffic = createTraffic(city, terrain, MOBILE ? { clippingPlanes: planes, cars: 2500, people: 5000 } : { clippingPlanes: planes });
   scene.add(traffic.group);
   clouds = createClouds({ hw: W / 2, hh: H / 2 }, 1080);
   birds = createBirds(terrain, { hw: W / 2, hh: H / 2 }, planes);
@@ -195,7 +197,8 @@ async function init() {
   console.log('city ready in', Math.round(performance.now() - t0), 'ms', city.stats, traffic.counts);
 
   const maxTex = renderer.capabilities.maxTextureSize;
-  sun.shadow.mapSize.set(Math.min(8192, maxTex), Math.min(8192, maxTex));
+  const shadowRes = Math.min(MOBILE ? 2048 : 8192, maxTex);
+  sun.shadow.mapSize.set(shadowRes, shadowRes);
   sun.shadow.bias = -0.0003;
   sun.shadow.normalBias = 0.5;
   sun.shadow.radius = 2;

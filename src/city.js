@@ -321,7 +321,8 @@ export function computeCity(data, terrain, opts = {}) {
   for (;;) { const r = it.next(); if (r.done) return r.value; }
 }
 export function* computeCitySteps(data, terrain, opts = {}) {
-  const { chunkSize = 1000 } = opts;
+  // density < 1 thins out trees and parked cars (lighter memory profile for phones)
+  const { chunkSize = 1000, density = 1 } = opts;
   const { w: W, h: H } = data.meta;
   const halfW = W / 2, halfH = H / 2;
   const inside = (x, z, m = 0) => Math.abs(x) < halfW - m && Math.abs(z) < halfH - m;
@@ -662,7 +663,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
       const tx = dx / len, tz = dz / len;
       for (let t = 10; t < len - 10; t += 5.6)
         for (const sd of [-1, 1]) {
-          if (rpk() > 0.2) continue;
+          if (rpk() > 0.2 * density) continue;
           const x = ax + tx * t - tz * off * sd, z = az + tz * t + tx * off * sd;
           if (bGrid.hit(x, z, 1)) continue;
           parkAt(x, z, Math.atan2(tz, tx));
@@ -678,7 +679,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     for (let v = -ob.W + 2.6; v < ob.W - 2.4; v += 16)
       for (const row of [0, 5.2])
         for (let u = -ob.L + 1.4; u < ob.L - 1.3; u += 2.7) {
-          if (rpk() > 0.62) continue;
+          if (rpk() > 0.62 * density) continue;
           const vv = v + row;
           const x = ob.c[0] + ob.a[0] * u + ob.b[0] * vv, z = ob.c[1] + ob.a[1] * u + ob.b[1] * vv;
           if (!pipPoly(x + ob.b[0] * 2.2, z + ob.b[1] * 2.2, a.poly) || !pipPoly(x - ob.b[0] * 2.2, z - ob.b[1] * 2.2, a.poly)) continue;
@@ -775,7 +776,8 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     const d = DENS[a.k];
     if (!d) continue;
     if (a.k === 'grass' && a.a < 250) continue;
-    const [step, prob, cypressP, rMin, rSpan] = d;
+    const [step0, prob, cypressP, rMin, rSpan] = d;
+    const step = step0 / Math.sqrt(density);
     const rr = mulberry32(Math.floor(a.a * 13) + a.poly[0].length);
     const xs = a.poly[0].map((p) => p[0]), zs = a.poly[0].map((p) => p[1]);
     const x0 = Math.max(Math.min(...xs), -halfW), x1 = Math.min(Math.max(...xs), halfW);
@@ -811,7 +813,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
       const nx = -dz / len, nz = dx / len;
       for (let t = 4; t < len - 3; t += 8.5) {
         for (const sd of [-1, 1]) {
-          if (rs() > (r.kind === 'major' ? 0.6 : 0.42)) continue;
+          if (rs() > (r.kind === 'major' ? 0.6 : 0.42) * density) continue;
           const px = ax + (dx / len) * t + nx * off * sd, pz = az + (dz / len) * t + nz * off * sd;
           const rad = 2.2 + rs() * 1.4;
           if (!inside(px, pz, 4) || bGrid.hit(px, pz, 1.6) || blockGrid.hit(px, pz) || roadGrid.near(px, pz, 0.2) || !occupied.tryAdd(px, pz, 5)) continue;
@@ -827,7 +829,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
   const ri = mulberry32(4242);
   for (let x = -halfW + 6; x < halfW - 6; x += 7)
     for (let z = -halfH + 6; z < halfH - 6; z += 7) {
-      if (ri() > 0.3) continue;
+      if (ri() > 0.3 * density) continue;
       const px = x + (ri() - 0.5) * 6, pz = z + (ri() - 0.5) * 6;
       if (paintedAt(px, pz) || greenGrid.hit(px, pz) || bGrid.hit(px, pz, 2.2) || blockGrid.hit(px, pz) || roadGrid.near(px, pz, 2.2)) continue;
       if (!bGrid.hit(px, pz, 14)) continue;
