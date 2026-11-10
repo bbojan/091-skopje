@@ -1,0 +1,20 @@
+{
+  "name": "091-skopje",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "download": "node scripts/download.mjs data/skopje_raw.json",
+    "terrain": "node scripts/terrain.mjs",
+    "data": "node scripts/prepare.mjs data/skopje_raw.json public/skopje.json",
+    "dev": "vite --port 5173",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.7"
+  }
+}

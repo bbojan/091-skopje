@@ -1,0 +1,24 @@
+[out:json][timeout:300];
+(
+  way["building"];
+  relation["building"];
+  way["building:part"];
+  way["highway"];
+  way["railway"];
+  way["landuse"]; relation["landuse"];
+  way["leisure"]; relation["leisure"];
+  way["natural"]; relation["natural"];
+  way["waterway"];
+  way["amenity"~"parking|school|university|place_of_worship|grave_yard"];
+  way["place"~"square"];
+  way["area:highway"];
+  way["man_made"~"bridge|pier"];
+  way["historic"]; 
+  way["barrier"~"city_wall|wall"];
+  node["natural"="tree"];
+  node["man_made"~"cross|tower|mast"];
+  way["man_made"~"cross"];
+  node["summit:cross"];
+  node["natural"="peak"];
+);
+out geom;

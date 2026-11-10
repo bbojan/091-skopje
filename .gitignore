@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+# raw downloads – regenerate with `npm run download`, `npm run terrain`
+data/*.json
+data/terrarium/
+data/*.log
