@@ -166,6 +166,30 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 - Fonts (Lora, Rubik Mono One) load from Google Fonts under the SIL Open Font License.
 - three.js and Vite are MIT licensed.
 
+## How to verify
+
+- **Pixel identity** (clear weather, summer, memory saver off must not change): paste
+  `scripts/browser/pixel-check.js` into the console on `npm run dev`, set clear + summer
+  (the snippet's header has the one-liner), run `await __px.record()` on the old code, make
+  the change, reload, paste again and run `await __px.compare()`. Each of the 9 views reports
+  `{over2, max}` (pixels differing by more than 2/255, largest difference); expect 0 except a
+  few hundred pixels around the moving gondola cabins. References live in IndexedDB `px-ref`.
+  The page must be visible (it waits for the app's frames); two runs of the same code gave 0
+  on all 9 views, in ~12 s.
+- **Hidden or collapsed browser pane**: requestAnimationFrame and timers are throttled and
+  screenshots can come back empty. Drive the app by hand instead: step the systems yourself
+  (e.g. `__dbg.world.walk.update(dt)`, then `__dbg.ink.render(__dbg.scene, __dbg.camera, false)`
+  a few times) and read pixels from `renderer.domElement.toDataURL()`. To look at such frames,
+  run `node scripts/browser/shot-sink.ts <scratch folder>` and POST the data URL to
+  `http://127.0.0.1:5199/<name>` (example in the file); then open the saved JPEG.
+- **GPU time**: `EXT_disjoint_timer_query_webgl2` around `ink.render`; frame times in a hidden
+  pane mean nothing.
+- **Memory** (memory saver): was measured by building the city in Node with the same code
+  (that script was not kept); real phones are still on the "Not verified" list below.
+- **Translations**: `npm run typecheck` catches a missing key; `npm run strings` then
+  `docs/translations/index.html` (open on the dev server) shows all strings side by side,
+  with notes and flagged ones.
+
 ## Not verified yet
 
 - Real iPhone/iPad (memory limits ~1–1.5 GB per tab) — only emulated.

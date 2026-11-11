@@ -7,6 +7,7 @@
     "download": "node scripts/download.ts data/skopje_raw.json",
     "terrain": "node scripts/terrain.ts",
     "data": "node scripts/prepare.ts data/skopje_raw.json public/skopje.json",
+    "strings": "node scripts/strings.ts",
     "dev": "vite --port 5173",
     "typecheck": "tsc -p tsconfig.json && tsc -p scripts/tsconfig.json",
     "build": "vite build",

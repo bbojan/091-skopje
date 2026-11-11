@@ -16,6 +16,7 @@ npm run build        # static site → dist/ (relative paths, Pages-ready)
 npm run download     # OSM via Overpass → data/skopje_raw.json (not in git, ~25 MB)
 npm run terrain      # AWS Terrarium elevation tiles → public/terrain.bin/.json
 npm run data         # data/skopje_raw.json (+ data/aerialway.json) → public/skopje.json
+npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js (translation review page)
 ```
 
 - `public/skopje.json`, `public/terrain.*` are committed, so a fresh clone runs
@@ -67,6 +68,7 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   (`erasableSyntaxOnly`): no `enum`, `namespace` or constructor parameter properties.
   Type-only imports use `import type` (`verbatimModuleSyntax`).
 - Every translation must have every key English has: a missing one fails `npm run typecheck`.
+- After changing UI strings run `npm run strings`, so the review page (`docs/translations/`) stays current.
 
 ## Weather
 
@@ -118,7 +120,8 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
 - OSM attribution must stay visible (ODbL), also on mobile.
 - **Ask the owner before every `git push`** (it deploys the live site). Commits end with
   the Co-Authored-By line given by Claude Code.
-- Verify visual changes in the browser before reporting them done; measure GPU time
+- Verify visual changes in the browser before reporting them done (tools and tricks: "How to verify"
+  in docs/NOTES.md, `scripts/browser/`); measure GPU time
   with `EXT_disjoint_timer_query_webgl2` (hidden panes throttle rAF/timers).
 - Keep load yielding with `nextFrame()` (works in hidden tabs); don't move the build
   into a Web Worker — workers ran ~7× slower (background throttling).
