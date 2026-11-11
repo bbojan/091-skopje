@@ -245,7 +245,14 @@ export const SHARED = {
   uAutumn: { value: 0 },
   uWinter: { value: 0 },
   uSpring: { value: 0 },
+  // burnt patches left by fires (fire.ts): x, z, radius, amount 0…1; uBurnOn 0 = none, code path skipped
+  uBurn: { value: Array.from({ length: 6 }, () => new THREE.Vector4()) },
+  uBurnOn: { value: 0 },
 };
+/** How strongly a point on the map plane is burnt, 0…1 (expects uBurn; `edge` = where the fade starts, share of the radius). */
+const BURN_AT = (xz: string, edge: number) => /* glsl */ `
+    float burn = 0.0;
+    for (int i = 0; i < 6; i++) burn = max(burn, uBurn[i].w * (1.0 - smoothstep(uBurn[i].z * ${edge.toFixed(2)}, uBurn[i].z, distance(${xz}, uBurn[i].xy))));`;
 
 // ---------------------------------------------------------------- weather in the ground shader
 // Road colours (linear), to keep roads as dark slush instead of white under snow.
@@ -318,6 +325,8 @@ function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boole
   sh.uniforms.uWinter = SHARED.uWinter;
   sh.uniforms.uSpring = SHARED.uSpring;
   sh.uniforms.uRoad = { value: ROAD_LIN };
+  sh.uniforms.uBurn = SHARED.uBurn;
+  sh.uniforms.uBurnOn = SHARED.uBurnOn;
   const waterLin = C(PAL.area.water), poolLin = C(PAL.area.pool);
   sh.uniforms.uWater = { value: new THREE.Vector3(waterLin.r, waterLin.g, waterLin.b) };
   sh.uniforms.uPool = { value: new THREE.Vector3(poolLin.r, poolLin.g, poolLin.b) };
@@ -331,11 +340,20 @@ function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boole
       uniform float uTime, uWet, uSnow, uSnowLine, uAutumn, uWinter, uSpring;
       uniform vec3 uWater, uPool, uPuddle;
       uniform vec3 uRoad[${ROAD_LIN.length}];
+      uniform vec4 uBurn[6];
+      uniform float uBurnOn;
       ${WX_NOISE}`)
     .replace('#include <color_fragment>', `#include <color_fragment>
       vec3 raw = diffuseColor.rgb;
       float wm = ${water ? '1.0 - smoothstep(0.012, 0.045, min(distance(raw, uWater), distance(raw, uPool)))' : '0.0'};
       ${SEASON_GROUND}
+      if (uBurnOn > 0.0) {
+        // ash and soot where a fire burned, with a ragged edge
+        vec2 bq = vWPos.xz + (vec2(wxNoise(vWPos.xz * 0.11), wxNoise(vWPos.xz * 0.11 + 31.0)) - 0.5) * 14.0;
+        ${BURN_AT('bq', 0.7)}
+        vec3 ash = mix(vec3(0.045, 0.04, 0.036), vec3(0.17, 0.155, 0.14), wxNoise(vWPos.xz * 0.55));
+        diffuseColor.rgb = mix(diffuseColor.rgb, ash, burn * 0.85 * (1.0 - wm));
+      }
       ${WX_GROUND}
       ${water ? WATER_GLINT : ''}`);
 }
@@ -443,8 +461,10 @@ function toonFoliage(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial 
     sh.uniforms.uWinter = SHARED.uWinter;
     sh.uniforms.uSpring = SHARED.uSpring;
     sh.uniforms.uSnowLine = SHARED.uSnowLine;
+    sh.uniforms.uBurn = SHARED.uBurn;
+    sh.uniforms.uBurnOn = SHARED.uBurnOn;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aEvergreen;\nvarying float vEvergreen;\nvarying float vSnowY;\nvarying float vSnowN;')
+      .replace('#include <common>', '#include <common>\nattribute float aEvergreen;\nvarying float vEvergreen;\nvarying float vSnowY;\nvarying float vSnowN;\nvarying vec2 vBurnXZ;')
       .replace('#include <begin_vertex>', `#include <begin_vertex>
         vEvergreen = aEvergreen;
         vec4 sWp = vec4(transformed, 1.0);
@@ -452,9 +472,10 @@ function toonFoliage(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial 
           sWp = instanceMatrix * sWp;
         #endif
         vSnowY = (modelMatrix * sWp).y;
+        vBurnXZ = (modelMatrix * sWp).xz;
         vSnowN = normal.y;`);
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vEvergreen;\nvarying float vSnowY;\nvarying float vSnowN;\nuniform float uSnow, uSnowLine, uAutumn, uWinter, uSpring;')
+      .replace('#include <common>', '#include <common>\nvarying float vEvergreen;\nvarying float vSnowY;\nvarying float vSnowN;\nvarying vec2 vBurnXZ;\nuniform float uSnow, uSnowLine, uAutumn, uWinter, uSpring, uBurnOn;\nuniform vec4 uBurn[6];')
       .replace('#include <color_fragment>', `#include <color_fragment>
         if ((uAutumn > 0.0 || uWinter > 0.0 || uSpring > 0.0) && vEvergreen < 0.5) {
           // each tree picks its own shade from its (random) instance colour
@@ -468,6 +489,12 @@ function toonFoliage(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial 
           vec3 blossom = fract(h * 3.7) < 0.5 ? vec3(0.92, 0.52, 0.62) : vec3(0.95, 0.90, 0.92);
           vec3 fresh = leaf * vec3(1.12, 1.25, 0.72) + vec3(0.03, 0.05, 0.0);
           diffuseColor.rgb = mix(diffuseColor.rgb, h < 0.3 ? blossom : fresh, uSpring);
+        }
+        if (uBurnOn > 0.0) {
+          // charred trees where a fire burned: black to scorched brown, tree by tree
+          ${BURN_AT('vBurnXZ', 0.8)}
+          float hb = fract(sin(dot(diffuseColor.rgb, vec3(12.9898, 78.233, 37.719)) * 97.0) * 43758.5453);
+          diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(0.05, 0.043, 0.04), vec3(0.2, 0.125, 0.075), hb * hb), burn * 0.94);
         }
         if (uSnow > 0.0) {
           float sAlt = smoothstep(uSnowLine - 30.0, uSnowLine + 30.0, vSnowY);
@@ -484,7 +511,7 @@ function toonFoliage(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial 
       #include <opaque_fragment>`
     );
   };
-  m.customProgramCacheKey = () => 'toon-foliage-v3';
+  m.customProgramCacheKey = () => 'toon-foliage-v4';
   return m;
 }
 
@@ -1193,7 +1220,7 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
   const group = new THREE.Group();
   const groundMat = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes });
   groundMat.onBeforeCompile = (sh) => groundShader(sh, true);
-  groundMat.customProgramCacheKey = () => 'ground-water-v4';
+  groundMat.customProgramCacheKey = () => 'ground-water-v5';
 
   const facadeMat = facadeMaterial(clippingPlanes);
   const treeMat = toonFoliage(clippingPlanes);
@@ -1370,7 +1397,7 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THRE
       L.tex = rt;
       const far = new THREE.MeshLambertMaterial({ map: rt.texture, clippingPlanes });
       far.onBeforeCompile = (sh) => groundShader(sh, false);
-      far.customProgramCacheKey = () => 'ground-far-v1';
+      far.customProgramCacheKey = () => 'ground-far-v2';
       L.terrainLo.material = far;
     }
     big.dispose();

@@ -43,8 +43,10 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | `traffic.ts` | Animated cars/buses/people on OSM paths, headlights |
 | `walk.ts` | Walking as Итар Пејо / Шарпланинец: first/third person, companion, context action, info cards, building collision, surface height from the draped layers |
 | `drive.ts` | Drivable ЈСП double-decker: arcade handling, soft kerb on a road-segment grid, chase camera (shares the flight HUD) |
-| `flight.ts` | Arcade plane (Macedonian-flag livery), chase camera, keyboard/pad input, invert-Y |
+| `flight.ts` | Arcade plane (Macedonian-flag livery) and the yellow Air Tractor on floats for firefighting, chase camera (pulls back and up near a fire and while water falls), tow banner, keyboard/pad input, invert-Y |
 | `game.ts` | Optional ring race over landmarks, 091 balloons, best time |
+| `fire.ts` | Optional firefighting game: at most two fires (forest patch, building roof, ЈСП bus), spawning from a land-cover grid, flames / smoke / glow as GPU-animated quads, water hits, best count |
+| `water.ts` | The Air Tractor's water: tank, falling curtain, splash and steam, spray while scooping, landing ring; closed-form paths shared by the shader and the hit test |
 | `landmarks.ts` | Hand-built models: Millennium Cross lattice, Warrior on a Horse, Stone Bridge, Porta Macedonia, Vodno gondola |
 | `labels.ts` | HTML Cyrillic labels (districts far, landmarks near), positions from `data.places` |
 | `input.ts` | Keyboard map navigation + gamepad reading (XInput "standard" + DirectInput fallbacks) |
@@ -97,6 +99,13 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   (`desc.lazy`, `makeLOD`). The per-chunk builder must emit triangles in the same order as one
   global pass, and meshes must be created in the same order (three.js breaks depth ties by
   object id): desktop output is pixel-identical to the old global build.
+- Firefighting (🔥 Пожар, `fire.ts` / `water.ts`): everything it draws is see-through, sits in one
+  group in `ink.skipNormal`, and its shaders write `gInk = 0` like the rain; the group is hidden
+  when the mode is off, so the plain map stays pixel-identical. The banner cloth is moved on the
+  CPU (the ink normal pass would not see a shader wave). Night glow is an additive sprite, not a
+  light (a new light recompiles every material). Burnt patches are a colour-only tint in the tree
+  and ground shaders (`SHARED.uBurn / uBurnOn`), skipped when `uBurnOn` is 0 and cleared when the
+  mode ends. Try it with `scripts/browser/fire-harness.js`.
 - Draped ground layers sit above the bare terrain (`areaLift`, `roadLift`, `CASING_LIFT` in
   `city.ts`); anything standing on the ground (walking characters) must use the same heights.
 - Which settings are saved (`localStorage` `skopje.*`), which reset on load and what the code

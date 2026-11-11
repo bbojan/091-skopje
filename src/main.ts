@@ -8,10 +8,11 @@ import { createTraffic } from './traffic.ts';
 import { Terrain } from './terrain.ts';
 import { InkRenderer } from './post.ts';
 import { createClouds, createBirds } from './atmos.ts';
-import { createFlight, type Flight } from './flight.ts';
+import { createFlight, BANNER_TEXT, type Flight } from './flight.ts';
 import { createDrive, type Drive } from './drive.ts';
 import { createWalk, type Walk, type WalkAction } from './walk.ts';
 import { createGame, fmtTime, type Game } from './game.ts';
+import { createFireMode, WATER_FLOOR, type FireMode } from './fire.ts';
 import { createLandmarks } from './landmarks.ts';
 import { createLabels } from './labels.ts';
 import { createMapInput, readPad } from './input.ts';
@@ -142,6 +143,7 @@ interface World {
   landmarks: ReturnType<typeof createLandmarks>;
   labels: ReturnType<typeof createLabels>;
   game: Game;
+  fire: FireMode;
   flight: Flight;
   drive: Drive;
   walk: Walk;
@@ -273,12 +275,22 @@ async function init(): Promise<void> {
   try { labels.enabled = localStorage.getItem('skopje.labels') !== '0'; } catch { /* storage unavailable */ }
   setOn(namesBtn, labels.enabled);
   scene.add(landmarks.group);
-  try { await document.fonts.load("46px 'Rubik Mono One'"); } catch { /* font optional */ }
+  try { await document.fonts.load("46px 'Rubik Mono One'"); await document.fonts.load("700 140px 'Lora'", BANNER_TEXT); } catch { /* font optional */ }
   const game = createGame({ terrain, meta, crosses: data.crosses || [], places: data.places || {}, clippingPlanes: planes });
   scene.add(game.group);
   ink.skipNormal.push(game.beam);
   const flight = createFlight({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 } });
   flight.setInvertY(invertBox.checked);
+  // firefighting: fires, smoke and water are see-through (no ink lines)
+  const fire = createFireMode({
+    terrain, bounds: { hw: W / 2, hh: H / 2 }, areas: data.areas, buildings: data.buildings, light: MOBILE,
+    bus: { hold: traffic.holdBus, release: traffic.releaseBus },
+    onOut: () => flight.celebrate(),
+  });
+  scene.add(fire.group);
+  ink.skipNormal.push(fire.group);
+  fire.setNight(timeNow.night);
+  fire.setRain(wxNow.rain);
   const drive = createDrive({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, roads: city.roadList });
   // walking: the plane waits on Macedonia Square
   const sq = data.places?.square ?? [365, 1035];
@@ -290,7 +302,7 @@ async function init(): Promise<void> {
     hooks: { nearestBus: traffic.nearestBus, startOro: traffic.startOro, stopOro: traffic.stopOro, scatter: traffic.scatter, startle: birds.startle },
   });
   walk.setInvertY(invertBox.checked);
-  world = { terrain, meta, city, traffic, clouds, birds, lamps, precip, landmarks, labels, game, flight, drive, walk, planeSpot };
+  world = { terrain, meta, city, traffic, clouds, birds, lamps, precip, landmarks, labels, game, fire, flight, drive, walk, planeSpot };
   console.log('city ready in', Math.round(performance.now() - t0), 'ms', city.stats, traffic.counts);
 
   const maxTex = renderer.capabilities.maxTextureSize;
@@ -392,7 +404,7 @@ try { const saved = localStorage.getItem('skopje.season'); if (saved && saved in
 let seasonNow: Season = SEASONS[seasonName];
 let seasonTween: { from: Season; to: Season; t: number } | null = null;
 /** Lights, colours, night and weather effects; the effects that exist yet are passed in. */
-function applyTime(p: TimeState, w: Weather, fx: Pick<World, 'clouds' | 'lamps' | 'traffic' | 'precip'> | null): void {
+function applyTime(p: TimeState, w: Weather, fx: (Pick<World, 'clouds' | 'lamps' | 'traffic' | 'precip'> & { fire?: FireMode }) | null): void {
   const paper = overcastColor(p.paper.clone(), w), haze = overcastColor(p.haze.clone(), w);
   SUN_DIR.copy(p.sunDir);
   sun.color.copy(overcastColor(p.sun.clone(), w, w.grey * 0.6)); sun.intensity = p.sunI * w.sun;
@@ -424,6 +436,8 @@ function applyTime(p: TimeState, w: Weather, fx: Pick<World, 'clouds' | 'lamps' 
     fx.traffic.setWeather(w.rain, w.snowfall);
     fx.precip.set(w.rain, w.snowfall);
     fx.precip.setColors(haze.clone().lerp(new THREE.Color('#ffffff'), 0.35), new THREE.Color('#ffffff').multiplyScalar(1 - 0.55 * p.night));
+    fx.fire?.setNight(p.night);
+    fx.fire?.setRain(w.rain);
   }
   document.body.classList.toggle('night', p.night > 0.5);
 }
@@ -661,18 +675,48 @@ function startRace(): void {
   const r0 = world.game.rings[0].p; // approach the first ring from the south
   world.flight.start(new THREE.Vector3(r0.x, r0.y - 230, r0.z + 900), 0);
 }
+// firefighting is the other optional game: the Air Tractor, at most two fires, water from the Vardar
+let fireOn = false;
+try { fireOn = !race && localStorage.getItem('skopje.fire') === '1'; } catch { /* storage unavailable */ }
+const fireBtn = $('fly-fire'), flyNav = $('fly-nav'), waterBtn = $('fly-water');
+const fireLabel = () => (fireOn ? `${t('fire')} ✓` : t('fire'));
+const saveGames = () => { try { localStorage.setItem('skopje.race', race ? '1' : '0'); localStorage.setItem('skopje.fire', fireOn ? '1' : '0'); } catch { /* storage unavailable */ } };
+/** show the firefighting mode as it is set; while flying it also swaps the plane and starts or ends the fires */
+function applyFire(): void {
+  document.body.classList.toggle('firefighting', fireOn);
+  fireBtn.textContent = fireLabel();
+  fireBtn.classList.toggle('on', fireOn);
+  flyNav.hidden = false;
+  if (!world?.flight.active) return;
+  const { flight, fire } = world;
+  flight.setFire(fireOn);
+  if (fireOn && !fire.on) fire.start(flight.pos, flight.yaw);
+  else if (!fireOn) { fire.stop(); flight.setFloor(null); }
+}
 raceBtn.addEventListener('click', () => {
   race = !race;
-  try { localStorage.setItem('skopje.race', race ? '1' : '0'); } catch { /* storage unavailable */ }
+  if (race) fireOn = false; // one game at a time
+  saveGames();
   applyRace();
+  applyFire();
   if (race) startRace();
 });
+fireBtn.addEventListener('click', () => {
+  fireOn = !fireOn;
+  if (fireOn) race = false;
+  saveGames();
+  applyRace();
+  applyFire();
+});
 $('fly-again').addEventListener('click', () => { flyResult.hidden = true; startRace(); });
-$('fly-free').addEventListener('click', () => { race = false; try { localStorage.setItem('skopje.race', '0'); } catch { /* storage unavailable */ } applyRace(); });
+$('fly-free').addEventListener('click', () => { race = false; saveGames(); applyRace(); });
 const lastShadowAt = new THREE.Vector3(1e9, 0, 0);
+const planeVel = new THREE.Vector3();
+let waterPct = -1;
 function startFlight(at?: THREE.Vector3, yaw?: number): void {
   if (!world || world.flight.active || world.drive.active || world.walk.active) return;
   controls.enabled = false;
+  world.flight.setFire(fireOn); // before the start: the camera begins at the right height
   if (race) startRace();
   else {
     // free flight from where the camera is, facing the way it looked (or from the parked plane)
@@ -683,13 +727,16 @@ function startFlight(at?: THREE.Vector3, yaw?: number): void {
   flyHud.hidden = false;
   flyResult.hidden = true;
   applyRace();
+  applyFire();
   if (!live) liveBtn.click();
 }
 function stopFlight(): void {
   if (!world?.flight.active) return;
-  const { flight, terrain, game } = world;
+  const { flight, terrain, game, fire } = world;
   const p = flight.pos;
   flight.stop();
+  fire.stop();
+  flight.setFire(false); // the plane parked on the Square is the usual one
   controls.target.set(p.x, terrain.at(p.x, p.z), p.z);
   const dir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
   camera.position.copy(controls.target).addScaledVector(dir, 700);
@@ -875,11 +922,14 @@ function updateWalkHud(): void {
 }
 // on-screen flight buttons: hold to press; on touch screens БРЗО is a toggle (tap on, tap off)
 flyHud.querySelectorAll<HTMLElement>('[data-k]').forEach((b) => {
-  const k = b.dataset.k as 'left' | 'right' | 'up' | 'down' | 'boost';
+  const k = b.dataset.k as 'left' | 'right' | 'up' | 'down' | 'boost' | 'drop';
   const set = (on: boolean) => {
     if (!world) return;
-    const { input } = world.drive.active ? world.drive : world.flight;
-    if (k === 'boost') { input.boost = on; b.setAttribute('aria-pressed', String(on)); } else input[k] = on ? 1 : 0;
+    if (k === 'drop') world.flight.input.drop = on; // water: hold, also on touch screens
+    else {
+      const { input } = world.drive.active ? world.drive : world.flight;
+      if (k === 'boost') { input.boost = on; b.setAttribute('aria-pressed', String(on)); } else input[k] = on ? 1 : 0;
+    }
     b.classList.toggle('on', on);
   };
   const toggles = (e: PointerEvent) => k === 'boost' && e.pointerType !== 'mouse';
@@ -914,6 +964,7 @@ onLangChange(() => {
   shareBtn.textContent = t('share');
   hudCache.clear();
   raceBtn.textContent = raceLabel();
+  fireBtn.textContent = fireLabel();
   if (loader.isConnected) loadText.textContent = t(`stage.${lastStage}`);
 });
 
@@ -957,13 +1008,15 @@ renderer.setAnimationLoop(() => {
       flight.pad.turn = pad.lx;
       flight.pad.climb = -pad.ly;
       flight.pad.boost = pad.a || pad.rt > 0.3;
+      flight.pad.drop = pad.lt > 0.3; // water (firefighting)
       if (pad.b && !padPrev.b) stopFlight();
       if (pad.x && !padPrev.x) raceBtn.click(); // race on/off
+      if (pad.y && !padPrev.y) fireBtn.click(); // firefighting on/off
       if (pad.start && !padPrev.start && race) { flyResult.hidden = true; startRace(); } // restart race
     } else if (pad.y && !padPrev.y) startFlight();
     Object.assign(padPrev, { a: pad.a, b: pad.b, x: pad.x, y: pad.y, start: pad.start });
     if (!padHintShown) { padHintShown = true; document.body.classList.add('has-pad'); }
-  } else if (flight.active) Object.assign(flight.pad, { turn: 0, climb: 0, boost: false });
+  } else if (flight.active) Object.assign(flight.pad, { turn: 0, climb: 0, boost: false, drop: false });
   else if (drive.active) Object.assign(drive.pad, { turn: 0, throttle: 0 });
   // ---- keyboard / pad map navigation; keep the orbit target on the ground
   if (mapInput.update(dt, pad)) {
@@ -1039,7 +1092,32 @@ renderer.setAnimationLoop(() => {
     ink.reset();
     const h = flight.hud;
     flyStats.textContent = `${h.kmh} ${t('u.kmh')} · ${h.alt} ${t('u.m')}`;
-    const warn = h.warn ? t(`warn.${h.warn}`) : '';
+    let warn = h.warn ? t(`warn.${h.warn}`) : '';
+    // firefighting HUD: fires put out, tank, the nearest fire, hints for the water
+    if (fireOn) {
+      const { fire } = world;
+      fire.update(dt, flight.pos, flight.velocity(planeVel), flight.yaw, flight.dropping);
+      const f = fire.state, p = flight.pos;
+      flight.setFloor(f.overWater ? WATER_FLOOR : null); // low enough over water to scoop it
+      const pct = Math.round(f.tank * 100);
+      setText('fly-game', `🔥 ${f.out} · ★ ${f.best} · 💧 ${pct}%`);
+      if (waterPct !== pct) { waterPct = pct; waterBtn.style.setProperty('--tank', `${pct}%`); }
+      const flash = f.flash === 'out' ? t('fire.out') : f.flash ? t(`fire.new.${f.flash}`) : '';
+      if (flyFlash.textContent !== flash) flyFlash.textContent = flash;
+      let near: (typeof f.fires)[number] | null = null, nd = Infinity;
+      for (const s of f.fires) { const d = Math.hypot(s.x - p.x, s.z - p.z); if (d < nd) { nd = d; near = s; } }
+      flyNav.hidden = !near;
+      // a fire close ahead: the camera pulls back to show where the water would land
+      const close = !!near && nd < 480 && (near.x - p.x) * Math.sin(flight.yaw) - (near.z - p.z) * Math.cos(flight.yaw) > -60;
+      flight.setAim(close, f.falling, close && near ? near.top : f.aimY);
+      if (near) {
+        flyArrow.style.transform = `rotate(${Math.atan2(near.x - p.x, -(near.z - p.z)) - flight.yaw}rad)`;
+        setText('fly-dist', `🔥 ${t(`fire.kind.${near.kind}`)} · ${nd > 1000 ? (nd / 1000).toFixed(1) + ' ' + t('u.km') : Math.round(nd) + ' ' + t('u.m')}`);
+      }
+      if (f.scooping) warn = t('fire.scoop');
+      else if (h.warn === 'low' && f.overWater) warn = ''; // skimming the river on purpose
+      else if (!warn && f.tank <= 0) warn = t('fire.refill');
+    }
     if (flyWarn.textContent !== warn) flyWarn.textContent = warn;
     // race HUD (only when the race is on)
     if (race) {

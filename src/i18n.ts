@@ -62,6 +62,10 @@ export const STR = {
     'newBest': 'Нов рекорд! 🎉', 'best': 'Рекорд: {t}',
     'error': 'Грешка: ',
     'warn.edge': 'Крај на мапата — се враќаме назад', 'warn.low': 'Премногу ниско!',
+    'fire': '🔥 Пожар', 'fire.out': '✓ Пожарот е изгаснат!',
+    'fire.new.forest': '🔥 Гори шума!', 'fire.new.building': '🔥 Гори зграда!', 'fire.new.bus': '🔥 Гори автобус!',
+    'fire.kind.forest': 'Шума', 'fire.kind.building': 'Зграда', 'fire.kind.bus': 'Автобус',
+    'fire.refill': '💧 Наполни вода од Вардар', 'fire.scoop': '💧 Се полни…',
   },
 
   en: {
@@ -123,6 +127,9 @@ export const STR = {
     'fly.exit': '✕ Exit', 'r.title': '🏁 Finish!', 'r.time': 'Time:', 'r.balloons': '091 balloons:', 'r.again': '↻ Again', 'r.free': 'Free flight',
     'a.left': 'Left', 'a.right': 'Right', 'a.up': 'Up', 'a.down': 'Down', 'fly.boost': 'BOOST',
     'fly.keys': '← → turn · ↑ ↓ up/down · Shift boost · Esc exit',
+    'fire.keys': '← → turn · ↑ ↓ up/down · Space water · Shift boost · Esc exit', 'a.water': 'Water',
+    'p.fire': 'In flight: firefighting on/off · drop water',
+    'f.fire': `<b>Firefighting (optional):</b> while flying, press “🔥 Fire” and the plane becomes a yellow Air Tractor firefighting plane. At most two fires burn at a time — a patch of forest, a building or a bus; the smoke shows from afar and the arrow at the top points to the nearest one. Fly over the fire and hold ${K('Space')} (or the 💧 button) to drop water — the white ring on the ground shows where it will land. When the tank is empty, skim low over the Vardar to fill it. As soon as one fire is out, another starts somewhere else.`,
     'loading': 'Loading…',
     'attr': `Data © ${OSM} contributors`,
     'time.day': '☀ Day', 'time.sunset': '🌇 Sunset', 'time.night': '🌙 Night',
@@ -169,6 +176,10 @@ export const STR = {
     'newBest': 'New record! 🎉', 'best': 'Best: {t}',
     'error': 'Error: ',
     'warn.edge': 'Edge of the map — turning back', 'warn.low': 'Too low!',
+    'fire': '🔥 Fire', 'fire.out': '✓ The fire is out!',
+    'fire.new.forest': '🔥 Forest on fire!', 'fire.new.building': '🔥 Building on fire!', 'fire.new.bus': '🔥 Bus on fire!',
+    'fire.kind.forest': 'Forest', 'fire.kind.building': 'Building', 'fire.kind.bus': 'Bus',
+    'fire.refill': '💧 Refill from the Vardar', 'fire.scoop': '💧 Filling…',
   },
 
   sr: {
@@ -230,6 +241,9 @@ export const STR = {
     'fly.exit': '✕ Излаз', 'r.title': '🏁 Циљ!', 'r.time': 'Време:', 'r.balloons': 'Балони 091:', 'r.again': '↻ Поново', 'r.free': 'Слободан лет',
     'a.left': 'Лево', 'a.right': 'Десно', 'a.up': 'Горе', 'a.down': 'Доле', 'fly.boost': 'БРЗО',
     'fly.keys': '← → скретање · ↑ ↓ горе/доле · Shift убрзање · Esc излаз',
+    'fire.keys': '← → скретање · ↑ ↓ горе/доле · Space вода · Shift убрзање · Esc излаз', 'a.water': 'Вода',
+    'p.fire': 'У лету: укључи/искључи гашење пожара · испусти воду',
+    'f.fire': `<b>Гашење пожара (опционо):</b> у лету притисни „🔥 Пожар“ и авион постаје жути противпожарни „Ер трактор“. Истовремено горе највише два пожара — део шуме, зграда или аутобус; дим се види издалека, а стрелица горе показује ка најближем. Прелети изнад ватре и држи ${K('Space')} (или дугме 💧) да испустиш воду — бели круг на тлу показује где ће пасти. Кад се резервоар испразни, спусти се ниско изнад Вардара да га напуниш. Чим се један пожар угаси, избија други на другом месту.`,
     'loading': 'Учитава се…',
     'attr': `Подаци © сарадници пројекта ${OSM}`,
     'time.day': '☀ Дан', 'time.sunset': '🌇 Залазак', 'time.night': '🌙 Ноћ',
@@ -276,6 +290,10 @@ export const STR = {
     'newBest': 'Нови рекорд! 🎉', 'best': 'Рекорд: {t}',
     'error': 'Грешка: ',
     'warn.edge': 'Крај мапе — враћамо се назад', 'warn.low': 'Прениско!',
+    'fire': '🔥 Пожар', 'fire.out': '✓ Пожар је угашен!',
+    'fire.new.forest': '🔥 Гори шума!', 'fire.new.building': '🔥 Гори зграда!', 'fire.new.bus': '🔥 Гори аутобус!',
+    'fire.kind.forest': 'Шума', 'fire.kind.building': 'Зграда', 'fire.kind.bus': 'Аутобус',
+    'fire.refill': '💧 Напуни воду из Вардара', 'fire.scoop': '💧 Пуњење…',
   },
 
   hr: {
@@ -337,6 +355,9 @@ export const STR = {
     'fly.exit': '✕ Izlaz', 'r.title': '🏁 Cilj!', 'r.time': 'Vrijeme:', 'r.balloons': 'Baloni 091:', 'r.again': '↻ Ponovno', 'r.free': 'Slobodan let',
     'a.left': 'Lijevo', 'a.right': 'Desno', 'a.up': 'Gore', 'a.down': 'Dolje', 'fly.boost': 'BRZO',
     'fly.keys': '← → skretanje · ↑ ↓ gore/dolje · Shift ubrzanje · Esc izlaz',
+    'fire.keys': '← → skretanje · ↑ ↓ gore/dolje · Space voda · Shift ubrzanje · Esc izlaz', 'a.water': 'Voda',
+    'p.fire': 'U letu: uključi/isključi gašenje požara · ispusti vodu',
+    'f.fire': `<b>Gašenje požara (neobavezno):</b> u letu pritisni „🔥 Požar” i avion postaje žuti protupožarni „Air Tractor”. Istodobno gore najviše dva požara — dio šume, zgrada ili autobus; dim se vidi izdaleka, a strelica gore pokazuje prema najbližem. Preleti iznad vatre i drži ${K('Space')} (ili tipku 💧) da ispustiš vodu — bijeli krug na tlu pokazuje gdje će pasti. Kad se spremnik isprazni, spusti se nisko iznad Vardara da ga napuniš. Čim se jedan požar ugasi, izbija drugi na drugom mjestu.`,
     'loading': 'Učitavanje…',
     'attr': `Podaci © suradnici projekta ${OSM}`,
     'time.day': '☀ Dan', 'time.sunset': '🌇 Zalazak', 'time.night': '🌙 Noć',
@@ -383,6 +404,10 @@ export const STR = {
     'newBest': 'Novi rekord! 🎉', 'best': 'Rekord: {t}',
     'error': 'Greška: ',
     'warn.edge': 'Kraj karte — vraćamo se natrag', 'warn.low': 'Prenisko!',
+    'fire': '🔥 Požar', 'fire.out': '✓ Požar je ugašen!',
+    'fire.new.forest': '🔥 Gori šuma!', 'fire.new.building': '🔥 Gori zgrada!', 'fire.new.bus': '🔥 Gori autobus!',
+    'fire.kind.forest': 'Šuma', 'fire.kind.building': 'Zgrada', 'fire.kind.bus': 'Autobus',
+    'fire.refill': '💧 Napuni vodu iz Vardara', 'fire.scoop': '💧 Punjenje…',
   },
 
   sl: {
@@ -444,6 +469,9 @@ export const STR = {
     'fly.exit': '✕ Izhod', 'r.title': '🏁 Cilj!', 'r.time': 'Čas:', 'r.balloons': 'Baloni 091:', 'r.again': '↻ Znova', 'r.free': 'Prosti let',
     'a.left': 'Levo', 'a.right': 'Desno', 'a.up': 'Gor', 'a.down': 'Dol', 'fly.boost': 'HITRO',
     'fly.keys': '← → zavijanje · ↑ ↓ gor/dol · Shift pospešek · Esc izhod',
+    'fire.keys': '← → zavijanje · ↑ ↓ gor/dol · Space voda · Shift pospešek · Esc izhod', 'a.water': 'Voda',
+    'p.fire': 'Med letom: vklopi/izklopi gašenje požarov · spusti vodo',
+    'f.fire': `<b>Gašenje požarov (neobvezno):</b> med letom pritisni „🔥 Požar“ in letalo postane rumeno gasilsko letalo „Air Tractor“. Hkrati gorita največ dva požara — del gozda, stavba ali avtobus; dim se vidi od daleč, puščica zgoraj pa kaže proti najbližjemu. Preleti ogenj in drži ${K('Space')} (ali gumb 💧), da spustiš vodo — beli krog na tleh kaže, kam bo padla. Ko se rezervoar izprazni, se spusti nizko nad Vardar, da ga napolniš. Takoj ko je en požar pogašen, izbruhne drug nekje drugje.`,
     'loading': 'Nalaganje…',
     'attr': `Podatki © sodelavci projekta ${OSM}`,
     'time.day': '☀ Dan', 'time.sunset': '🌇 Sončni zahod', 'time.night': '🌙 Noč',
@@ -490,6 +518,10 @@ export const STR = {
     'newBest': 'Nov rekord! 🎉', 'best': 'Rekord: {t}',
     'error': 'Napaka: ',
     'warn.edge': 'Konec zemljevida — vračamo se', 'warn.low': 'Prenizko!',
+    'fire': '🔥 Požar', 'fire.out': '✓ Požar je pogašen!',
+    'fire.new.forest': '🔥 Gori gozd!', 'fire.new.building': '🔥 Gori stavba!', 'fire.new.bus': '🔥 Gori avtobus!',
+    'fire.kind.forest': 'Gozd', 'fire.kind.building': 'Stavba', 'fire.kind.bus': 'Avtobus',
+    'fire.refill': '💧 Natoči vodo iz Vardarja', 'fire.scoop': '💧 Polnjenje…',
   },
 
   sq: {
@@ -551,6 +583,9 @@ export const STR = {
     'fly.exit': '✕ Dalje', 'r.title': '🏁 Finish!', 'r.time': 'Koha:', 'r.balloons': 'Balona 091:', 'r.again': '↻ Përsëri', 'r.free': 'Fluturim i lirë',
     'a.left': 'Majtas', 'a.right': 'Djathtas', 'a.up': 'Lart', 'a.down': 'Poshtë', 'fly.boost': 'SHPEJT',
     'fly.keys': '← → kthesë · ↑ ↓ lart/poshtë · Shift shpejt · Esc dalje',
+    'fire.keys': '← → kthesë · ↑ ↓ lart/poshtë · Space ujë · Shift shpejt · Esc dalje', 'a.water': 'Ujë',
+    'p.fire': 'Në fluturim: ndiz/fik shuarjen e zjarreve · lësho ujë',
+    'f.fire': `<b>Shuarja e zjarreve (opsionale):</b> gjatë fluturimit shtyp „🔥 Zjarr“ dhe aeroplani bëhet një „Air Tractor“ i verdhë zjarrfikës. Digjen më së shumti dy zjarre njëkohësisht — një pjesë pylli, një ndërtesë ose një autobus; tymi duket nga larg, ndërsa shigjeta lart tregon drejt më të afërtit. Fluturo mbi zjarr dhe mbaj shtypur ${K('Space')} (ose butonin 💧) për të lëshuar ujë — rrethi i bardhë në tokë tregon ku do të bjerë. Kur rezervuari zbrazet, zbrit ulët mbi Vardar për ta mbushur. Sapo shuhet një zjarr, ndizet një tjetër diku tjetër.`,
     'loading': 'Po ngarkohet…',
     'attr': `Të dhënat © kontribuuesit e ${OSM}`,
     'time.day': '☀ Ditë', 'time.sunset': '🌇 Perëndim', 'time.night': '🌙 Natë',
@@ -597,6 +632,10 @@ export const STR = {
     'newBest': 'Rekord i ri! 🎉', 'best': 'Rekordi: {t}',
     'error': 'Gabim: ',
     'warn.edge': 'Fundi i hartës — po kthehemi mbrapa', 'warn.low': 'Shumë ulët!',
+    'fire': '🔥 Zjarr', 'fire.out': '✓ Zjarri u shua!',
+    'fire.new.forest': '🔥 Po digjet pylli!', 'fire.new.building': '🔥 Po digjet një ndërtesë!', 'fire.new.bus': '🔥 Po digjet një autobus!',
+    'fire.kind.forest': 'Pyll', 'fire.kind.building': 'Ndërtesë', 'fire.kind.bus': 'Autobus',
+    'fire.refill': '💧 Mbush ujë nga Vardari', 'fire.scoop': '💧 Po mbushet…',
   },
 };
 

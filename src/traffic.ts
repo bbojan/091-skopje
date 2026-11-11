@@ -315,6 +315,21 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
     }
     return best;
   }
+  const busAgent = (i: number): Agent => (i < singles.length ? singles[i] : doubles[i - singles.length]);
+  /** stop a random ЈСП bus whose place passes `ok` (it is on fire); null if there is none */
+  function holdBus(ok: (x: number, z: number) => boolean): { id: number; x: number; z: number; double: boolean } | null {
+    for (let k = 0; k < 80; k++) {
+      const i = Math.floor(Math.random() * buses.length);
+      if (i < singles.length ? i >= nSingles : i - singles.length >= nDoubles) continue; // not on the road (less traffic)
+      const o = i * 4;
+      if (busAgent(i).v === 0 || !ok(busAt[o], busAt[o + 1])) continue;
+      busAgent(i).v = 0;
+      return { id: i, x: busAt[o], z: busAt[o + 1], double: i >= singles.length };
+    }
+    return null;
+  }
+  /** the bus drives on */
+  function releaseBus(i: number): void { busAgent(i).v = 5; }
   /** оро around (x, z) with up to 12 nearby people; returns how many joined */
   function startOro(x: number, z: number): number {
     stopOro();
@@ -348,5 +363,5 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
     beamMat.opacity = 0.7 * THREE.MathUtils.smoothstep(f, 0.15, 0.9);
     for (const b of beams) b.visible = f > 0.1;
   }
-  return { group, update, setNight, setLight, setWeather, nearestBus, startOro, stopOro, scatter, glows: beams as THREE.Object3D[], counts: { cars: cars.length, people: people.length } };
+  return { group, update, setNight, setLight, setWeather, nearestBus, holdBus, releaseBus, startOro, stopOro, scatter, glows: beams as THREE.Object3D[], counts: { cars: cars.length, people: people.length } };
 }

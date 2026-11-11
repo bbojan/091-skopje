@@ -56,6 +56,15 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    script (`scripts/browser/pass-timing.js`).
 16. **v2.2.1** (Nov 2026): documentation: "Settings" section (what is saved, what resets on load,
    what the code decides for desktop and mobile), v2.2.0 pass timings under measured numbers.
+17. **v2.4.0** (Nov 2026): 🔥 Пожар, a second optional game in the flight (`fire.ts`, `water.ts`):
+   the plane becomes a yellow Air Tractor on floats; at most two fires burn at a time (a patch of
+   forest, a building's roof or a ЈСП bus stopped in the traffic), found by their smoke and the
+   arrow; Space / 💧 / LT drops water with a ring showing where it lands; the tank is refilled by
+   skimming the Vardar; every fire put out unrolls a tow banner „Стојанче го спаси градот“.
+   Near a fire and while water falls the chase camera pulls back and up. A forest or bus fire
+   leaves a burnt patch: charred trees and sooty ground, a colour-only tint in the tree and
+   ground shaders (`SHARED.uBurn`, up to 6 patches, skipped while `uBurnOn` is 0, cleared when
+   the mode ends). Stepping harness for it: `scripts/browser/fire-harness.js`.
 
 ## Key decisions (and why)
 
@@ -132,8 +141,10 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Имиња (labels) | `skopje.labels` | on |
 | 🌐 Language | `skopje.lang` | the browser's first regional language (never English by itself), else Macedonian; `?lang=` in the link wins over everything |
 | 🏁 Race / free flight | `skopje.race` | free flight |
+| 🔥 Firefighting | `skopje.fire` | off (race and firefighting exclude each other; if both are saved, the race wins) |
 | Invert Y | `skopje.invertY` | off |
 | Best race time | `skopje.bestRace` | none |
+| Most fires put out in one flight | `skopje.bestFire` | 0 |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
@@ -253,6 +264,10 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
   a few times) and read pixels from `renderer.domElement.toDataURL()`. To look at such frames,
   run `node scripts/browser/shot-sink.ts <scratch folder>` and POST the data URL to
   `http://127.0.0.1:5199/<name>` (example in the file); then open the saved JPEG.
+- **Firefighting** (🔥 Пожар): `scripts/browser/fire-harness.js` stops the app's loop and steps
+  the flight, fires and water by hand (usage in its header): pick a fire kind, fly a pass, hold
+  Space, read strength / tank / fires put out. Simulated dive keys must respect "invert up/down"
+  (`__h.dive`), which is saved per browser.
 - **GPU time**: `EXT_disjoint_timer_query_webgl2` around `ink.render`; frame times in a hidden
   pane mean nothing. Per pass: paste `scripts/browser/pass-timing.js`, then `await __passes()`.
   Time whole chains that end on the canvas and subtract: a pass timed alone reads as ~0,
@@ -285,6 +300,13 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 - Two-column menus on a real phone (checked at emulated 375×560, 375×330 and 1200×380).
 - Weather on a real phone (particle count is lowered on `MOBILE`, not measured there), and
   the 2 s weather blend watched live (verified via direct renders; the pane was hidden).
+- 🔥 Firefighting: the three fire kinds, the drop, the refill and the banner were checked by
+  stepping the game with `fire-harness.js` (day, sunset, night; full tier, smooth edges off,
+  low tier) and the HUD at 375×812, not by playing it through by hand. Not checked: touch (the
+  💧 button) and LT on a real device, gamepad Y, how hard the aiming feels at boost speed, rain
+  slowing the fires, the look of the Air Tractor against a photo of the real aircraft.
+  GPU cost with a full fire and a drop in view was within the noise (6.4–6.9 ms either way at
+  1083×1368, M5 Pro); flying through the smoke (large quads close to the camera) was not timed.
 
 ## Backlog / ideas
 
@@ -295,6 +317,11 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 - 3D models for the hamam (domes) and the Telecom centre; they are ordinary OSM buildings
   for now (the railway station has its model, `MODELLED_BUILDINGS` in `city.ts`).
 - Bus mode extras: bus stops, a route to follow, a horn; gamepad button to start the bus.
+- Firefighting extras: a burnt mark on a building's roof (forest and bus fires leave one, see
+  v2.4.0); burnt patches that stay after leaving the mode (they are cleared, so the plain map
+  stays as it was) and that show on the far, baked ground; ink lines of the trees and roofs
+  behind dense steam still show through it (the ink is drawn after the particles); on steep
+  slopes (Vodno) a fire far below the plane is hard to reach and to frame.
 - Facade variety by building type (shops, schools, churches), roof-top terraces.
 - `npm run download` should also fetch `data/aerialway.json`.
 
