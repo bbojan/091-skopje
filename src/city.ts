@@ -215,17 +215,108 @@ export const CAR_COLORS = ['#f6f3ee', '#f6f3ee', '#d9d4cf', '#e04b3c', '#3a6fb5'
 
 // ---------------------------------------------------------------- materials
 // shared, animated uniforms (time of day, clock) used by several materials
-export const SHARED = { uNight: { value: 0 }, uTime: { value: 0 } };
+export const SHARED = {
+  uNight: { value: 0 },
+  uTime: { value: 0 },
+  // weather (all zero in clear weather: the weather code paths are skipped)
+  uWet: { value: 0 },
+  uSnow: { value: 0 },
+  uSnowLine: { value: -1000 },
+  uPuddle: { value: new THREE.Vector3(0.6, 0.65, 0.72) },
+};
+
+// ---------------------------------------------------------------- weather in the ground shader
+// Road colours (linear), to keep roads as dark slush instead of white under snow.
+// Draped roads carry their exact palette colour, so a tight match is reliable.
+const ROAD_LIN = Object.values(PAL.road).map((h) => { const c = C(h); return new THREE.Vector3(c.r, c.g, c.b); });
+const WX_NOISE = /* glsl */ `
+  float wxHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float wxNoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(wxHash(i), wxHash(i + vec2(1.0, 0.0)), f.x), mix(wxHash(i + vec2(0.0, 1.0)), wxHash(i + vec2(1.0, 1.0)), f.x), f.y);
+  }`;
+// expects: raw (colour before weather), wm (water mask), vWPos, vNy
+const WX_GROUND = /* glsl */ `
+  if (uWet > 0.0 || uSnow > 0.0) {
+    float road = 0.0;
+    for (int i = 0; i < ${ROAD_LIN.length}; i++) road = max(road, 1.0 - smoothstep(0.004, 0.02, distance(raw, uRoad[i])));
+    float dry = 1.0 - wm;
+    vec2 q = vWPos.xz;
+    float n1 = wxNoise(q * 0.045), n2 = wxNoise(q * 0.21 + 17.0);
+    if (uWet > 0.0) {
+      float wet = uWet * dry;
+      diffuseColor.rgb *= 1.0 - wet * mix(0.16, 0.3, road);
+      // puddles mirror the grey sky (mostly on roads and flat ground), with rain rings
+      float pud = smoothstep(0.62, 0.78, n1 * 0.7 + n2 * 0.3) * smoothstep(0.9, 0.98, vNy) * mix(0.35, 1.0, road);
+      float ring = 0.5 + 0.5 * sin(length(fract(q * 0.35) - 0.5) * 38.0 - uTime * 7.0);
+      diffuseColor.rgb = mix(diffuseColor.rgb, uPuddle, pud * wet * (0.55 + 0.15 * ring));
+    }
+    if (uSnow > 0.0) {
+      float alt = smoothstep(uSnowLine - 30.0, uSnowLine + 30.0, vWPos.y + (n1 - 0.5) * 60.0);
+      float flatness = smoothstep(0.35, 0.8, vNy);
+      float sn = uSnow * dry * alt * mix(0.55, 1.0, flatness) * mix(1.0, 0.3, road);
+      vec3 snowCol = mix(vec3(0.80, 0.85, 0.95), vec3(0.97, 0.97, 0.99), flatness);
+      diffuseColor.rgb = mix(diffuseColor.rgb, snowCol, sn);
+    }
+  }`;
+// gentle moving glints on water (detected by its palette colour)
+const WATER_GLINT = /* glsl */ `
+  if (wm > 0.0) {
+    vec2 p = vWPos.xz;
+    float fw = clamp(length(fwidth(p)) * 0.08, 0.0, 1.0);
+    // long streaks along the river's length (the Vardar runs west → east),
+    // sliding downstream; narrow across the current
+    float along = sin(p.x * 0.034 - uTime * 0.9 + sin(p.y * 0.045) * 1.6);
+    float across = sin(p.y * 0.45 + sin(p.x * 0.012) * 2.2);
+    float w1 = along * across;
+    float w2 = sin(p.x * 0.012 - uTime * 0.25 + p.y * 0.01);
+    float glint = smoothstep(0.5, 0.92, w1) * (1.0 - fw);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86, 0.95, 1.0), glint * 0.42 * wm);
+    diffuseColor.rgb *= 1.0 - wm * 0.06 * w2;
+  }`;
+
+/** Ground materials: weather (wet, puddles, snow) and, for the near ground, water glints. */
+function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boolean): void {
+  sh.uniforms.uTime = SHARED.uTime;
+  sh.uniforms.uWet = SHARED.uWet;
+  sh.uniforms.uSnow = SHARED.uSnow;
+  sh.uniforms.uSnowLine = SHARED.uSnowLine;
+  sh.uniforms.uPuddle = SHARED.uPuddle;
+  sh.uniforms.uRoad = { value: ROAD_LIN };
+  const waterLin = C(PAL.area.water), poolLin = C(PAL.area.pool);
+  sh.uniforms.uWater = { value: new THREE.Vector3(waterLin.r, waterLin.g, waterLin.b) };
+  sh.uniforms.uPool = { value: new THREE.Vector3(poolLin.r, poolLin.g, poolLin.b) };
+  sh.vertexShader = sh.vertexShader
+    .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;\nvarying float vNy;')
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWPos = position;\nvNy = normal.y;');
+  sh.fragmentShader = sh.fragmentShader
+    .replace('#include <common>', `#include <common>
+      varying vec3 vWPos;
+      varying float vNy;
+      uniform float uTime, uWet, uSnow, uSnowLine;
+      uniform vec3 uWater, uPool, uPuddle;
+      uniform vec3 uRoad[${ROAD_LIN.length}];
+      ${WX_NOISE}`)
+    .replace('#include <color_fragment>', `#include <color_fragment>
+      vec3 raw = diffuseColor.rgb;
+      float wm = ${water ? '1.0 - smoothstep(0.012, 0.045, min(distance(raw, uWater), distance(raw, uPool)))' : '0.0'};
+      ${WX_GROUND}
+      ${water ? WATER_GLINT : ''}`);
+}
 
 function facadeMaterial(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial {
   const m = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes, shadowSide: THREE.DoubleSide });
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uNight = SHARED.uNight;
+    sh.uniforms.uWet = SHARED.uWet;
+    sh.uniforms.uSnow = SHARED.uSnow;
+    sh.uniforms.uSnowLine = SHARED.uSnowLine;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec4 aFacade;\nvarying vec4 vFacade;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFacade = aFacade;');
+      .replace('#include <common>', '#include <common>\nattribute vec4 aFacade;\nvarying vec4 vFacade;\nvarying float vSnowY;\nvarying float vSnowN;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFacade = aFacade;\nvSnowY = position.y;\nvSnowN = normal.y;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec4 vFacade;\nuniform float uNight;\nfloat gWin = 0.0;\nvec3 gWinCol = vec3(0.0);\nfloat h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }')
+      .replace('#include <common>', '#include <common>\nvarying vec4 vFacade;\nvarying float vSnowY;\nvarying float vSnowN;\nuniform float uWet, uSnow, uSnowLine;\nuniform float uNight;\nfloat gWin = 0.0;\nvec3 gWinCol = vec3(0.0);\nfloat h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }')
       .replace('#include <opaque_fragment>', 'outgoingLight += gWinCol * gWin * uNight;\n#include <opaque_fragment>')
       .replace(
         '#include <color_fragment>',
@@ -293,10 +384,16 @@ function facadeMaterial(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMateri
           float barrel = 0.5 + 0.5 * cos(6.2831 * (tc.x + 0.5 * floor(tc.y)));
           diffuseColor.rgb *= 1.0 - tdet * (line * 0.22 + barrel * 0.07);
           diffuseColor.rgb *= 1.0 + tdet * 0.04 * (1.0 - course);
-        }`
+        }
+        // weather: snow on roofs and other upward faces, darker wet roofs
+        if (uSnow > 0.0) {
+          float sAlt = smoothstep(uSnowLine - 30.0, uSnowLine + 30.0, vSnowY);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.95, 0.96, 0.99), uSnow * sAlt * smoothstep(0.45, 0.8, vSnowN) * 0.92);
+        }
+        if (uWet > 0.0) diffuseColor.rgb *= 1.0 - uWet * 0.12 * step(0.5, vSnowN);`
       );
   };
-  m.customProgramCacheKey = () => 'facade-v4';
+  m.customProgramCacheKey = () => 'facade-v5';
   return m;
 }
 
@@ -304,6 +401,24 @@ function facadeMaterial(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMateri
 function toonFoliage(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial {
   const m = new THREE.MeshLambertMaterial({ clippingPlanes });
   m.onBeforeCompile = (sh) => {
+    sh.uniforms.uSnow = SHARED.uSnow;
+    sh.uniforms.uSnowLine = SHARED.uSnowLine;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying float vSnowY;\nvarying float vSnowN;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vec4 sWp = vec4(transformed, 1.0);
+        #ifdef USE_INSTANCING
+          sWp = instanceMatrix * sWp;
+        #endif
+        vSnowY = (modelMatrix * sWp).y;
+        vSnowN = normal.y;`);
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vSnowY;\nvarying float vSnowN;\nuniform float uSnow, uSnowLine;')
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        if (uSnow > 0.0) {
+          float sAlt = smoothstep(uSnowLine - 30.0, uSnowLine + 30.0, vSnowY);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.93, 0.95, 0.99), uSnow * sAlt * smoothstep(0.2, 0.75, vSnowN) * 0.85);
+        }`);
     sh.fragmentShader = sh.fragmentShader.replace(
       '#include <opaque_fragment>',
       /* glsl */ `
@@ -315,7 +430,7 @@ function toonFoliage(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial 
       #include <opaque_fragment>`
     );
   };
-  m.customProgramCacheKey = () => 'toon-foliage-v1';
+  m.customProgramCacheKey = () => 'toon-foliage-v2';
   return m;
 }
 
@@ -962,34 +1077,8 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
   const { clippingPlanes } = opts;
   const group = new THREE.Group();
   const groundMat = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes });
-  // gentle moving glints on water (detected by its palette colour)
-  const waterLin = C(PAL.area.water), poolLin = C(PAL.area.pool);
-  groundMat.onBeforeCompile = (sh) => {
-    sh.uniforms.uTime = SHARED.uTime;
-    sh.uniforms.uWater = { value: new THREE.Vector3(waterLin.r, waterLin.g, waterLin.b) };
-    sh.uniforms.uPool = { value: new THREE.Vector3(poolLin.r, poolLin.g, poolLin.b) };
-    sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWPos = position;');
-    sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;\nuniform float uTime;\nuniform vec3 uWater, uPool;')
-      .replace('#include <color_fragment>', `#include <color_fragment>
-        float wm = 1.0 - smoothstep(0.012, 0.045, min(distance(diffuseColor.rgb, uWater), distance(diffuseColor.rgb, uPool)));
-        if (wm > 0.0) {
-          vec2 p = vWPos.xz;
-          float fw = clamp(length(fwidth(p)) * 0.08, 0.0, 1.0);
-          // long streaks along the river's length (the Vardar runs west → east),
-          // sliding downstream; narrow across the current
-          float along = sin(p.x * 0.034 - uTime * 0.9 + sin(p.y * 0.045) * 1.6);
-          float across = sin(p.y * 0.45 + sin(p.x * 0.012) * 2.2);
-          float w1 = along * across;
-          float w2 = sin(p.x * 0.012 - uTime * 0.25 + p.y * 0.01);
-          float glint = smoothstep(0.5, 0.92, w1) * (1.0 - fw);
-          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86, 0.95, 1.0), glint * 0.42 * wm);
-          diffuseColor.rgb *= 1.0 - wm * 0.06 * w2;
-        }`);
-  };
-  groundMat.customProgramCacheKey = () => 'ground-water-v3';
+  groundMat.onBeforeCompile = (sh) => groundShader(sh, true);
+  groundMat.customProgramCacheKey = () => 'ground-water-v4';
 
   const facadeMat = facadeMaterial(clippingPlanes);
   const treeMat = toonFoliage(clippingPlanes);
@@ -1133,7 +1222,10 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes?: THR
       group.add(L.terrainHi);
       if (L.ground) group.add(L.ground);
       L.tex = rt;
-      L.terrainLo.material = new THREE.MeshLambertMaterial({ map: rt.texture, clippingPlanes });
+      const far = new THREE.MeshLambertMaterial({ map: rt.texture, clippingPlanes });
+      far.onBeforeCompile = (sh) => groundShader(sh, false);
+      far.customProgramCacheKey = () => 'ground-far-v1';
+      L.terrainLo.material = far;
     }
     big.dispose();
     copyMat.dispose();

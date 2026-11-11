@@ -68,6 +68,67 @@ export function blendTimes(A: TimePreset, B: TimePreset, t: number): TimeState {
 /** Freeze a blended state back into a preset, e.g. as the start of a new blend. */
 export const presetOf = (s: TimeState): TimePreset => ({ ...s, sunDir: s.sunDir.toArray(), grade: s.grade.toArray() });
 
+// ---------------------------------------------------------------- weather
+// A second axis on top of the time of day. Every value is neutral for 'clear'
+// (multipliers 1, amounts 0), so clear weather renders exactly as before.
+export interface Weather {
+  /** sun intensity multiplier (overcast: weaker sun, softer shadows) */
+  sun: number;
+  /** sky (hemisphere) light multiplier */
+  sky: number;
+  /** 0…1: paper, haze and light colours pulled toward the overcast grey */
+  grey: number;
+  /** overcast tint; its hue is used, the brightness follows the time of day */
+  overcast: THREE.ColorRepresentation;
+  /** saturation multiplier in the grade */
+  sat: number;
+  /** extra haze: nearer and denser (0 = as authored) */
+  haze: number;
+  /** 0…1 cloud cover: bigger, greyer, more opaque clouds */
+  clouds: number;
+  /** 0…1 falling rain and wet streets */
+  rain: number;
+  /** 0…1 falling snow */
+  snowfall: number;
+  /** 0…1 snow lying on the ground, roofs and trees */
+  snow: number;
+  /** scene height (terrain y, m) above which snow lies */
+  snowLine: number;
+}
+
+export type WeatherName = 'clear' | 'rain' | 'snow' | 'vodno';
+
+export const WEATHER: Record<WeatherName, Weather> = {
+  clear: { sun: 1, sky: 1, grey: 0, overcast: '#9aa3b5', sat: 1, haze: 0, clouds: 0, rain: 0, snowfall: 0, snow: 0, snowLine: -1000 },
+  rain: { sun: 0.32, sky: 0.92, grey: 0.55, overcast: '#8e97aa', sat: 0.8, haze: 0.22, clouds: 1, rain: 1, snowfall: 0, snow: 0, snowLine: -1000 },
+  snow: { sun: 0.55, sky: 1.1, grey: 0.42, overcast: '#cdd4e0', sat: 0.82, haze: 0.16, clouds: 0.7, rain: 0, snowfall: 1, snow: 1, snowLine: -1000 },
+  // Skopje's usual winter: snow on Vodno and the hills, the city only wet and grey
+  vodno: { sun: 0.75, sky: 1.0, grey: 0.28, overcast: '#c3cad8', sat: 0.9, haze: 0.08, clouds: 0.45, rain: 0, snowfall: 0, snow: 1, snowLine: 300 },
+};
+export const WEATHER_ORDER: WeatherName[] = ['clear', 'rain', 'snow', 'vodno'];
+export const isWeatherName = (s: string | null): s is WeatherName => !!s && s in WEATHER;
+
+export function blendWeather(A: Weather, B: Weather, t: number): Weather {
+  const mix = (x: number, y: number) => x + (y - x) * t;
+  return {
+    sun: mix(A.sun, B.sun), sky: mix(A.sky, B.sky), grey: mix(A.grey, B.grey),
+    overcast: new THREE.Color(A.overcast).lerp(new THREE.Color(B.overcast), t),
+    sat: mix(A.sat, B.sat), haze: mix(A.haze, B.haze), clouds: mix(A.clouds, B.clouds),
+    rain: mix(A.rain, B.rain), snowfall: mix(A.snowfall, B.snowfall), snow: mix(A.snow, B.snow),
+    // snow line: blend toward the preset that has snow, so the snow doesn't slide up or down while fading
+    snowLine: A.snow === 0 ? B.snowLine : B.snow === 0 ? A.snowLine : mix(A.snowLine, B.snowLine),
+  };
+}
+
+/** Pull a colour toward the overcast hue at the same brightness (amount 0 = unchanged). */
+export function overcastColor(c: THREE.Color, w: Weather, amount = w.grey): THREE.Color {
+  if (amount === 0) return c;
+  const tint = new THREE.Color(w.overcast);
+  const lum = (x: THREE.Color) => 0.2126 * x.r + 0.7152 * x.g + 0.0722 * x.b;
+  tint.multiplyScalar(lum(c) / Math.max(lum(tint), 1e-6));
+  return c.lerp(tint, amount);
+}
+
 // soft radial glow used for lamp light pools and headlights
 export function glowTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas');

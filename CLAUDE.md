@@ -36,7 +36,8 @@ npm run data         # data/skopje_raw.json (+ data/aerialway.json) → public/s
 | `city.ts` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds |
 | `terrain.ts` | Heightfield with exact mesh-matching interpolation; chunk/low-res meshes; triangle clipping for draping |
 | `post.ts` | `InkRenderer`: colour + normal/depth passes → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
-| `sky.ts` | Day / sunset / night presets + blending, street lamps, glow texture |
+| `sky.ts` | Day / sunset / night presets + blending, weather presets (`WEATHER`: clear, rain, snow, snow on Vodno) + blending, street lamps, glow texture |
+| `weather.ts` | Falling rain and snow: GPU-animated quads in a camera-following box (colour pass only) |
 | `atmos.ts` | Translucent clouds (shadows computed in post), bird flocks |
 | `traffic.ts` | Animated cars/buses/people on OSM paths, headlights |
 | `flight.ts` | Arcade plane (Macedonian-flag livery), chase camera, keyboard/pad input, invert-Y |
@@ -64,6 +65,16 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   (`erasableSyntaxOnly`): no `enum`, `namespace` or constructor parameter properties.
   Type-only imports use `import type` (`verbatimModuleSyntax`).
 - Every translation must have every key English has: a missing one fails `npm run typecheck`.
+
+## Weather
+
+- Weather is a second axis on top of the time of day: `applyTime(time, weather)` in `main.ts`.
+  **Clear must stay neutral** (multipliers 1, amounts 0): clear renders pixel-identical to
+  v1.1.0 (checked by rendering fixed views and diffing; only the moving gondola cabins differ).
+- Wet streets, puddles and snow are shader code in `city.ts` (`groundShader`, facade, foliage),
+  driven by `SHARED.uWet / uSnow / uSnowLine`; each block is skipped when its amount is 0.
+  Snow on roads stays as slush: roads are detected by their exact palette colour.
+- Rain/snow add ~1 ms GPU per frame at 1600×1000 (desktop); clear costs nothing.
 - Version lives in `package.json` (`version`); Vite injects it as `__APP_VERSION__`, shown at
   the bottom of the help dialog. Releases are tagged `vX.Y.Z`.
 

@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { MapControls } from 'three/addons/controls/MapControls.js';
 import { computeCitySteps, assembleCity, PAL, SHARED, type City, type CityDesc, type CityStage } from './city.ts';
 import { TIMES, TIME_ORDER, blendTimes, presetOf, createLamps, isTimeName, type TimeName, type TimePreset, type TimeState } from './sky.ts';
+import { WEATHER, WEATHER_ORDER, blendWeather, isWeatherName, overcastColor, type Weather, type WeatherName } from './sky.ts';
+import { createPrecip, type Precip } from './weather.ts';
 import { createTraffic } from './traffic.ts';
 import { Terrain } from './terrain.ts';
 import { InkRenderer } from './post.ts';
@@ -104,6 +106,7 @@ interface World {
   clouds: ReturnType<typeof createClouds>;
   birds: ReturnType<typeof createBirds>;
   lamps: ReturnType<typeof createLamps>;
+  precip: Precip;
   landmarks: ReturnType<typeof createLandmarks>;
   labels: ReturnType<typeof createLabels>;
   game: Game;
@@ -224,8 +227,10 @@ async function init(): Promise<void> {
   ink.compMat.uniforms.clouds.value = clouds.uniforms;
   const lamps = createLamps(city.roadList, terrain, { hw: W / 2, hh: H / 2 }, planes);
   scene.add(lamps.group);
-  ink.skipNormal.push(...lamps.glows, ...traffic.glows, clouds.group); // soft, see-through: no ink lines
-  applyTime(stateOf(timeName), { clouds, lamps, traffic });
+  const precip = createPrecip({ hw: W / 2, hh: H / 2 }, MOBILE ? 9000 : 24000);
+  scene.add(precip.mesh);
+  ink.skipNormal.push(...lamps.glows, ...traffic.glows, clouds.group, precip.mesh); // soft, see-through: no ink lines
+  applyTime(timeNow, wxNow, { clouds, lamps, traffic, precip });
   const landmarks = createLandmarks({ data, terrain, clippingPlanes: planes });
   const labels = createLabels({ meta, terrain, crosses: data.crosses || [], places: data.places || {}, container: $('labels') });
   try { labels.enabled = localStorage.getItem('skopje.labels') !== '0'; } catch { /* storage unavailable */ }
@@ -237,7 +242,7 @@ async function init(): Promise<void> {
   ink.skipNormal.push(game.beam);
   const flight = createFlight({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 } });
   flight.setInvertY(invertBox.checked);
-  world = { terrain, meta, city, traffic, clouds, birds, lamps, landmarks, labels, game, flight };
+  world = { terrain, meta, city, traffic, clouds, birds, lamps, precip, landmarks, labels, game, flight };
   console.log('city ready in', Math.round(performance.now() - t0), 'ms', city.stats, traffic.counts);
 
   const maxTex = renderer.capabilities.maxTextureSize;
@@ -278,22 +283,42 @@ let timeName: TimeName = 'day';
 try { const saved = localStorage.getItem('skopje.time'); if (isTimeName(saved)) timeName = saved; } catch { /* storage unavailable */ }
 let tween: { from: TimeState; to: TimePreset; t: number } | null = null;
 const stateOf = (name: TimeName) => blendTimes(TIMES[name], TIMES[name], 0);
-/** Lights, colours and night effects for a time of day; the effects that exist yet are passed in. */
-function applyTime(p: TimeState, fx: Pick<World, 'clouds' | 'lamps' | 'traffic'> | null): void {
+let timeNow = stateOf(timeName);
+// weather: a second axis on top of the time of day ('clear' changes nothing)
+let wxName: WeatherName = 'clear';
+try { const saved = localStorage.getItem('skopje.weather'); if (isWeatherName(saved)) wxName = saved; } catch { /* storage unavailable */ }
+let wxNow: Weather = WEATHER[wxName];
+let wxTween: { from: Weather; to: Weather; t: number } | null = null;
+/** Lights, colours, night and weather effects; the effects that exist yet are passed in. */
+function applyTime(p: TimeState, w: Weather, fx: Pick<World, 'clouds' | 'lamps' | 'traffic' | 'precip'> | null): void {
+  const paper = overcastColor(p.paper.clone(), w), haze = overcastColor(p.haze.clone(), w);
   SUN_DIR.copy(p.sunDir);
-  sun.color.copy(p.sun); sun.intensity = p.sunI;
-  hemi.color.copy(p.sky); hemi.groundColor.copy(p.gnd); hemi.intensity = p.hemiI;
+  sun.color.copy(overcastColor(p.sun.clone(), w, w.grey * 0.6)); sun.intensity = p.sunI * w.sun;
+  hemi.color.copy(overcastColor(p.sky.clone(), w)); hemi.groundColor.copy(p.gnd); hemi.intensity = p.hemiI * w.sky;
   const u = ink.compMat.uniforms;
-  u.paper.value.copy(p.paper); u.haze.value.copy(p.haze); u.inkColor.value.copy(p.ink); u.grade.value.copy(p.grade);
-  sceneBg.copy(p.paper);
-  document.documentElement.style.background = '#' + p.paper.getHexString();
+  u.paper.value.copy(paper); u.haze.value.copy(haze); u.inkColor.value.copy(p.ink); u.grade.value.copy(p.grade);
+  u.sat.value = 1.12 * w.sat;
+  u.hazeAmt.value = 0.3 + 0.6 * w.haze;
+  u.hazeRange.value.set(4000, 26000).multiplyScalar(1 - 1.2 * w.haze);
+  sceneBg.copy(paper);
+  document.documentElement.style.background = '#' + paper.getHexString();
   SHARED.uNight.value = p.night;
+  SHARED.uWet.value = w.rain;
+  SHARED.uSnow.value = w.snow;
+  SHARED.uSnowLine.value = w.snowLine;
+  SHARED.uPuddle.value.set(haze.r, haze.g, haze.b);
   u.sunDir.value.copy(p.sunDir);
-  u.cloudShade.value = 0.62 * (1 - p.night);
-  fx?.clouds.material.color.set('#ffffff').lerp(new THREE.Color('#59608f'), p.night);
-  fx?.clouds.material.emissive.copy(p.sky).multiplyScalar(0.35);
-  fx?.lamps.setNight(p.night);
-  fx?.traffic.setNight(p.night);
+  u.cloudShade.value = 0.62 * (1 - p.night) * (1 - 0.5 * w.grey);
+  if (fx) {
+    fx.clouds.material.color.set('#ffffff').lerp(new THREE.Color('#59608f'), p.night).lerp(new THREE.Color(w.overcast).multiplyScalar(0.8), w.clouds * w.grey);
+    fx.clouds.material.emissive.copy(p.sky).multiplyScalar(0.35);
+    fx.clouds.material.opacity = 0.68 + 0.2 * w.clouds;
+    fx.clouds.setCover(w.clouds);
+    fx.lamps.setNight(p.night);
+    fx.traffic.setNight(p.night);
+    fx.precip.set(w.rain, w.snowfall);
+    fx.precip.setColors(haze.clone().lerp(new THREE.Color('#ffffff'), 0.35), new THREE.Color('#ffffff').multiplyScalar(1 - 0.55 * p.night));
+  }
   document.body.classList.toggle('night', p.night > 0.5);
 }
 function setTime(name: TimeName): void {
@@ -305,6 +330,15 @@ function setTime(name: TimeName): void {
 const timeBtn = $('time');
 timeBtn.textContent = t(`time.${timeName}`);
 timeBtn.addEventListener('click', () => setTime(TIME_ORDER[(TIME_ORDER.indexOf(timeName) + 1) % TIME_ORDER.length]));
+function setWeather(name: WeatherName): void {
+  wxTween = { from: wxNow, to: WEATHER[name], t: 0 };
+  wxName = name;
+  weatherBtn.textContent = t(`weather.${name}`);
+  try { localStorage.setItem('skopje.weather', name); } catch { /* storage unavailable */ }
+}
+const weatherBtn = $('weather');
+weatherBtn.textContent = t(`weather.${wxName}`);
+weatherBtn.addEventListener('click', () => setWeather(WEATHER_ORDER[(WEATHER_ORDER.indexOf(wxName) + 1) % WEATHER_ORDER.length]));
 
 // Shadow frustum follows the view so close-ups get crisp shadows
 function fitShadow(extOverride?: number): void {
@@ -468,17 +502,23 @@ function stopFlight(): void {
 $('fly').addEventListener('click', startFlight);
 $('fly-exit').addEventListener('click', stopFlight);
 addEventListener('keydown', (e) => { if (e.code === 'Escape' && world?.flight.active) stopFlight(); });
-// hold-to-press touch/mouse buttons
+// on-screen flight buttons: hold to press; on touch screens БРЗО is a toggle (tap on, tap off)
 flyHud.querySelectorAll<HTMLElement>('[data-k]').forEach((b) => {
   const k = b.dataset.k as 'left' | 'right' | 'up' | 'down' | 'boost';
   const set = (on: boolean) => {
     if (!world) return;
     const { input } = world.flight;
-    if (k === 'boost') input.boost = on; else input[k] = on ? 1 : 0;
+    if (k === 'boost') { input.boost = on; b.setAttribute('aria-pressed', String(on)); } else input[k] = on ? 1 : 0;
     b.classList.toggle('on', on);
   };
-  b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); set(true); });
-  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) b.addEventListener(ev, () => set(false));
+  const toggles = (e: PointerEvent) => k === 'boost' && e.pointerType !== 'mouse';
+  b.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (toggles(e)) { set(!world?.flight.input.boost); return; }
+    b.setPointerCapture(e.pointerId);
+    set(true);
+  });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) b.addEventListener(ev, (e) => { if (!toggles(e)) set(false); });
   b.addEventListener('contextmenu', (e) => e.preventDefault());
 });
 
@@ -496,6 +536,7 @@ for (const [code, name] of LANGS) langSel.add(new Option(name, code, false, code
 langSel.addEventListener('change', () => { setLang(langSel.value); closePopups(); });
 onLangChange(() => {
   timeBtn.textContent = t(`time.${timeName}`);
+  weatherBtn.textContent = t(`weather.${wxName}`);
   raceBtn.textContent = raceLabel();
   if (loader.isConnected) loadText.textContent = t(`stage.${lastStage}`);
 });
@@ -520,7 +561,7 @@ renderer.setAnimationLoop(() => {
   if (world?.flight.active || live) governQuality(dt);
   controls.update();
   if (!world) return; // set at the end of loading: everything exists
-  const { flight, game, terrain, city, traffic, clouds, birds, landmarks, labels } = world;
+  const { flight, game, terrain, city, traffic, clouds, birds, precip, landmarks, labels } = world;
   // ---- gamepad
   const pad = readPad();
   if (pad) {
@@ -543,11 +584,18 @@ renderer.setAnimationLoop(() => {
     camera.position.y += dy;
     camDirty = true;
   }
-  if (tween) {
-    tween.t = Math.min(1, tween.t + dt / 1.4);
-    const e = tween.t * tween.t * (3 - 2 * tween.t);
-    applyTime(blendTimes(presetOf(tween.from), tween.to, e), world);
-    if (tween.t >= 1) tween = null;
+  if (tween || wxTween) {
+    if (tween) {
+      tween.t = Math.min(1, tween.t + dt / 1.4);
+      timeNow = blendTimes(presetOf(tween.from), tween.to, tween.t * tween.t * (3 - 2 * tween.t));
+      if (tween.t >= 1) tween = null;
+    }
+    if (wxTween) {
+      wxTween.t = Math.min(1, wxTween.t + dt / 2);
+      wxNow = blendWeather(wxTween.from, wxTween.to, wxTween.t * wxTween.t * (3 - 2 * wxTween.t));
+      if (wxTween.t >= 1) { wxNow = wxTween.to; wxTween = null; }
+    }
+    applyTime(timeNow, wxNow, world);
     fitShadow(flight.active ? 1100 : undefined);
     ink.reset();
   }
@@ -591,6 +639,7 @@ renderer.setAnimationLoop(() => {
     clouds.update(dt);
     birds.update(dt);
     landmarks.update(dt);
+    precip.update(dt, camera, controls.target);
     ink.render(scene, camera, true);
     return;
   }
@@ -606,13 +655,14 @@ renderer.setAnimationLoop(() => {
     clouds.update(dt);
     birds.update(dt, THREE.MathUtils.clamp(camera.position.distanceTo(controls.target) / 700, 1, 5));
     landmarks.update(dt);
+    precip.update(dt, camera, controls.target);
   }
   labels.update(camera, controls.target);
   if (!live && ink.converged) return; // static & fully supersampled: idle
   ink.render(scene, camera, live);
 });
 
-window.__dbg = { scene, renderer, sun, camera, controls, ink, get city() { return world?.city; }, get flight() { return world?.flight; } };
+window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, setView, fitShadow, updateCameraRange, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; } };
 
 init().catch((e: unknown) => {
   console.error(e);

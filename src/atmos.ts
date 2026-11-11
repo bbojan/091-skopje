@@ -26,7 +26,7 @@ export function createClouds(bounds: Bounds, baseY: number) {
   }
   const mat = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#e9e4f2', emissiveIntensity: 0.25, transparent: true, opacity: 0.68, depthWrite: false });
   const group = new THREE.Group();
-  const clouds: { m: THREE.Mesh; r: number; speed: number }[] = [];
+  const clouds: { m: THREE.Mesh; r: number; speed: number; base: THREE.Vector3 }[] = [];
   const { hw, hh } = bounds;
   for (let i = 0; i < MAX_CLOUDS; i++) {
     const r = 230 + rnd() * 260;
@@ -35,11 +35,18 @@ export function createClouds(bounds: Bounds, baseY: number) {
     m.rotation.y = rnd() * Math.PI * 2;
     m.position.set((rnd() * 2 - 1) * hw, baseY + rnd() * 260, (rnd() * 2 - 1) * hh);
     group.add(m);
-    clouds.push({ m, r, speed: 0.7 + rnd() * 0.6 });
+    clouds.push({ m, r, speed: 0.7 + rnd() * 0.6, base: m.scale.clone() });
   }
   const wind = new THREE.Vector2(9, 2.5); // m/s, roughly from the west
   // per cloud: x, z, radius, height — read by the cloud-shadow pass
   const uniforms = Array.from({ length: MAX_CLOUDS }, () => new THREE.Vector4());
+  // weather: cloud cover 0 = as authored; 1 = clouds ~1.7x bigger (overcast)
+  let grow = 1;
+  function setCover(cover: number): void {
+    grow = 1 + 0.7 * cover;
+    for (const c of clouds) c.m.scale.copy(c.base).multiplyScalar(grow);
+    update(0);
+  }
   function update(dt: number): void {
     for (let i = 0; i < clouds.length; i++) {
       const c = clouds[i];
@@ -47,11 +54,11 @@ export function createClouds(bounds: Bounds, baseY: number) {
       c.m.position.z += wind.y * c.speed * dt;
       if (c.m.position.x > hw + 400) c.m.position.x = -hw - 400;
       if (c.m.position.z > hh + 400) c.m.position.z = -hh - 400;
-      uniforms[i].set(c.m.position.x, c.m.position.z, c.r * 1.05, c.m.position.y);
+      uniforms[i].set(c.m.position.x, c.m.position.z, c.r * 1.05 * grow, c.m.position.y);
     }
   }
   update(0);
-  return { group, update, uniforms, material: mat };
+  return { group, update, setCover, uniforms, material: mat };
 }
 
 // Small flocks wheeling over the city

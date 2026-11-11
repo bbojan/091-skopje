@@ -68,6 +68,10 @@ export class InkRenderer {
         sunDir: { value: new THREE.Vector3(0, 1, 0) },
         clouds: { value: Array.from({ length: MAX_CLOUDS }, () => new THREE.Vector4()) },
         cloudShade: { value: 0.24 },
+        // weather: saturation and haze (clear = as authored)
+        sat: { value: 1.12 },
+        hazeAmt: { value: 0.3 },
+        hazeRange: { value: new THREE.Vector2(4000, 26000) },
         seed: { value: 0 },
       },
       vertexShader: FS_VERT,
@@ -78,7 +82,8 @@ export class InkRenderer {
         uniform mat4 projInv, camWorld;
         uniform vec3 sunDir;
         uniform vec4 clouds[${MAX_CLOUDS}];
-        uniform float cloudShade;
+        uniform float cloudShade, sat, hazeAmt;
+        uniform vec2 hazeRange;
         vec3 worldPos(vec2 uv) {
           float d = texture2D(tDepth, uv).x;
           vec4 v = projInv * vec4(uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
@@ -153,13 +158,13 @@ export class InkRenderer {
 
           // --- grade: gentle warmth + saturation
           float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
-          col = mix(vec3(lum), col, 1.12);
+          col = mix(vec3(lum), col, sat);
           col = col * grade + vec3(0.012, 0.008, 0.02) * grade.r;
           // ink takes on a darker version of the local colour
           vec3 ink = mix(inkColor * 0.5, col * 0.28, 0.45);
           col = mix(col, ink, edge);
           // --- atmospheric haze
-          col = mix(col, haze, smoothstep(4000.0, 26000.0, dist) * 0.3);
+          col = mix(col, haze, smoothstep(hazeRange.x, hazeRange.y, dist) * hazeAmt);
           gl_FragColor = vec4(max(col, 0.0), 1.0);
         }`,
       depthTest: false, depthWrite: false,
