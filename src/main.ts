@@ -14,6 +14,7 @@ import { createWalk, type Walk, type WalkAction } from './walk.ts';
 import { createGame, fmtTime, type Game } from './game.ts';
 import { createFireMode, WATER_FLOOR, type FireMode } from './fire.ts';
 import { createLandmarks } from './landmarks.ts';
+import { createSound } from './sound.ts';
 import { createLabels } from './labels.ts';
 import { createMapInput, readPad } from './input.ts';
 import { LANGS, lang, t, applyI18n, setLang, onLangChange, type Key } from './i18n.ts';
@@ -523,6 +524,33 @@ smoothBtn.addEventListener('click', () => {
 // less traffic: an option only, never switched on automatically
 let lightTraffic = false;
 try { lightTraffic = localStorage.getItem('skopje.lightTraffic') === '1'; } catch { /* storage unavailable */ }
+// 🔊 sound: off unless switched on, and the choice is saved. The switch is in ⚙; the flight
+// and walking HUDs carry a small speaker button for the same thing (the bar is hidden there).
+const sound = createSound();
+let soundOn = false;
+try { soundOn = localStorage.getItem('skopje.sound') === '1'; } catch { /* storage unavailable */ }
+const soundBtn = $('sound'), soundChips = document.querySelectorAll<HTMLElement>('.snd');
+function setSound(v: boolean, save = true): void {
+  soundOn = v;
+  sound.setOn(v);
+  setOn(soundBtn, v);
+  soundChips.forEach((b) => { b.textContent = v ? '🔊' : '🔇'; b.setAttribute('aria-pressed', String(v)); });
+  if (save) try { localStorage.setItem('skopje.sound', v ? '1' : '0'); } catch { /* storage unavailable */ }
+}
+soundBtn.addEventListener('click', () => setSound(!soundOn));
+soundChips.forEach((b) => b.addEventListener('click', () => setSound(!soundOn)));
+if (soundOn) {
+  // saved as on: show it, but browsers only let audio start from a click or a key press
+  setOn(soundBtn, true);
+  soundChips.forEach((b) => { b.textContent = '🔊'; b.setAttribute('aria-pressed', 'true'); });
+  const arm = () => { removeEventListener('pointerdown', arm, true); removeEventListener('keydown', arm, true); if (soundOn) sound.setOn(true); };
+  addEventListener('pointerdown', arm, true);
+  addEventListener('keydown', arm, true);
+}
+/** what the games tell the sound: set by the firefighting HUD, read once per frame */
+const soundFx = { fire: 0, dropping: false, scooping: false };
+/** last seen counts, to play a signal when one goes up */
+const heard = { ring: 0, popped: 0, finished: false, out: 0, fires: 0, bark: false };
 const trafficBtn = $('traffic');
 setOn(trafficBtn, lightTraffic);
 trafficBtn.addEventListener('click', () => {
@@ -742,6 +770,8 @@ function stopFlight(): void {
   flight.stop();
   fire.stop();
   flight.setFire(false); // the plane parked on the Square is the usual one
+  soundFx.fire = 0; soundFx.dropping = soundFx.scooping = false;
+  Object.assign(heard, { ring: 0, popped: 0, finished: false, out: 0, fires: 0 });
   controls.target.set(p.x, terrain.at(p.x, p.z), p.z);
   const dir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
   camera.position.copy(controls.target).addScaledVector(dir, 700);
@@ -924,6 +954,8 @@ function updateWalkHud(): void {
   $('walk-info').hidden = !inf;
   if (inf) { setText('walk-info-name', inf.name); setText('walk-info-text', t(`info.${inf.key}` as Key)); }
   setText('walk-flash', walk.barking ? t('bark') : '');
+  if (walk.barking && !heard.bark) sound.play('bark');
+  heard.bark = walk.barking;
 }
 // on-screen flight buttons: hold to press; on touch screens БРЗО is a toggle (tap on, tap off)
 flyHud.querySelectorAll<HTMLElement>('[data-k]').forEach((b) => {
@@ -994,6 +1026,18 @@ renderer.setAnimationLoop(() => {
   controls.update();
   if (!world) return; // set at the end of loading: everything exists
   const { flight, drive, walk, game, terrain, city, traffic, clouds, birds, gliders, precip, landmarks, labels } = world;
+  // ---- sound follows what is on screen
+  if (soundOn) {
+    const fly = flight.active, bus = drive.active;
+    sound.update(dt, {
+      mode: fly ? 'fly' : bus ? 'drive' : walk.active ? 'walk' : 'map',
+      speed: fly ? THREE.MathUtils.clamp((flight.hud.kmh - 198) / 306, 0, 1) : bus ? Math.min(1, drive.kmh / 70) : 0,
+      tractor: fireOn,
+      dropping: fly && soundFx.dropping, scooping: fly && soundFx.scooping, fire: fly ? soundFx.fire : 0,
+      rain: wxNow.rain, night: timeNow.night,
+      near: walk.active ? 1 : THREE.MathUtils.clamp(1 - (camera.position.distanceTo(controls.target) - 300) / 5000, 0, 1),
+    });
+  }
   // ---- gamepad
   const pad = readPad();
   if (pad) {
@@ -1124,12 +1168,24 @@ renderer.setAnimationLoop(() => {
       if (f.scooping) warn = t('fire.scoop');
       else if (h.warn === 'low' && f.overWater) warn = ''; // skimming the river on purpose
       else if (!warn && f.tank <= 0) warn = t('fire.refill');
-    }
+      // sound: the fire gets louder as it nears; a signal for a fire out and for a new one
+      soundFx.fire = near ? THREE.MathUtils.clamp(1 - nd / 520, 0, 1) : 0;
+      soundFx.dropping = flight.dropping && f.tank > 0;
+      soundFx.scooping = f.scooping;
+      if (f.out > heard.out) sound.play('out');
+      else if (f.fires.length > heard.fires) sound.play('alarm');
+      heard.out = f.out;
+      heard.fires = f.fires.length;
+    } else { soundFx.fire = 0; soundFx.dropping = soundFx.scooping = false; heard.fires = 0; }
     if (flyWarn.textContent !== warn) flyWarn.textContent = warn;
     // race HUD (only when the race is on)
     if (race) {
       game.update(dt, flight.pos);
       const g = game.state;
+      if (g.finished && !heard.finished) sound.play('finish');
+      else if (g.next > heard.ring) sound.play('ding');
+      if (g.popped > heard.popped) sound.play('pop');
+      heard.ring = g.next; heard.popped = g.popped; heard.finished = g.finished;
       flyGame.textContent = g.finished ? `🏁 ${fmtTime(g.time)} · 🎈 ${g.popped}/${g.balloons}` : `◎ ${g.next}/${g.total} · ⏱ ${fmtTime(g.time)} · 🎈 ${g.popped}/${g.balloons}`;
       if (flyFlash.textContent !== g.flash) flyFlash.textContent = g.flash;
       if (!g.finished) {
@@ -1183,7 +1239,7 @@ renderer.setAnimationLoop(() => {
   ink.render(scene, camera, live);
 });
 
-window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, setView, fitShadow, updateCameraRange, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; } };
+window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; } };
 
 init().catch((e: unknown) => {
   console.error(e);

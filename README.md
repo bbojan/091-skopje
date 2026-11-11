@@ -26,6 +26,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 - 🚌 Drive a red ЈСП double-decker through the streets
 - ✈ Fly a Macedonian-flag light aircraft, with an optional ring race and 091 balloons
 - 🔥 Fight fires in a yellow Air Tractor: forest, building and bus fires, water drops, refills from the Vardar
+- 🔊 Optional sound (off by default): engine, water and fire, rain, birds and crickets, all synthesised in the browser
 - Your choices are remembered in the browser (time of day, weather, season, quality, language and the other options)
 - 🔗 Shareable links: the camera position is always in the address bar
 

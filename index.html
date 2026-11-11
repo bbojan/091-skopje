@@ -105,7 +105,8 @@
       body:not(.firefighting) .fire-only { display: none !important; }
       body.firefighting .nofire { display: none !important; }
       .fly-nav[hidden] { display: none; }
-      #fly-race, #fly-fire { cursor: pointer; font-family: inherit; color: var(--ink); }
+      #fly-race, #fly-fire, .chip.snd { cursor: pointer; font-family: inherit; color: var(--ink); }
+      .chip.snd { padding: 6px 10px; }
       #fly-race.on, #fly-fire.on { background: #f7d83c; }
       #fly-water { position: absolute; right: 104px; bottom: 134px; width: 96px; height: 96px; border-radius: 50%; font-size: 34px;
                    background: linear-gradient(to top, #8fcdf0 var(--tank, 100%), rgba(251, 246, 238, 0.92) var(--tank, 100%)); } /* fills like the tank */
@@ -291,6 +292,7 @@
           <tr><td data-i18n="bar.shot">Зачувај слика</td><td data-i18n="b.shotD">Преземи PNG од тековниот поглед</td></tr>
           <tr><td data-i18n="b.quality">⚡ Квалитет</td><td data-i18n="b.qualityD">Автоматски преминува на полесно цртање кога компјутерот или телефонот е бавен (без сенчење во аглите и сенки од облаците, помали сенки); „висок“ секогаш црта сè во најголема резолуција, „низок“ секогаш полесно</td></tr>
           <tr><td data-i18n="bar.smooth">✨ Мазни рабови</td><td data-i18n="b.smoothD">Ги измазнува рабовите и додека сликата се движи; исклучено е побрзо, а мирната слика останува речиси иста (во низок квалитет е секогаш исклучено)</td></tr>
+          <tr><td data-i18n="bar.sound">🔊 Звук</td><td data-i18n="b.soundD">Вклучи/исклучи го звукот — мотор, вода и оган, дожд, птици и штурци; на почеток е исклучен, а изборот се памти</td></tr>
           <tr><td data-i18n="bar.traffic">🚗 Помалку сообраќај</td><td data-i18n="b.trafficD">Помалку автомобили и пешаци во движење — помалку работа за процесорот на послаби уреди</td></tr>
           <tr><td data-i18n="b.share">🔗 Копирај линк</td><td data-i18n="b.shareD">Копира врска до тековниот поглед (место и агол на камерата) за да го споделиш; врската е секогаш и во адресата</td></tr>
           <tr><td data-i18n="bar.stream">💾 Штедење меморија</td><td data-i18n="b.streamD">Ги чува деталите на теренот и улиците само близу камерата, а подалеку останува насликаната подлога; вклучено на телефон</td></tr>
@@ -356,6 +358,7 @@
         <button id="shot" data-i18n="bar.shot">Зачувај слика</button>
         <button id="quality">⚡ Квалитет: автоматски</button>
         <button id="smooth" class="switch" aria-pressed="true" data-i18n="bar.smooth">✨ Мазни рабови</button>
+        <button id="sound" class="switch" aria-pressed="false" data-i18n="bar.sound">🔊 Звук</button>
         <button id="traffic" class="switch" aria-pressed="false" data-i18n="bar.traffic">🚗 Помалку сообраќај</button>
         <button id="share">🔗 Копирај линк</button>
         <button id="stream" class="switch" aria-pressed="false" data-i18n="bar.stream">💾 Штедење меморија</button>
@@ -369,6 +372,7 @@
         <button class="chip fly-only" id="fly-race">🏁 Трка</button>
         <button class="chip fly-only" id="fly-fire">🔥 Пожар</button>
         <span class="chip game-only" id="fly-game"></span>
+        <button class="chip snd" aria-label="Звук" data-i18n-aria="a.sound">🔇</button>
         <button class="chip" id="fly-exit" data-i18n="fly.exit">✕ Излез</button>
       </div>
       <div class="fly-nav game-only" id="fly-nav"><div class="arrow" id="fly-arrow">▲</div><span class="chip" id="fly-dist"></span></div>
@@ -393,6 +397,7 @@
         <span class="chip" id="walk-who"></span>
         <span class="chip warn" id="walk-hint"></span>
         <span class="chip" id="walk-bus" hidden><span class="walk-arrow" id="walk-bus-arrow">▲</span> <span id="walk-bus-dist"></span></span>
+        <button class="chip snd" aria-label="Звук" data-i18n-aria="a.sound">🔇</button>
         <button class="chip" id="walk-exit" data-i18n="fly.exit">✕ Излез</button>
       </div>
       <div class="walk-info" id="walk-info" hidden><b id="walk-info-name"></b><p id="walk-info-text"></p></div>

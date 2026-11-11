@@ -69,6 +69,12 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    in `atmos.ts`): 8 (5 on `MOBILE`), each circling in its own thermal, grown with the zoom like
    the birds; they stay down at night and in rain or snow. The pixel check hides them, like the
    birds.
+19. **v2.6.0** (Nov 2026): 🔊 Звук, optional sound, off by default (`sound.ts`): everything is
+   synthesised with Web Audio, no audio files — engine and propeller (a turbine whine for the
+   Air Tractor, a lower engine for the bus), wind, rain, the water drop and scooping, fire roar
+   and crackle by distance, birds by day and crickets at night, and short signals (ring, balloon,
+   finish, new fire, fire out, bark). A switch in ⚙ and a speaker button in the flight and
+   walking HUDs; the choice is saved. The audio graph is built on the first switch-on.
 
 ## Key decisions (and why)
 
@@ -142,6 +148,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | ✨ Мазни рабови | `skopje.smooth` | on |
 | 💾 Memory saver | `skopje.memorySaver` | on for `MOBILE`, off on desktop |
 | 🚗 Less traffic | `skopje.lightTraffic` | off |
+| 🔊 Sound | `skopje.sound` | off (when saved as on, audio starts with the first click or key press: browsers do not allow it earlier) |
 | Имиња (labels) | `skopje.labels` | on |
 | 🌐 Language | `skopje.lang` | the browser's first regional language (never English by itself), else Macedonian; `?lang=` in the link wins over everything |
 | 🏁 Race / free flight | `skopje.race` | free flight |
@@ -304,6 +311,11 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 - Two-column menus on a real phone (checked at emulated 375×560, 375×330 and 1200×380).
 - Weather on a real phone (particle count is lowered on `MOBILE`, not measured there), and
   the 2 s weather blend watched live (verified via direct renders; the pane was hidden).
+- 🔊 Sound has not been listened to: it was built without ears. Checked: it starts from a real
+  click, follows the modes (output level, RMS before the limiter: crickets on the night map
+  ≈ 0.007, plane engine ≈ 0.05, signals peak ≈ 0.12), goes silent when switched off, the
+  setting survives a reload, no console errors. Not checked: how any of it sounds, the balance
+  between layers, phones (iOS Safari audio unlock), the bus engine, rain and the bark in play.
 - 🔥 Firefighting: the three fire kinds, the drop, the refill and the banner were checked by
   stepping the game with `fire-harness.js` (day, sunset, night; full tier, smooth edges off,
   low tier) and the HUD at 375×812, not by playing it through by hand. Not checked: touch (the

@@ -48,6 +48,7 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | `fire.ts` | Optional firefighting game: at most two fires (forest patch, building roof, ЈСП bus), spawning from a land-cover grid, flames / smoke / glow as GPU-animated quads, water hits, best count |
 | `water.ts` | The Air Tractor's water: tank, falling curtain, splash and steam, spray while scooping, landing ring; closed-form paths shared by the shader and the hit test |
 | `landmarks.ts` | Hand-built models: Millennium Cross lattice, Warrior on a Horse, Stone Bridge, Porta Macedonia, Vodno gondola |
+| `sound.ts` | Optional sound, off by default: Web Audio synthesis only (engine, wind, rain, water, fire, birds, crickets, short signals), fed a `SoundScene` once per frame from `main.ts` |
 | `labels.ts` | HTML Cyrillic labels (districts far, landmarks near), positions from `data.places` |
 | `input.ts` | Keyboard map navigation + gamepad reading (XInput "standard" + DirectInput fallbacks) |
 | `i18n.ts` | UI translations (mk, en, sr Cyrillic, hr, sl, sq): `t(key)`, `data-i18n*` attributes in `index.html`, 🌐 picker, auto-detect, `?lang=` |
