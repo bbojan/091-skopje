@@ -33,6 +33,7 @@ npm run dev
 ## Build
 
 ```bash
+npm run typecheck   # TypeScript 7, strict
 npm run build   # static site in dist/ (relative paths, works on GitHub Pages)
 ```
 
@@ -40,7 +41,7 @@ Pushing to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`.
 
 ## Regenerate the data
 
-The prepared data in `public/` is committed. To rebuild it (extent in `scripts/config.mjs`):
+The prepared data in `public/` is committed. To rebuild it (extent in `scripts/config.ts`):
 
 ```bash
 npm run download   # OpenStreetMap via Overpass → data/skopje_raw.json

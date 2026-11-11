@@ -1,18 +1,41 @@
 import * as THREE from 'three';
-import { MAX_CLOUDS } from './atmos.js';
+import { MAX_CLOUDS } from './atmos.ts';
 
 const FS_VERT = /* glsl */ `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
 
 // Halton sequence for sub-pixel jitter
-const halton = (i, b) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b); } return r; };
-const JITTER = Array.from({ length: 32 }, (_, i) => [halton(i + 1, 2) - 0.5, halton(i + 1, 3) - 0.5]);
+const halton = (i: number, b: number) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b); } return r; };
+const JITTER: [number, number][] = Array.from({ length: 32 }, (_, i) => [halton(i + 1, 2) - 0.5, halton(i + 1, 3) - 0.5]);
 
 // Illustrated renderer:
 //   colour pass + normal/depth pass → composite (ink lines, AO, grade, haze)
 //   → temporal accumulation of jittered frames (supersampled antialiasing)
 //   → display (paper grain, sRGB)
 export class InkRenderer {
-  constructor(renderer) {
+  r: THREE.WebGLRenderer;
+  colorRT: THREE.WebGLRenderTarget;
+  normalRT: THREE.WebGLRenderTarget;
+  compRT: THREE.WebGLRenderTarget;
+  /** accumulation ping-pong: [previous, next] */
+  acc: [THREE.WebGLRenderTarget, THREE.WebGLRenderTarget];
+  normalMat: THREE.MeshNormalMaterial;
+  /** draw ink lines */
+  ink: boolean;
+  /** additive glows etc. that must not create ink lines */
+  skipNormal: THREE.Object3D[];
+  /** frames accumulated since the last reset */
+  frame: number;
+  maxSamples: number;
+  liveBlend: number;
+  compMat: THREE.ShaderMaterial;
+  accMat: THREE.ShaderMaterial;
+  outMat: THREE.ShaderMaterial;
+  quad: THREE.Mesh<THREE.PlaneGeometry, THREE.Material>;
+  qScene: THREE.Scene;
+  qCam: THREE.Camera;
+  size: [number, number] = [1, 1];
+
+  constructor(renderer: THREE.WebGLRenderer) {
     this.r = renderer;
     const hf = { type: THREE.HalfFloatType };
     this.colorRT = new THREE.WebGLRenderTarget(1, 1, { ...hf, samples: 4 });
@@ -22,7 +45,7 @@ export class InkRenderer {
     this.acc = [new THREE.WebGLRenderTarget(1, 1, hf), new THREE.WebGLRenderTarget(1, 1, hf)];
     this.normalMat = new THREE.MeshNormalMaterial();
     this.ink = true;
-    this.skipNormal = []; // additive glows etc. that must not create ink lines
+    this.skipNormal = [];
     this.frame = 0;
     this.maxSamples = 24;
     this.liveBlend = 0.22;
@@ -173,9 +196,9 @@ export class InkRenderer {
     this.qCam = new THREE.Camera();
   }
 
-  setClipping(planes) { this.normalMat.clippingPlanes = planes; }
+  setClipping(planes: THREE.Plane[]): void { this.normalMat.clippingPlanes = planes; }
 
-  setSize(w, h, dpr) {
+  setSize(w: number, h: number, dpr: number): void {
     const W = Math.floor(w * dpr), H = Math.floor(h * dpr);
     this.size = [W, H];
     for (const rt of [this.colorRT, this.normalRT, this.compRT, ...this.acc]) rt.setSize(W, H);
@@ -184,17 +207,17 @@ export class InkRenderer {
     this.reset();
   }
 
-  reset() { this.frame = 0; }
-  get converged() { return this.frame >= this.maxSamples; }
+  reset(): void { this.frame = 0; }
+  get converged(): boolean { return this.frame >= this.maxSamples; }
 
-  _pass(mat, target) {
+  _pass(mat: THREE.Material, target: THREE.WebGLRenderTarget | null): void {
     this.quad.material = mat;
     this.r.setRenderTarget(target);
     this.r.render(this.qScene, this.qCam);
   }
 
   // live: scene is animating → exponential blend instead of converging average
-  render(scene, camera, live = false) {
+  render(scene: THREE.Scene, camera: THREE.PerspectiveCamera, live = false): void {
     const r = this.r;
     const [W, H] = this.size;
     const n = this.frame;

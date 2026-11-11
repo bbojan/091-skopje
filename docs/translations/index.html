@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>091 Скопје Translations</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Rubik+Mono+One&display=swap">
+<style>
+  /* Layout: one wide comparison table (key + 6 language columns), grouped by where the text appears;
+     below 760px every row becomes a stacked card. Palette and type follow the app's "Вез" style. */
+  :root {
+    --bg: #f4ede0;        /* linen */
+    --surface: #fbf7ef;   /* linen-hi */
+    --fg: #1f2a44;        /* indigo */
+    --muted: #5d6479;
+    --accent: #7a1f1a;    /* wine */
+    --line: rgba(31, 42, 68, 0.16);
+    --flag: #f1dcc4;
+    --kbd-bg: #ffffff;
+    --badge-fg: #fbf7ef;
+    --stitch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10'%3E%3Cpath d='M0 5 L6 0.5 L12 5 L6 9.5 Z' fill='none' stroke='%237a1f1a' stroke-width='1.5'/%3E%3Crect x='5' y='4' width='2' height='2' fill='%231f2a44'/%3E%3C/svg%3E");
+    --serif: 'Lora', Georgia, 'Times New Roman', serif;
+    --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    --badge: 'Rubik Mono One', 'Arial Black', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #151b2e; --surface: #1d2540; --fg: #ece4d4; --muted: #a6aabb; --accent: #e3907f;
+      --line: rgba(236, 228, 212, 0.14); --flag: #3a2832; --kbd-bg: #11172a; --badge-fg: #151b2e;
+      --stitch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10'%3E%3Cpath d='M0 5 L6 0.5 L12 5 L6 9.5 Z' fill='none' stroke='%23e3907f' stroke-width='1.5'/%3E%3Crect x='5' y='4' width='2' height='2' fill='%23ece4d4'/%3E%3C/svg%3E");
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #151b2e; --surface: #1d2540; --fg: #ece4d4; --muted: #a6aabb; --accent: #e3907f;
+    --line: rgba(236, 228, 212, 0.14); --flag: #3a2832; --kbd-bg: #11172a; --badge-fg: #151b2e;
+    --stitch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10'%3E%3Cpath d='M0 5 L6 0.5 L12 5 L6 9.5 Z' fill='none' stroke='%23e3907f' stroke-width='1.5'/%3E%3Crect x='5' y='4' width='2' height='2' fill='%23ece4d4'/%3E%3C/svg%3E");
+    color-scheme: dark;
+  }
+
+  body { background: var(--bg); color: var(--fg); font-family: var(--serif); font-size: 15px; line-height: 1.5;
+         padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 48px; }
+  .wrap { max-width: 1480px; margin: 0 auto; display: grid; gap: 22px; }
+
+  header { display: grid; gap: 10px; }
+  .band { height: 10px; background: var(--stitch) repeat-x center; }
+  h1 { margin: 6px 0 0; font-size: clamp(26px, 4vw, 36px); line-height: 1.15; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; text-wrap: balance; }
+  .code { font-family: var(--badge); font-weight: 400; font-size: 0.6em; letter-spacing: 0.04em; color: var(--badge-fg); background: var(--accent);
+          padding: 6px 8px 5px; border-radius: 8px; transform: rotate(-5deg); display: inline-block; line-height: 1; }
+  .lead { margin: 0; max-width: 68ch; color: var(--muted); }
+  .lead b { color: var(--fg); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 12px 14px; background: var(--surface);
+              border: 1.5px solid var(--fg); border-radius: 12px; }
+  .controls .group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .controls .label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+  .chip { font: inherit; font-size: 13px; color: var(--fg); background: transparent; border: 1.5px solid var(--fg); border-radius: 6px;
+          padding: 4px 10px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+  .chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+  .chip:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chip .n { font-family: var(--mono); font-size: 11px; opacity: 0.75; }
+  input[type="search"] { font: inherit; font-size: 14px; color: var(--fg); background: var(--bg); border: 1.5px solid var(--fg); border-radius: 6px;
+                         padding: 5px 10px; min-width: 0; width: 15rem; max-width: 100%; }
+  .count { margin-left: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  nav.jump { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; }
+  nav.jump a { color: var(--accent); text-decoration: none; border-bottom: 1px dashed currentColor; }
+  nav.jump .n { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: 4px; }
+
+  .scroller { overflow-x: auto; border: 1.5px solid var(--fg); border-radius: 12px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 1080px; table-layout: fixed; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  td { font-size: 14px; overflow-wrap: anywhere; }
+  col.k { width: 150px; }
+  tr.grp th { background: var(--bg); padding-top: 18px; border-bottom: 1.5px solid var(--fg); font-weight: 600; }
+  tr.grp th.title { font-size: 17px; color: var(--accent); }
+  tr.grp th.lang { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  tr.grp th.lang b { color: var(--fg); letter-spacing: 0.04em; }
+  td.key { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  td.key .where { display: block; font-family: var(--serif); font-size: 12px; font-style: italic; margin-top: 2px; }
+  td[data-l="mk"] { background: color-mix(in srgb, var(--bg) 55%, transparent); }
+  tr.flagged td.key { box-shadow: inset 3px 0 0 var(--accent); }
+  .note { display: block; margin-top: 6px; padding: 6px 8px; border-radius: 6px; background: var(--flag); color: var(--fg); font-family: var(--serif);
+          font-size: 12.5px; font-style: italic; line-height: 1.4; }
+  td kbd { font-family: inherit; font-size: 12px; background: var(--kbd-bg); border: 1.2px solid var(--fg); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; white-space: nowrap; }
+  td a { color: var(--accent); }
+  td ul { margin: 0; padding-left: 16px; }
+  td li + li { margin-top: 4px; }
+  .empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+
+  @media (max-width: 760px) {
+    table { min-width: 0; table-layout: auto; }
+    colgroup { display: none; }
+    table, tbody, tr, td { display: block; width: auto; }
+    tr.grp { display: block; }
+    tr.grp th { display: none; }
+    tr.grp th.title { display: block; border-bottom: 1.5px solid var(--fg); }
+    tr.row { border-bottom: 1.5px solid var(--line); padding: 8px 0; }
+    td { border: 0; padding: 4px 12px; }
+    td[data-l]::before { content: attr(data-name); display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    td[data-l="mk"] { background: none; }
+    .count { margin-left: 0; width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="band" aria-hidden="true"></div>
+    <h1><span class="code">091</span>Скопје translations</h1>
+    <p class="lead">Every text in the app's interface, with <b>Macedonian</b> as the source and its English, Serbian, Croatian, Slovenian and Albanian versions beside it. Map labels, districts, landmarks and race-ring names stay Macedonian and aren't listed. Rows marked in wine are wording choices I made that are worth a native speaker's second look.</p>
+  </header>
+
+  <div class="controls">
+    <div class="group" id="langs"><span class="label">Show</span></div>
+    <div class="group">
+      <button class="chip" id="flagged" aria-pressed="false">Marked only <span class="n" id="flag-n"></span></button>
+    </div>
+    <div class="group">
+      <label class="label" for="q">Find</label>
+      <input type="search" id="q" placeholder="word or key">
+    </div>
+    <span class="count" id="count" aria-live="polite"></span>
+  </div>
+
+  <nav class="jump" id="jump" aria-label="Sections"></nav>
+
+  <div class="scroller">
+    <table id="t">
+      <colgroup><col class="k"><col span="6"></colgroup>
+    </table>
+    <div class="empty" id="empty" hidden>No text matches. Clear the search or show more languages.</div>
+  </div>
+</div>
+
+<script src="strings.js"></script>
+<script>
+  const LANGS = [['mk', 'Македонски'], ['en', 'English'], ['sr', 'Српски'], ['hr', 'Hrvatski'], ['sl', 'Slovenščina'], ['sq', 'Shqip']];
+
+  // where each string appears in the app
+  const GROUPS = [
+    ['bar', 'Button bar', (k) => /^(bar\.|v\.|time\.)/.test(k)],
+    ['help', 'Help dialog', (k) => /^(logo\.|close$|help\.|h\.|c\.|k\.|p\.|b\.|f\.|s\.|me$)/.test(k)],
+    ['flight', 'Flying and the race', (k) => /^(fly\.|r\.|a\.|race$|u\.|finish|newBest$|best$|warn\.)/.test(k)],
+    ['loading', 'Loading and errors', (k) => /^(loading$|stage\.|error$)/.test(k)],
+    ['credits', 'Attribution', (k) => k === 'attr'],
+  ];
+  const WHERE = {
+    'logo.title': 'tooltip on the logo', 'close': 'screen-reader label', 'me': 'top-right name pill',
+    'bar.lang': 'tooltip / screen-reader label', 'a.left': 'screen-reader label', 'a.right': 'screen-reader label', 'a.up': 'screen-reader label', 'a.down': 'screen-reader label',
+    'fly.keys': 'hint at the bottom while flying', 'best': '{t} is the time, e.g. 1:42.3', 'finish': 'shown as “Finish: Плоштад” before the last ring',
+    'u.kmh': 'speed unit in the flight bar', 'warn.edge': 'flight warning', 'warn.low': 'flight warning', 'error': 'followed by the technical message',
+  };
+  const NOTES = {
+    'help.tagline': 'The “091 Скопје / 091 Skopje” brand is kept like a game title. Albanian uses “091 Shkupin”.',
+    'help.lead': 'Neighbourhood names are written the way each language normally writes them (Đorča Petrova, Gjorçe Petrovi, Skopja, Shkupit).',
+    'me': 'Your name is written in Latin letters (Bojan Božinovski) in the Latin-script languages.',
+    'help.foot': 'Credit line reworded per language; your name is the link.',
+    'h.pad': 'No single word for “gamepad”: Serbian keeps Џојстик, Croatian uses Kontroler, Slovenian Igralni plošček, Albanian Kontrolluesi.',
+    'bar.live': 'Hard to translate “Живо” as a toggle: Live / Уживо / Uživo / V živo / Gjallë.',
+    'v.kale': 'Чаршија is kept as the local name in sr/hr/sl, “Bazaar” in English, Çarshia in Albanian.',
+    'v.park': 'Slovenian uses Mestni park (the usual Slovenian term), not a copy of Градски парк.',
+    'v.overview': 'Albanian “Pamja e plotë” means “full view”.',
+    'time.sunset': 'Serbian and Croatian shorten to Залазак / Zalazak to keep the button small.',
+    'best': 'English says “Best” instead of “Record”.',
+    'finish': 'Serbian, Croatian and Slovenian use Циљ / Cilj (“goal”), the normal racing word there. Albanian keeps “Finish”.',
+    'f.race': 'Slovenian uses “prebodi” (pierce) for popping balloons.',
+    'fly.boost': 'Slovenian “HITRO” and Albanian “SHPEJT” are on a round button; check they still fit.',
+    'r.title': 'Albanian keeps “Finish!”.',
+  };
+
+  const rows = (window.STRINGS || []).map((r) => ({ ...r, group: (GROUPS.find(([, , f]) => f(r.key)) || GROUPS[0])[0] }));
+  const plain = (html) => { const d = document.createElement('div'); d.innerHTML = html; return d.textContent; };
+  for (const r of rows) r.search = (r.key + ' ' + LANGS.map(([l]) => plain(r[l] || '')).join(' ')).toLowerCase();
+
+  const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } } };
+  let shown = new Set((store.get('tr.langs') || 'mk,en,sr,hr,sl,sq').split(',').filter((l) => LANGS.some(([c]) => c === l)));
+  shown.add('mk');
+  let onlyFlagged = false, query = '';
+
+  // language toggles (Macedonian is the source and always shown)
+  const langBox = document.getElementById('langs');
+  for (const [code, name] of LANGS) {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type = 'button'; b.dataset.l = code;
+    b.textContent = name;
+    if (code === 'mk') { b.disabled = true; b.title = 'Source language, always shown'; }
+    b.addEventListener('click', () => { shown.has(code) ? shown.delete(code) : shown.add(code); store.set('tr.langs', [...shown].join(',')); render(); });
+    langBox.append(b);
+  }
+  document.getElementById('flag-n').textContent = Object.keys(NOTES).length;
+  document.getElementById('flagged').addEventListener('click', (e) => { onlyFlagged = !onlyFlagged; e.currentTarget.setAttribute('aria-pressed', onlyFlagged); render(); });
+  document.getElementById('q').addEventListener('input', (e) => { query = e.target.value.trim().toLowerCase(); render(); });
+
+  const table = document.getElementById('t');
+  function render() {
+    langBox.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', shown.has(b.dataset.l)));
+    const langs = LANGS.filter(([c]) => shown.has(c));
+    table.querySelector('colgroup').innerHTML = `<col class="k"><col span="${langs.length}">`;
+    table.style.minWidth = window.innerWidth > 760 ? `${150 + langs.length * 165}px` : '';
+    table.querySelectorAll('tbody').forEach((t) => t.remove());
+    const nav = [];
+    let total = 0;
+    for (const [id, title] of GROUPS) {
+      const list = rows.filter((r) => r.group === id && (!onlyFlagged || NOTES[r.key]) && (!query || r.search.includes(query)));
+      if (!list.length) continue;
+      total += list.length;
+      nav.push(`<a href="#${id}">${title}</a><span class="n">${list.length}</span>`);
+      const tb = document.createElement('tbody');
+      tb.id = id;
+      tb.innerHTML = `<tr class="grp"><th class="title" scope="colgroup">${title}</th>${langs.map(([c, n]) => `<th class="lang" scope="col"><b>${c.toUpperCase()}</b> ${n}</th>`).join('')}</tr>` +
+        list.map((r) => `<tr class="row${NOTES[r.key] ? ' flagged' : ''}"><td class="key">${r.key}${WHERE[r.key] ? `<span class="where">${WHERE[r.key]}</span>` : ''}${NOTES[r.key] ? `<span class="note">${NOTES[r.key]}</span>` : ''}</td>` +
+          langs.map(([c, n]) => `<td data-l="${c}" data-name="${n}" lang="${c}">${c === 'mk' || r[c] ? fmt(r[c]) : '<em>missing</em>'}</td>`).join('') + '</tr>').join('');
+      table.append(tb);
+    }
+    document.getElementById('jump').innerHTML = nav.join('');
+    document.getElementById('empty').hidden = total > 0;
+    document.getElementById('count').textContent = `${total} of ${rows.length} texts`;
+  }
+  // list items arrive as bare <li>s; wrap them so they render as a list
+  const fmt = (s) => (s || '').trim().startsWith('<li>') ? `<ul>${s}</ul>` : s;
+  addEventListener('resize', () => { table.style.minWidth = window.innerWidth > 760 ? `${150 + shown.size * 165}px` : ''; });
+  render();
+</script>
+</body>
+</html>

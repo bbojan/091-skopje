@@ -1,13 +1,15 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { toPts, obb } from './geo.js';
-import { SHARED } from './city.js';
+import { toPts, obb } from './geo.ts';
+import { SHARED } from './city.ts';
+import type { Terrain } from './terrain.ts';
+import type { CityData, Pt, Vec3 } from './types.ts';
 
 // Hand-built models for landmarks that OSM can only describe as outlines.
 const UP = new THREE.Vector3(0, 1, 0);
 
 // a thin box beam from a to b (for lattices, cables, legs)
-function beam(a, b, t = 0.5) {
+function beam(a: Vec3, b: Vec3, t = 0.5): THREE.BufferGeometry {
   const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b);
   const g = new THREE.BoxGeometry(t, A.distanceTo(B), t);
   const m = new THREE.Matrix4().compose(
@@ -18,11 +20,22 @@ function beam(a, b, t = 0.5) {
   return g.applyMatrix4(m);
 }
 
+interface LatticeSpec {
+  origin: THREE.Vector3;
+  /** unit direction of the member */
+  axis: THREE.Vector3;
+  /** unit vector perpendicular to the axis */
+  side: THREE.Vector3;
+  w: number;
+  len: number;
+  seg: number;
+  t?: number;
+}
+
 // square lattice tower between y0..y1 along the given axis frame
-function lattice(out, { origin, axis, side, w, len, seg, t = 0.55 }) {
-  // axis: unit direction of the member; side/third: perpendicular unit vectors
+function lattice(out: THREE.BufferGeometry[], { origin, axis, side, w, len, seg, t = 0.55 }: LatticeSpec): void {
   const third = new THREE.Vector3().crossVectors(axis, side).normalize();
-  const corner = (u, s, k) => origin.clone().addScaledVector(axis, u).addScaledVector(side, s * w / 2).addScaledVector(third, k * w / 2).toArray();
+  const corner = (u: number, s: number, k: number): Vec3 => origin.clone().addScaledVector(axis, u).addScaledVector(side, s * w / 2).addScaledVector(third, k * w / 2).toArray();
   const C = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
   for (const [s, k] of C) out.push(beam(corner(0, s, k), corner(len, s, k), t * 1.3));
   const n = Math.max(1, Math.round(len / seg));
@@ -39,19 +52,28 @@ function lattice(out, { origin, axis, side, w, len, seg, t = 0.55 }) {
   }
 }
 
-export function createLandmarks({ data, terrain, clippingPlanes }) {
+const flatten = (gs: THREE.BufferGeometry[]) => gs.map((g) => (g.index ? g.toNonIndexed() : g));
+
+export interface LandmarkOptions {
+  data: CityData;
+  terrain: Terrain;
+  clippingPlanes: THREE.Plane[];
+}
+
+export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptions) {
   const group = new THREE.Group();
-  const T = (x, z) => terrain.at(x, z);
+  const T = (x: number, z: number) => terrain.at(x, z);
+  const Tp = (p: Pt) => terrain.at(p[0], p[1]);
   const L = data.landmarks || {};
-  const M = (color, extra = {}) => new THREE.MeshLambertMaterial({ color, clippingPlanes, ...extra });
-  const add = (geo, mat) => { const m = new THREE.Mesh(geo, mat); m.castShadow = m.receiveShadow = true; group.add(m); return m; };
-  const animated = [];
+  const M = (color: THREE.ColorRepresentation, extra: THREE.MeshLambertMaterialParameters = {}) => new THREE.MeshLambertMaterial({ color, clippingPlanes, ...extra });
+  const add = (geo: THREE.BufferGeometry, mat: THREE.Material) => { const m = new THREE.Mesh(geo, mat); m.castShadow = m.receiveShadow = true; group.add(m); return m; };
+  const animated: ((dt: number) => void)[] = [];
 
   // ---------------- Millennium Cross: white steel lattice, lit at night
   const mc = (data.crosses || []).find((c) => /Millennium|Милениум/.test(c.name));
-  let crossMat = null;
+  let crossMat: THREE.MeshLambertMaterial | null = null;
   if (mc) {
-    const parts = [];
+    const parts: THREE.BufferGeometry[] = [];
     const base = new THREE.Vector3(mc.x, T(mc.x, mc.z) - 0.5, mc.z);
     const H = mc.h, w = 5.2;
     lattice(parts, { origin: base.clone().add(new THREE.Vector3(0, 3, 0)), axis: new THREE.Vector3(0, 1, 0), side: new THREE.Vector3(1, 0, 0), w, len: H, seg: 5.5 });
@@ -72,8 +94,9 @@ export function createLandmarks({ data, terrain, clippingPlanes }) {
     add(new THREE.CylinderGeometry(2.2, 2.6, 14, 20).translate(x, y + 15.2, z), stone);
     add(new THREE.CylinderGeometry(3.2, 2.4, 1.6, 20).translate(x, y + 23, z), stone);
     // rearing horse + rider, built facing +x then turned toward the square
-    const s = [];
-    const ell = (sx, sy, sz, px, py, pz, rz = 0) => s.push(new THREE.SphereGeometry(1, 14, 10).scale(sx, sy, sz).rotateZ(rz).translate(px, py, pz));
+    const s: THREE.BufferGeometry[] = [];
+    const ell = (sx: number, sy: number, sz: number, px: number, py: number, pz: number, rz = 0) =>
+      s.push(new THREE.SphereGeometry(1, 14, 10).scale(sx, sy, sz).rotateZ(rz).translate(px, py, pz));
     ell(3.4, 1.7, 1.5, 0, 3.4, 0, 0.45); // body, reared up
     ell(0.8, 2.2, 0.8, 2.6, 6.0, 0, -0.5); // neck
     ell(1.4, 0.75, 0.7, 3.6, 7.4, 0, -0.2); // head
@@ -84,7 +107,7 @@ export function createLandmarks({ data, terrain, clippingPlanes }) {
     ell(0.9, 1.6, 0.9, -0.4, 6.3, 0); // rider torso
     ell(0.55, 0.6, 0.55, -0.3, 8.4, 0); // head
     s.push(beam([-0.2, 7.2, -0.6], [1.6, 10.5, -0.9], 0.35)); // raised sword arm
-    const statue = mergeGeometries(s.map((g) => g.index ? g.toNonIndexed() : g));
+    const statue = mergeGeometries(flatten(s));
     statue.scale(1.35, 1.35, 1.35);
     const sm = add(statue, bronze);
     sm.position.set(x, y + 23.8, z);
@@ -96,13 +119,13 @@ export function createLandmarks({ data, terrain, clippingPlanes }) {
     const pts = toPts(L.stoneBridge);
     const a = pts[0], b = pts[pts.length - 1];
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]) + 8;
-    const ends = Math.max(T(...a), T(...b));
+    const ends = Math.max(Tp(a), Tp(b));
     let low = Infinity;
     for (let i = 0; i <= 20; i++) { const t = i / 20; low = Math.min(low, T(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)); }
     // gently humped deck: low at the banks, ~8 m over the water mid-river
     const foot = low - 4;
     const endH = ends + 1.2 - foot, midH = Math.max(endH + 2, low + 8.5 - foot);
-    const deckAt = (u) => endH + (midH - endH) * Math.sin((Math.PI * u) / len);
+    const deckAt = (u: number) => endH + (midH - endH) * Math.sin((Math.PI * u) / len);
     const shape = new THREE.Shape();
     shape.moveTo(0, 0); shape.lineTo(len, 0);
     for (let i = 24; i >= 0; i--) shape.lineTo((len * i) / 24, deckAt((len * i) / 24));
@@ -127,7 +150,7 @@ export function createLandmarks({ data, terrain, clippingPlanes }) {
     for (let i = 0; i < 24; i++) {
       const u0 = (len * i) / 24, u1 = (len * (i + 1)) / 24;
       for (const zz of [width / 2 - 0.25, -width / 2 + 0.25])
-        parts.push(beam([u0 - len / 2, foot + deckAt(u0) + 0.5, zz], [u1 - len / 2, foot + deckAt(u1) + 0.5, zz], 0.5).scale(1, 1, 1).toNonIndexed());
+        parts.push(beam([u0 - len / 2, foot + deckAt(u0) + 0.5, zz], [u1 - len / 2, foot + deckAt(u1) + 0.5, zz], 0.5).toNonIndexed());
     }
     const g2 = mergeGeometries(parts);
     const m = add(g2, M('#e2cfa6'));
@@ -162,26 +185,26 @@ export function createLandmarks({ data, terrain, clippingPlanes }) {
     const line = toPts(L.gondola);
     const pylons = L.pylons ? toPts(L.pylons) : [];
     const ends = [line[0], line[line.length - 1]];
-    const isStation = (p) => ends.some((e) => Math.hypot(e[0] - p[0], e[1] - p[1]) < 5);
-    const cableH = (p) => T(p[0], p[1]) + (isStation(p) ? 8 : 18);
+    const isStation = (p: Pt) => ends.some((e) => Math.hypot(e[0] - p[0], e[1] - p[1]) < 5);
+    const cableH = (p: Pt) => Tp(p) + (isStation(p) ? 8 : 18);
     const path = line.map((p) => new THREE.Vector3(p[0], cableH(p), p[1]));
     const curve = new THREE.CatmullRomCurve3(path, false, 'centripetal');
     const cable = new THREE.TubeGeometry(curve, Math.max(60, line.length * 12), 0.18, 4, false);
     group.add(new THREE.Mesh(cable, M('#3a3431')));
     const steel = M('#8f8d94');
     for (const p of pylons) {
-      const y0 = T(p[0], p[1]), y1 = y0 + 19;
-      const parts = [];
+      const y0 = Tp(p), y1 = y0 + 19;
+      const parts: THREE.BufferGeometry[] = [];
       for (const [dx, dz] of [[-1.4, -1.4], [1.4, -1.4], [1.4, 1.4], [-1.4, 1.4]]) parts.push(beam([p[0] + dx, y0, p[1] + dz], [p[0] + dx * 0.3, y1, p[1] + dz * 0.3], 0.45));
       parts.push(new THREE.BoxGeometry(5, 0.6, 0.8).translate(p[0], y1 + 0.3, p[1]));
-      add(mergeGeometries(parts.map((g) => g.index ? g.toNonIndexed() : g)), steel);
+      add(mergeGeometries(flatten(parts)), steel);
     }
     const cabinGeo = mergeGeometries([
       new THREE.BoxGeometry(2.4, 2.2, 2.4).translate(0, -3.4, 0),
       new THREE.BoxGeometry(0.2, 2.4, 0.2).translate(0, -1.2, 0),
     ]);
     const cabMat = M('#d8322a');
-    const cabins = [];
+    const cabins: { m: THREE.Mesh; t: number }[] = [];
     for (let i = 0; i < 10; i++) {
       const m = new THREE.Mesh(cabinGeo, cabMat);
       m.castShadow = true;
@@ -204,6 +227,6 @@ export function createLandmarks({ data, terrain, clippingPlanes }) {
 
   return {
     group,
-    update(dt) { for (const f of animated) f(dt); if (crossMat) crossMat.emissiveIntensity = SHARED.uNight.value * 0.9; },
+    update(dt: number): void { for (const f of animated) f(dt); if (crossMat) crossMat.emissiveIntensity = SHARED.uNight.value * 0.9; },
   };
 }

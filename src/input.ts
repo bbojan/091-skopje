@@ -1,24 +1,36 @@
 import * as THREE from 'three';
+import type { MapControls } from 'three/addons/controls/MapControls.js';
 
 // Keyboard + gamepad (XInput "standard" mapping and DirectInput fallbacks)
 // for moving around the map. Flight uses the same pad through readPad().
 
-const KEYS = {
+type MapAction = 'fwd' | 'back' | 'left' | 'right' | 'rotL' | 'rotR' | 'tiltUp' | 'tiltDown' | 'zoomIn' | 'zoomOut';
+
+const KEYS: Record<string, MapAction> = {
   KeyW: 'fwd', ArrowUp: 'fwd', KeyS: 'back', ArrowDown: 'back', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right',
   KeyQ: 'rotL', KeyE: 'rotR', KeyR: 'tiltUp', KeyF: 'tiltDown',
   Equal: 'zoomIn', NumpadAdd: 'zoomIn', KeyZ: 'zoomIn', Minus: 'zoomOut', NumpadSubtract: 'zoomOut', KeyX: 'zoomOut',
 };
 
-const dz = (v, d = 0.15) => (Math.abs(v) < d ? 0 : (v - Math.sign(v) * d) / (1 - d));
+const dz = (v: number, d = 0.15) => (Math.abs(v) < d ? 0 : (v - Math.sign(v) * d) / (1 - d));
+
+/** Normalised gamepad state: sticks in −1…1, triggers 0…1, buttons as booleans. */
+export interface PadState {
+  id: string;
+  standard: boolean;
+  lx: number; ly: number; rx: number; ry: number;
+  lt: number; rt: number;
+  a: boolean; b: boolean; x: boolean; y: boolean; start: boolean;
+}
 
 // Normalised pad state; works for "standard" (XInput, most modern pads) and
 // common DirectInput layouts where the right stick sits on axes 2/5 or 2/3.
-export function readPad() {
-  const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : [];
+export function readPad(): PadState | null {
+  const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter((p): p is Gamepad => !!p) : [];
   const gp = pads.find((p) => p.connected);
   if (!gp) return null;
   const a = gp.axes, b = gp.buttons;
-  const btn = (i) => (b[i] ? (typeof b[i] === 'object' ? b[i].value || (b[i].pressed ? 1 : 0) : b[i]) : 0);
+  const btn = (i: number) => (b[i] ? b[i].value || (b[i].pressed ? 1 : 0) : 0);
   const std = gp.mapping === 'standard';
   const rx = a[2] ?? 0;
   const ry = std ? (a[3] ?? 0) : a.length > 5 ? a[5] : (a[3] ?? 0);
@@ -26,7 +38,7 @@ export function readPad() {
   let dx = btn(15) - btn(14), dy = btn(13) - btn(12);
   if (!std && a.length > 9 && Math.abs(a[9]) <= 1.01 && a[9] !== 0) {
     const hat = Math.round((a[9] + 1) * 3.5); // 0..7 clockwise from up
-    const dirs = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
+    const dirs: [number, number][] = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
     if (dirs[hat]) [dx, dy] = dirs[hat];
   }
   return {
@@ -36,9 +48,18 @@ export function readPad() {
   };
 }
 
-export function createMapInput({ controls, camera, isActive }) {
-  const held = new Set();
-  const typing = (e) => /INPUT|TEXTAREA|SELECT/.test(e.target?.tagName) || e.target?.isContentEditable;
+export interface MapInputOptions {
+  controls: MapControls;
+  camera: THREE.PerspectiveCamera;
+  isActive: () => boolean;
+}
+
+export function createMapInput({ controls, camera, isActive }: MapInputOptions) {
+  const held = new Set<MapAction>();
+  const typing = (e: KeyboardEvent) => {
+    const t = e.target instanceof HTMLElement ? e.target : null;
+    return !!t && (/INPUT|TEXTAREA|SELECT/.test(t.tagName) || t.isContentEditable);
+  };
   addEventListener('keydown', (e) => {
     if (!isActive() || typing(e) || e.metaKey || e.ctrlKey || e.altKey) return;
     const k = KEYS[e.code];
@@ -51,9 +72,9 @@ export function createMapInput({ controls, camera, isActive }) {
 
   const off = new THREE.Vector3(), sph = new THREE.Spherical(), fwd = new THREE.Vector3(), right = new THREE.Vector3(), move = new THREE.Vector3();
   // returns true when it moved the camera
-  function update(dt, pad) {
+  function update(dt: number, pad: PadState | null): boolean {
     if (!isActive()) return false;
-    const h = (k) => (held.has(k) ? 1 : 0);
+    const h = (k: MapAction) => (held.has(k) ? 1 : 0);
     let px = h('right') - h('left'), pz = h('fwd') - h('back');
     let rot = h('rotR') - h('rotL'), tilt = h('tiltDown') - h('tiltUp'), zoom = h('zoomOut') - h('zoomIn');
     if (pad) {

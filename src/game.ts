@@ -1,9 +1,13 @@
 import * as THREE from 'three';
-import { mulberry32 } from './geo.js';
+import { mulberry32 } from './geo.ts';
+import type { Terrain } from './terrain.ts';
+import type { CrossData, MapMeta, Places, Pt } from './types.ts';
 
 // Ring race over Skopje's landmarks + "091" balloons to pop.
 // [name, lat, lon, height above ground, key in data.places (exact OSM position)]
-const ROUTE = [
+// Names are map data (Macedonian, like the labels); the last ring is the finish.
+// lat/lon null = next to the Millennium Cross.
+const ROUTE: [name: string, lat: number | null, lon: number | null, agl: number, key?: string][] = [
   ['Плоштад Македонија', 41.9955, 21.4319, 85, 'square'],
   ['Камен мост', 41.9970, 21.4331, 65],
   ['Кале', 42.0003, 21.4327, 105],
@@ -15,14 +19,14 @@ const ROUTE = [
   ['Средно Водно', 41.9800, 21.4070, 120],
   ['Милениумски крст', null, null, 125],
   ['Кисела Вода', 41.9820, 21.4400, 115],
-  ['Финиш: Плоштад', 41.9955, 21.4319, 80, 'square'],
+  ['Плоштад', 41.9955, 21.4319, 80, 'square'],
 ];
 const RING_R = 26;
 
-function balloonTexture() {
+function balloonTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas');
   c.width = 256; c.height = 128;
-  const g = c.getContext('2d');
+  const g = c.getContext('2d')!;
   g.fillStyle = '#d8322a';
   g.fillRect(0, 0, 256, 128);
   g.fillStyle = '#f7d83c';
@@ -36,32 +40,50 @@ function balloonTexture() {
   return t;
 }
 
-export function createGame({ terrain, meta, crosses, places = {}, clippingPlanes }) {
-  const P = (lat, lon) => [(lon - meta.lon0) * meta.kx, -(lat - meta.lat0) * meta.ky];
+export interface GameOptions {
+  terrain: Terrain;
+  meta: MapMeta;
+  crosses: CrossData[];
+  places?: Places;
+  clippingPlanes: THREE.Plane[];
+}
+
+export interface Ring {
+  name: string;
+  /** the last ring is the finish line */
+  final: boolean;
+  p: THREE.Vector3;
+  m: THREE.Mesh;
+  base: THREE.Material;
+}
+
+export function createGame({ terrain, meta, crosses, places = {}, clippingPlanes }: GameOptions) {
+  const P = (lat: number, lon: number): Pt => [(lon - meta.lon0) * meta.kx, -(lat - meta.lat0) * meta.ky];
   const group = new THREE.Group();
   group.visible = false;
 
   // ring positions
-  const pts = ROUTE.map(([name, lat, lon, agl, key]) => {
-    let x, z;
+  const pts = ROUTE.map(([name, lat, lon, agl, key], i) => {
+    let x: number, z: number;
     if (key && places[key]) [x, z] = places[key];
-    else if (lat == null) { const c = crosses.find((k) => /Millennium|Милениум/.test(k.name)) || crosses[0]; x = c.x + 60; z = c.z + 40; }
+    else if (lat == null || lon == null) { const c = crosses.find((k) => /Millennium|Милениум/.test(k.name)) || crosses[0]; x = c.x + 60; z = c.z + 40; }
     else [x, z] = P(lat, lon);
-    return { name, p: new THREE.Vector3(x, terrain.at(x, z) + agl, z) };
+    return { name, final: i === ROUTE.length - 1, p: new THREE.Vector3(x, terrain.at(x, z) + agl, z) };
   });
   const ringGeo = new THREE.TorusGeometry(RING_R, 2.4, 10, 40);
   const red = new THREE.MeshLambertMaterial({ color: '#d8322a', emissive: '#5a0d08', clippingPlanes });
   const yellow = new THREE.MeshLambertMaterial({ color: '#f7d83c', emissive: '#7a5d00', clippingPlanes });
   const done = new THREE.MeshLambertMaterial({ color: '#b9b2a8', transparent: true, opacity: 0.35, clippingPlanes });
-  const rings = pts.map((r, i) => {
-    const m = new THREE.Mesh(ringGeo, i % 2 ? red : yellow);
+  const rings: Ring[] = pts.map((r, i) => {
+    const mat = i % 2 ? red : yellow;
+    const m = new THREE.Mesh(ringGeo, mat);
     m.position.copy(r.p);
     const next = pts[Math.min(i + 1, pts.length - 1)].p, prev = pts[Math.max(i - 1, 0)].p;
     const dir = next.clone().sub(prev).setY(0).normalize();
     m.lookAt(r.p.clone().add(dir));
     m.castShadow = true;
     group.add(m);
-    return { ...r, m, base: m.material };
+    return { ...r, m, base: mat };
   });
   // light beam over the next ring so it can be found from afar
   const beam = new THREE.Mesh(
@@ -79,7 +101,7 @@ export function createGame({ terrain, meta, crosses, places = {}, clippingPlanes
   const knotGeo = new THREE.ConeGeometry(1.2, 2, 8).rotateX(Math.PI);
   const strGeo = new THREE.CylinderGeometry(0.12, 0.12, 9, 4).translate(0, -11.5, 0);
   const strMat = new THREE.MeshBasicMaterial({ color: '#4b3428' });
-  const balloons = [];
+  const balloons: { g: THREE.Group; home: THREE.Vector3; ph: number; popped: boolean; pop: number }[] = [];
   for (let i = 0; i < 30; i++) {
     const a = pts[i % (pts.length - 1)].p, b = pts[(i % (pts.length - 1)) + 1].p;
     const t = 0.2 + rnd() * 0.6;
@@ -96,18 +118,18 @@ export function createGame({ terrain, meta, crosses, places = {}, clippingPlanes
     balloons.push({ g, home: p.clone(), ph: rnd() * 6.28, popped: false, pop: 0 });
   }
 
-  const st = { next: 0, time: 0, running: false, finished: false, popped: 0, flash: '' };
-  let best = null;
+  const st = { next: 0, time: 0, running: false, finished: false, newBest: false, popped: 0, flash: '' };
+  let best: number | null = null;
   try { best = Number(localStorage.getItem('skopje.bestRace')) || null; } catch { /* storage unavailable */ }
 
-  function reset() {
-    Object.assign(st, { next: 0, time: 0, running: false, finished: false, popped: 0, flash: '' });
+  function reset(): void {
+    Object.assign(st, { next: 0, time: 0, running: false, finished: false, newBest: false, popped: 0, flash: '' });
     rings.forEach((r) => { r.m.material = r.base; r.m.visible = true; });
     balloons.forEach((b) => { b.popped = false; b.pop = 0; b.g.visible = true; b.g.scale.setScalar(1); });
   }
 
   let clock = 0, flashT = 0;
-  function update(dt, planePos) {
+  function update(dt: number, planePos?: THREE.Vector3): void {
     clock += dt;
     if (st.running) st.time += dt;
     if (flashT > 0 && (flashT -= dt) <= 0) st.flash = '';
@@ -161,12 +183,14 @@ export function createGame({ terrain, meta, crosses, places = {}, clippingPlanes
   }
 
   return {
-    group, reset, update, rings, balloons,
+    group, beam, reset, update, rings, balloons,
     get state() { return { ...st, total: rings.length, balloons: balloons.length, best, nextRing: rings[Math.min(st.next, rings.length - 1)] }; },
   };
 }
 
-export const fmtTime = (t) => {
+export type Game = ReturnType<typeof createGame>;
+
+export const fmtTime = (t: number | null): string => {
   if (t == null) return '–';
   const m = Math.floor(t / 60), s = t - m * 60;
   return `${m}:${s.toFixed(1).padStart(4, '0')}`;

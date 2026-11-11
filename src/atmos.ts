@@ -1,16 +1,18 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { mulberry32 } from './geo.js';
+import { mulberry32 } from './geo.ts';
+import type { Terrain } from './terrain.ts';
+import type { Bounds } from './types.ts';
 
 export const MAX_CLOUDS = 36;
 
 // Puffy cartoon clouds drifting with the wind. Their shadows are drawn in the
-// post pass (see post.js), so moving clouds never re-render the shadow map.
-export function createClouds(bounds, baseY) {
+// post pass (see post.ts), so moving clouds never re-render the shadow map.
+export function createClouds(bounds: Bounds, baseY: number) {
   const rnd = mulberry32(8080);
-  const variants = [];
+  const variants: THREE.BufferGeometry[] = [];
   for (let v = 0; v < 5; v++) {
-    const lobes = [];
+    const lobes: THREE.BufferGeometry[] = [];
     const n = 6 + Math.floor(rnd() * 4);
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + rnd(), d = 0.35 + rnd() * 0.45;
@@ -24,7 +26,7 @@ export function createClouds(bounds, baseY) {
   }
   const mat = new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#e9e4f2', emissiveIntensity: 0.25, transparent: true, opacity: 0.68, depthWrite: false });
   const group = new THREE.Group();
-  const clouds = [];
+  const clouds: { m: THREE.Mesh; r: number; speed: number }[] = [];
   const { hw, hh } = bounds;
   for (let i = 0; i < MAX_CLOUDS; i++) {
     const r = 230 + rnd() * 260;
@@ -36,8 +38,9 @@ export function createClouds(bounds, baseY) {
     clouds.push({ m, r, speed: 0.7 + rnd() * 0.6 });
   }
   const wind = new THREE.Vector2(9, 2.5); // m/s, roughly from the west
+  // per cloud: x, z, radius, height — read by the cloud-shadow pass
   const uniforms = Array.from({ length: MAX_CLOUDS }, () => new THREE.Vector4());
-  function update(dt) {
+  function update(dt: number): void {
     for (let i = 0; i < clouds.length; i++) {
       const c = clouds[i];
       c.m.position.x += wind.x * c.speed * dt;
@@ -52,7 +55,7 @@ export function createClouds(bounds, baseY) {
 }
 
 // Small flocks wheeling over the city
-export function createBirds(terrain, bounds, clippingPlanes) {
+export function createBirds(terrain: Terrain, bounds: Bounds, clippingPlanes: THREE.Plane[]) {
   const rnd = mulberry32(4711);
   const geo = new THREE.BufferGeometry();
   // a simple "V": body at the origin, wing tips out to the sides
@@ -62,11 +65,12 @@ export function createBirds(terrain, bounds, clippingPlanes) {
   ], 3));
   geo.computeVertexNormals();
   const mat = new THREE.MeshBasicMaterial({ color: '#3b2f2a', side: THREE.DoubleSide, clippingPlanes });
-  const flocks = [];
+  type Bird = { ox: number; oy: number; oz: number; ph: number };
+  const flocks: { cx: number; cz: number; R: number; h: number; w: number; a: number; birds: Bird[] }[] = [];
   const { hw, hh } = bounds;
   for (let f = 0; f < 14; f++) {
     const cx = (rnd() * 2 - 1) * (hw - 1200), cz = (rnd() * 2 - 1) * (hh - 900);
-    const birds = [];
+    const birds: Bird[] = [];
     const n = 5 + Math.floor(rnd() * 6);
     for (let b = 0; b < n; b++) birds.push({ ox: (rnd() - 0.5) * 30, oy: (rnd() - 0.5) * 8, oz: (rnd() - 0.5) * 30, ph: rnd() * 6.28 });
     flocks.push({ cx, cz, R: 140 + rnd() * 260, h: 90 + rnd() * 120, w: (0.06 + rnd() * 0.06) * (rnd() < 0.5 ? 1 : -1), a: rnd() * 6.28, birds });
@@ -77,7 +81,7 @@ export function createBirds(terrain, bounds, clippingPlanes) {
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
   let time = 0;
-  function update(dt, scale = 1) {
+  function update(dt: number, scale = 1): void {
     time += dt;
     let i = 0;
     for (const f of flocks) {

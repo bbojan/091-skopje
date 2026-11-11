@@ -1,13 +1,14 @@
 {
   "name": "091-skopje",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
-    "download": "node scripts/download.mjs data/skopje_raw.json",
-    "terrain": "node scripts/terrain.mjs",
-    "data": "node scripts/prepare.mjs data/skopje_raw.json public/skopje.json",
+    "download": "node scripts/download.ts data/skopje_raw.json",
+    "terrain": "node scripts/terrain.ts",
+    "data": "node scripts/prepare.ts data/skopje_raw.json public/skopje.json",
     "dev": "vite --port 5173",
+    "typecheck": "tsc -p tsconfig.json && tsc -p scripts/tsconfig.json",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -15,6 +16,12 @@
     "three": "^0.170.0"
   },
   "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/three": "^0.170.0",
+    "typescript": "^7.0.2",
     "vite": "^6.0.7"
+  },
+  "engines": {
+    "node": ">=22.18"
   }
 }

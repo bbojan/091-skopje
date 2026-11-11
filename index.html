@@ -38,6 +38,11 @@
       .bar button.off { opacity: 0.55; }
       .bar #fly { background: var(--wine); border-color: var(--wine); color: var(--linen-hi); }
       .bar #fly:hover { background: #8e2a23; }
+      .bar .lang { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; color: var(--indigo); background: var(--linen-hi); border: 1.5px solid var(--indigo);
+                   border-radius: 6px; padding: 0 0 0 9px; box-shadow: 1.5px 1.5px 0 rgba(31, 42, 68, 0.3); cursor: pointer; }
+      .bar .lang:hover { background: #fff; }
+      .bar .lang:focus-within { outline: 2px solid var(--wine); outline-offset: 2px; }
+      .bar .lang select { font: inherit; color: inherit; background: transparent; border: 0; outline: 0; padding: 6px 12px 6px 4px; cursor: pointer; appearance: none; -webkit-appearance: none; }
       .places { display: contents; }
       .pop-toggle { display: none; }
       #status { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; font-size: 18px; }
@@ -139,6 +144,8 @@
         .places.open { display: flex; }
         .places.tools { left: auto; right: 0; }
         .places button { text-align: left; font-size: 14px; padding: 8px 14px; box-shadow: none; }
+        .places .lang { font-size: 14px; padding-left: 13px; box-shadow: none; }
+        .places .lang select { padding: 8px 14px 8px 4px; }
       }
 
       /* help dialog */
@@ -160,6 +167,7 @@
       .help .close { position: absolute; right: 12px; top: 12px; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--ink); background: #fff;
                      font: inherit; font-size: 18px; line-height: 1; cursor: pointer; color: var(--ink); box-shadow: 2px 2px 0 rgba(75, 52, 40, 0.35); }
       .help .foot { margin-top: 18px; font-size: 12.5px; opacity: 0.8; line-height: 1.5; }
+      .help .version { margin: 6px 0 0; font-size: 11.5px; letter-spacing: 0.08em; opacity: 0.6; font-variant-numeric: tabular-nums; }
       .help a { color: #b84a26; }
       .help .opt { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 4px; padding: 10px 12px; border: 1.5px solid var(--ink); border-radius: 12px; background: #fff; font-size: 14px; line-height: 1.45; cursor: pointer; }
       .help .opt input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: #d8643c; flex: none; }
@@ -185,109 +193,112 @@
   <body>
     <div id="app"></div>
     <div id="labels" aria-hidden="true"></div>
-    <button class="title" id="logo" aria-haspopup="dialog" aria-controls="help" title="За апликацијата и контроли"><span class="h1"><span class="code">091</span>Скопје</span><span class="hint" aria-hidden="true">?</span></button>
+    <button class="title" id="logo" aria-haspopup="dialog" aria-controls="help" title="За апликацијата и контроли" data-i18n-title="logo.title"><span class="h1"><span class="code">091</span>Скопје</span><span class="hint" aria-hidden="true">?</span></button>
     <dialog class="help" id="help" aria-labelledby="help-title">
       <div class="inner">
-        <button class="close" id="help-close" aria-label="Затвори">✕</button>
+        <button class="close" id="help-close" aria-label="Затвори" data-i18n-aria="close">✕</button>
         <h2 id="help-title"><span class="code">091</span>Скопје</h2>
-        <p class="tagline">Го добивме 091 Скопје пред GTA 6!</p>
-        <p class="lead">Илустрирана, жива 3Д мапа на Скопје — од Ѓорче Петров до Гази Баба и од Бутел до врвот на Водно. Сите згради, улици, паркови и дрвја се нацртани од отворените податоци на OpenStreetMap и поставени на вистинскиот релјеф.</p>
+        <p class="tagline" data-i18n="help.tagline">Го добивме 091 Скопје пред GTA 6!</p>
+        <p class="lead" data-i18n="help.lead">Илустрирана, жива 3Д мапа на Скопје — од Ѓорче Петров до Гази Баба и од Бутел до врвот на Водно. Сите згради, улици, паркови и дрвја се нацртани од отворените податоци на OpenStreetMap и поставени на вистинскиот релјеф.</p>
 
-        <h3>Контроли</h3>
+        <h3 data-i18n="h.controls">Контроли</h3>
         <table>
-          <tr><td><kbd>Лев клик</kbd> + влечење</td><td>Поместување на мапата</td></tr>
-          <tr><td><kbd>Десен клик</kbd> + влечење</td><td>Вртење и навалување на камерата</td></tr>
-          <tr><td><kbd>Тркалце</kbd></td><td>Зумирање кон курсорот</td></tr>
-          <tr><td>Еден прст</td><td>Поместување (на допирен екран)</td></tr>
-          <tr><td>Два прста</td><td>Зумирање и вртење</td></tr>
-          <tr><td><kbd>Esc</kbd></td><td>Затвори го овој прозорец</td></tr>
+          <tr><td data-i18n="c.left"><kbd>Лев клик</kbd> + влечење</td><td data-i18n="c.pan">Поместување на мапата</td></tr>
+          <tr><td data-i18n="c.right"><kbd>Десен клик</kbd> + влечење</td><td data-i18n="c.orbit">Вртење и навалување на камерата</td></tr>
+          <tr><td data-i18n="c.wheel"><kbd>Тркалце</kbd></td><td data-i18n="c.zoomCursor">Зумирање кон курсорот</td></tr>
+          <tr><td data-i18n="c.one">Еден прст</td><td data-i18n="c.oneD">Поместување (на допирен екран)</td></tr>
+          <tr><td data-i18n="c.two">Два прста</td><td data-i18n="c.twoD">Зумирање и вртење</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td data-i18n="c.esc">Затвори го овој прозорец</td></tr>
         </table>
 
-        <h3>Тастатура</h3>
+        <h3 data-i18n="h.keyboard">Тастатура</h3>
         <table>
-          <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> или стрелки</td><td>Поместување на мапата</td></tr>
-          <tr><td><kbd>Q</kbd> <kbd>E</kbd></td><td>Вртење лево/десно</td></tr>
-          <tr><td><kbd>R</kbd> <kbd>F</kbd></td><td>Навалување нагоре/надолу</td></tr>
-          <tr><td><kbd>+</kbd> <kbd>−</kbd> или <kbd>Z</kbd> <kbd>X</kbd></td><td>Зумирање</td></tr>
+          <tr><td data-i18n="k.wasd"><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> или стрелки</td><td data-i18n="c.pan">Поместување на мапата</td></tr>
+          <tr><td><kbd>Q</kbd> <kbd>E</kbd></td><td data-i18n="k.qe">Вртење лево/десно</td></tr>
+          <tr><td><kbd>R</kbd> <kbd>F</kbd></td><td data-i18n="k.rf">Навалување нагоре/надолу</td></tr>
+          <tr><td data-i18n="k.zoomKeys"><kbd>+</kbd> <kbd>−</kbd> или <kbd>Z</kbd> <kbd>X</kbd></td><td data-i18n="k.zoom">Зумирање</td></tr>
         </table>
 
-        <h3>Џојстик (Xbox / XInput и DirectInput)</h3>
+        <h3 data-i18n="h.pad">Џојстик (Xbox / XInput и DirectInput)</h3>
         <table>
-          <tr><td>Лев стик</td><td>Поместување на мапата · во лет: управување</td></tr>
-          <tr><td>Десен стик</td><td>Вртење и навалување</td></tr>
-          <tr><td><kbd>LT</kbd> / <kbd>RT</kbd></td><td>Оддалечи / приближи</td></tr>
-          <tr><td><kbd>Y</kbd></td><td>Полетај со авионот</td></tr>
-          <tr><td><kbd>A</kbd> или <kbd>RT</kbd></td><td>Во лет: брзо</td></tr>
-          <tr><td><kbd>B</kbd></td><td>Во лет: излез</td></tr>
-          <tr><td><kbd>X</kbd></td><td>Во лет: вклучи/исклучи ја трката</td></tr>
-          <tr><td><kbd>Start</kbd></td><td>Трка: почни одново</td></tr>
+          <tr><td data-i18n="p.lstick">Лев стик</td><td data-i18n="p.lstickD">Поместување на мапата · во лет: управување</td></tr>
+          <tr><td data-i18n="p.rstick">Десен стик</td><td data-i18n="p.rstickD">Вртење и навалување</td></tr>
+          <tr><td><kbd>LT</kbd> / <kbd>RT</kbd></td><td data-i18n="p.lt">Оддалечи / приближи</td></tr>
+          <tr><td><kbd>Y</kbd></td><td data-i18n="p.y">Полетај со авионот</td></tr>
+          <tr><td data-i18n="p.aOrRt"><kbd>A</kbd> или <kbd>RT</kbd></td><td data-i18n="p.a">Во лет: брзо</td></tr>
+          <tr><td><kbd>B</kbd></td><td data-i18n="p.b">Во лет: излез</td></tr>
+          <tr><td><kbd>X</kbd></td><td data-i18n="p.x">Во лет: вклучи/исклучи ја трката</td></tr>
+          <tr><td><kbd>Start</kbd></td><td data-i18n="p.start">Трка: почни одново</td></tr>
         </table>
-        <p>Притисни некое копче на џојстикот за прелистувачот да го препознае.</p>
+        <p data-i18n="p.hint">Притисни некое копче на џојстикот за прелистувачот да го препознае.</p>
 
-        <h3>Копчиња</h3>
+        <h3 data-i18n="h.buttons">Копчиња</h3>
         <table>
-          <tr><td>Плоштад · Кале и Чаршија · Градски парк · Водно</td><td>Брз скок до познати места</td></tr>
-          <tr><td>Преглед</td><td>Целиот град од високо</td></tr>
-          <tr><td>✈ Авион</td><td>Летај над градот во трето лице</td></tr>
-          <tr><td>☀ Ден · 🌇 Зајдисонце · 🌙 Ноќ</td><td>Смени го делот од денот — ноќе светат прозорците, уличните светилки и фаровите</td></tr>
-          <tr><td>Живо</td><td>Вклучи/исклучи ги автомобилите, автобусите и пешаците</td></tr>
-          <tr><td>Имиња</td><td>Прикажи ги имињата на населбите и знаменитостите</td></tr>
-          <tr><td>📍 Места · ⚙ Опции</td><td>На телефон и таблет копчињата се собрани во мали менија</td></tr>
-          <tr><td>Контури</td><td>Вклучи/исклучи ги цртаните линии</td></tr>
-          <tr><td>Зачувај слика</td><td>Преземи PNG од тековниот поглед</td></tr>
+          <tr><td data-i18n="b.places">Плоштад · Кале и Чаршија · Градски парк · Водно</td><td data-i18n="b.placesD">Брз скок до познати места</td></tr>
+          <tr><td data-i18n="v.overview">Преглед</td><td data-i18n="b.overviewD">Целиот град од високо</td></tr>
+          <tr><td data-i18n="bar.fly">✈ Авион</td><td data-i18n="b.planeD">Летај над градот во трето лице</td></tr>
+          <tr><td data-i18n="b.times">☀ Ден · 🌇 Зајдисонце · 🌙 Ноќ</td><td data-i18n="b.timesD">Смени го делот од денот — ноќе светат прозорците, уличните светилки и фаровите</td></tr>
+          <tr><td data-i18n="bar.live">Живо</td><td data-i18n="b.liveD">Вклучи/исклучи ги автомобилите, автобусите и пешаците</td></tr>
+          <tr><td data-i18n="bar.names">Имиња</td><td data-i18n="b.namesD">Прикажи ги имињата на населбите и знаменитостите</td></tr>
+          <tr><td data-i18n="b.menus">📍 Места · ⚙ Опции</td><td data-i18n="b.menusD">На телефон и таблет копчињата се собрани во мали менија</td></tr>
+          <tr><td data-i18n="bar.ink">Контури</td><td data-i18n="b.inkD">Вклучи/исклучи ги цртаните линии</td></tr>
+          <tr><td data-i18n="bar.shot">Зачувај слика</td><td data-i18n="b.shotD">Преземи PNG од тековниот поглед</td></tr>
+          <tr><td data-i18n="b.lang">🌐 Јазик</td><td data-i18n="b.langD">Смени го јазикот на интерфејсот (имињата на мапата остануваат на македонски)</td></tr>
         </table>
 
-        <h3>Летање со авион</h3>
+        <h3 data-i18n="h.fly">Летање со авион</h3>
         <table>
-          <tr><td><kbd>←</kbd> <kbd>→</kbd> или <kbd>A</kbd> <kbd>D</kbd></td><td>Свртување лево/десно</td></tr>
-          <tr><td><kbd>↑</kbd> <kbd>↓</kbd> или <kbd>W</kbd> <kbd>S</kbd></td><td>Искачување / спуштање</td></tr>
-          <tr><td><kbd>Shift</kbd> или <kbd>Space</kbd></td><td>Брзо (држи)</td></tr>
-          <tr><td>На телефон</td><td>Држи ги копчињата на екранот, „БРЗО“ за забрзување</td></tr>
-          <tr><td><kbd>Esc</kbd> или „Излез“</td><td>Назад на мапата</td></tr>
+          <tr><td data-i18n="f.lr"><kbd>←</kbd> <kbd>→</kbd> или <kbd>A</kbd> <kbd>D</kbd></td><td data-i18n="f.lrD">Свртување лево/десно</td></tr>
+          <tr><td data-i18n="f.ud"><kbd>↑</kbd> <kbd>↓</kbd> или <kbd>W</kbd> <kbd>S</kbd></td><td data-i18n="f.udD">Искачување / спуштање</td></tr>
+          <tr><td data-i18n="f.boost"><kbd>Shift</kbd> или <kbd>Space</kbd></td><td data-i18n="f.boostD">Брзо (држи)</td></tr>
+          <tr><td data-i18n="f.phone">На телефон</td><td data-i18n="f.phoneD">Држи ги копчињата на екранот, „БРЗО“ за забрзување</td></tr>
+          <tr><td data-i18n="f.esc"><kbd>Esc</kbd> или „Излез“</td><td data-i18n="f.escD">Назад на мапата</td></tr>
         </table>
-        <label class="opt"><input type="checkbox" id="opt-invert" /> <span><b>Инвертирај горе/долу</b> — како вистински пилот: ↑ го спушта носот, ↓ го крева</span></label>
-        <p><b>Трка (опционално):</b> во летот притисни „🏁 Трка“ и пролетај низ 12-те прстени по ред — од Плоштадот, преку Кале, Градскиот парк и Водно, до финишот. Стрелката горе покажува кон следниот прстен, а светлиот столб го означува. Пукни ги балоните „091“ по патот. Најдоброто време се памти.</p>
-        <p>Авионот секогаш лета напред, не може да удри во земја и сам се враќа кога ќе стигне до работ на мапата.</p>
+        <label class="opt"><input type="checkbox" id="opt-invert" /> <span data-i18n="f.invert"><b>Инвертирај горе/долу</b> — како вистински пилот: ↑ го спушта носот, ↓ го крева</span></label>
+        <p data-i18n="f.race"><b>Трка (опционално):</b> во летот притисни „🏁 Трка“ и пролетај низ 12-те прстени по ред — од Плоштадот, преку Кале, Градскиот парк и Водно, до финишот. Стрелката горе покажува кон следниот прстен, а светлиот столб го означува. Пукни ги балоните „091“ по патот. Најдоброто време се памти.</p>
+        <p data-i18n="f.auto">Авионот секогаш лета напред, не може да удри во земја и сам се враќа кога ќе стигне до работ на мапата.</p>
 
-        <h3>Стилот</h3>
-        <p>Изгледот е инспириран од рачно цртани изометриски мапи: топли кремасти фасади, теракота покриви, сенки во боја на лаванда и густи заоблени крошни. Сè се црта во реално време:</p>
-        <ul>
+        <h3 data-i18n="h.style">Стилот</h3>
+        <p data-i18n="s.intro">Изгледот е инспириран од рачно цртани изометриски мапи: топли кремасти фасади, теракота покриви, сенки во боја на лаванда и густи заоблени крошни. Сè се црта во реално време:</p>
+        <ul data-i18n="s.list">
           <li>мастилени контури со боја на подлогата, подебели по силуетите;</li>
           <li>меки сенки и затемнување во аглите (амбиентална оклузија);</li>
           <li>прозорци, балкони, капаци, тенди и ќерамиди исцртани во шејдер;</li>
           <li>двотонско сенчење на дрвјата — топло на сонце, ладно во сенка;</li>
           <li>кога камерата мирува, сликата се изострува со натрупување на повеќе поместени рендери (суперсемплинг).</li>
         </ul>
-        <p>Висините на зградите што ги нема во OpenStreetMap се проценуваат според обликот и населбата — куќи во периферијата, солитери во Карпош и Аеродром, ниски куќи во Чаршија.</p>
+        <p data-i18n="s.heights">Висините на зградите што ги нема во OpenStreetMap се проценуваат според обликот и населбата — куќи во периферијата, солитери во Карпош и Аеродром, ниски куќи во Чаршија.</p>
 
-        <p class="foot">
+        <p class="foot" data-i18n="help.foot">
           Податоци © соработниците на <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> (ODbL) ·
           Релјеф: <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Terrain Tiles</a> (AWS Open Data) ·
           Изработено со three.js од <a href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">Бојан Божиновски</a>
         </p>
+        <p class="version" id="app-version"></p>
       </div>
     </dialog>
     <a class="me" href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
-      <span class="me-name">Бојан Божиновски</span>
+      <span class="me-name" data-i18n="me">Бојан Божиновски</span>
     </a>
     <div class="bar">
-      <button class="pop-toggle" id="places-toggle" aria-expanded="false" aria-controls="places">📍 Места</button>
+      <button class="pop-toggle" id="places-toggle" aria-expanded="false" aria-controls="places" data-i18n="bar.places">📍 Места</button>
       <div class="places" id="places">
-        <button data-view="center">Плоштад</button>
-        <button data-view="kale">Кале и Чаршија</button>
-        <button data-view="park">Градски парк</button>
-        <button data-view="vodno">Водно</button>
-        <button data-view="overview">Преглед</button>
+        <button data-view="center" data-i18n="v.center">Плоштад</button>
+        <button data-view="kale" data-i18n="v.kale">Кале и Чаршија</button>
+        <button data-view="park" data-i18n="v.park">Градски парк</button>
+        <button data-view="vodno" data-i18n="v.vodno">Водно</button>
+        <button data-view="overview" data-i18n="v.overview">Преглед</button>
       </div>
-      <button id="fly">✈ Авион</button>
+      <button id="fly" data-i18n="bar.fly">✈ Авион</button>
       <button id="time">☀ Ден</button>
-      <button class="pop-toggle" id="tools-toggle" aria-expanded="false" aria-controls="tools">⚙ Опции</button>
+      <button class="pop-toggle" id="tools-toggle" aria-expanded="false" aria-controls="tools" data-i18n="bar.tools">⚙ Опции</button>
       <div class="places tools" id="tools">
-        <button id="names">Имиња</button>
-        <button id="live">Живо</button>
-        <button id="ink">Контури</button>
-        <button id="shot">Зачувај слика</button>
+        <button id="names" data-i18n="bar.names">Имиња</button>
+        <button id="live" data-i18n="bar.live">Живо</button>
+        <button id="ink" data-i18n="bar.ink">Контури</button>
+        <button id="shot" data-i18n="bar.shot">Зачувај слика</button>
+        <label class="lang" title="Јазик" data-i18n-title="bar.lang"><span aria-hidden="true">🌐</span><select id="lang" aria-label="Јазик" data-i18n-aria="bar.lang"></select></label>
       </div>
     </div>
     <div id="flyhud" hidden>
@@ -296,31 +307,31 @@
         <span class="chip warn" id="fly-warn"></span>
         <button class="chip" id="fly-race">🏁 Трка</button>
         <span class="chip race-only" id="fly-game"></span>
-        <button class="chip" id="fly-exit">✕ Излез</button>
+        <button class="chip" id="fly-exit" data-i18n="fly.exit">✕ Излез</button>
       </div>
       <div class="fly-nav race-only"><div class="arrow" id="fly-arrow">▲</div><span class="chip" id="fly-dist"></span></div>
       <div class="fly-flash" id="fly-flash"></div>
       <div class="fly-result" id="fly-result" hidden>
-        <h3>🏁 Финиш!</h3>
-        <p>Време: <b id="res-time"></b></p>
-        <p>Балони 091: <b id="res-balloons"></b></p>
+        <h3 data-i18n="r.title">🏁 Финиш!</h3>
+        <p><span data-i18n="r.time">Време:</span> <b id="res-time"></b></p>
+        <p><span data-i18n="r.balloons">Балони 091:</span> <b id="res-balloons"></b></p>
         <p id="res-best"></p>
-        <div class="row"><button class="chip" id="fly-again">↻ Повторно</button><button class="chip" id="fly-free">Слободен лет</button></div>
+        <div class="row"><button class="chip" id="fly-again" data-i18n="r.again">↻ Повторно</button><button class="chip" id="fly-free" data-i18n="r.free">Слободен лет</button></div>
       </div>
-      <div class="pad l"><button class="fly-btn" data-k="left" aria-label="Лево">◀</button><button class="fly-btn" data-k="right" aria-label="Десно">▶</button></div>
-      <div class="pad r"><button class="fly-btn" data-k="up" aria-label="Нагоре">▲</button><button class="fly-btn" data-k="down" aria-label="Надолу">▼</button></div>
-      <button class="fly-btn" id="fly-boost" data-k="boost">БРЗО</button>
-      <div class="fly-keys chip">← → свртување · ↑ ↓ нагоре/надолу · Shift брзо · Esc излез</div>
+      <div class="pad l"><button class="fly-btn" data-k="left" aria-label="Лево" data-i18n-aria="a.left">◀</button><button class="fly-btn" data-k="right" aria-label="Десно" data-i18n-aria="a.right">▶</button></div>
+      <div class="pad r"><button class="fly-btn" data-k="up" aria-label="Нагоре" data-i18n-aria="a.up">▲</button><button class="fly-btn" data-k="down" aria-label="Надолу" data-i18n-aria="a.down">▼</button></div>
+      <button class="fly-btn" id="fly-boost" data-k="boost" data-i18n="fly.boost">БРЗО</button>
+      <div class="fly-keys chip" data-i18n="fly.keys">← → свртување · ↑ ↓ нагоре/надолу · Shift брзо · Esc излез</div>
     </div>
     <div id="status"></div>
     <div id="loader" role="status" aria-live="polite">
       <div class="card">
         <span class="h1"><span class="code">091</span>Скопје</span>
         <div class="track"><div id="load-bar"></div></div>
-        <p id="load-text">Се вчитува…</p>
+        <p id="load-text" data-i18n="loading">Се вчитува…</p>
       </div>
     </div>
-    <div class="attr">Податоци © соработниците на <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a></div>
-    <script type="module" src="/src/main.js"></script>
+    <div class="attr" data-i18n="attr">Податоци © соработниците на <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

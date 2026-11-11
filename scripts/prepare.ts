@@ -2,24 +2,46 @@
 // Usage: node scripts/prepare.mjs data/skopje_raw.json public/skopje.json
 import fs from 'node:fs';
 
-const [, , inFile, outFile] = process.argv;
-const raw = JSON.parse(fs.readFileSync(inFile, 'utf8'));
+import { lat0, lon0, kx, ky, proj, W, H } from './config.ts';
+import { obb, PolyGrid } from '../src/geo.ts';
+import type { CityData, Poly, Pt, Ring } from '../src/types.ts';
 
-import { BBOX, lat0, lon0, kx, ky, proj, W, H } from './config.mjs';
-import { obb, PolyGrid } from '../src/geo.js';
-
-const r1 = (v) => Math.round(v * 10) / 10;
-const flat = (pts) => pts.flatMap(([x, z]) => [r1(x), r1(z)]);
-
-function wayPts(geom) {
-  return geom.filter(Boolean).map((g) => proj(g.lat, g.lon));
+// Overpass JSON ("out geom"): ways and relation members carry their node coordinates
+interface LatLon { lat: number; lon: number }
+type Tags = Record<string, string | undefined>;
+interface OsmMember { type: string; role: string; geometry?: (LatLon | null)[] }
+interface OsmElement {
+  type: 'node' | 'way' | 'relation';
+  id: number;
+  /** nodes only */
+  lat?: number;
+  lon?: number;
+  tags?: Tags;
+  geometry?: (LatLon | null)[];
+  members?: OsmMember[];
 }
-function isClosed(pts) {
+interface OsmJson { elements: OsmElement[] }
+
+const [, , inFile, outFile] = process.argv;
+if (!inFile || !outFile) {
+  console.error('usage: node scripts/prepare.ts <raw overpass json> <out scene json>');
+  process.exit(1);
+}
+const raw = JSON.parse(fs.readFileSync(inFile, 'utf8')) as OsmJson;
+
+const r1 = (v: number) => Math.round(v * 10) / 10;
+const r1p = (p: Pt): Pt => [r1(p[0]), r1(p[1])];
+const flat = (pts: Ring) => pts.flatMap(([x, z]) => [r1(x), r1(z)]);
+
+function wayPts(geom: (LatLon | null)[]): Ring {
+  return geom.filter((g): g is LatLon => !!g).map((g) => proj(g.lat, g.lon));
+}
+function isClosed(pts: Ring): boolean {
   if (pts.length < 4) return false;
   const a = pts[0], b = pts[pts.length - 1];
   return Math.abs(a[0] - b[0]) < 0.01 && Math.abs(a[1] - b[1]) < 0.01;
 }
-function area(pts) {
+function area(pts: Ring): number {
   let s = 0;
   for (let i = 0, n = pts.length; i < n; i++) {
     const [x1, z1] = pts[i], [x2, z2] = pts[(i + 1) % n];
@@ -27,12 +49,12 @@ function area(pts) {
   }
   return s / 2;
 }
-function centroid(pts) {
+function centroid(pts: Ring): Pt {
   let x = 0, z = 0;
   for (const p of pts) { x += p[0]; z += p[1]; }
   return [x / pts.length, z / pts.length];
 }
-function pip(pt, ring) {
+function pip(pt: Pt, ring: Ring): boolean {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
     const [xi, zi] = ring[i], [xj, zj] = ring[j];
@@ -40,15 +62,15 @@ function pip(pt, ring) {
   }
   return inside;
 }
-const dropLast = (pts) => (isClosed(pts) ? pts.slice(0, -1) : pts);
+const dropLast = (pts: Ring): Ring => (isClosed(pts) ? pts.slice(0, -1) : pts);
 
 // Join member ways into closed rings
-function assembleRings(ways) {
+function assembleRings(ways: Ring[]): Ring[] {
   const segs = ways.map((w) => w.slice());
-  const rings = [];
-  const key = (p) => `${p[0].toFixed(2)},${p[1].toFixed(2)}`;
+  const rings: Ring[] = [];
+  const key = (p: Pt) => `${p[0].toFixed(2)},${p[1].toFixed(2)}`;
   while (segs.length) {
-    let ring = segs.shift();
+    let ring = segs.shift()!;
     let guard = 0;
     while (!isClosed(ring) && guard++ < 1000) {
       const endK = key(ring[ring.length - 1]);
@@ -66,16 +88,17 @@ function assembleRings(ways) {
 }
 
 // Returns array of polygons: [outerRing, ...holeRings]
-function polygonsOf(el) {
+function polygonsOf(el: OsmElement): Poly[] {
   if (el.type === 'way') {
     const pts = wayPts(el.geometry || []);
     if (!isClosed(pts)) return [];
     return [[dropLast(pts)]];
   }
   if (el.type === 'relation') {
-    const outers = assembleRings(el.members.filter((m) => m.type === 'way' && m.role !== 'inner' && m.geometry).map((m) => wayPts(m.geometry)));
-    const inners = assembleRings(el.members.filter((m) => m.type === 'way' && m.role === 'inner' && m.geometry).map((m) => wayPts(m.geometry)));
-    const polys = outers.map((o) => [o]);
+    const members = el.members ?? [];
+    const outers = assembleRings(members.filter((m) => m.type === 'way' && m.role !== 'inner' && m.geometry).map((m) => wayPts(m.geometry ?? [])));
+    const inners = assembleRings(members.filter((m) => m.type === 'way' && m.role === 'inner' && m.geometry).map((m) => wayPts(m.geometry ?? [])));
+    const polys: Poly[] = outers.map((o) => [o]);
     for (const inn of inners) {
       const c = inn[0];
       const host = polys.find((p) => pip(c, p[0]));
@@ -87,7 +110,7 @@ function polygonsOf(el) {
 }
 
 // Deterministic hash → [0,1)
-function rnd(id, salt = 0) {
+function rnd(id: number, salt = 0): number {
   let h = (Number(id % 2147483647) ^ (salt * 0x9e3779b1)) >>> 0;
   h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
   h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
@@ -95,7 +118,7 @@ function rnd(id, salt = 0) {
   return (h >>> 0) / 4294967296;
 }
 
-const parseNum = (v) => {
+const parseNum = (v: unknown): number | null => {
   if (v == null) return null;
   const n = parseFloat(String(v).replace(',', '.'));
   return Number.isFinite(n) ? n : null;
@@ -105,7 +128,7 @@ const parseNum = (v) => {
 const OLD = { s: 41.9995, n: 42.0048, w: 21.4342, e: 21.4425 };
 const SQUARE = proj(41.9961, 21.4316); // Macedonia Square
 
-const out = {
+const out: CityData = {
   meta: { w: r1(W), h: r1(H), lat0, lon0, kx, ky, square: SQUARE.map(r1), attribution: '© OpenStreetMap contributors' },
   buildings: [],
   areas: [],
@@ -116,23 +139,24 @@ const out = {
   towers: [],
   crosses: [],
   landmarks: {},
+  places: {},
 };
-// hand-modelled landmarks (rendered by src/landmarks.js instead of generic geometry)
+// hand-modelled landmarks (rendered by src/landmarks.ts instead of generic geometry)
 const LANDMARK_IDS = { stoneBridge: 411079115, fountain: 176160189, porta: 239422349 };
-const SKIP_BUILDINGS = new Set([LANDMARK_IDS.porta]);
+const SKIP_BUILDINGS = new Set<number>([LANDMARK_IDS.porta]);
 for (const el of raw.elements) {
   if (el.type !== 'way') continue;
   const pts = wayPts(el.geometry || []);
   if (el.id === LANDMARK_IDS.stoneBridge) out.landmarks.stoneBridge = flat(pts);
-  if (el.id === LANDMARK_IDS.fountain) { const r = dropLast(pts); out.landmarks.warrior = centroid(r).map(r1); }
+  if (el.id === LANDMARK_IDS.fountain) { const r = dropLast(pts); out.landmarks.warrior = r1p(centroid(r)); }
   if (el.id === LANDMARK_IDS.porta) out.landmarks.porta = flat(dropLast(pts));
 }
 // exact positions of named places (area-weighted centroid of the largest matching shape)
-const PLACE_NAMES = {
+const PLACE_NAMES: Record<string, string> = {
   square: 'Плоштад Македонија', porta: 'Порта Македонија', park: 'Градски парк', zoo: 'Зоолошка градина Скопје',
   arena: 'Национална арена Тодор Проески', bazaar: 'Стара скопска чаршија', kale: 'Скопско Кале',
 };
-const areaCentroid = (r) => {
+const areaCentroid = (r: Ring): Pt => {
   let a = 0, cx = 0, cz = 0;
   for (let i = 0, n = r.length; i < n; i++) {
     const [x1, z1] = r[i], [x2, z2] = r[(i + 1) % n], f = x1 * z2 - x2 * z1;
@@ -140,9 +164,8 @@ const areaCentroid = (r) => {
   }
   return Math.abs(a) < 1e-6 ? centroid(r) : [cx / (3 * a), cz / (3 * a)];
 };
-out.places = {};
 for (const [key, name] of Object.entries(PLACE_NAMES)) {
-  let best = null;
+  let best: { a: number; c: Pt } | null = null;
   for (const el of raw.elements) {
     if (el.tags?.name !== name) continue;
     for (const poly of polygonsOf(el)) {
@@ -150,25 +173,25 @@ for (const [key, name] of Object.entries(PLACE_NAMES)) {
       if (!best || a > best.a) best = { a, c: areaCentroid(poly[0]) };
     }
   }
-  if (best) out.places[key] = best.c.map(r1);
+  if (best) out.places[key] = r1p(best.c);
 }
 // Vodno gondola (separate small download: data/aerialway.json)
 if (fs.existsSync('data/aerialway.json')) {
-  const aw = JSON.parse(fs.readFileSync('data/aerialway.json', 'utf8'));
+  const aw = JSON.parse(fs.readFileSync('data/aerialway.json', 'utf8')) as OsmJson;
   for (const el of aw.elements) {
     if (el.type === 'way' && el.tags?.aerialway === 'gondola') out.landmarks.gondola = flat(wayPts(el.geometry || []));
   }
-  out.landmarks.pylons = aw.elements.filter((e) => e.type === 'node' && e.tags?.aerialway === 'pylon').flatMap((e) => proj(e.lat, e.lon).map(r1));
+  out.landmarks.pylons = aw.elements.filter((e) => e.type === 'node' && e.tags?.aerialway === 'pylon').flatMap((e) => r1p(proj(e.lat!, e.lon!)));
 }
 
-const ROAD_W = {
+const ROAD_W: Record<string, number> = {
   motorway: 18, trunk: 16, primary: 14, secondary: 12, tertiary: 10,
   primary_link: 8, secondary_link: 7, tertiary_link: 7,
   residential: 7, unclassified: 7, living_street: 6, service: 4.5,
   pedestrian: 6, footway: 2.4, path: 2.2, cycleway: 2.4, steps: 2.6, track: 3, bridleway: 2.2,
 };
 
-function areaKind(t) {
+function areaKind(t: Tags): string | null {
   if (t.natural === 'water' || t.waterway === 'riverbank' || t.landuse === 'reservoir' || t.landuse === 'basin') return 'water';
   if (t.leisure === 'swimming_pool') return 'pool';
   if (t.leisure === 'pitch' || t.leisure === 'track') {
@@ -192,10 +215,10 @@ function areaKind(t) {
   if (t.railway === 'platform') return 'plaza';
   return null;
 }
-const AREA_Z = { campus: 0, fortress: 1, dirt: 1, cemetery: 2, grass: 3, scrub: 3, park: 3, wood: 4, play: 5, parking: 5, plaza: 5, pitch: 6, clay: 6, court: 6, water: 7, pool: 8 };
+const AREA_Z: Record<string, number> = { campus: 0, fortress: 1, dirt: 1, cemetery: 2, grass: 3, scrub: 3, park: 3, wood: 4, play: 5, parking: 5, plaza: 5, pitch: 6, clay: 6, court: 6, water: 7, pool: 8 };
 
 // Known districts (lat/lon boxes) that shape height guesses where OSM has no tags
-const inZone = (lat, lon, z) => lat > z[0] && lat < z[1] && lon > z[2] && lon < z[3];
+const inZone = (lat: number, lon: number, z: number[]) => lat > z[0] && lat < z[1] && lon > z[2] && lon < z[3];
 const ZONES_TALL = [
   [42.000, 42.013, 21.372, 21.407], // Karpoš 3/4, Taftalidže
   [41.978, 41.996, 21.452, 21.502], // Aerodrom, Novo Lisiče
@@ -213,39 +236,41 @@ const INDUSTRIAL = ['industrial', 'warehouse', 'factory', 'manufacture', 'hangar
 const PUBLIC = ['school', 'university', 'college', 'hospital', 'public', 'civic', 'government', 'office', 'kindergarten', 'train_station'];
 
 // industrial landuse polygons (pre-pass) so untagged halls stay low
-const industrialGrid = new PolyGrid(60);
+const industrialGrid = new PolyGrid<null>(60);
 for (const el of raw.elements) {
   const t = el.tags || {};
   if (t.landuse === 'industrial' && el.type === 'way') {
-    const pts = (el.geometry || []).filter(Boolean).map((g) => proj(g.lat, g.lon));
-    if (pts.length > 3) industrialGrid.add([pts.slice(0, -1)]);
+    const pts = wayPts(el.geometry || []);
+    if (pts.length > 3) industrialGrid.add([pts.slice(0, -1)], null);
   }
 }
 
 // fortress outlines (Kale): buildings inside stay low unless tagged otherwise
-const castleGrid = new PolyGrid(60);
+const castleGrid = new PolyGrid<null>(60);
 for (const el of raw.elements) {
   if (el.tags?.historic === 'castle' && el.type === 'way') {
-    const pts = (el.geometry || []).filter(Boolean).map((g) => proj(g.lat, g.lon));
-    if (pts.length > 3) castleGrid.add([pts.slice(0, -1)]);
+    const pts = wayPts(el.geometry || []);
+    if (pts.length > 3) castleGrid.add([pts.slice(0, -1)], null);
   }
 }
 
-function buildingInfo(el, poly) {
-  const t = el.tags;
+interface BuildingInfo { h: number; mh: number; lv: number; old: boolean; a: number; kind: 'ind' | 'fortress' | null }
+function buildingInfo(el: OsmElement, poly: Poly): BuildingInfo {
+  const t = el.tags ?? {};
   const outer = poly[0];
   const a = Math.abs(area(outer));
   const [cx, cz] = centroid(outer);
   const lat = lat0 - cz / ky, lon = lon0 + cx / kx;
   const old = lat > OLD.s && lat < OLD.n && lon > OLD.w && lon < OLD.e;
   const dSq = Math.hypot(cx - SQUARE[0], cz - SQUARE[1]);
-  const type = t.building;
+  const type = t.building ?? 'yes';
   let levels = parseNum(t['building:levels']);
   let h = parseNum(t.height);
-  const mh = parseNum(t.min_height) ?? (parseNum(t['building:min_level']) != null ? parseNum(t['building:min_level']) * 3.2 : 0);
+  const minLevel = parseNum(t['building:min_level']);
+  const mh = parseNum(t.min_height) ?? (minLevel != null ? minLevel * 3.2 : 0);
   const rv = rnd(el.id, 1), rv2 = rnd(el.id, 2);
-  let kind = null;
-  // defensive towers of the fortress: stone, ~14 m, battlements (see src/city.js)
+  let kind: BuildingInfo['kind'] = null;
+  // defensive towers of the fortress: stone, ~14 m, battlements (see src/city.ts)
   if (t.man_made === 'tower' && /defensive|fortification/.test(t['tower:type'] || '')) {
     return { h: Math.max(h ?? 14, 6), mh: 0, lv: 1, old, a, kind: 'fortress' };
   }
@@ -256,7 +281,7 @@ function buildingInfo(el, poly) {
     const tall = ZONES_TALL.some((z) => inZone(lat, lon, z));
     const mid = !tall && ZONES_MID.some((z) => inZone(lat, lon, z));
     const ind = INDUSTRIAL.includes(type) || (a > 400 && ['yes', 'commercial', 'retail'].includes(type) && industrialGrid.hit(cx, cz));
-    const between = (lo, span) => lo + Math.floor(rv * (span + 1));
+    const between = (lo: number, span: number) => lo + Math.floor(rv * (span + 1));
     if (HOUSE.includes(type)) levels = between(1, 1);
     else if (type === 'roof' || type === 'carport') levels = 1;
     else if (ind) { kind = 'ind'; levels = 1; h = 6 + rv * 5; }
@@ -278,25 +303,27 @@ function buildingInfo(el, poly) {
     }
     if (inCastle) levels = Math.min(levels, 2);
   }
-  if (h == null) h = levels * 3.1 + (type === 'roof' ? 0.5 : 0.6);
+  // levels is set whenever h is missing (the block above)
+  if (h == null) h = levels! * 3.1 + (type === 'roof' ? 0.5 : 0.6);
   if (type === 'roof') return { h: Math.max(h, 3.5), mh: Math.max(h - 0.6, 3), lv: 1, old, a, kind };
   return { h: Math.max(h, 2.6), mh: Math.min(mh, h - 1), lv: levels ?? Math.max(1, Math.round(h / 3.1)), old, a, kind };
 }
 
-const inBox = (pts, m = 0) => pts.every(([x, z]) => Math.abs(x) < W / 2 - m && Math.abs(z) < H / 2 - m);
-const anyInBox = (pts) => pts.some(([x, z]) => Math.abs(x) < W / 2 + 50 && Math.abs(z) < H / 2 + 50);
+const inBox = (pts: Pt[], m = 0) => pts.every(([x, z]) => Math.abs(x) < W / 2 - m && Math.abs(z) < H / 2 - m);
+const anyInBox = (pts: Pt[]) => pts.some(([x, z]) => Math.abs(x) < W / 2 + 50 && Math.abs(z) < H / 2 + 50);
 
 for (const el of raw.elements) {
-  const t = el.tags || {};
-  if (t.man_made === 'cross' && parseNum(t.height) >= 20) {
-    const pts = el.type === 'node' ? [proj(el.lat, el.lon)] : dropLast(wayPts(el.geometry || []));
+  const t: Tags = el.tags || {};
+  const crossH = parseNum(t.height) ?? 0;
+  if (t.man_made === 'cross' && crossH >= 20) {
+    const pts = el.type === 'node' ? [proj(el.lat!, el.lon!)] : dropLast(wayPts(el.geometry || []));
     const [x, z] = centroid(pts);
-    if (inBox([[x, z]], 5)) out.crosses.push({ x: r1(x), z: r1(z), h: parseNum(t.height), name: t['name:en'] || t.name || '' });
+    if (inBox([[x, z]], 5)) out.crosses.push({ x: r1(x), z: r1(z), h: crossH, name: t['name:en'] || t.name || '' });
     continue;
   }
   if (el.type === 'node') {
     if (t.natural === 'tree') {
-      const [x, z] = proj(el.lat, el.lon);
+      const [x, z] = proj(el.lat!, el.lon!);
       if (inBox([[x, z]], 3)) out.trees.push(r1(x), r1(z));
     }
     continue;
@@ -316,7 +343,7 @@ for (const el of raw.elements) {
   }
 
   if (t.building && t.building !== 'no' && !t['building:part'] && !SKIP_BUILDINGS.has(el.id)) {
-    if (t.location === 'underground' || t.layer && parseNum(t.layer) < 0) continue;
+    if (t.location === 'underground' || (t.layer && (parseNum(t.layer) ?? 0) < 0)) continue;
     for (const poly of polygonsOf(el)) {
       if (!inBox(poly[0], 2)) continue;
       const info = buildingInfo(el, poly);
@@ -364,13 +391,14 @@ for (const el of raw.elements) {
   }
 
   if (t.highway && ROAD_W[t.highway] && t.area !== 'yes' && el.type === 'way') {
-    if (t.tunnel === 'yes' || t.tunnel === 'building_passage' || t.indoor === 'yes' || t.level && parseNum(t.level) < 0) continue;
+    if (t.tunnel === 'yes' || t.tunnel === 'building_passage' || t.indoor === 'yes' || (t.level && (parseNum(t.level) ?? 0) < 0)) continue;
     const pts = wayPts(el.geometry || []);
     if (!anyInBox(pts)) continue;
     let w = ROAD_W[t.highway];
     const lanes = parseNum(t.lanes);
     if (lanes && w > 6) w = Math.max(w, lanes * 3.2 + 1);
-    if (parseNum(t.width)) w = parseNum(t.width);
+    const width = parseNum(t.width);
+    if (width) w = width;
     out.roads.push({ k: t.highway, w: r1(w), b: t.bridge && t.bridge !== 'no' ? 1 : 0, p: flat(pts) });
     continue;
   }

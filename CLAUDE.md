@@ -11,6 +11,7 @@ History, decisions, numbers and backlog: see [docs/NOTES.md](docs/NOTES.md).
 ```bash
 npm install          # once per machine
 npm run dev          # Vite dev server on http://localhost:5173
+npm run typecheck    # tsc (TypeScript 7, strict): src/ and scripts/ — CI runs it before building
 npm run build        # static site → dist/ (relative paths, Pages-ready)
 npm run download     # OSM via Overpass → data/skopje_raw.json (not in git, ~25 MB)
 npm run terrain      # AWS Terrarium elevation tiles → public/terrain.bin/.json
@@ -19,10 +20,10 @@ npm run data         # data/skopje_raw.json (+ data/aerialway.json) → public/s
 
 - `public/skopje.json`, `public/terrain.*` are committed, so a fresh clone runs
   without downloading anything. Only re-run `download`/`data` when changing the
-  extent or `scripts/prepare.mjs`.
+  extent or `scripts/prepare.ts`.
 - `data/aerialway.json` (Vodno gondola) is a separate small Overpass download that
   is committed; `npm run download` does not fetch it.
-- Map extent lives in `scripts/config.mjs` (BBOX) — keep `data/query.overpassql` in sync.
+- Map extent lives in `scripts/config.ts` (BBOX) — keep `data/query.overpassql` in sync.
 - Deploy: pushing to `main` runs `.github/workflows/deploy.yml` (build → Pages, ~40 s).
   Check with `gh run list --limit 1`. GitHub auth is per machine (`gh auth login`);
   never commit tokens or credentials.
@@ -31,31 +32,48 @@ npm run data         # data/skopje_raw.json (+ data/aerialway.json) → public/s
 
 | File | Role |
 |---|---|
-| `main.js` | App shell: renderer, controls, loading (staged build + progress card), views, time of day, flight/race wiring, popups, help, gamepad, adaptive quality |
-| `city.js` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds |
-| `terrain.js` | Heightfield with exact mesh-matching interpolation; chunk/low-res meshes; triangle clipping for draping |
-| `post.js` | `InkRenderer`: colour + normal/depth passes → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
-| `sky.js` | Day / sunset / night presets + blending, street lamps, glow texture |
-| `atmos.js` | Translucent clouds (shadows computed in post), bird flocks |
-| `traffic.js` | Animated cars/buses/people on OSM paths, headlights |
-| `flight.js` | Arcade plane (Macedonian-flag livery), chase camera, keyboard/pad input, invert-Y |
-| `game.js` | Optional ring race over landmarks, 091 balloons, best time |
-| `landmarks.js` | Hand-built models: Millennium Cross lattice, Warrior on a Horse, Stone Bridge, Porta Macedonia, Vodno gondola |
-| `labels.js` | HTML Cyrillic labels (districts far, landmarks near), positions from `data.places` |
-| `input.js` | Keyboard map navigation + gamepad reading (XInput "standard" + DirectInput fallbacks) |
-| `geo.js` | 2D helpers: rng, PIP, OBB, spatial grids, scanline `rowCrossings` |
+| `main.ts` | App shell: renderer, controls, loading (staged build + progress card), views, time of day, flight/race wiring, popups, help, gamepad, adaptive quality |
+| `city.ts` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds |
+| `terrain.ts` | Heightfield with exact mesh-matching interpolation; chunk/low-res meshes; triangle clipping for draping |
+| `post.ts` | `InkRenderer`: colour + normal/depth passes → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
+| `sky.ts` | Day / sunset / night presets + blending, street lamps, glow texture |
+| `atmos.ts` | Translucent clouds (shadows computed in post), bird flocks |
+| `traffic.ts` | Animated cars/buses/people on OSM paths, headlights |
+| `flight.ts` | Arcade plane (Macedonian-flag livery), chase camera, keyboard/pad input, invert-Y |
+| `game.ts` | Optional ring race over landmarks, 091 balloons, best time |
+| `landmarks.ts` | Hand-built models: Millennium Cross lattice, Warrior on a Horse, Stone Bridge, Porta Macedonia, Vodno gondola |
+| `labels.ts` | HTML Cyrillic labels (districts far, landmarks near), positions from `data.places` |
+| `input.ts` | Keyboard map navigation + gamepad reading (XInput "standard" + DirectInput fallbacks) |
+| `i18n.ts` | UI translations (mk, en, sr Cyrillic, hr, sl, sq): `t(key)`, `data-i18n*` attributes in `index.html`, 🌐 picker, auto-detect, `?lang=` |
+| `types.ts` | Shared types: 2D geometry (`Pt`, `Ring`, `Poly`) and the `skopje.json` format (`CityData`) written by `prepare.ts` |
+| `geo.ts` | 2D helpers: rng, PIP, OBB, spatial grids, scanline `rowCrossings` |
 
-`scripts/prepare.mjs` does all OSM interpretation: building heights (tags →
+`scripts/prepare.ts` does all OSM interpretation: building heights (tags →
 district/footprint heuristics, industrial halls, Kale fortress towers), area kinds,
 roads, landmark shapes (`landmarks`), exact named-place centroids (`places`).
 
 Debug handle in the browser console: `window.__dbg` (scene, renderer, camera,
 controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview')`.
 
+## TypeScript
+
+- TypeScript 7 (native `tsc`), `strict`, type-check only (`noEmit`): Vite compiles `src/`,
+  Node (≥ 22.18, type stripping) runs `scripts/*.ts` directly. Two configs: `tsconfig.json`
+  (browser, `src/`) and `scripts/tsconfig.json` (Node types, scripts + `vite.config.ts`).
+- Imports use `.ts` extensions (works in both Vite and Node). Only erasable syntax
+  (`erasableSyntaxOnly`): no `enum`, `namespace` or constructor parameter properties.
+  Type-only imports use `import type` (`verbatimModuleSyntax`).
+- Every translation must have every key English has: a missing one fails `npm run typecheck`.
+- Version lives in `package.json` (`version`); Vite injects it as `__APP_VERSION__`, shown at
+  the bottom of the help dialog. Releases are tagged `vX.Y.Z`.
+
 ## Conventions and preferences (important)
 
 - **UI language is Macedonian (Cyrillic), with correct Macedonian spelling and words.**
   Review every new string (e.g. "Зајдисонце", "Ноќ", "Брзо", "капаци", "соработниците на OpenStreetMap").
+  Macedonian is the source; every new UI string also needs en/sr/hr/sl/sq in `src/i18n.ts`
+  (static HTML: add `data-i18n="key"`, the Macedonian stays in `index.html`). Map data
+  (labels, place and ring names) is not translated.
 - **Visual style "Вез"** (Macedonian folk embroidery): linen `--linen #f4ede0`, indigo
   `--indigo #1f2a44`, wine `--wine #7a1f1a`, cross-stitch band `--stitch` (SVG data URI
   in `index.html`). Bottom bar fades to transparent when idle. Help dialog uses it too.

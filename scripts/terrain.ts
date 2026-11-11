@@ -2,23 +2,23 @@
 // Output: public/terrain.bin (Uint16, decimetres above the minimum) + public/terrain.json
 import fs from 'node:fs';
 import zlib from 'node:zlib';
-import { BBOX, unproj, W, H } from './config.mjs';
+import { BBOX, unproj, W, H } from './config.ts';
 
 const Z = 15;
 const CELL = 10; // metres between samples
 const CACHE = 'data/terrarium';
 fs.mkdirSync(CACHE, { recursive: true });
 
-const lon2x = (lon) => ((lon + 180) / 360) * 2 ** Z;
-const lat2y = (lat) => {
+const lon2x = (lon: number) => ((lon + 180) / 360) * 2 ** Z;
+const lat2y = (lat: number) => {
   const r = (lat * Math.PI) / 180;
   return ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * 2 ** Z;
 };
 
 // Minimal PNG decoder (8-bit RGB/RGBA, non-interlaced)
-function decodePNG(buf) {
+function decodePNG(buf: Buffer): { w: number; h: number; bpp: number; data: Buffer } {
   let p = 8, w = 0, h = 0, ct = 0;
-  const idat = [];
+  const idat: Buffer[] = [];
   while (p < buf.length) {
     const len = buf.readUInt32BE(p), type = buf.toString('ascii', p + 4, p + 8);
     const data = buf.subarray(p + 8, p + 8 + len);
@@ -52,11 +52,11 @@ function decodePNG(buf) {
 
 const x0 = Math.floor(lon2x(BBOX.w)), x1 = Math.floor(lon2x(BBOX.e));
 const y0 = Math.floor(lat2y(BBOX.n)), y1 = Math.floor(lat2y(BBOX.s));
-const tiles = new Map();
-const jobs = [];
+const tiles = new Map<string, Float32Array>();
+const jobs: [number, number][] = [];
 for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) jobs.push([x, y]);
 console.log(`fetching ${jobs.length} tiles…`);
-async function getTile(x, y) {
+async function getTile(x: number, y: number): Promise<void> {
   const f = `${CACHE}/${Z}_${x}_${y}.png`;
   if (!fs.existsSync(f)) {
     const res = await fetch(`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${Z}/${x}/${y}.png`);
@@ -73,10 +73,10 @@ async function getTile(x, y) {
 }
 for (let i = 0; i < jobs.length; i += 8) await Promise.all(jobs.slice(i, i + 8).map(([x, y]) => getTile(x, y)));
 
-function elev(lat, lon) {
+function elev(lat: number, lon: number): number {
   const gx = lon2x(lon) * 256 - 0.5, gy = lat2y(lat) * 256 - 0.5;
   const ix = Math.floor(gx), iy = Math.floor(gy), fx = gx - ix, fy = gy - iy;
-  const s = (px, py) => {
+  const s = (px: number, py: number) => {
     const t = tiles.get(`${Math.floor(px / 256)},${Math.floor(py / 256)}`);
     return t ? t[(py & 255) * 256 + (px & 255)] : 0;
   };

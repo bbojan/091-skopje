@@ -1,0 +1,10 @@
+{
+  // Node data scripts and the Vite config. Node runs the .ts files directly
+  // (type stripping), so only erasable syntax is allowed.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["es2023"],
+    "types": ["node"]
+  },
+  "include": [".", "../vite.config.ts", "../src/geo.ts", "../src/types.ts"]
+}

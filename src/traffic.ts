@@ -1,13 +1,42 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { mulberry32 } from './geo.js';
-import { carGeometry, CAR_COLORS } from './city.js';
-import { glowTexture } from './sky.js';
+import { mulberry32, type Rng } from './geo.ts';
+import { carGeometry, CAR_COLORS, type City } from './city.ts';
+import { glowTexture } from './sky.ts';
+import type { Terrain } from './terrain.ts';
+import type { Ring } from './types.ts';
+
+interface PathData {
+  /** share of agents, per metre of path */
+  weight: number;
+  /** half width of the way */
+  hw: number;
+  /** 1 = walk on the pavement beside the road */
+  side?: number;
+}
+interface Path extends PathData { pts: Ring; cum: number[]; len: number }
+
+interface Agent {
+  p: Path;
+  /** distance along the path */
+  s: number;
+  seg: number;
+  dir: 1 | -1;
+  /** speed, m/s (0 = standing) */
+  v: number;
+  /** sideways offset from the centre line */
+  lane: number;
+  phase: number;
+  // standing people keep their first position
+  init?: boolean;
+  x?: number; z?: number; tx?: number; tz?: number;
+}
+
+interface Located { x: number; z: number; tx: number; tz: number }
 
 // Agents walk/drive back and forth along OSM polylines.
 class Paths {
-  constructor() { this.list = []; }
-  add(pts, data) {
+  list: Path[] = [];
+  add(pts: Ring, data: PathData): void {
     const cum = [0];
     for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
     if (cum[cum.length - 1] < 10) return;
@@ -15,9 +44,9 @@ class Paths {
   }
 }
 
-function makeAgents(paths, count, rnd, speed, laneFn) {
+function makeAgents(paths: Paths, count: number, rnd: Rng, speed: [base: number, span: number], laneFn: (p: Path, rnd: Rng) => number): Agent[] {
   const total = paths.list.reduce((s, p) => s + p.len * p.weight, 0);
-  const agents = [];
+  const agents: Agent[] = [];
   for (let k = 0; k < count; k++) {
     // pick a path proportional to weighted length
     let t = rnd() * total, p = paths.list[0];
@@ -27,7 +56,7 @@ function makeAgents(paths, count, rnd, speed, laneFn) {
   return agents;
 }
 
-function locate(a, out) {
+function locate(a: Agent, out: Located): void {
   const { pts, cum } = a.p;
   let i = a.seg;
   while (i < cum.length - 2 && cum[i + 1] < a.s) i++;
@@ -44,7 +73,13 @@ function locate(a, out) {
   out.tx = tx; out.tz = tz;
 }
 
-export function createTraffic(city, terrain, opts = {}) {
+export interface TrafficOptions {
+  clippingPlanes?: THREE.Plane[];
+  cars?: number;
+  people?: number;
+}
+
+export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions = {}) {
   const rnd = mulberry32(2024);
   const group = new THREE.Group();
 
@@ -101,15 +136,16 @@ export function createTraffic(city, terrain, opts = {}) {
     group.add(m);
   }
 
-  const loc = {};
-  const write = (arr, i, x, y, z, tx, tz, s = 1) => {
+  const loc: Located = { x: 0, z: 0, tx: 1, tz: 0 };
+  // write a yaw-only transform straight into the instance matrix buffer
+  const write = (arr: THREE.TypedArray, i: number, x: number, y: number, z: number, tx: number, tz: number, s = 1) => {
     const o = i * 16;
     arr[o] = tx * s; arr[o + 1] = 0; arr[o + 2] = tz * s; arr[o + 3] = 0;
     arr[o + 4] = 0; arr[o + 5] = s; arr[o + 6] = 0; arr[o + 7] = 0;
     arr[o + 8] = -tz * s; arr[o + 9] = 0; arr[o + 10] = tx * s; arr[o + 11] = 0;
     arr[o + 12] = x; arr[o + 13] = y; arr[o + 14] = z; arr[o + 15] = 1;
   };
-  const step = (a, dt) => {
+  const step = (a: Agent, dt: number) => {
     a.s += a.v * dt * a.dir;
     if (a.s > a.p.len) { a.s = a.p.len; a.dir = -1; }
     else if (a.s < 0) { a.s = 0; a.dir = 1; }
@@ -117,8 +153,7 @@ export function createTraffic(city, terrain, opts = {}) {
   };
 
   let time = 0;
-  const tgt = new THREE.Vector3();
-  function update(dt, camera, target) {
+  function update(dt: number, camera?: THREE.Camera, target?: THREE.Vector3): void {
     dt = Math.min(dt, 0.1);
     time += dt;
     // grow agents with zoom so they stay readable as lively dots from far away
@@ -134,7 +169,7 @@ export function createTraffic(city, terrain, opts = {}) {
     const ta = torsoMesh.instanceMatrix.array, ha = headMesh.instanceMatrix.array;
     people.forEach((a, i) => {
       if (a.v > 0) step(a, dt);
-      else if (a.seg === 0 && !a.init) { locate(a, loc); a.init = 1; a.x = loc.x; a.z = loc.z; a.tx = loc.tx; a.tz = loc.tz; }
+      else if (a.seg === 0 && !a.init) { locate(a, loc); a.init = true; a.x = loc.x; a.z = loc.z; a.tx = loc.tx; a.tz = loc.tz; }
       const x = a.v > 0 ? loc.x : a.x ?? loc.x, z = a.v > 0 ? loc.z : a.z ?? loc.z;
       const tx = a.v > 0 ? loc.tx : a.tx ?? 1, tz = a.v > 0 ? loc.tz : a.tz ?? 0;
       const bob = a.v > 0 ? Math.abs(Math.sin(time * 7 + a.phase)) * 0.12 : 0;
@@ -149,7 +184,7 @@ export function createTraffic(city, terrain, opts = {}) {
   // headlights: an additive glow on the road ahead, sharing the car transforms
   const beamGeo = new THREE.PlaneGeometry(11, 5.5).rotateX(-Math.PI / 2).translate(7.5, 0.35, 0);
   const beamMat = new THREE.MeshBasicMaterial({ map: glowTexture(), color: '#ffe2a8', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, clippingPlanes: opts.clippingPlanes });
-  const beams = [];
+  const beams: THREE.InstancedMesh[] = [];
   for (const src of [carMesh, busMesh]) {
     const b = new THREE.InstancedMesh(beamGeo, beamMat, src.count);
     b.instanceMatrix = src.instanceMatrix;
@@ -159,9 +194,9 @@ export function createTraffic(city, terrain, opts = {}) {
     group.add(b);
     beams.push(b);
   }
-  function setNight(f) {
+  function setNight(f: number): void {
     beamMat.opacity = 0.7 * THREE.MathUtils.smoothstep(f, 0.15, 0.9);
     for (const b of beams) b.visible = f > 0.1;
   }
-  return { group, update, setNight, glows: beams, counts: { cars: cars.length, people: people.length } };
+  return { group, update, setNight, glows: beams as THREE.Object3D[], counts: { cars: cars.length, people: people.length } };
 }

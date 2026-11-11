@@ -1,7 +1,7 @@
 // Downloads OSM data for BBOX from Overpass in tiles and merges them.
 // Usage: node scripts/download.mjs data/skopje_raw.json
 import fs from 'node:fs';
-import { BBOX } from './config.mjs';
+import { BBOX } from './config.ts';
 
 const out = process.argv[2] || 'data/skopje_raw.json';
 const body = fs.readFileSync('data/query.overpassql', 'utf8').replace(/\[bbox:[^\]]*\]/, '');
@@ -20,12 +20,12 @@ for (let i = 0; i < NX; i++)
           body: 'data=' + encodeURIComponent(q),
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        const j2 = await res.json();
+        const j2 = (await res.json()) as { elements: { type: string; id: number }[] };
         for (const el of j2.elements) seen.set(el.type + el.id, el);
         console.log(`tile ${i},${j}: ${j2.elements.length} elements (total ${seen.size})`);
         break;
       } catch (err) {
-        console.log(`tile ${i},${j} attempt ${attempt + 1} failed: ${err.message}`);
+        console.log(`tile ${i},${j} attempt ${attempt + 1} failed: ${err instanceof Error ? err.message : err}`);
         await new Promise((r) => setTimeout(r, 15000 * (attempt + 1)));
       }
     }

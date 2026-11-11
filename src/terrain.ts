@@ -1,21 +1,36 @@
 import * as THREE from 'three';
+import type { Pt, TerrainMeta } from './types.ts';
+
+/** Fills `out` with the vertex colour for a terrain vertex. */
+export type TerrainColorFn = (out: THREE.Color, y: number, normalY: number, i: number, j: number) => void;
 
 // Heightfield with exact mesh-matching interpolation and draping helpers.
 // Grid cells are split along the (i+1,j)-(i,j+1) diagonal, matching the mesh.
 export class Terrain {
-  constructor(meta, u16, exag = 1.12) {
-    Object.assign(this, meta);
+  nx: number;
+  nz: number;
+  cell: number;
+  x0: number;
+  z0: number;
+  x1: number;
+  z1: number;
+  min: number;
+  max: number;
+  h: Float32Array;
+
+  constructor(meta: TerrainMeta, u16: Uint16Array, exag = 1.12) {
+    ({ nx: this.nx, nz: this.nz, cell: this.cell, x0: this.x0, z0: this.z0, min: this.min, max: this.max } = meta);
     this.h = new Float32Array(u16.length);
     for (let i = 0; i < u16.length; i++) this.h[i] = (u16[i] / 10) * exag;
     this.x1 = this.x0 + (this.nx - 1) * this.cell;
     this.z1 = this.z0 + (this.nz - 1) * this.cell;
   }
-  H(i, j) {
+  H(i: number, j: number): number {
     i = i < 0 ? 0 : i >= this.nx ? this.nx - 1 : i;
     j = j < 0 ? 0 : j >= this.nz ? this.nz - 1 : j;
     return this.h[j * this.nx + i];
   }
-  at(x, z) {
+  at(x: number, z: number): number {
     const gx = (x - this.x0) / this.cell, gz = (z - this.z0) / this.cell;
     let i = Math.floor(gx), j = Math.floor(gz);
     i = Math.min(Math.max(i, 0), this.nx - 2);
@@ -25,7 +40,7 @@ export class Terrain {
     if (fx + fz <= 1) return a + (b - a) * fx + (c - a) * fz;
     return d + (c - d) * (1 - fx) + (b - d) * (1 - fz);
   }
-  normal(i, j) {
+  normal(i: number, j: number): THREE.Vector3 {
     const dx = this.H(i + 1, j) - this.H(i - 1, j), dz = this.H(i, j + 1) - this.H(i, j - 1);
     const n = new THREE.Vector3(-dx, 2 * this.cell, -dz);
     return n.normalize();
@@ -33,8 +48,8 @@ export class Terrain {
 
   // Coarse textured terrain mesh for distant chunks; uv maps the chunk rectangle
   // (v = 0 at the south edge, matching a top-down render with north up)
-  lowGeometry(i0, j0, i1, j1, step) {
-    const is = [], js = [];
+  lowGeometry(i0: number, j0: number, i1: number, j1: number, step: number): THREE.BufferGeometry {
+    const is: number[] = [], js: number[] = [];
     for (let i = i0; i < i1; i += step) is.push(i);
     is.push(i1);
     for (let j = j0; j < j1; j += step) js.push(j);
@@ -49,7 +64,7 @@ export class Terrain {
         nor[k * 3] = n.x; nor[k * 3 + 1] = n.y; nor[k * 3 + 2] = n.z;
         uv[k * 2] = (gi - i0) / (i1 - i0); uv[k * 2 + 1] = 1 - (gj - j0) / (j1 - j0);
       }
-    const idx = [];
+    const idx: number[] = [];
     for (let b = 0; b < d - 1; b++)
       for (let a = 0; a < w - 1; a++) {
         const p = b * w + a, q = p + 1, r = p + w, s = r + 1;
@@ -65,7 +80,7 @@ export class Terrain {
   }
 
   // Indexed terrain mesh for a block of cells
-  chunkGeometry(i0, j0, i1, j1, colorFn) {
+  chunkGeometry(i0: number, j0: number, i1: number, j1: number, colorFn: TerrainColorFn): THREE.BufferGeometry {
     const w = i1 - i0 + 1, d = j1 - j0 + 1;
     const pos = new Float32Array(w * d * 3), nor = new Float32Array(w * d * 3), col = new Float32Array(w * d * 3);
     const c = new THREE.Color();
@@ -79,7 +94,7 @@ export class Terrain {
         colorFn(c, y, n.y, gi, gj);
         col[k] = c.r; col[k + 1] = c.g; col[k + 2] = c.b;
       }
-    const idx = [];
+    const idx: number[] = [];
     for (let j = 0; j < d - 1; j++)
       for (let i = 0; i < w - 1; i++) {
         const a = j * w + i, b = a + 1, cc = a + w, dd = cc + 1;
@@ -96,7 +111,7 @@ export class Terrain {
 
   // Clip a 2D triangle to grid cells + diagonals so each piece lies on one
   // terrain triangle; emit(piecePolygon[[x,z]...], i, j)
-  clipTriangle(t, emit) {
+  clipTriangle(t: Pt[], emit: (piece: Pt[], i: number, j: number) => void): void {
     const cs = this.cell;
     const xs = [t[0][0], t[1][0], t[2][0]], zs = [t[0][1], t[1][1], t[2][1]];
     const ci0 = Math.max(0, Math.floor((Math.min(...xs) - this.x0) / cs));
@@ -125,8 +140,8 @@ export class Terrain {
 }
 
 // Sutherland–Hodgman: keep points with a*x + b*z <= c
-function clip(poly, a, b, c) {
-  const out = [];
+function clip(poly: Pt[], a: number, b: number, c: number): Pt[] {
+  const out: Pt[] = [];
   const n = poly.length;
   for (let k = 0; k < n; k++) {
     const P = poly[k], Q = poly[(k + 1) % n];

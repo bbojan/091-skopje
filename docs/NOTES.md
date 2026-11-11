@@ -23,6 +23,9 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 6. Day/sunset/night, clouds/birds/river glints, staged loading, ring race,
    adaptive quality, landmarks + labels, keyboard/gamepad, mobile popups,
    mobile memory profile, Вез design.
+7. **v1.1.0** (Nov 2026): UI in 6 languages (mk, en, sr Cyrillic, hr, sl, sq; map
+   names stay Macedonian), whole codebase moved to strict TypeScript 7, version
+   shown in the help dialog, CI on Node 24 with a type-check step.
 
 ## Key decisions (and why)
 
@@ -53,30 +56,30 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 
 | What | Where |
 |---|---|
-| Colour palette (facades, roofs, areas, roads, trees) | `PAL` in `src/city.js` |
-| Day / sunset / night lighting, ink, haze, grade | `TIMES` in `src/sky.js` |
+| Colour palette (facades, roofs, areas, roads, trees) | `PAL` in `src/city.ts` |
+| Day / sunset / night lighting, ink, haze, grade | `TIMES` in `src/sky.ts` |
 | UI colours (Вез) and stitch pattern | `:root` variables in `index.html` |
-| Tree LOD distances | `LOD0` in `makeLOD()`, `src/city.js` |
-| Tree density per area kind | `DENS` in `computeCitySteps()`, `src/city.js` |
+| Tree LOD distances | `LOD0` in `makeLOD()`, `src/city.ts` |
+| Tree density per area kind | `DENS` in `computeCitySteps()`, `src/city.ts` |
 | Overall tree / parked-car density | `density` option of `computeCitySteps` (mobile uses 0.5) |
-| Render resolution levels | `QUALITY` in `src/main.js` |
-| Mobile profile (shadow size, bake size, agents) | `MOBILE` checks in `init()`, `src/main.js` |
-| Moving cars / people counts | `opts.cars`, `opts.people` in `src/traffic.js` |
-| Clouds count, size, wind | `MAX_CLOUDS`, `createClouds()` in `src/atmos.js` |
-| Plane speed, turn rate, min height | `SPEED`, `BOOST`, `TURN`, `MIN_AGL` in `src/flight.js` |
-| Race route and ring size | `ROUTE`, `RING_R` in `src/game.js` |
-| Labels (districts, landmarks) | `DISTRICTS`, `LANDMARKS` in `src/labels.js` |
-| Camera views (Плоштад, Кале…) | `VIEWS` in `init()`, `src/main.js` |
-| Building height heuristics, district zones | `buildingInfo()`, `ZONES_TALL`, `ZONES_MID` in `scripts/prepare.mjs` |
-| Road widths, area kinds and draw order | `ROAD_W`, `areaKind()`, `AREA_Z` in `scripts/prepare.mjs` |
-| Exact named places (labels, rings) | `PLACE_NAMES` in `scripts/prepare.mjs` |
-| Map extent | `BBOX` in `scripts/config.mjs` (+ `data/query.overpassql`) |
+| Render resolution levels | `QUALITY` in `src/main.ts` |
+| Mobile profile (shadow size, bake size, agents) | `MOBILE` checks in `init()`, `src/main.ts` |
+| Moving cars / people counts | `opts.cars`, `opts.people` in `src/traffic.ts` |
+| Clouds count, size, wind | `MAX_CLOUDS`, `createClouds()` in `src/atmos.ts` |
+| Plane speed, turn rate, min height | `SPEED`, `BOOST`, `TURN`, `MIN_AGL` in `src/flight.ts` |
+| Race route and ring size | `ROUTE`, `RING_R` in `src/game.ts` |
+| Labels (districts, landmarks) | `DISTRICTS`, `LANDMARKS` in `src/labels.ts` |
+| Camera views (Плоштад, Кале…) | `VIEWS` in `init()`, `src/main.ts` |
+| Building height heuristics, district zones | `buildingInfo()`, `ZONES_TALL`, `ZONES_MID` in `scripts/prepare.ts` |
+| Road widths, area kinds and draw order | `ROAD_W`, `areaKind()`, `AREA_Z` in `scripts/prepare.ts` |
+| Exact named places (labels, rings) | `PLACE_NAMES` in `scripts/prepare.ts` |
+| Map extent | `BBOX` in `scripts/config.ts` (+ `data/query.overpassql`) |
 
 ## Gotchas (learned the hard way)
 
 - **Hidden or occluded browser windows pause `requestAnimationFrame` and clamp
   timers to ~1 s.** Frame timings from such a window are meaningless and the loading
-  used to stall there. `nextFrame()` in `main.js` races rAF, a 100 ms timeout and a
+  used to stall there. `nextFrame()` in `main.ts` races rAF, a 100 ms timeout and a
   `MessageChannel` hop for exactly this reason — keep it.
 - **Web Workers ran the city build ~7× slower** (background-priority thread). The build
   is a generator (`computeCitySteps`) stepped on the main thread instead.
@@ -105,7 +108,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 
 ## How to verify a change
 
-1. `npm run build` must succeed (catches syntax errors fast).
+1. `npm run typecheck` and `npm run build` must succeed.
 2. `npm run dev`, open http://localhost:5173 in a **visible** window.
 3. Check the five views: `setView('center' | 'kale' | 'park' | 'vodno' | 'overview')`.
 4. Cycle ☀ Ден → 🌇 Зајдисонце → 🌙 Ноќ; toggle Живо, Контури, Имиња.

@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { mulberry32, toPts, ringArea, obb, pipPoly, PolyGrid, SegGrid, PointHash, rowCrossings, bbox } from './geo.js';
+import { mulberry32, toPts, ringArea, obb, pipPoly, PolyGrid, SegGrid, PointHash, rowCrossings, bbox, type Box, type OBB } from './geo.ts';
+import type { Terrain } from './terrain.ts';
+import type { CityData, Poly, Pt, Ring, Vec3 } from './types.ts';
 
-const C = (h) => new THREE.Color(h);
-const pick = (arr, r) => arr[Math.floor(r * arr.length) % arr.length];
+const C = (h: THREE.ColorRepresentation) => new THREE.Color(h);
+const pick = <T,>(arr: readonly T[], r: number): T => arr[Math.floor(r * arr.length) % arr.length];
 
 // ---------------------------------------------------------------- palette
 export const PAL = {
@@ -17,8 +19,8 @@ export const PAL = {
     grass: '#a8d26a', scrub: '#b4cf72', park: '#a5d167', wood: '#8fc35a', play: '#ead0a4',
     parking: '#dcd2d0', plaza: '#f3e6d6', pitch: '#7fc35a', clay: '#d5764d', court: '#5ea7c9',
     water: '#86c4d4', pool: '#71d3e6',
-  },
-  road: { casing: '#f5eee7', major: '#c9c0cd', minor: '#d3cbd4', service: '#ddd6da', ped: '#f2e3d2', path: '#eedcb8', rail: '#b6aab0' },
+  } as Record<string, string>,
+  road: { casing: '#f5eee7', major: '#c9c0cd', minor: '#d3cbd4', service: '#ddd6da', ped: '#f2e3d2', path: '#eedcb8', rail: '#b6aab0' } as Record<RoadKind | 'casing' | 'rail', string>,
   facade: ['#f4e9d8', '#f6f1e9', '#efdcc0', '#f1d6b9', '#f0e3b5', '#eed2c8', '#e7e1da', '#ead8c4', '#f3e2cc', '#f7efe2', '#e2dde6'],
   facadeOld: ['#f1e3cb', '#f4ead9', '#ead5b6', '#efdcc2', '#f5eee3', '#ecd7bd'],
   facadeTall: ['#e6e3e6', '#dfe6ea', '#ece7e0', '#f0ebe3', '#d8dde6'],
@@ -39,8 +41,9 @@ export const PAL = {
 // ---------------------------------------------------------------- mesh builder
 // growable Float32 buffer (4 bytes/value instead of 8+ for JS arrays)
 class FBuf {
-  constructor() { this.a = new Float32Array(1024); this.n = 0; }
-  reserve(k) {
+  a = new Float32Array(1024);
+  n = 0;
+  reserve(k: number): void {
     if (this.n + k <= this.a.length) return;
     let L = this.a.length * 2;
     while (L < this.n + k) L *= 2;
@@ -48,16 +51,18 @@ class FBuf {
     b.set(this.a.subarray(0, this.n));
     this.a = b;
   }
-  take() { const r = this.a.slice(0, this.n); this.a = null; return r; }
+  take(): Float32Array { const r = this.a.slice(0, this.n); this.a = new Float32Array(0); return r; }
 }
-const ITEM = { position: 3, normal: 3, color: 3, aFacade: 4, uv: 2 };
+const ITEM: Record<string, number> = { position: 3, normal: 3, color: 3, aFacade: 4, uv: 2 };
+/** Geometry as plain typed arrays (attribute name → array, optional index). */
+export interface GeoData { a: Record<string, THREE.TypedArray>; index?: THREE.TypedArray | null }
 // geometry <-> plain data (typed arrays only)
-function dataFromGeo(g) {
-  const a = {};
+function dataFromGeo(g: THREE.BufferGeometry): GeoData {
+  const a: Record<string, THREE.TypedArray> = {};
   for (const k in g.attributes) a[k] = g.attributes[k].array;
   return { a, index: g.index ? g.index.array : null };
 }
-function geoFromData(d) {
+function geoFromData(d: GeoData): THREE.BufferGeometry {
   const g = new THREE.BufferGeometry();
   for (const k in d.a) g.setAttribute(k, new THREE.BufferAttribute(d.a[k], ITEM[k]));
   if (d.index) g.setIndex(new THREE.BufferAttribute(d.index, 1));
@@ -65,28 +70,35 @@ function geoFromData(d) {
   return freeOnUpload(g);
 }
 // all ArrayBuffers inside a city description (for zero-copy postMessage)
-export function transferables(obj, out = new Set()) {
+export function transferables(obj: unknown, out = new Set<ArrayBufferLike>()): Set<ArrayBufferLike> {
   if (!obj || typeof obj !== 'object') return out;
   if (ArrayBuffer.isView(obj)) { out.add(obj.buffer); return out; }
-  for (const k in obj) transferables(obj[k], out);
+  for (const v of Object.values(obj)) transferables(v, out);
   return out;
 }
 
 // drop the CPU copy once the GPU has the data
-function freeOnUpload(geo) {
-  for (const k in geo.attributes) geo.attributes[k].onUpload(function () { this.array = null; });
-  if (geo.index) geo.index.onUpload(function () { this.array = null; });
+// (three.js types the array as always present; after upload it is deliberately null)
+function dropArray(this: { array: unknown }): void { this.array = null; }
+function freeOnUpload(geo: THREE.BufferGeometry): THREE.BufferGeometry {
+  for (const attr of Object.values(geo.attributes)) if (attr instanceof THREE.BufferAttribute) attr.onUpload(dropArray);
+  if (geo.index) geo.index.onUpload(dropArray);
   return geo;
 }
 
+/** Per-vertex facade attribute: [u along wall, v up, wall top, style] (style < 0: none, −2: roof tiles). */
+type Fac = readonly [number, number, number, number];
+
 class Builder {
+  p = new FBuf(); n = new FBuf(); c = new FBuf();
+  f: FBuf | null;
+  /** added to every y (buildings sit on the terrain) */
+  yOff = 0;
   constructor(facade = false) {
-    this.p = new FBuf(); this.n = new FBuf(); this.c = new FBuf();
     this.f = facade ? new FBuf() : null;
-    this.yOff = 0;
   }
   // triangle with normal hint; flips winding to face `hint`
-  tri(a, b, c, col, hint, fa, fb, fc, normals) {
+  tri(a: Vec3, b: Vec3, c: Vec3, col: THREE.Color, hint: Vec3, fa?: Fac | null, fb?: Fac | null, fc?: Fac | null, normals?: Vec3[] | null): void {
     const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
     const vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
     let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
@@ -126,14 +138,14 @@ class Builder {
       F.n += 12;
     }
   }
-  quad(a, b, c, d, col, hint, fa, fb, fc, fd) {
+  quad(a: Vec3, b: Vec3, c: Vec3, d: Vec3, col: THREE.Color, hint: Vec3, fa?: Fac | null, fb?: Fac | null, fc?: Fac | null, fd?: Fac | null): void {
     this.tri(a, b, c, col, hint, fa, fb, fc);
     this.tri(a, c, d, col, hint, fa, fc, fd);
   }
-  polygon(poly, y, col, fac = null) {
+  polygon(poly: Poly, y: number, col: THREE.Color, fac: Fac | null = null): void {
     const contour = poly[0].map(([x, z]) => new THREE.Vector2(x, z));
     const holes = poly.slice(1).map((r) => r.map(([x, z]) => new THREE.Vector2(x, z)));
-    let faces;
+    let faces: number[][];
     try { faces = THREE.ShapeUtils.triangulateShape(contour, holes); } catch { return; }
     const all = [contour, ...holes].flat();
     for (const [i, j, k] of faces) {
@@ -141,44 +153,44 @@ class Builder {
       this.tri([A.x, y, A.y], [B.x, y, B.y], [Cc.x, y, Cc.y], col, UP, fac, fac, fac);
     }
   }
-  box(cx, cz, y0, sx, sz, sy, ang, col, fac = null, topCol = null) {
+  box(cx: number, cz: number, y0: number, sx: number, sz: number, sy: number, ang: number, col: THREE.Color, fac: Fac | null = null, topCol: THREE.Color | null = null): void {
     const ca = Math.cos(ang), sa = Math.sin(ang);
-    const P = (u, v, y) => [cx + u * ca - v * sa, y, cz + u * sa + v * ca];
+    const P = (u: number, v: number, y: number): Vec3 => [cx + u * ca - v * sa, y, cz + u * sa + v * ca];
     const hx = sx / 2, hz = sz / 2, y1 = y0 + sy;
-    const c = [[-hx, -hz], [hx, -hz], [hx, hz], [-hx, hz]];
+    const c: Pt[] = [[-hx, -hz], [hx, -hz], [hx, hz], [-hx, hz]];
     for (let i = 0; i < 4; i++) {
       const [u0, v0] = c[i], [u1, v1] = c[(i + 1) % 4];
       const mu = (u0 + u1) / 2, mv = (v0 + v1) / 2;
-      const hint = [mu * ca - mv * sa, 0, mu * sa + mv * ca];
+      const hint: Vec3 = [mu * ca - mv * sa, 0, mu * sa + mv * ca];
       this.quad(P(u0, v0, y0), P(u1, v1, y0), P(u1, v1, y1), P(u0, v0, y1), col, hint, fac, fac, fac, fac);
     }
     this.quad(P(-hx, -hz, y1), P(hx, -hz, y1), P(hx, hz, y1), P(-hx, hz, y1), topCol || col, UP, fac, fac, fac, fac);
   }
-  geometry(geo, matrix, col) {
+  geometry(geo: THREE.BufferGeometry, matrix: THREE.Matrix4, col: THREE.Color): void {
     const g = (geo.index ? geo.toNonIndexed() : geo.clone()).applyMatrix4(matrix);
     const p = g.attributes.position.array, n = g.attributes.normal.array;
     for (let i = 0; i < p.length; i += 9) {
-      const a = [p[i], p[i + 1], p[i + 2]], b = [p[i + 3], p[i + 4], p[i + 5]], c = [p[i + 6], p[i + 7], p[i + 8]];
-      const na = [n[i], n[i + 1], n[i + 2]], nb = [n[i + 3], n[i + 4], n[i + 5]], nc = [n[i + 6], n[i + 7], n[i + 8]];
-      const hint = [na[0] + nb[0] + nc[0], na[1] + nb[1] + nc[1], na[2] + nb[2] + nc[2]];
+      const a: Vec3 = [p[i], p[i + 1], p[i + 2]], b: Vec3 = [p[i + 3], p[i + 4], p[i + 5]], c: Vec3 = [p[i + 6], p[i + 7], p[i + 8]];
+      const na: Vec3 = [n[i], n[i + 1], n[i + 2]], nb: Vec3 = [n[i + 3], n[i + 4], n[i + 5]], nc: Vec3 = [n[i + 6], n[i + 7], n[i + 8]];
+      const hint: Vec3 = [na[0] + nb[0] + nc[0], na[1] + nb[1] + nc[1], na[2] + nb[2] + nc[2]];
       this.tri(a, b, c, col, hint, null, null, null, [na, nb, nc]);
     }
   }
-  get empty() { return this.p.n === 0; }
+  get empty(): boolean { return this.p.n === 0; }
   // plain typed arrays, so the build can run in a worker and transfer them
-  build() {
-    const a = { position: this.p.take(), normal: this.n.take(), color: this.c.take() };
+  build(): GeoData {
+    const a: Record<string, Float32Array> = { position: this.p.take(), normal: this.n.take(), color: this.c.take() };
     if (this.f) a.aFacade = this.f.take();
     return { a };
   }
 }
-const NO = [0, 0, 0, -1];
-const UP = [0, 1, 0];
+const NO: Fac = [0, 0, 0, -1];
+const UP: Vec3 = [0, 1, 0];
 
 // Inward offset of a ring by d (miter joins); null if it degenerates
-function insetRing(ring, d) {
+function insetRing(ring: Ring, d: number): Ring | null {
   const n = ring.length, sgn = Math.sign(ringArea(ring));
-  const out = [];
+  const out: Ring = [];
   for (let i = 0; i < n; i++) {
     const p0 = ring[(i - 1 + n) % n], p1 = ring[i], p2 = ring[(i + 1) % n];
     const d1x = p1[0] - p0[0], d1z = p1[1] - p0[1], l1 = Math.hypot(d1x, d1z);
@@ -187,14 +199,14 @@ function insetRing(ring, d) {
     const n1x = (-d1z / l1) * sgn, n1z = (d1x / l1) * sgn, n2x = (-d2z / l2) * sgn, n2z = (d2x / l2) * sgn;
     const den = 1 + n1x * n2x + n1z * n2z;
     if (den < 0.35) return null;
-    const q = [p1[0] + ((n1x + n2x) * d) / den, p1[1] + ((n1z + n2z) * d) / den];
+    const q: Pt = [p1[0] + ((n1x + n2x) * d) / den, p1[1] + ((n1z + n2z) * d) / den];
     out.push(q);
   }
   if (!out.every(([x, z]) => pipPoly(x, z, [ring]))) return null;
   return out;
 }
 
-export function carGeometry() {
+export function carGeometry(): THREE.BufferGeometry {
   const body = new THREE.BoxGeometry(4.2, 1.15, 1.85).translate(0, 0.95, 0);
   const cabin = new THREE.BoxGeometry(2.3, 0.75, 1.65).translate(-0.25, 1.9, 0);
   return mergeGeometries([body, cabin]);
@@ -205,7 +217,7 @@ export const CAR_COLORS = ['#f6f3ee', '#f6f3ee', '#d9d4cf', '#e04b3c', '#3a6fb5'
 // shared, animated uniforms (time of day, clock) used by several materials
 export const SHARED = { uNight: { value: 0 }, uTime: { value: 0 } };
 
-function facadeMaterial(clippingPlanes) {
+function facadeMaterial(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial {
   const m = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes, shadowSide: THREE.DoubleSide });
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uNight = SHARED.uNight;
@@ -289,7 +301,7 @@ function facadeMaterial(clippingPlanes) {
 }
 
 // Lambert with a two-tone cartoon ramp: warm lit side, cool shade side
-function toonFoliage(clippingPlanes) {
+function toonFoliage(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial {
   const m = new THREE.MeshLambertMaterial({ clippingPlanes });
   m.onBeforeCompile = (sh) => {
     sh.fragmentShader = sh.fragmentShader.replace(
@@ -309,34 +321,68 @@ function toonFoliage(clippingPlanes) {
 
 // ---------------------------------------------------------------- main
 // Convenience: compute + assemble on the main thread (fallback without workers)
-export function buildCity(data, terrain, opts) {
+export interface CityOptions {
+  /** chunk edge, m */
+  chunkSize?: number;
+  /** < 1 thins out trees and parked cars (phones) */
+  density?: number;
+  clippingPlanes?: THREE.Plane[];
+}
+export type RoadKind = 'major' | 'minor' | 'service' | 'ped' | 'path';
+export interface RoadInfo { k: string; w: number; b: number; kind: RoadKind; pts: Ring }
+/** Build stage names yielded by computeCitySteps (progress labels: i18n `stage.<name>`). */
+export type CityStage = 'terrain' | 'ground' | 'buildings' | 'cars' | 'trees' | 'pack';
+
+/** [x, z, radius, variant (negative = forest)] */
+type TreeRec = [number, number, number, number];
+/** [x, z, angle, colour pick] */
+type CarRec = [number, number, number, number];
+/** instance matrices, colours, count */
+interface Packed { m: Float32Array; c: Float32Array; n: number }
+interface PackedSet { hi: Packed; far: Packed }
+interface ChunkDesc {
+  rect: Box; y: number;
+  terrainHi: GeoData; terrainLo: GeoData;
+  ground: GeoData | null; build: GeoData | null;
+  trees: PackedSet | null; forest: PackedSet | null; cyp: PackedSet | null; cars: Packed | null;
+}
+export interface CityDesc {
+  chunks: ChunkDesc[];
+  skirt: GeoData;
+  roadList: RoadInfo[];
+  stats: { buildings: number; trees: number; parked: number; roads: number; chunks: number };
+  meta?: CityData['meta'];
+}
+interface Chunk { i: number; j: number; cx: number; cz: number; ground: Builder; build: Builder; trees: TreeRec[]; cyp: TreeRec[]; cars: CarRec[] }
+
+export function buildCity(data: CityData, terrain: Terrain, opts: CityOptions = {}) {
   return assembleCity(computeCity(data, terrain, opts), opts);
 }
 
 // Phase 1: OSM data + terrain → typed-array chunk descriptions.
 // A generator that yields each finished stage name, so the caller can update a
 // progress bar between stages; computeCity() just runs it to the end.
-export function computeCity(data, terrain, opts = {}) {
+export function computeCity(data: CityData, terrain: Terrain, opts: CityOptions = {}): CityDesc {
   const it = computeCitySteps(data, terrain, opts);
   for (;;) { const r = it.next(); if (r.done) return r.value; }
 }
-export function* computeCitySteps(data, terrain, opts = {}) {
+export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOptions = {}): Generator<CityStage, CityDesc, void> {
   // density < 1 thins out trees and parked cars (lighter memory profile for phones)
   const { chunkSize = 1000, density = 1 } = opts;
   const { w: W, h: H } = data.meta;
   const halfW = W / 2, halfH = H / 2;
-  const inside = (x, z, m = 0) => Math.abs(x) < halfW - m && Math.abs(z) < halfH - m;
-  const T = (x, z) => terrain.at(x, z);
+  const inside = (x: number, z: number, m = 0) => Math.abs(x) < halfW - m && Math.abs(z) < halfH - m;
+  const T = (x: number, z: number) => terrain.at(x, z);
 
   // chunks
   const CX = Math.ceil(W / chunkSize), CZ = Math.ceil(H / chunkSize);
-  const chunks = new Map();
-  const chunkKey = (x, z) => {
+  const chunks = new Map<number, Chunk>();
+  const chunkKey = (x: number, z: number) => {
     const i = Math.min(CX - 1, Math.max(0, Math.floor((x + halfW) / chunkSize)));
     const j = Math.min(CZ - 1, Math.max(0, Math.floor((z + halfH) / chunkSize)));
     return j * CX + i;
   };
-  const chunk = (x, z) => {
+  const chunk = (x: number, z: number): Chunk => {
     const k = chunkKey(x, z);
     let c = chunks.get(k);
     if (!c) {
@@ -356,7 +402,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
   const roadGrid = new SegGrid(20);
   const buildings = data.buildings.map((b) => ({ ...b, poly: b.r.map(toPts) }));
   for (const b of buildings) bGrid.add(b.poly, b);
-  const areas = data.areas.map((a) => ({ ...a, poly: a.r.map(toPts) }));
+  const areas = data.areas.map((a) => ({ ...a, poly: a.r.map(toPts), painted: false }));
   for (const a of areas) if (['water', 'pool', 'pitch', 'clay', 'court', 'parking', 'plaza'].includes(a.k)) blockGrid.add(a.poly, a);
 
   // ---------------- terrain chunks + skirt
@@ -368,7 +414,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
   const kindList = Object.keys(PAL.area);
   const kindCol = kindList.map((k) => C(PAL.area[k]));
   const paint = new Uint8Array(terrain.nx * terrain.nz); // 0 = bare ground, else kind index + 1
-  const xs = [];
+  const xs: number[] = [];
   for (const a of areas) {
     if (!PAINT.has(a.k) || a.a < 20000) continue;
     a.painted = true;
@@ -383,7 +429,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
       }
     }
   }
-  const terrainMeshes = new Map(); // chunk index → { hi, lo, rect }
+  const terrainMeshes = new Map<number, { hi: GeoData; lo: GeoData; rect: Box }>(); // by chunk index
   for (let j = 0; j < CZ; j++)
     for (let i = 0; i < CX; i++) {
       const i0 = i * cellsPer, j0 = j * cellsPer;
@@ -397,26 +443,27 @@ export function* computeCitySteps(data, terrain, opts = {}) {
       });
       const hi = dataFromGeo(g);
       const lo = dataFromGeo(terrain.lowGeometry(i0, j0, i1, j1, 3));
-      const rect = [terrain.x0 + i0 * terrain.cell, terrain.z0 + j0 * terrain.cell, terrain.x0 + i1 * terrain.cell, terrain.z0 + j1 * terrain.cell];
+      const rect: Box = [terrain.x0 + i0 * terrain.cell, terrain.z0 + j0 * terrain.cell, terrain.x0 + i1 * terrain.cell, terrain.z0 + j1 * terrain.cell];
       terrainMeshes.set(j * CX + i, { hi, lo, rect });
     }
   // diorama skirt: cut-away sides following the terrain profile
   const skirt = new Builder();
   const base = -90;
-  const side = (pts, out) => {
+  const side = (pts: Pt[], out: Vec3) => {
     for (let k = 0; k < pts.length - 1; k++) {
       const [x0, z0] = pts[k], [x1, z1] = pts[k + 1];
       skirt.quad([x0, base, z0], [x1, base, z1], [x1, T(x1, z1), z1], [x0, T(x0, z0), z0], C(PAL.slabSide), out);
     }
   };
-  const edge = (fx, n) => Array.from({ length: n + 1 }, (_, k) => fx(k / n));
+  const edge = (fx: (t: number) => Pt, n: number): Pt[] => Array.from({ length: n + 1 }, (_, k) => fx(k / n));
   const nX = terrain.nx - 1, nZ = terrain.nz - 1;
   side(edge((t) => [-halfW + t * W, halfH], nX), [0, 0, 1]);
   side(edge((t) => [-halfW + t * W, -halfH], nX), [0, 0, -1]);
   side(edge((t) => [-halfW, -halfH + t * H], nZ), [-1, 0, 0]);
   side(edge((t) => [halfW, -halfH + t * H], nZ), [1, 0, 0]);
   // darker stratum band
-  for (const [a, b, out] of [[[-halfW, halfH], [halfW, halfH], [0, 0, 1]], [[-halfW, -halfH], [halfW, -halfH], [0, 0, -1]], [[-halfW, -halfH], [-halfW, halfH], [-1, 0, 0]], [[halfW, -halfH], [halfW, halfH], [1, 0, 0]]]) {
+  const bands: [Pt, Pt, Vec3][] = [[[-halfW, halfH], [halfW, halfH], [0, 0, 1]], [[-halfW, -halfH], [halfW, -halfH], [0, 0, -1]], [[-halfW, -halfH], [-halfW, halfH], [-1, 0, 0]], [[halfW, -halfH], [halfW, halfH], [1, 0, 0]]];
+  for (const [a, b, out] of bands) {
     const e = 0.6 * Math.sign(out[0] + out[2]);
     const ox = out[0] ? e : 0, oz = out[2] ? e : 0;
     skirt.quad([a[0] + ox, base, a[1] + oz], [b[0] + ox, base, b[1] + oz], [b[0] + ox, base + 22, b[1] + oz], [a[0] + ox, base + 22, a[1] + oz], C(PAL.slabDark), out);
@@ -424,10 +471,10 @@ export function* computeCitySteps(data, terrain, opts = {}) {
 
   yield 'terrain';
   // ---------------- draped areas
-  const drapeTri = (tri, yo, col) => {
+  const drapeTri = (tri: Pt[], yo: number, col: THREE.Color) => {
     terrain.clipTriangle(tri, (piece, i, j) => {
       const c = chunk(terrain.x0 + (i + 0.5) * terrain.cell, terrain.z0 + (j + 0.5) * terrain.cell);
-      const P = piece.map(([x, z]) => [x, T(x, z) + yo, z]);
+      const P = piece.map(([x, z]): Vec3 => [x, T(x, z) + yo, z]);
       for (let k = 1; k < P.length - 1; k++) c.ground.tri(P[0], P[k], P[k + 1], col, UP);
     });
   };
@@ -435,7 +482,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     if (a.painted) continue;
     const contour = a.poly[0].map(([x, z]) => new THREE.Vector2(x, z));
     const holes = a.poly.slice(1).map((r) => r.map(([x, z]) => new THREE.Vector2(x, z)));
-    let faces;
+    let faces: number[][];
     try { faces = THREE.ShapeUtils.triangulateShape(contour, holes); } catch { continue; }
     const all = [contour, ...holes].flat();
     const col = C(PAL.area[a.k] || PAL.ground);
@@ -444,7 +491,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
   }
 
   // ---------------- roads (draped strips)
-  const roadKind = (k) => {
+  const roadKind = (k: string): RoadKind => {
     if (['motorway', 'trunk', 'primary', 'secondary', 'primary_link', 'secondary_link'].includes(k)) return 'major';
     if (['tertiary', 'tertiary_link', 'residential', 'unclassified', 'living_street'].includes(k)) return 'minor';
     if (k === 'service') return 'service';
@@ -452,7 +499,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     return 'path';
   };
   const STEP = terrain.cell * 0.5;
-  const strip = (pts, hw, yo, col) => {
+  const strip = (pts: Ring, hw: number, yo: number, col: THREE.Color) => {
     for (let i = 0; i < pts.length - 1; i++) {
       const [ax, az] = pts[i], [bx, bz] = pts[i + 1];
       const dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz);
@@ -463,7 +510,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
       for (let s = 0; s < n; s++) {
         const t0 = s / n, t1 = (s + 1) / n;
         const x0 = ax + dx * t0, z0 = az + dz * t0, x1 = ax + dx * t1, z1 = az + dz * t1;
-        const p = (x, z) => [x, T(x, z) + yo, z];
+        const p = (x: number, z: number): Vec3 => [x, T(x, z) + yo, z];
         B.quad(p(x0 + nx, z0 + nz), p(x1 + nx, z1 + nz), p(x1 - nx, z1 - nz), p(x0 - nx, z0 - nz), col, UP);
       }
     }
@@ -479,6 +526,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     }
   };
   const roadList = data.roads.map((r) => ({ ...r, pts: toPts(r.p), kind: roadKind(r.k) }));
+  type Building = (typeof buildings)[number];
   for (const r of roadList) if (r.kind === 'major' || r.kind === 'minor') strip(r.pts, r.w / 2 + 1.6, 0.9, C(PAL.road.casing));
   for (const r of roadList) {
     const hw = r.w / 2;
@@ -495,7 +543,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
   yield 'ground';
   // ---------------- buildings
   const towers = data.towers.slice();
-  const domes = [];
+  const domes: { b: Building; ob: OBB; h: number; baseY: number }[] = [];
   for (const b of buildings) {
     const rnd = mulberry32(b.id);
     const outer = b.poly[0];
@@ -550,7 +598,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
           const [ax, az] = ring[i], [bx, bz] = ring[(i + 1) % ring.length];
           const dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz);
           if (len < 0.05) continue;
-          const hint = [(dz / len) * s, 0, (-dx / len) * s];
+          const hint: Vec3 = [(dz / len) * s, 0, (-dx / len) * s];
           const st = hasWin && len > 2.2 ? style : -1;
           // window coords measured from local ground so buried storeys don't shift the pattern
           const va = lift, top = h - lift;
@@ -563,21 +611,21 @@ export function* computeCitySteps(data, terrain, opts = {}) {
       }
     }
 
-    const P = (sa, sb, L, Wd, y) => [ob.c[0] + ob.a[0] * sa * L + ob.b[0] * sb * Wd, y, ob.c[1] + ob.a[1] * sa * L + ob.b[1] * sb * Wd];
+    const P = (sa: number, sb: number, L: number, Wd: number, y: number): Vec3 => [ob.c[0] + ob.a[0] * sa * L + ob.b[0] * sb * Wd, y, ob.c[1] + ob.a[1] * sa * L + ob.b[1] * sb * Wd];
     if (roof === 'hip' || roof === 'gable') {
       const ov = b.old ? 0.55 : 0.4;
       const L = ob.L + ov, Wd = ob.W + ov;
       const rh = Math.min(Wd * (b.old ? 0.5 : 0.58), 6);
       const c = [ob.c[0], h, ob.c[1]];
-      const hintOf = (...pts) => {
-        const m = pts.reduce((s, p) => [s[0] + p[0] / pts.length, s[1] + p[1] / pts.length, s[2] + p[2] / pts.length], [0, 0, 0]);
+      const hintOf = (...pts: Vec3[]): Vec3 => {
+        const m = pts.reduce<Vec3>((s, p) => [s[0] + p[0] / pts.length, s[1] + p[1] / pts.length, s[2] + p[2] / pts.length], [0, 0, 0]);
         return [m[0] - c[0], m[1] - c[1] + 0.01, m[2] - c[2]];
       };
       const p00 = P(-1, -1, L, Wd, h), p10 = P(1, -1, L, Wd, h), p11 = P(1, 1, L, Wd, h), p01 = P(-1, 1, L, Wd, h);
       const rl = roof === 'hip' ? Math.max(L - Wd, 0) : L;
       const r0 = P(-1, 0, rl, 0, h + rh), r1 = P(1, 0, rl, 0, h + rh);
       const slope = Math.hypot(Wd, rh) / rh;
-      const tf = (p, dir) => [(p[0] - c[0]) * dir[0] + (p[2] - c[2]) * dir[1], (p[1] - h) * slope, 0, -2];
+      const tf = (p: Vec3, dir: Pt): Fac => [(p[0] - c[0]) * dir[0] + (p[2] - c[2]) * dir[1], (p[1] - h) * slope, 0, -2];
       const A = ob.a, Bv = ob.b;
       B.quad(p01, p11, r1, r0, tileCol, hintOf(p01, p11, r1, r0), tf(p01, A), tf(p11, A), tf(r1, A), tf(r0, A));
       B.quad(p00, p10, r1, r0, tileCol, hintOf(p00, p10, r1, r0), tf(p00, A), tf(p10, A), tf(r1, A), tf(r0, A));
@@ -591,13 +639,13 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     } else {
       const roofCol = roof === 'tileflat' ? tileCol : ind ? C(pick(PAL.industrialRoof, rnd())) : C(pick(PAL.flatRoof, rnd()));
       B.polygon(b.poly, h, roofCol);
-      if (pp) {
+      if (pp && inner) {
         const lip = roofCol.clone().multiplyScalar(0.9), cap = fcol.clone().lerp(C('#ffffff'), 0.25);
         const n = outer.length, sg = Math.sign(ringArea(outer));
         for (let i = 0; i < n; i++) {
           const o0 = outer[i], o1 = outer[(i + 1) % n], q0 = inner[i], q1 = inner[(i + 1) % n];
           const dx = q1[0] - q0[0], dz = q1[1] - q0[1];
-          const inward = [-dz * sg, 0, dx * sg];
+          const inward: Vec3 = [-dz * sg, 0, dx * sg];
           B.quad([q0[0], h, q0[1]], [q1[0], h, q1[1]], [q1[0], h + pp, q1[1]], [q0[0], h + pp, q0[1]], lip, inward);
           B.quad([o0[0], h + pp, o0[1]], [o1[0], h + pp, o1[1]], [q1[0], h + pp, q1[1]], [q0[0], h + pp, q0[1]], cap, UP);
         }
@@ -665,7 +713,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     B.box(x, z, 0, sx, sz, 2.3 + rsh() * 0.6, Math.atan2(ob.a[1], ob.a[0]), C(pick(PAL.facade, rsh())), NO, top);
   }
   const rpk = mulberry32(31337);
-  const parkAt = (x, z, ang) => { if (inside(x, z, 4)) chunk(x, z).cars.push([x, z, ang, rpk()]); };
+  const parkAt = (x: number, z: number, ang: number) => { if (inside(x, z, 4)) chunk(x, z).cars.push([x, z, ang, rpk()]); };
   // kerbside parking on residential streets
   for (const r of roadList) {
     if (!['residential', 'living_street', 'unclassified', 'tertiary'].includes(r.k)) continue;
@@ -706,8 +754,8 @@ export function* computeCitySteps(data, terrain, opts = {}) {
   const hemi = new THREE.SphereGeometry(1, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2);
   const cyl = new THREE.CylinderGeometry(1, 1, 1, 14, 1, true);
   const cone = new THREE.ConeGeometry(1, 1, 14, 1, true);
-  const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = (x, y, z) => new THREE.Vector3(x, y, z);
-  const addCyl = (B, x, z, y, r, hgt, col) => B.geometry(cyl, M.compose(V(x, y + hgt / 2, z), Q, V(r, hgt, r)), col);
+  const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+  const addCyl = (B: Builder, x: number, z: number, y: number, r: number, hgt: number, col: THREE.Color) => B.geometry(cyl, M.compose(V(x, y + hgt / 2, z), Q, V(r, hgt, r)), col);
   for (const { b, ob, h, baseY } of domes) {
     const B = chunk(ob.c[0], ob.c[1]).build;
     B.yOff = baseY;
@@ -771,8 +819,8 @@ export function* computeCitySteps(data, terrain, opts = {}) {
 
   yield 'cars';
   // ---------------- trees
-  const addTree = (list, x, z, r, v) => chunk(x, z)[list].push([x, z, r, v]);
-  const placeOk = (x, z, d) =>
+  const addTree = (list: 'trees' | 'cyp', x: number, z: number, r: number, v: number) => chunk(x, z)[list].push([x, z, r, v]);
+  const placeOk = (x: number, z: number, d: number) =>
     inside(x, z, 4) && !bGrid.hit(x, z, 1.2) && !blockGrid.hit(x, z) && !roadGrid.near(x, z, 0.4) && occupied.tryAdd(x, z, d);
 
   const rndT = mulberry32(12345);
@@ -781,7 +829,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     if (inside(x, z, 3) && !bGrid.hit(x, z) && occupied.tryAdd(x, z, 3)) addTree('trees', x, z, 2.6 + rndT() * 1.6, rndT());
   }
   // [spacing, probability, cypress share, radius min, radius span]
-  const DENS = {
+  const DENS: Record<string, [step: number, prob: number, cypress: number, rMin: number, rSpan: number]> = {
     park: [6.5, 0.86, 0.1, 2.8, 2.2], wood: [9.5, 0.92, 0.04, 4.2, 2.6], scrub: [12, 0.45, 0, 1.8, 1.6],
     grass: [10, 0.38, 0.05, 2.8, 2.0], cemetery: [7, 0.7, 0.5, 2.6, 1.5], fortress: [12, 0.28, 0.3, 2.8, 1.8],
     campus: [14, 0.22, 0.08, 2.8, 2.0], play: [12, 0.3, 0, 2.6, 1.6],
@@ -798,7 +846,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     const z0 = Math.max(Math.min(...zs), -halfH), z1 = Math.min(Math.max(...zs), halfH);
     const forest = a.k === 'wood';
     // walk scanline spans instead of testing every point against the polygon
-    const cross = [];
+    const cross: number[] = [];
     for (let z = z0 + rr() * step * 0.5; z < z1; z += step) {
       rowCrossings(a.poly, z, cross);
       for (let k = 0; k + 1 < cross.length; k += 2) {
@@ -839,7 +887,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
   // courtyard infill near buildings
   const greenGrid = new PolyGrid(40);
   for (const a of areas) if (!a.painted && ['wood', 'park', 'grass', 'scrub', 'cemetery', 'play', 'fortress'].includes(a.k)) greenGrid.add(a.poly, a);
-  const paintedAt = (x, z) => paint[Math.round((z - terrain.z0) / terrain.cell) * terrain.nx + Math.round((x - terrain.x0) / terrain.cell)];
+  const paintedAt = (x: number, z: number) => paint[Math.round((z - terrain.z0) / terrain.cell) * terrain.nx + Math.round((x - terrain.x0) / terrain.cell)];
   const ri = mulberry32(4242);
   for (let x = -halfW + 6; x < halfW - 6; x += 7)
     for (let z = -halfH + 6; z < halfH - 6; z += 7) {
@@ -854,11 +902,11 @@ export function* computeCitySteps(data, terrain, opts = {}) {
 
   yield 'trees';
   // ---------------- pack per-chunk instance data
-  const blobH = (r, sy) => sy * 0.95 + 1.6 + r * 0.3;
-  const cypH = (r, sy) => sy * 2.6 + 0.5;
+  const blobH = (r: number, sy: number) => sy * 0.95 + 1.6 + r * 0.3;
+  const cypH = (_r: number, sy: number) => sy * 2.6 + 0.5;
   const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), sv = new THREE.Vector3(), pv = new THREE.Vector3(), ax = new THREE.Vector3(0, 1, 0);
   const col = new THREE.Color();
-  const packTrees = (list, cols, forestCols, hScale) => {
+  const packTrees = (list: TreeRec[], cols: readonly string[], forestCols: readonly string[], hScale: (r: number, sy: number) => number): Packed => {
     const m = new Float32Array(list.length * 16), c = new Float32Array(list.length * 3);
     list.forEach(([x, z, r, v0], i) => {
       const forest = v0 < 0, v = Math.abs(v0);
@@ -871,9 +919,9 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     return { m, c, n: list.length };
   };
   // far trees: a ~30% subset drawn larger so canopies still read as continuous
-  const farSubset = (list) => list.filter((t) => (Math.abs(t[3]) * 7.77) % 1 < 0.3).map(([x, z, r, v]) => [x, z, r * 1.55, v]);
-  const packSet = (list, cols, fcols, hScale) => (list.length ? { hi: packTrees(list, cols, fcols, hScale), far: packTrees(farSubset(list), cols, fcols, hScale) } : null);
-  const packCars = (list) => {
+  const farSubset = (list: TreeRec[]) => list.filter((t) => (Math.abs(t[3]) * 7.77) % 1 < 0.3).map(([x, z, r, v]): TreeRec => [x, z, r * 1.55, v]);
+  const packSet = (list: TreeRec[], cols: readonly string[], fcols: readonly string[], hScale: (r: number, sy: number) => number): PackedSet | null => (list.length ? { hi: packTrees(list, cols, fcols, hScale), far: packTrees(farSubset(list), cols, fcols, hScale) } : null);
+  const packCars = (list: CarRec[]): Packed | null => {
     if (!list.length) return null;
     const m = new Float32Array(list.length * 16), c = new Float32Array(list.length * 3);
     list.forEach(([x, z, ang, v], i) => {
@@ -883,11 +931,11 @@ export function* computeCitySteps(data, terrain, opts = {}) {
     });
     return { m, c, n: list.length };
   };
-  const out = [];
+  const out: ChunkDesc[] = [];
   let treeCount = 0, carCount = 0;
   for (const [k, tm] of terrainMeshes) {
     const c = chunks.get(k);
-    const d = { rect: tm.rect, y: T((tm.rect[0] + tm.rect[2]) / 2, (tm.rect[1] + tm.rect[3]) / 2), terrainHi: tm.hi, terrainLo: tm.lo, ground: null, build: null, trees: null, forest: null, cyp: null, cars: null };
+    const d: ChunkDesc = { rect: tm.rect, y: T((tm.rect[0] + tm.rect[2]) / 2, (tm.rect[1] + tm.rect[3]) / 2), terrainHi: tm.hi, terrainLo: tm.lo, ground: null, build: null, trees: null, forest: null, cyp: null, cars: null };
     if (c) {
       if (!c.ground.empty) d.ground = c.ground.build();
       if (!c.build.empty) d.build = c.build.build();
@@ -910,7 +958,7 @@ export function* computeCitySteps(data, terrain, opts = {}) {
 }
 
 // Phase 2 (main thread): typed arrays → meshes, materials and LOD switching
-export function assembleCity(desc, opts) {
+export function assembleCity(desc: CityDesc, opts: CityOptions) {
   const { clippingPlanes } = opts;
   const group = new THREE.Group();
   const groundMat = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes });
@@ -956,19 +1004,19 @@ export function assembleCity(desc, opts) {
   const cypLo = new THREE.IcosahedronGeometry(1, 0).scale(1, 3.0, 1);
   const carGeo = carGeometry();
 
-  const inst = (geo, mat, pk) => {
+  const inst = (geo: THREE.BufferGeometry, mat: THREE.Material, pk: Packed) => {
     const mesh = new THREE.InstancedMesh(geo, mat, 0);
     mesh.count = pk.n;
     mesh.instanceMatrix = new THREE.InstancedBufferAttribute(pk.m, 16);
     mesh.instanceColor = new THREE.InstancedBufferAttribute(pk.c, 3);
     mesh.computeBoundingSphere();
-    mesh.instanceMatrix.onUpload(function () { this.array = null; });
-    mesh.instanceColor.onUpload(function () { this.array = null; });
+    mesh.instanceMatrix.onUpload(dropArray);
+    mesh.instanceColor.onUpload(dropArray);
     mesh.castShadow = mesh.receiveShadow = true;
     return mesh;
   };
   // another detail level reusing the same per-instance GPU buffers
-  const share = (src, geo) => {
+  const share = (src: THREE.InstancedMesh, geo: THREE.BufferGeometry) => {
     const m = new THREE.InstancedMesh(geo, treeMat, 0);
     m.count = src.count;
     m.instanceMatrix = src.instanceMatrix;
@@ -978,9 +1026,9 @@ export function assembleCity(desc, opts) {
     return m;
   };
 
-  const lodChunks = [];
+  const lodChunks: LodChunk[] = [];
   for (const d of desc.chunks) {
-    const L = { rect: d.rect, y: d.y, terrainHi: new THREE.Mesh(geoFromData(d.terrainHi), groundMat), terrainLo: new THREE.Mesh(geoFromData(d.terrainLo), groundMat), ground: null, tex: null, hi: [], lo: [], far: [] };
+    const L: LodChunk = { rect: d.rect, y: d.y, terrainHi: new THREE.Mesh(geoFromData(d.terrainHi), groundMat), terrainLo: new THREE.Mesh(geoFromData(d.terrainLo), groundMat), ground: null, tex: null, hi: [], lo: [], far: [] };
     L.terrainHi.receiveShadow = L.terrainLo.receiveShadow = true;
     L.terrainLo.visible = false;
     group.add(L.terrainHi, L.terrainLo);
@@ -994,7 +1042,8 @@ export function assembleCity(desc, opts) {
       m.castShadow = m.receiveShadow = true;
       group.add(m);
     }
-    for (const [set, hiGeo, loGeo, farGeo] of [[d.trees, blobHi, blobLo, blobFar], [d.forest, blobMid, blobLo, blobFar], [d.cyp, cypHi, cypLo, cypLo]]) {
+    const sets: [PackedSet | null, THREE.BufferGeometry, THREE.BufferGeometry, THREE.BufferGeometry][] = [[d.trees, blobHi, blobLo, blobFar], [d.forest, blobMid, blobLo, blobFar], [d.cyp, cypHi, cypLo, cypLo]];
+    for (const [set, hiGeo, loGeo, farGeo] of sets) {
       if (!set) continue;
       const hi = inst(hiGeo, treeMat, set.hi);
       L.hi.push(hi);
@@ -1017,10 +1066,26 @@ export function assembleCity(desc, opts) {
 
 // LOD switching + far-ground baking. Kept outside buildCity so its closures
 // don't pin the build-time data (grids, builders, raw OSM) in memory.
-function makeLOD(lodChunks, group, clippingPlanes) {
+interface LodChunk {
+  rect: Box;
+  /** ground height at the chunk centre */
+  y: number;
+  terrainHi: THREE.Mesh;
+  terrainLo: THREE.Mesh;
+  ground: THREE.Mesh | null;
+  /** baked far-ground texture */
+  tex: THREE.WebGLRenderTarget | null;
+  hi: THREE.InstancedMesh[];
+  lo: THREE.InstancedMesh[];
+  far: THREE.InstancedMesh[];
+}
+
+export type City = ReturnType<typeof assembleCity>;
+
+function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes?: THREE.Plane[]) {
   // Bake each chunk's draped ground (land use + roads) into a texture for the
   // coarse far-away terrain, so distant chunks cost a few thousand triangles.
-  function bakeGround(renderer, res = 512) {
+  function bakeGround(renderer: THREE.WebGLRenderer, res = 512): void {
     const bakeScene = new THREE.Scene();
     bakeScene.overrideMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
     const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 6000);
@@ -1054,7 +1119,7 @@ function makeLOD(lodChunks, group, clippingPlanes) {
       cam.updateProjectionMatrix();
       bakeScene.add(L.terrainHi);
       if (L.ground) bakeScene.add(L.ground);
-      const hv = L.terrainHi.visible, gv = L.ground?.visible;
+      const hv = L.terrainHi.visible, gv = L.ground ? L.ground.visible : false;
       L.terrainHi.visible = true;
       if (L.ground) L.ground.visible = true;
       renderer.setRenderTarget(big);
@@ -1079,8 +1144,8 @@ function makeLOD(lodChunks, group, clippingPlanes) {
   const tmp = new THREE.Vector3();
   const LOD0 = { treesHi: 1250, treesLo: 3600, ground: 4300 };
   const LOD = { ...LOD0 };
-  function setLODScale(k) { for (const key in LOD0) LOD[key] = LOD0[key] * k; }
-  function updateLOD(camera) {
+  function setLODScale(k: number): void { for (const key of Object.keys(LOD0) as (keyof typeof LOD0)[]) LOD[key] = LOD0[key] * k; }
+  function updateLOD(camera: THREE.Camera): void {
     const p = camera.position;
     for (const L of lodChunks) {
       const [x0, z0, x1, z1] = L.rect;
