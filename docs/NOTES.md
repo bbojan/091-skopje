@@ -83,7 +83,8 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
   (colour pass with 4× MSAA 8–10, normal pass 1–2, composite ~1.2, accumulation + output ~0.4);
   smooth edges off 6.2–8.2 ms; low tier 3.6–6.8 ms (was 4.8–9.5 with the separate normal pass).
   A shadow map refresh adds 2–6 ms on frames where the camera moved.
-- JS heap ≈ 1.7 GB desktop, ≈ 0.9 GB mobile profile.
+- JS heap ≈ 1.7 GB desktop, ≈ 0.9 GB mobile profile (not recorded whether the mobile figure
+  was taken with the memory saver on; re-measure before relying on it).
 - 20.5k buildings, ~430k trees, ~68k parked cars, 6.5k cars, 15k people (desktop).
 
 ## Tuning knobs (where to change things)
@@ -267,7 +268,7 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 
 ## Not verified yet
 
-- Real iPhone/iPad (memory limits ~1–1.5 GB per tab) — only emulated.
+- Real iPhone/iPad — only emulated. Memory limits there: see "A larger map" at the end.
 - Real gamepads — only a simulated XInput pad; DirectInput axis layout is a heuristic.
 - The automatic switch to the low quality tier on a really slow device (logic only; the
   low tier itself was measured: 10.9 → 4.7 ms GPU on the Square view at 1600×1000).
@@ -338,3 +339,67 @@ and LOD scale 0.65. Everything else costs the same on every device. Plan, in ord
 
 Already in place: rendering stops when the scene is static and fully supersampled;
 "Живо" off makes a still view almost free.
+
+### A larger map: what scales, and memory ideas (Nov 2026)
+
+Read from the code and scaled from the numbers above. **Nothing here was built or measured**;
+every saving is an estimate.
+
+What grows with the extent (today ≈ 16 × 11 km, 204 chunks):
+
+- `terrain.bin`: exactly 2 bytes per 10 m cell, so proportional to the area
+  (3.6 MB, 1.7 MB gzipped).
+- `skopje.json`: grows with buildings and roads, not with the area (6.7 MB, 1.75 MB gzipped;
+  buildings are half of it, roads a third).
+- Far-ground textures: one per chunk (512 px desktop, 256 px phone).
+- Built geometry, load time and the raw Overpass download (25 MB): roughly with the content.
+- Frame time in close views does not grow (chunks, LOD, culling); the overview does.
+- Also sized for today's extent: `controls.maxDistance` (26 km) and the shadow camera range
+  (`sc.far`) in `src/main.ts`.
+
+Vertex layout (`Builder`, `src/city.ts`; `chunkGeometry`, `src/terrain.ts`): everything is a
+`Float32Array`, and Builder meshes are not indexed. A ground or terrain vertex is 36 bytes
+(position, normal, colour: 12 each); a building vertex is 52 (plus `aFacade`, 16). The CPU copy
+is dropped after upload (`freeOnUpload`), so this is GPU memory.
+
+Ideas, in the order I would do them:
+
+1. **Pack normals and colours into bytes** (normal 12 → 4, colour 12 → 4): ground and terrain
+   36 → 20 bytes per vertex, buildings 52 → 36. Estimated ~744 → ~420 MB of built geometry
+   (ground 480 → ~265, buildings 119 → ~82, detailed terrain 88 → ~55); a phone at the Square
+   view 213 → ~120 MB. Works on every device and in every view.
+   - Positions must stay floats: road, casing and rail layers are ~2 cm apart (`roadLift`),
+     and 16-bit positions inside a 1 km chunk would have 1.5 cm steps.
+   - Byte normals round the lighting, so clear weather would no longer be pixel-identical to
+     v1.1.0: the reference images would have to be recorded again.
+   - Roads and water are detected in the shaders by their exact palette colour: store a
+     palette index, not a rounded colour.
+2. **Stream the building meshes** like the ground (build near the camera, dispose further out).
+   Estimated saving ~100–150 MB on a map twice the size.
+   - Buildings have no distance levels today: all 20.5k are drawn in full even in the overview,
+     so unbuilt chunks need a far stand-in (plain boxes).
+   - Buildings split cleanly: each is seeded by its own id (`mulberry32(b.id)`). Sheds, parked
+     cars and trees are placed in global random sequences with a shared `occupied` hash, so
+     their positions must still be computed at load; only the geometry can be deferred.
+   - Expect buildings arriving late in fast flight, ink lines changing at the swap, and box
+     shadows from far chunks. Mesh creation order matters (depth ties by object id).
+   - Trees are not worth streaming: 76 bytes per instance (4×4 matrix + colour), ~40 MB for all
+     of them on desktop. A custom instanced shader could bring that to ~20 bytes each.
+3. **Smaller far-ground textures for distant chunks**: after 1 and 2 they are the largest
+   part that still grows with the map.
+4. **Map data in tiles, loaded on demand**: the only step that also caps download, JSON
+   parsing and load time. The largest change; needed well beyond twice the area.
+
+Rough guide for phones: up to ~1.5× the area the existing memory saver probably carries it
+(idea 1 for margin); around 2× ideas 1–3; beyond that also 4. Measure on a real iPhone first.
+
+Browser memory limits (looked up Nov 2026; Apple publishes no figure, these come from WebKit
+bug reports):
+
+- iOS (Safari and Chrome, both WebKit): a tab is killed at a soft limit of about 1.5 GB;
+  2 GB and ~3 GB are reported on recent Pro iPhones. The kill only happens when the system
+  needs the memory, so the same page can survive on one phone and reload on another.
+  GPU memory (WebGL buffers, textures) is charged to the tab. The simulator does not
+  reproduce these kills.
+- Desktop Chrome: JS heap limit 2 or 4 GB depending on the machine; typed arrays and GPU
+  buffers are outside it, so the machine's RAM and video memory are the real ceiling.
