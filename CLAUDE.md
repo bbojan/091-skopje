@@ -99,6 +99,9 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   object id): desktop output is pixel-identical to the old global build.
 - Draped ground layers sit above the bare terrain (`areaLift`, `roadLift`, `CASING_LIFT` in
   `city.ts`); anything standing on the ground (walking characters) must use the same heights.
+- Which settings are saved (`localStorage` `skopje.*`), which reset on load and what the code
+  decides by itself (`MOBILE`, the governor, month defaults): "Settings" in docs/NOTES.md.
+  Keep that table current when adding an option.
 - Links: `#@lat,lon,distance,tilt°,heading°` kept in the address bar (replaceState), or a view name.
 - Version lives in `package.json` (`version`); Vite injects it as `__APP_VERSION__`, shown at
   the bottom of the help dialog. Releases are tagged `vX.Y.Z`.

@@ -54,6 +54,8 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    pass, ~25 % less GPU time, same pixels); ✨ Мазни рабови switch (4× MSAA, off = single pass in the
    full tier too); menus that do not fit above the bar wrap into two columns; per-pass GPU timing
    script (`scripts/browser/pass-timing.js`).
+16. **v2.2.1** (Nov 2026): documentation: "Settings" section (what is saved, what resets on load,
+   what the code decides for desktop and mobile), v2.2.0 pass timings under measured numbers.
 
 ## Key decisions (and why)
 
@@ -76,7 +78,11 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 ## Measured numbers (M-series Mac, desktop profile)
 
 - Load ≈ 5.7 s visible tab (download + build + assemble + bake).
-- GPU frame ≈ 13–16 ms close views, ~22 ms overview (live traffic on).
+- GPU frame ≈ 13–16 ms close views, ~22 ms overview (live traffic on) — older measurement.
+- v2.2.0, M5 Pro, 2400×1500, traffic on (`scripts/browser/pass-timing.js`): full tier 9.9–12.5 ms
+  (colour pass with 4× MSAA 8–10, normal pass 1–2, composite ~1.2, accumulation + output ~0.4);
+  smooth edges off 6.2–8.2 ms; low tier 3.6–6.8 ms (was 4.8–9.5 with the separate normal pass).
+  A shadow map refresh adds 2–6 ms on frames where the camera moved.
 - JS heap ≈ 1.7 GB desktop, ≈ 0.9 GB mobile profile.
 - 20.5k buildings, ~430k trees, ~68k parked cars, 6.5k cars, 15k people (desktop).
 
@@ -105,6 +111,60 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 | Road widths, area kinds and draw order | `ROAD_W`, `areaKind()`, `AREA_Z` in `scripts/prepare.ts` |
 | Exact named places (labels, rings) | `PLACE_NAMES` in `scripts/prepare.ts` |
 | Map extent | `BBOX` in `scripts/config.ts` (+ `data/query.overpassql`) |
+
+## Settings: what is saved, what resets, what the code decides
+
+All saved settings are `localStorage` keys starting with `skopje.`, read once at load
+(every read is wrapped in try/catch: with storage blocked everything simply uses the default).
+
+**Saved and loaded on the next visit**
+
+| Setting | Key | Default when nothing is saved |
+|---|---|---|
+| ☀ Time of day | `skopje.time` | day |
+| Weather | `skopje.weather` | from the month: snow on Vodno in Dec–Feb, otherwise clear |
+| Season | `skopje.season` | from the month (Dec–Feb winter, Mar–May spring, Jun–Aug summer, Sep–Nov autumn) |
+| ⚡ Quality | `skopje.quality` | auto (only `high` / `low` are read back) |
+| ✨ Мазни рабови | `skopje.smooth` | on |
+| 💾 Memory saver | `skopje.memorySaver` | on for `MOBILE`, off on desktop |
+| 🚗 Less traffic | `skopje.lightTraffic` | off |
+| Имиња (labels) | `skopje.labels` | on |
+| 🌐 Language | `skopje.lang` | the browser's first regional language (never English by itself), else Macedonian; `?lang=` in the link wins over everything |
+| 🏁 Race / free flight | `skopje.race` | free flight |
+| Invert Y | `skopje.invertY` | off |
+| Best race time | `skopje.bestRace` | none |
+
+The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
+a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
+
+**Not saved — back to the default on every load**
+
+- Живо (live) and Контури (ink lines): always on.
+- Walking: character (Итар Пејо) and view (third person).
+- Flight, walking and bus mode: a visit always starts on the map.
+
+**Changing by themselves**
+
+- Weather and season defaults follow the calendar month until the visitor picks one; from
+  then on the saved choice wins.
+- Render resolution (`QUALITY` levels) steps down when frames are slow and back up when they
+  are fast, on every visit, unless Quality is `high`.
+- The low tier under Quality `auto` switches on when the lowest resolution is still slow. It
+  stays on for that visit only and is not saved, so a slow device starts every visit in the
+  full tier and has to slow down again first. (Idea: remember it.)
+
+**Decided by code at load, no option**
+
+- `MOBILE` (`main.ts`): user agent says Android/iPhone/iPad/Mobile, or an iPad posing as a Mac
+  (`MacIntel` with touch points), or a coarse pointer, or the shorter screen side under 600 px.
+  It fixes for the whole visit: half the trees and parked cars, 2048 shadow map (8192 on
+  desktop), 256 px far-ground textures (512), 2,500 cars and 5,000 people (6,500 and 15,000),
+  9,000 rain/snow particles (24,000), LOD scale 0.65, starting resolution 1.0× instead of 1.5×,
+  memory saver on by default, share sheet instead of clipboard for 🔗.
+  Quality `high` on a phone does not bring these back: they are built at load.
+- `PHONE` (a CSS media query, `placeBarItems()`): only the layout — which buttons sit on the
+  bar and which move into the 📍 and ⚙ menus. It follows the window live.
+- Every option exists on both desktop and mobile; nothing is desktop-only except the amounts above.
 
 ## Gotchas (learned the hard way)
 
