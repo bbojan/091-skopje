@@ -111,6 +111,10 @@
       @media (pointer: coarse) { .fly-keys { display: none; } }
       @media (max-width: 520px) { .fly-btn { width: 58px; height: 58px; } #fly-boost { right: 88px; width: 82px; height: 82px; } .fly-top { flex-wrap: wrap; justify-content: center; width: calc(100% - 32px); } }
 
+      /* driving the bus reuses the flight HUD without the race and boost */
+      body.driving .fly-only, body.driving .race-only, body.driving .fly-flash { display: none !important; }
+      body:not(.driving) .drive-only { display: none !important; }
+
       /* narrow screens: keep the top corners from colliding */
       @media (max-width: 560px) {
         .title { left: 12px; top: 12px; padding: 6px 10px 7px; }
@@ -233,6 +237,7 @@
           <tr><td data-i18n="b.places">Плоштад · Кале и Чаршија · Градски парк · Водно</td><td data-i18n="b.placesD">Брз скок до познати места</td></tr>
           <tr><td data-i18n="v.overview">Преглед</td><td data-i18n="b.overviewD">Целиот град од високо</td></tr>
           <tr><td data-i18n="bar.fly">✈ Авион</td><td data-i18n="b.planeD">Летај над градот во трето лице</td></tr>
+          <tr><td data-i18n="bar.bus">🚌 Автобус</td><td data-i18n="b.busD">Вози црвен двокатен ЈСП автобус низ улиците: ↑ гас, ↓ сопирачка/назад, ← → волан</td></tr>
           <tr><td data-i18n="b.times">☀ Ден · 🌇 Зајдисонце · 🌙 Ноќ</td><td data-i18n="b.timesD">Смени го делот од денот — ноќе светат прозорците, уличните светилки и фаровите</td></tr>
           <tr><td data-i18n="b.weather">🌤 Ведро · 🌧 Дожд · ❄ Снег · 🏔 Снег на Водно</td><td data-i18n="b.weatherD">Смени го времето: дожд со мокри улици и локви, снег низ целиот град или снег само на Водно и ридовите</td></tr>
           <tr><td data-i18n="b.season">🌳 Лето · 🍂 Есен · ☃ Зима · 🌸 Пролет</td><td data-i18n="b.seasonD">Смени го годишното време: цут и свежо зеленило напролет, есенски бои или голи дрвја во зима; зимзелените дрвја остануваат зелени</td></tr>
@@ -243,6 +248,8 @@
           <tr><td data-i18n="bar.shot">Зачувај слика</td><td data-i18n="b.shotD">Преземи PNG од тековниот поглед</td></tr>
           <tr><td data-i18n="b.quality">⚡ Квалитет</td><td data-i18n="b.qualityD">Автоматски преминува на полесно цртање кога компјутерот или телефонот е бавен (без сенчење во аглите и сенки од облаците, помали сенки); „низок“ го вклучува секогаш</td></tr>
           <tr><td data-i18n="bar.traffic">🚗 Помалку сообраќај</td><td data-i18n="b.trafficD">Помалку автомобили и пешаци во движење — помалку работа за процесорот на послаби уреди</td></tr>
+          <tr><td data-i18n="b.share">🔗 Копирај линк</td><td data-i18n="b.shareD">Копира врска до тековниот поглед (место и агол на камерата) за да го споделиш; врската е секогаш и во адресата</td></tr>
+          <tr><td data-i18n="bar.stream">💾 Штедење меморија</td><td data-i18n="b.streamD">Ги чува деталите на теренот и улиците само близу камерата, а подалеку останува насликаната подлога; вклучено на телефон</td></tr>
           <tr><td data-i18n="b.lang">🌐 Јазик</td><td data-i18n="b.langD">Смени го јазикот на интерфејсот (имињата на мапата остануваат на македонски)</td></tr>
         </table>
 
@@ -295,6 +302,7 @@
       <button class="pop-toggle" id="tools-toggle" aria-expanded="false" aria-controls="tools" data-i18n="bar.tools">⚙ Опции</button>
       <div class="places tools" id="tools">
         <button id="weather">🌤 Ведро</button>
+        <button id="bus" data-i18n="bar.bus">🚌 Автобус</button>
         <button id="names" data-i18n="bar.names">Имиња</button>
         <button id="live" data-i18n="bar.live">Живо</button>
         <button id="season">🌳 Лето</button>
@@ -302,6 +310,8 @@
         <button id="shot" data-i18n="bar.shot">Зачувај слика</button>
         <button id="quality">⚡ Квалитет: автоматски</button>
         <button id="traffic" class="off" data-i18n="bar.traffic">🚗 Помалку сообраќај</button>
+        <button id="share">🔗 Копирај линк</button>
+        <button id="stream" data-i18n="bar.stream">💾 Штедење меморија</button>
         <label class="lang" title="Јазик" data-i18n-title="bar.lang"><span aria-hidden="true">🌐</span><select id="lang" aria-label="Јазик" data-i18n-aria="bar.lang"></select></label>
       </div>
     </div>
@@ -309,7 +319,7 @@
       <div class="fly-top">
         <span class="chip" id="fly-stats">0 км/ч · 0 м</span>
         <span class="chip warn" id="fly-warn"></span>
-        <button class="chip" id="fly-race">🏁 Трка</button>
+        <button class="chip fly-only" id="fly-race">🏁 Трка</button>
         <span class="chip race-only" id="fly-game"></span>
         <button class="chip" id="fly-exit" data-i18n="fly.exit">✕ Излез</button>
       </div>
@@ -324,8 +334,9 @@
       </div>
       <div class="pad l"><button class="fly-btn" data-k="left" aria-label="Лево" data-i18n-aria="a.left">◀</button><button class="fly-btn" data-k="right" aria-label="Десно" data-i18n-aria="a.right">▶</button></div>
       <div class="pad r"><button class="fly-btn" data-k="up" aria-label="Нагоре" data-i18n-aria="a.up">▲</button><button class="fly-btn" data-k="down" aria-label="Надолу" data-i18n-aria="a.down">▼</button></div>
-      <button class="fly-btn" id="fly-boost" data-k="boost" data-i18n="fly.boost">БРЗО</button>
-      <div class="fly-keys chip" data-i18n="fly.keys">← → свртување · ↑ ↓ нагоре/надолу · Shift брзо · Esc излез</div>
+      <button class="fly-btn fly-only" id="fly-boost" data-k="boost" data-i18n="fly.boost">БРЗО</button>
+      <div class="fly-keys chip drive-only" data-i18n="drive.keys">← → волан · ↑ гас · ↓ сопирачка/назад · Esc излез</div>
+      <div class="fly-keys chip fly-only" data-i18n="fly.keys">← → свртување · ↑ ↓ нагоре/надолу · Shift брзо · Esc излез</div>
     </div>
     <div id="status"></div>
     <div id="loader" role="status" aria-live="polite">

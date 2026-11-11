@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { toPts, obb } from './geo.ts';
-import { SHARED } from './city.ts';
+import { SHARED, MODELLED_BUILDINGS } from './city.ts';
 import type { Terrain } from './terrain.ts';
 import type { CityData, Pt, Vec3 } from './types.ts';
 
@@ -72,6 +72,7 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
   // ---------------- Millennium Cross: white steel lattice, lit at night
   const mc = (data.crosses || []).find((c) => /Millennium|Милениум/.test(c.name));
   let crossMat: THREE.MeshLambertMaterial | null = null;
+  let stationGlass: THREE.MeshLambertMaterial | null = null; // concourse glows at night
   if (mc) {
     const parts: THREE.BufferGeometry[] = [];
     const base = new THREE.Vector3(mc.x, T(mc.x, mc.z) - 0.5, mc.z);
@@ -180,6 +181,47 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
     }
   }
 
+  // ---------------- Railway station (Kenzo Tange, 1981): an elevated concrete track deck on
+  // rows of tapering piers, a glazed concourse underneath, platform canopies on top.
+  // Built in the OSM footprint's frame (x along the tracks).
+  const stationB = data.buildings.find((b) => b.id === 144759771 && MODELLED_BUILDINGS.has(b.id));
+  if (stationB) {
+    const ob = obb(toPts(stationB.r[0]));
+    if (ob) {
+      const len = ob.L * 2, wid = ob.W * 2, deckY = 10, deckT = 2.2;
+      const concrete: THREE.BufferGeometry[] = [], dark: THREE.BufferGeometry[] = [], glass: THREE.BufferGeometry[] = [];
+      // the deck with a thick edge beam on both sides
+      concrete.push(new THREE.BoxGeometry(len, deckT, wid * 0.92).translate(0, deckY + deckT / 2, 0));
+      for (const sz of [-1, 1]) concrete.push(new THREE.BoxGeometry(len + 2, 1.6, 1.4).translate(0, deckY + deckT + 0.8, sz * wid * 0.46));
+      // tapering piers, wider at the top (square truncated pyramids)
+      const pier = new THREE.CylinderGeometry(2.3, 1.2, deckY, 4, 1).rotateY(Math.PI / 4);
+      const nP = Math.max(3, Math.round(len / 15));
+      for (let i = 0; i < nP; i++) {
+        const x = -len / 2 + (len * (i + 0.5)) / nP;
+        for (const sz of [-1, 1]) concrete.push(pier.clone().translate(x, deckY / 2, sz * wid * 0.3));
+      }
+      // concourse: glass box between the piers, with a concrete roof band
+      glass.push(new THREE.BoxGeometry(len * 0.72, 6.5, wid * 0.38).translate(0, 3.25, 0));
+      concrete.push(new THREE.BoxGeometry(len * 0.74, 1.2, wid * 0.42).translate(0, 7.1, 0));
+      // tracks and platforms on the deck
+      const top = deckY + deckT;
+      for (let k = 0; k < 4; k++) dark.push(new THREE.BoxGeometry(len, 0.25, 1.6).translate(0, top + 0.12, -wid * 0.33 + (k * wid * 0.66) / 3));
+      for (let k = 0; k < 3; k++) {
+        const zc = -wid * 0.22 + k * wid * 0.22;
+        concrete.push(new THREE.BoxGeometry(len * 0.9, 0.9, 4).translate(0, top + 0.45, zc)); // platform
+        concrete.push(new THREE.BoxGeometry(len * 0.8, 0.35, 6.5).translate(0, top + 5.2, zc)); // canopy
+        for (let i = 0; i < 6; i++) concrete.push(new THREE.BoxGeometry(0.5, 4.5, 0.5).translate(-len * 0.38 + (i * len * 0.76) / 5, top + 3, zc));
+      }
+      const y = T(ob.c[0], ob.c[1]) - 0.4, rot = -Math.atan2(ob.a[1], ob.a[0]);
+      for (const [parts, mat] of [[concrete, M('#d8d1c4')], [dark, M('#5a5450')], [glass, M('#4f6274', { emissive: '#ffcf7a', emissiveIntensity: 0 })]] as const) {
+        const mesh = add(mergeGeometries(flatten(parts)), mat);
+        mesh.position.set(ob.c[0], y, ob.c[1]);
+        mesh.rotation.y = rot;
+        if (parts === glass) stationGlass = mesh.material as THREE.MeshLambertMaterial;
+      }
+    }
+  }
+
   // ---------------- Vodno gondola: cable, pylons and moving cabins
   if (L.gondola) {
     const line = toPts(L.gondola);
@@ -227,6 +269,10 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
 
   return {
     group,
-    update(dt: number): void { for (const f of animated) f(dt); if (crossMat) crossMat.emissiveIntensity = SHARED.uNight.value * 0.9; },
+    update(dt: number): void {
+      for (const f of animated) f(dt);
+      if (crossMat) crossMat.emissiveIntensity = SHARED.uNight.value * 0.9;
+      if (stationGlass) stationGlass.emissiveIntensity = SHARED.uNight.value * 0.55;
+    },
   };
 }

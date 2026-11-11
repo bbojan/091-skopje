@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mulberry32, type Rng } from './geo.ts';
 import { carGeometry, CAR_COLORS, type City } from './city.ts';
 import { glowTexture } from './sky.ts';
@@ -73,6 +75,59 @@ function locate(a: Agent, out: Located): void {
   out.tx = tx; out.tz = tz;
 }
 
+/** ЈСП red, the colour of Skopje's city buses. */
+export const JSP_RED = '#d6423a';
+
+/** A ЈСП city bus along +x (front), with its own vertex colours: rounded red body, dark
+ *  window bands split into panes, curved windscreen, lights, bumpers, tyres and a
+ *  destination sign. Double-deckers have two decks of windows. `smooth` = corner segments. */
+export function busGeometry(double: boolean, smooth = 2): THREE.BufferGeometry {
+  const RED = new THREE.Color(JSP_RED), GLASS = new THREE.Color('#1c2530'), BLACK = new THREE.Color('#232323');
+  const HUB = new THREE.Color('#a7a9ad'), LIGHT = new THREE.Color('#fff4d6'), TAIL = new THREE.Color('#c81e16'), SIGN = new THREE.Color('#e9b52e');
+  const parts: THREE.BufferGeometry[] = [];
+  const paint = (g: THREE.BufferGeometry, col: THREE.Color) => {
+    const n = g.index ? g.toNonIndexed() : g;
+    const c = new Float32Array(n.attributes.position.count * 3);
+    for (let i = 0; i < c.length; i += 3) { c[i] = col.r; c[i + 1] = col.g; c[i + 2] = col.b; }
+    n.setAttribute('color', new THREE.BufferAttribute(c, 3));
+    if (n.attributes.uv) n.deleteAttribute('uv');
+    parts.push(n);
+  };
+  const rbox = (sx: number, sy: number, sz: number, r: number, x: number, y: number, z: number, col: THREE.Color) =>
+    paint(new RoundedBoxGeometry(sx, sy, sz, smooth, Math.min(r, sx / 2, sy / 2, sz / 2) * 0.999).translate(x, y, z), col);
+  const box = (sx: number, sy: number, sz: number, x: number, y: number, z: number, col: THREE.Color) =>
+    paint(new THREE.BoxGeometry(sx, sy, sz).translate(x, y, z), col);
+
+  const L = double ? 11 : 12, W = 2.55, base = 0.45, H = double ? 4.15 : 2.85;
+  const front = L / 2, top = base + H;
+  rbox(L, H, W, 0.42, 0, base + H / 2, 0, RED); // body: rounded roof edges and corners
+  // window bands (slightly proud of the body) with pillars splitting them into panes
+  const decks = double ? [[1.75, 0.95], [3.5, 1.05]] : [[2.0, 1.15]];
+  for (const [y, h] of decks) {
+    rbox(L - 0.9, h, W + 0.04, 0.18, -0.15, y, 0, GLASS);
+    const n = Math.round((L - 1.2) / 1.45);
+    for (let i = 1; i < n; i++) box(0.12, h + 0.02, W + 0.08, -L / 2 + 0.45 + (i * (L - 1.2)) / n, y, 0, RED);
+  }
+  // front: curved windscreen (lower deck), upper front window, destination sign, lights, bumper
+  const glassH = double ? 1.25 : 1.55;
+  rbox(0.4, glassH, W - 0.25, 0.16, front - 0.12, base + 0.75 + glassH / 2, 0, GLASS);
+  if (double) rbox(0.4, 1.0, W - 0.3, 0.16, front - 0.12, 3.5, 0, GLASS);
+  rbox(0.3, 0.32, W - 0.7, 0.08, front - 0.07, double ? 2.6 : top - 0.28, 0, SIGN);
+  for (const z of [-0.85, 0.85]) rbox(0.16, 0.22, 0.42, 0.06, front, base + 0.55, z, LIGHT);
+  rbox(0.32, 0.4, W - 0.02, 0.16, front - 0.05, base + 0.2, 0, BLACK);
+  // rear: back window(s), tail lights, bumper
+  rbox(0.3, double ? 0.95 : 1.1, W - 0.4, 0.14, -front + 0.08, double ? 3.5 : 2.0, 0, GLASS);
+  for (const z of [-0.95, 0.95]) rbox(0.14, 0.55, 0.28, 0.06, -front, base + 0.75, z, TAIL);
+  rbox(0.32, 0.4, W - 0.02, 0.16, -front + 0.05, base + 0.2, 0, BLACK);
+  // tyres with hubs, a little proud of the body sides
+  const axles = double ? [front - 2.3, -front + 2.7] : [front - 2.6, -front + 3.0];
+  for (const x of axles) for (const z of [-1, 1]) {
+    paint(new THREE.CylinderGeometry(0.52, 0.52, 0.32, smooth > 2 ? 18 : 10).rotateX(Math.PI / 2).translate(x, 0.52, z * (W / 2 - 0.08)), BLACK);
+    paint(new THREE.CylinderGeometry(0.24, 0.24, 0.05, 8).rotateX(Math.PI / 2).translate(x, 0.52, z * (W / 2 + 0.1)), HUB);
+  }
+  return mergeGeometries(parts);
+}
+
 export interface TrafficOptions {
   clippingPlanes?: THREE.Plane[];
   cars?: number;
@@ -94,17 +149,19 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
   const cars = makeAgents(roads, carCount, rnd, [6, 6], (p) => Math.max(1.2, p.hw * 0.45));
 
   const carGeo = carGeometry();
-  const busGeo = new THREE.BoxGeometry(11, 2.8, 2.5).translate(0, 1.8, 0);
   const carMat = new THREE.MeshLambertMaterial({ clippingPlanes: opts.clippingPlanes });
   const carCols = CAR_COLORS;
   const buses = cars.filter((c) => c.p.weight === 1 && rnd() < 0.06);
   const busSet = new Set(buses);
   const autos = cars.filter((c) => !busSet.has(c));
   const carMesh = new THREE.InstancedMesh(carGeo, carMat, autos.length);
-  const busMesh = new THREE.InstancedMesh(busGeo, carMat, buses.length);
+  // ЈСП city buses: all red (colours are in the geometry), every second one a double-decker
+  const singles = buses.filter((_, i) => i % 2 === 1), doubles = buses.filter((_, i) => i % 2 === 0);
+  const busMat = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes: opts.clippingPlanes });
+  const busMesh = new THREE.InstancedMesh(busGeometry(false), busMat, singles.length);
+  const ddMesh = new THREE.InstancedMesh(busGeometry(true), busMat, doubles.length);
   const col = new THREE.Color();
   autos.forEach((_, i) => carMesh.setColorAt(i, col.set(carCols[Math.floor(rnd() * carCols.length)])));
-  buses.forEach((_, i) => busMesh.setColorAt(i, col.set(rnd() < 0.7 ? '#d6423a' : '#3d7fc4')));
   buses.forEach((b) => (b.v = 5));
 
   // ---------------- people
@@ -130,7 +187,7 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
     headMesh.setColorAt(i, col.set(rnd() < 0.3 ? '#3b2a22' : skins[Math.floor(rnd() * skins.length)]));
   });
 
-  for (const m of [carMesh, busMesh, torsoMesh, headMesh]) {
+  for (const m of [carMesh, busMesh, ddMesh, torsoMesh, headMesh]) {
     m.frustumCulled = false;
     m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     group.add(m);
@@ -154,7 +211,7 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
 
   // "less traffic" option: only the first share of each list moves and is drawn
   // (agents are in random order, so that is a random subset)
-  let nAutos = autos.length, nBuses = buses.length, nPeople = people.length;
+  let nAutos = autos.length, nSingles = singles.length, nDoubles = doubles.length, nPeople = people.length;
   let time = 0;
   function update(dt: number, camera?: THREE.Camera, target?: THREE.Vector3): void {
     dt = Math.min(dt, 0.1);
@@ -165,10 +222,11 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
     const pplS = THREE.MathUtils.clamp(dist / 520, 1.25, 6);
     const showPeople = dist < 9000;
     torsoMesh.visible = headMesh.visible = showPeople;
-    const ca = carMesh.instanceMatrix.array, ba = busMesh.instanceMatrix.array;
+    const ca = carMesh.instanceMatrix.array, ba = busMesh.instanceMatrix.array, da = ddMesh.instanceMatrix.array;
     for (let i = 0; i < nAutos; i++) { const a = autos[i]; step(a, dt); write(ca, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, carS); }
-    for (let i = 0; i < nBuses; i++) { const a = buses[i]; step(a, dt); write(ba, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, Math.min(carS, 2)); }
-    if (!showPeople) { for (const m of [carMesh, busMesh]) m.instanceMatrix.needsUpdate = true; return; }
+    for (let i = 0; i < nSingles; i++) { const a = singles[i]; step(a, dt); write(ba, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, Math.min(carS, 2)); }
+    for (let i = 0; i < nDoubles; i++) { const a = doubles[i]; step(a, dt); write(da, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, Math.min(carS, 2)); }
+    if (!showPeople) { for (const m of [carMesh, busMesh, ddMesh]) m.instanceMatrix.needsUpdate = true; return; }
     const ta = torsoMesh.instanceMatrix.array, ha = headMesh.instanceMatrix.array;
     for (let i = 0; i < nPeople; i++) {
       const a = people[i];
@@ -182,14 +240,14 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
       write(ta, i, x, y, z, tx, tz, pplS);
       write(ha, i, x, y, z, tx, tz, pplS);
     }
-    for (const m of [carMesh, busMesh, torsoMesh, headMesh]) m.instanceMatrix.needsUpdate = true;
+    for (const m of [carMesh, busMesh, ddMesh, torsoMesh, headMesh]) m.instanceMatrix.needsUpdate = true;
   }
   update(0.001);
   // headlights: an additive glow on the road ahead, sharing the car transforms
   const beamGeo = new THREE.PlaneGeometry(11, 5.5).rotateX(-Math.PI / 2).translate(7.5, 0.35, 0);
   const beamMat = new THREE.MeshBasicMaterial({ map: glowTexture(), color: '#ffe2a8', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, clippingPlanes: opts.clippingPlanes });
   const beams: THREE.InstancedMesh[] = [];
-  for (const src of [carMesh, busMesh]) {
+  for (const src of [carMesh, busMesh, ddMesh]) {
     const b = new THREE.InstancedMesh(beamGeo, beamMat, src.count);
     b.instanceMatrix = src.instanceMatrix;
     b.frustumCulled = false;
@@ -201,9 +259,10 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
   /** Less traffic: ~35 % of the cars, buses and people (less CPU work per frame). */
   function setLight(on: boolean): void {
     const k = on ? 0.35 : 1;
-    nAutos = Math.ceil(autos.length * k); nBuses = Math.ceil(buses.length * k); nPeople = Math.ceil(people.length * k);
+    nAutos = Math.ceil(autos.length * k); nSingles = Math.ceil(singles.length * k); nDoubles = Math.ceil(doubles.length * k); nPeople = Math.ceil(people.length * k);
     carMesh.count = beams[0].count = nAutos;
-    busMesh.count = beams[1].count = nBuses;
+    busMesh.count = beams[1].count = nSingles;
+    ddMesh.count = beams[2].count = nDoubles;
     torsoMesh.count = headMesh.count = nPeople;
   }
   function setNight(f: number): void {

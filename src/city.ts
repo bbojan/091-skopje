@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32, toPts, ringArea, obb, pipPoly, PolyGrid, SegGrid, PointHash, rowCrossings, bbox, type Box, type OBB } from './geo.ts';
-import type { Terrain } from './terrain.ts';
+import type { Terrain, TerrainColorFn } from './terrain.ts';
 import type { CityData, Poly, Pt, Ring, Vec3 } from './types.ts';
 
 const C = (h: THREE.ColorRepresentation) => new THREE.Color(h);
@@ -205,6 +205,11 @@ function insetRing(ring: Ring, d: number): Ring | null {
   if (!out.every(([x, z]) => pipPoly(x, z, [ring]))) return null;
   return out;
 }
+
+/** OSM buildings drawn by hand-built models in landmarks.ts instead (the model uses the footprint). */
+export const MODELLED_BUILDINGS = new Set<number>([
+  144759771, // Железничка станица Скопје (Kenzo Tange)
+]);
 
 export function carGeometry(): THREE.BufferGeometry {
   const body = new THREE.BoxGeometry(4.2, 1.15, 1.85).translate(0, 0.95, 0);
@@ -478,6 +483,8 @@ export interface CityOptions {
   /** < 1 thins out trees and parked cars (phones) */
   density?: number;
   clippingPlanes?: THREE.Plane[];
+  /** memory saver: draped ground and detailed terrain are built per chunk on demand */
+  stream?: boolean;
 }
 export type RoadKind = 'major' | 'minor' | 'service' | 'ped' | 'path';
 export interface RoadInfo { k: string; w: number; b: number; kind: RoadKind; pts: Ring }
@@ -492,8 +499,11 @@ type CarRec = [number, number, number, number];
 interface Packed { m: Float32Array; c: Float32Array; n: number }
 interface PackedSet { hi: Packed; far: Packed }
 interface ChunkDesc {
+  /** chunk index (j * CX + i) */
+  k: number;
   rect: Box; y: number;
-  terrainHi: GeoData; terrainLo: GeoData;
+  /** null when built on demand (streaming) */
+  terrainHi: GeoData | null; terrainLo: GeoData;
   ground: GeoData | null; build: GeoData | null;
   trees: PackedSet | null; forest: PackedSet | null; cyp: PackedSet | null; cars: Packed | null;
 }
@@ -503,8 +513,10 @@ export interface CityDesc {
   roadList: RoadInfo[];
   stats: { buildings: number; trees: number; parked: number; roads: number; chunks: number };
   meta?: CityData['meta'];
+  /** build one chunk's detailed terrain / draped ground (streaming builds them on demand) */
+  lazy: { terrainHi: (k: number) => GeoData; ground: (k: number) => GeoData | null };
 }
-interface Chunk { i: number; j: number; cx: number; cz: number; ground: Builder; build: Builder; trees: TreeRec[]; cyp: TreeRec[]; cars: CarRec[] }
+interface Chunk { i: number; j: number; cx: number; cz: number; build: Builder; trees: TreeRec[]; cyp: TreeRec[]; cars: CarRec[] }
 
 export function buildCity(data: CityData, terrain: Terrain, opts: CityOptions = {}) {
   return assembleCity(computeCity(data, terrain, opts), opts);
@@ -540,7 +552,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
       const i = k % CX, j = Math.floor(k / CX);
       c = {
         i, j, cx: -halfW + (i + 0.5) * chunkSize, cz: -halfH + (j + 0.5) * chunkSize,
-        ground: new Builder(), build: new Builder(true), trees: [], cyp: [], cars: [],
+        build: new Builder(true), trees: [], cyp: [], cars: [],
       };
       chunks.set(k, c);
     }
@@ -551,7 +563,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   const bGrid = new PolyGrid(25);
   const blockGrid = new PolyGrid(30);
   const roadGrid = new SegGrid(20);
-  const buildings = data.buildings.map((b) => ({ ...b, poly: b.r.map(toPts) }));
+  const buildings = data.buildings.filter((b) => !MODELLED_BUILDINGS.has(b.id)).map((b) => ({ ...b, poly: b.r.map(toPts) }));
   for (const b of buildings) bGrid.add(b.poly, b);
   const areas = data.areas.map((a) => ({ ...a, poly: a.r.map(toPts), painted: false }));
   for (const a of areas) if (['water', 'pool', 'pitch', 'clay', 'court', 'parking', 'plaza'].includes(a.k)) blockGrid.add(a.poly, a);
@@ -580,23 +592,34 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
       }
     }
   }
-  const terrainMeshes = new Map<number, { hi: GeoData; lo: GeoData; rect: Box }>(); // by chunk index
+  // per chunk: terrain vertex range, rectangle and coarse mesh; the detailed mesh is built by terrainHi(k)
+  const terrainChunks = new Map<number, { verts: [number, number, number, number]; lo: GeoData; rect: Box }>(); // by chunk index
   for (let j = 0; j < CZ; j++)
     for (let i = 0; i < CX; i++) {
       const i0 = i * cellsPer, j0 = j * cellsPer;
       const i1 = Math.min(terrain.nx - 1, i0 + cellsPer), j1 = Math.min(terrain.nz - 1, j0 + cellsPer);
       if (i1 <= i0 || j1 <= j0) continue;
-      const g = terrain.chunkGeometry(i0, j0, i1, j1, (c, y, ny, gi, gj) => {
-        const k = paint[gj * terrain.nx + gi];
-        if (k) c.copy(kindCol[k - 1]);
-        else c.copy(cG).lerp(cH, THREE.MathUtils.smoothstep(y, 70, 220) * 0.85);
-        c.multiplyScalar(0.94 + 0.06 * ny);
-      });
-      const hi = dataFromGeo(g);
       const lo = dataFromGeo(terrain.lowGeometry(i0, j0, i1, j1, 3));
       const rect: Box = [terrain.x0 + i0 * terrain.cell, terrain.z0 + j0 * terrain.cell, terrain.x0 + i1 * terrain.cell, terrain.z0 + j1 * terrain.cell];
-      terrainMeshes.set(j * CX + i, { hi, lo, rect });
+      terrainChunks.set(j * CX + i, { verts: [i0, j0, i1, j1], lo, rect });
     }
+  const terrainColor: TerrainColorFn = (c, y, ny, gi, gj) => {
+    const k = paint[gj * terrain.nx + gi];
+    if (k) c.copy(kindCol[k - 1]);
+    else c.copy(cG).lerp(cH, THREE.MathUtils.smoothstep(y, 70, 220) * 0.85);
+    c.multiplyScalar(0.94 + 0.06 * ny);
+  };
+  const terrainHi = (k: number): GeoData => {
+    const [i0, j0, i1, j1] = terrainChunks.get(k)!.verts;
+    return dataFromGeo(terrain.chunkGeometry(i0, j0, i1, j1, terrainColor));
+  };
+  // terrain cells whose centre falls in chunk k (where its draped pieces go)
+  const chunkCells = (k: number): [number, number, number, number] => {
+    const i = k % CX, j = Math.floor(k / CX);
+    return [i * cellsPer, j * cellsPer, i === CX - 1 ? terrain.nx - 2 : (i + 1) * cellsPer - 1, j === CZ - 1 ? terrain.nz - 2 : (j + 1) * cellsPer - 1];
+  };
+  const cellChunkI = (ci: number) => Math.min(CX - 1, Math.max(0, Math.floor((terrain.x0 + (ci + 0.5) * terrain.cell + halfW) / chunkSize)));
+  const cellChunkJ = (cj: number) => Math.min(CZ - 1, Math.max(0, Math.floor((terrain.z0 + (cj + 0.5) * terrain.cell + halfH) / chunkSize)));
   // diorama skirt: cut-away sides following the terrain profile
   const skirt = new Builder();
   const base = -90;
@@ -621,13 +644,16 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   }
 
   yield 'terrain';
-  // ---------------- draped areas
-  const drapeTri = (tri: Pt[], yo: number, col: THREE.Color) => {
-    terrain.clipTriangle(tri, (piece, i, j) => {
-      const c = chunk(terrain.x0 + (i + 0.5) * terrain.cell, terrain.z0 + (j + 0.5) * terrain.cell);
-      const P = piece.map(([x, z]): Vec3 => [x, T(x, z) + yo, z]);
-      for (let k = 1; k < P.length - 1; k++) c.ground.tri(P[0], P[k], P[k + 1], col, UP);
-    });
+  // ---------------- draped areas: triangulated once; each chunk's ground is built from
+  // the triangles that reach it (buildGround), in the same order as one global pass
+  const areaTris: { col: THREE.Color; yo: number; tris: Float64Array }[] = [];
+  const chunkAreas = new Map<number, [number, number[]][]>(); // chunk → [area, triangle indices]
+  const refFor = <T,>(map: Map<number, [number, ...T[]][]>, k: number, id: number, make: () => [number, ...T[]]) => {
+    let list = map.get(k);
+    if (!list) map.set(k, (list = []));
+    let last = list[list.length - 1];
+    if (!last || last[0] !== id) list.push((last = make()));
+    return last;
   };
   for (const a of areas) {
     if (a.painted) continue;
@@ -636,9 +662,18 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     let faces: number[][];
     try { faces = THREE.ShapeUtils.triangulateShape(contour, holes); } catch { continue; }
     const all = [contour, ...holes].flat();
-    const col = C(PAL.area[a.k] || PAL.ground);
-    const yo = 0.12 + a.z * 0.07;
-    for (const [i, j, k] of faces) drapeTri([[all[i].x, all[i].y], [all[j].x, all[j].y], [all[k].x, all[k].y]], yo, col);
+    const tris = new Float64Array(faces.length * 6);
+    faces.forEach(([i, j, k], t) => tris.set([all[i].x, all[i].y, all[j].x, all[j].y, all[k].x, all[k].y], t * 6));
+    const ai = areaTris.push({ col: C(PAL.area[a.k] || PAL.ground), yo: 0.12 + a.z * 0.07, tris }) - 1;
+    for (let t = 0; t < faces.length; t++) {
+      const o = t * 6, xs = [tris[o], tris[o + 2], tris[o + 4]], zs = [tris[o + 1], tris[o + 3], tris[o + 5]];
+      const ci0 = Math.max(0, Math.floor((Math.min(...xs) - terrain.x0) / terrain.cell)), ci1 = Math.min(terrain.nx - 2, Math.floor((Math.max(...xs) - terrain.x0) / terrain.cell));
+      const cj0 = Math.max(0, Math.floor((Math.min(...zs) - terrain.z0) / terrain.cell)), cj1 = Math.min(terrain.nz - 2, Math.floor((Math.max(...zs) - terrain.z0) / terrain.cell));
+      if (ci1 < ci0 || cj1 < cj0) continue;
+      for (let kj = cellChunkJ(cj0); kj <= cellChunkJ(cj1); kj++)
+        for (let ki = cellChunkI(ci0); ki <= cellChunkI(ci1); ki++)
+          (refFor(chunkAreas, kj * CX + ki, ai, () => [ai, []])[1] as number[]).push(t);
+    }
   }
 
   // ---------------- roads (draped strips)
@@ -649,32 +684,59 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     if (k === 'pedestrian') return 'ped';
     return 'path';
   };
+  // draped strips (road casings, roads, rails): segments go to the chunk of their midpoint,
+  // round caps to the chunk of their point; built per chunk by buildGround
   const STEP = terrain.cell * 0.5;
+  const strips: { pts: Ring; hw: number; yo: number; col: THREE.Color }[] = [];
+  const chunkStrips = new Map<number, [number, number[], number[]][]>(); // chunk → [strip, segments, caps]
   const strip = (pts: Ring, hw: number, yo: number, col: THREE.Color) => {
+    const si = strips.push({ pts, hw, yo, col }) - 1;
     for (let i = 0; i < pts.length - 1; i++) {
       const [ax, az] = pts[i], [bx, bz] = pts[i + 1];
-      const dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz);
-      if (len < 0.01) continue;
-      const nx = (-dz / len) * hw, nz = (dx / len) * hw;
-      const n = Math.max(1, Math.ceil(len / STEP));
-      const B = chunk((ax + bx) / 2, (az + bz) / 2).ground;
-      for (let s = 0; s < n; s++) {
-        const t0 = s / n, t1 = (s + 1) / n;
-        const x0 = ax + dx * t0, z0 = az + dz * t0, x1 = ax + dx * t1, z1 = az + dz * t1;
-        const p = (x: number, z: number): Vec3 => [x, T(x, z) + yo, z];
-        B.quad(p(x0 + nx, z0 + nz), p(x1 + nx, z1 + nz), p(x1 - nx, z1 - nz), p(x0 - nx, z0 - nz), col, UP);
+      if (Math.hypot(bx - ax, bz - az) < 0.01) continue;
+      (refFor(chunkStrips, chunkKey((ax + bx) / 2, (az + bz) / 2), si, () => [si, [], []])[1] as number[]).push(i);
+    }
+    pts.forEach(([x, z], i) => (refFor(chunkStrips, chunkKey(x, z), si, () => [si, [], []])[2] as number[]).push(i));
+  };
+  const buildGround = (k: number): GeoData | null => {
+    const B = new Builder();
+    const cells = chunkCells(k);
+    for (const [ai, ts] of chunkAreas.get(k) ?? []) {
+      const { col, yo, tris } = areaTris[ai];
+      for (const t of ts) {
+        const o = t * 6;
+        terrain.clipTriangle([[tris[o], tris[o + 1]], [tris[o + 2], tris[o + 3]], [tris[o + 4], tris[o + 5]]], (piece) => {
+          const P = piece.map(([x, z]): Vec3 => [x, T(x, z) + yo, z]);
+          for (let q = 1; q < P.length - 1; q++) B.tri(P[0], P[q], P[q + 1], col, UP);
+        }, cells);
       }
     }
-    const seg = hw > 3 ? 12 : 8;
-    for (const [x, z] of pts) {
-      const B = chunk(x, z).ground;
-      const yc = T(x, z) + yo;
-      for (let s = 0; s < seg; s++) {
-        const a0 = (s / seg) * Math.PI * 2, a1 = ((s + 1) / seg) * Math.PI * 2;
-        const x0 = x + Math.cos(a0) * hw, z0 = z + Math.sin(a0) * hw, x1 = x + Math.cos(a1) * hw, z1 = z + Math.sin(a1) * hw;
-        B.tri([x, yc, z], [x0, T(x0, z0) + yo, z0], [x1, T(x1, z1) + yo, z1], col, UP);
+    for (const [si, segs, caps] of chunkStrips.get(k) ?? []) {
+      const { pts, hw, yo, col } = strips[si];
+      for (const i of segs) {
+        const [ax, az] = pts[i], [bx, bz] = pts[i + 1];
+        const dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz);
+        const nx = (-dz / len) * hw, nz = (dx / len) * hw;
+        const n = Math.max(1, Math.ceil(len / STEP));
+        for (let s = 0; s < n; s++) {
+          const t0 = s / n, t1 = (s + 1) / n;
+          const x0 = ax + dx * t0, z0 = az + dz * t0, x1 = ax + dx * t1, z1 = az + dz * t1;
+          const p = (x: number, z: number): Vec3 => [x, T(x, z) + yo, z];
+          B.quad(p(x0 + nx, z0 + nz), p(x1 + nx, z1 + nz), p(x1 - nx, z1 - nz), p(x0 - nx, z0 - nz), col, UP);
+        }
+      }
+      const seg = hw > 3 ? 12 : 8;
+      for (const i of caps) {
+        const [x, z] = pts[i];
+        const yc = T(x, z) + yo;
+        for (let s = 0; s < seg; s++) {
+          const a0 = (s / seg) * Math.PI * 2, a1 = ((s + 1) / seg) * Math.PI * 2;
+          const x0 = x + Math.cos(a0) * hw, z0 = z + Math.sin(a0) * hw, x1 = x + Math.cos(a1) * hw, z1 = z + Math.sin(a1) * hw;
+          B.tri([x, yc, z], [x0, T(x0, z0) + yo, z0], [x1, T(x1, z1) + yo, z1], col, UP);
+        }
       }
     }
+    return B.empty ? null : B.build();
   };
   const roadList = data.roads.map((r) => ({ ...r, pts: toPts(r.p), kind: roadKind(r.k) }));
   type Building = (typeof buildings)[number];
@@ -1084,11 +1146,16 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   };
   const out: ChunkDesc[] = [];
   let treeCount = 0, carCount = 0;
-  for (const [k, tm] of terrainMeshes) {
+  const stream = !!opts.stream;
+  for (const [k, tm] of terrainChunks) {
     const c = chunks.get(k);
-    const d: ChunkDesc = { rect: tm.rect, y: T((tm.rect[0] + tm.rect[2]) / 2, (tm.rect[1] + tm.rect[3]) / 2), terrainHi: tm.hi, terrainLo: tm.lo, ground: null, build: null, trees: null, forest: null, cyp: null, cars: null };
+    const d: ChunkDesc = {
+      k, rect: tm.rect, y: T((tm.rect[0] + tm.rect[2]) / 2, (tm.rect[1] + tm.rect[3]) / 2), terrainLo: tm.lo,
+      // streaming: built on demand near the camera (and once for the far-ground bake)
+      terrainHi: stream ? null : terrainHi(k), ground: stream ? null : buildGround(k),
+      build: null, trees: null, forest: null, cyp: null, cars: null,
+    };
     if (c) {
-      if (!c.ground.empty) d.ground = c.ground.build();
       if (!c.build.empty) d.build = c.build.build();
       d.trees = packSet(c.trees.filter((t) => t[3] >= 0), PAL.trees, PAL.forest, blobH);
       d.forest = packSet(c.trees.filter((t) => t[3] < 0), PAL.trees, PAL.forest, blobH);
@@ -1104,7 +1171,8 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     chunks: out,
     skirt: skirt.build(),
     roadList: roadList.map((r) => ({ k: r.k, w: r.w, b: r.b, kind: r.kind, pts: r.pts })),
-    stats: { buildings: buildings.length, trees: treeCount, parked: carCount, roads: roadList.length, chunks: chunks.size },
+    stats: { buildings: buildings.length, trees: treeCount, parked: carCount, roads: roadList.length, chunks: terrainChunks.size },
+    lazy: { terrainHi, ground: buildGround },
   };
 }
 
@@ -1155,10 +1223,12 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
 
   const lodChunks: LodChunk[] = [];
   for (const d of desc.chunks) {
-    const L: LodChunk = { rect: d.rect, y: d.y, terrainHi: new THREE.Mesh(geoFromData(d.terrainHi), groundMat), terrainLo: new THREE.Mesh(geoFromData(d.terrainLo), groundMat), ground: null, tex: null, hi: [], lo: [], far: [] };
-    L.terrainHi.receiveShadow = L.terrainLo.receiveShadow = true;
+    // (mesh creation order matters: three.js breaks depth ties by object id)
+    const L: LodChunk = { k: d.k, rect: d.rect, y: d.y, terrainHi: d.terrainHi ? new THREE.Mesh(geoFromData(d.terrainHi), groundMat) : null, terrainLo: new THREE.Mesh(geoFromData(d.terrainLo), groundMat), ground: null, tex: null, hi: [], lo: [], far: [] };
+    if (L.terrainHi) { L.terrainHi.receiveShadow = true; group.add(L.terrainHi); }
+    L.terrainLo.receiveShadow = true;
     L.terrainLo.visible = false;
-    group.add(L.terrainHi, L.terrainLo);
+    group.add(L.terrainLo);
     if (d.ground) {
       L.ground = new THREE.Mesh(geoFromData(d.ground), groundMat);
       L.ground.receiveShadow = true;
@@ -1189,17 +1259,21 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
   }
   group.add(new THREE.Mesh(geoFromData(desc.skirt), new THREE.MeshLambertMaterial({ vertexColors: true })));
 
-  const { updateLOD, bakeGround, setLODScale } = makeLOD(lodChunks, group, clippingPlanes);
-  return { group, updateLOD, bakeGround, setLODScale, roadList: desc.roadList, stats: desc.stats };
+  const lod = makeLOD(lodChunks, group, clippingPlanes, groundMat, desc.lazy, !!opts.stream);
+  // Object.assign keeps lod's getters live (a spread would copy their values once)
+  return Object.assign(lod, { group, roadList: desc.roadList, stats: desc.stats });
 }
 
-// LOD switching + far-ground baking. Kept outside buildCity so its closures
-// don't pin the build-time data (grids, builders, raw OSM) in memory.
+// LOD switching, far-ground baking and (memory saver) streaming of the detailed ground.
+// Kept outside computeCitySteps so its closures only pin what streaming needs
+// (desc.lazy: terrain, paint raster, area triangles, road strips), not the build-time data.
 interface LodChunk {
+  k: number;
   rect: Box;
   /** ground height at the chunk centre */
   y: number;
-  terrainHi: THREE.Mesh;
+  /** detailed terrain + draped ground; null while not built (streaming) */
+  terrainHi: THREE.Mesh | null;
   terrainLo: THREE.Mesh;
   ground: THREE.Mesh | null;
   /** baked far-ground texture */
@@ -1211,7 +1285,24 @@ interface LodChunk {
 
 export type City = ReturnType<typeof assembleCity>;
 
-function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes?: THREE.Plane[]) {
+function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THREE.Plane[] | undefined, groundMat: THREE.Material, lazy: CityDesc['lazy'], streamAtStart: boolean) {
+  let stream = streamAtStart;
+  // build / drop one chunk's detailed terrain and draped ground
+  function buildHi(L: LodChunk): void {
+    L.terrainHi = new THREE.Mesh(geoFromData(lazy.terrainHi(L.k)), groundMat);
+    L.terrainHi.receiveShadow = true;
+    group.add(L.terrainHi);
+    const g = lazy.ground(L.k);
+    if (g) {
+      L.ground = new THREE.Mesh(geoFromData(g), groundMat);
+      L.ground.receiveShadow = true;
+      group.add(L.ground);
+    }
+  }
+  function dropHi(L: LodChunk): void {
+    for (const m of [L.terrainHi, L.ground]) if (m) { m.removeFromParent(); m.geometry.dispose(); }
+    L.terrainHi = L.ground = null;
+  }
   // Bake each chunk's draped ground (land use + roads) into a texture for the
   // coarse far-away terrain, so distant chunks cost a few thousand triangles.
   function bakeGround(renderer: THREE.WebGLRenderer, res = 512): void {
@@ -1236,6 +1327,9 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes?: THR
     const qCam = new THREE.Camera();
     for (const L of lodChunks) {
       const [x0, z0, x1, z1] = L.rect;
+      const temp = !L.terrainHi; // streaming: build it just for the bake
+      if (temp) buildHi(L);
+      const hiMesh = L.terrainHi!;
       const rt = new THREE.WebGLRenderTarget(res, res, { depthBuffer: false });
       rt.texture.colorSpace = THREE.SRGBColorSpace;
       rt.texture.generateMipmaps = true;
@@ -1246,10 +1340,10 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes?: THR
       cam.position.set(cx, 3000, cz);
       cam.lookAt(cx, 0, cz);
       cam.updateProjectionMatrix();
-      bakeScene.add(L.terrainHi);
+      bakeScene.add(hiMesh);
       if (L.ground) bakeScene.add(L.ground);
-      const hv = L.terrainHi.visible, gv = L.ground ? L.ground.visible : false;
-      L.terrainHi.visible = true;
+      const hv = hiMesh.visible, gv = L.ground ? L.ground.visible : false;
+      hiMesh.visible = true;
       if (L.ground) L.ground.visible = true;
       renderer.setRenderTarget(big);
       renderer.setClearColor(PAL.ground, 1);
@@ -1257,10 +1351,11 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes?: THR
       renderer.render(bakeScene, cam);
       renderer.setRenderTarget(rt);
       renderer.render(qScene, qCam);
-      L.terrainHi.visible = hv;
+      hiMesh.visible = hv;
       if (L.ground) L.ground.visible = gv;
-      group.add(L.terrainHi);
+      group.add(hiMesh);
       if (L.ground) group.add(L.ground);
+      if (temp) dropHi(L);
       L.tex = rt;
       const far = new THREE.MeshLambertMaterial({ map: rt.texture, clippingPlanes });
       far.onBeforeCompile = (sh) => groundShader(sh, false);
@@ -1277,8 +1372,12 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes?: THR
   const LOD0 = { treesHi: 1250, treesLo: 3600, ground: 4300 };
   const LOD = { ...LOD0 };
   function setLODScale(k: number): void { for (const key of Object.keys(LOD0) as (keyof typeof LOD0)[]) LOD[key] = LOD0[key] * k; }
+  // streaming queue: chunks that need their detailed ground, nearest first
+  const want: { L: LodChunk; d: number }[] = [];
+  let pending = false;
   function updateLOD(camera: THREE.Camera): void {
     const p = camera.position;
+    want.length = 0;
     for (const L of lodChunks) {
       const [x0, z0, x1, z1] = L.rect;
       tmp.set(Math.min(Math.max(p.x, x0), x1), L.y, Math.min(Math.max(p.z, z0), z1));
@@ -1287,11 +1386,38 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes?: THR
       for (const m of L.hi) m.visible = lvl === 0;
       for (const m of L.lo) m.visible = lvl === 1;
       for (const m of L.far) m.visible = lvl === 2;
-      const farGround = L.tex && d > LOD.ground;
-      L.terrainHi.visible = !farGround;
+      if (L.tex) {
+        // memory saver: detail only near the camera (dropped a bit further out, so it doesn't flicker)
+        if (!L.terrainHi && (!stream || d <= LOD.ground)) want.push({ L, d });
+        else if (L.terrainHi && stream && d > LOD.ground * 1.25) dropHi(L);
+      }
+      const farGround = !L.terrainHi || (L.tex && d > LOD.ground);
+      if (L.terrainHi) L.terrainHi.visible = !farGround;
       if (L.ground) L.ground.visible = !farGround;
       L.terrainLo.visible = !!farGround;
     }
+    // build a few per call (about 6 ms), nearest first; the rest next frame
+    want.sort((a, b) => a.d - b.d);
+    const t0 = performance.now();
+    let built = 0;
+    for (const { L } of want) {
+      if (built > 0 && performance.now() - t0 > 6) break;
+      buildHi(L);
+      L.terrainHi!.visible = true;
+      if (L.ground) L.ground.visible = true;
+      L.terrainLo.visible = false;
+      built++;
+    }
+    pending = built < want.length;
   }
-  return { updateLOD, bakeGround, setLODScale };
+  return {
+    updateLOD, bakeGround, setLODScale,
+    /** detailed ground still waiting to be built: call updateLOD again next frame */
+    get streamPending(): boolean { return pending; },
+    /** memory saver on/off (off builds the missing chunks progressively) */
+    setStreaming(on: boolean): void { stream = on; pending = true; },
+    get streaming(): boolean { return stream; },
+    /** how many chunks have their detailed ground built (for checks) */
+    get hiChunks(): number { return lodChunks.filter((L) => L.terrainHi).length; },
+  };
 }

@@ -40,6 +40,7 @@ npm run data         # data/skopje_raw.json (+ data/aerialway.json) → public/s
 | `weather.ts` | Falling rain and snow: GPU-animated quads in a camera-following box (colour pass only) |
 | `atmos.ts` | Translucent clouds (shadows computed in post), bird flocks |
 | `traffic.ts` | Animated cars/buses/people on OSM paths, headlights |
+| `drive.ts` | Drivable ЈСП double-decker: arcade handling, soft kerb on a road-segment grid, chase camera (shares the flight HUD) |
 | `flight.ts` | Arcade plane (Macedonian-flag livery), chase camera, keyboard/pad input, invert-Y |
 | `game.ts` | Optional ring race over landmarks, 091 balloons, best time |
 | `landmarks.ts` | Hand-built models: Millennium Cross lattice, Warrior on a Horse, Stone Bridge, Porta Macedonia, Vodno gondola |
@@ -81,6 +82,11 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
 - Quality: `auto` drops to the low tier (no MSAA/AO/cloud shadows, 1024 shadows, two extra
   resolution steps) when already at the lowest resolution and still slow; `low` forces it.
   Less traffic is a manual option only.
+- Memory saver (`stream`): draped ground and detailed terrain are built per chunk on demand
+  (`desc.lazy`, `makeLOD`). The per-chunk builder must emit triangles in the same order as one
+  global pass, and meshes must be created in the same order (three.js breaks depth ties by
+  object id): desktop output is pixel-identical to the old global build.
+- Links: `#@lat,lon,distance,tilt°,heading°` kept in the address bar (replaceState), or a view name.
 - Version lives in `package.json` (`version`); Vite injects it as `__APP_VERSION__`, shown at
   the bottom of the help dialog. Releases are tagged `vX.Y.Z`.
 

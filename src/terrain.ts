@@ -110,21 +110,24 @@ export class Terrain {
   }
 
   // Clip a 2D triangle to grid cells + diagonals so each piece lies on one
-  // terrain triangle; emit(piecePolygon[[x,z]...], i, j)
-  clipTriangle(t: Pt[], emit: (piece: Pt[], i: number, j: number) => void): void {
+  // terrain triangle; emit(piecePolygon[[x,z]...], i, j). `cells` = [i0, j0, i1, j1]
+  // limits the work to those cells (one chunk), in the same order.
+  clipTriangle(t: Pt[], emit: (piece: Pt[], i: number, j: number) => void, cells?: [number, number, number, number]): void {
     const cs = this.cell;
     const xs = [t[0][0], t[1][0], t[2][0]], zs = [t[0][1], t[1][1], t[2][1]];
     const ci0 = Math.max(0, Math.floor((Math.min(...xs) - this.x0) / cs));
     const ci1 = Math.min(this.nx - 2, Math.floor((Math.max(...xs) - this.x0) / cs));
     const cj0 = Math.max(0, Math.floor((Math.min(...zs) - this.z0) / cs));
     const cj1 = Math.min(this.nz - 2, Math.floor((Math.max(...zs) - this.z0) / cs));
-    for (let j = cj0; j <= cj1; j++) {
+    const ia = cells ? Math.max(ci0, cells[0]) : ci0, ib = cells ? Math.min(ci1, cells[2]) : ci1;
+    const ja = cells ? Math.max(cj0, cells[1]) : cj0, jb = cells ? Math.min(cj1, cells[3]) : cj1;
+    for (let j = ja; j <= jb; j++) {
       // clip to row first
       const zA = this.z0 + j * cs, zB = zA + cs;
       let row = clip(t, 0, -1, -zA);
       row = clip(row, 0, 1, zB);
       if (row.length < 3) continue;
-      for (let i = ci0; i <= ci1; i++) {
+      for (let i = ia; i <= ib; i++) {
         const xA = this.x0 + i * cs, xB = xA + cs;
         let p = clip(row, -1, 0, -xA);
         p = clip(p, 1, 0, xB);

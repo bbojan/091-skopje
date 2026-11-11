@@ -9,6 +9,7 @@ import { Terrain } from './terrain.ts';
 import { InkRenderer } from './post.ts';
 import { createClouds, createBirds } from './atmos.ts';
 import { createFlight, type Flight } from './flight.ts';
+import { createDrive, type Drive } from './drive.ts';
 import { createGame, fmtTime, type Game } from './game.ts';
 import { createLandmarks } from './landmarks.ts';
 import { createLabels } from './labels.ts';
@@ -137,6 +138,7 @@ interface World {
   labels: ReturnType<typeof createLabels>;
   game: Game;
   flight: Flight;
+  drive: Drive;
 }
 let world: World | null = null;
 let live = true;
@@ -219,7 +221,7 @@ async function init(): Promise<void> {
   // build on the main thread in stages, letting the progress bar repaint between them
   // (a background worker gets throttled to a fraction of this speed)
   const terrain = new Terrain(tm, new Uint16Array(tb));
-  const steps = computeCitySteps(data, terrain, { density: MOBILE ? 0.5 : 1 });
+  const steps = computeCitySteps(data, terrain, { density: MOBILE ? 0.5 : 1, stream: memorySaver });
   let desc: CityDesc;
   for (;;) {
     const r = steps.next();
@@ -239,7 +241,7 @@ async function init(): Promise<void> {
   ink.setClipping(planes);
   showProgress('pack', 1);
   await nextFrame();
-  const city = assembleCity(desc, { clippingPlanes: planes });
+  const city = assembleCity(desc, { clippingPlanes: planes, stream: memorySaver });
   scene.add(city.group);
   if (MOBILE) city.setLODScale(0.65);
   showProgress('assemble', 1);
@@ -269,7 +271,8 @@ async function init(): Promise<void> {
   ink.skipNormal.push(game.beam);
   const flight = createFlight({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 } });
   flight.setInvertY(invertBox.checked);
-  world = { terrain, meta, city, traffic, clouds, birds, lamps, precip, landmarks, labels, game, flight };
+  const drive = createDrive({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, roads: city.roadList });
+  world = { terrain, meta, city, traffic, clouds, birds, lamps, precip, landmarks, labels, game, flight, drive };
   console.log('city ready in', Math.round(performance.now() - t0), 'ms', city.stats, traffic.counts);
 
   const maxTex = renderer.capabilities.maxTextureSize;
@@ -290,7 +293,9 @@ async function init(): Promise<void> {
     vodno: { t: at(41.9725, 21.4020), d: 3600, polar: 1.02, az: Math.PI - 0.25 },
     overview: { t: [0, 60, 600], d: 19000, polar: 0.7, az: 0 },
   } satisfies Record<string, View>);
-  setView(location.hash.slice(1) || 'center');
+  applyHash() || setView('center');
+  // memory saver: build the detailed ground around the first view before showing it
+  for (let i = 0; i < 400; i++) { city.updateLOD(camera); if (!city.streamPending) break; await nextFrame(); }
   showProgress('bake', 1);
   status.textContent = '';
   loader.classList.add('done');
@@ -305,6 +310,41 @@ function setView(name: string): void {
   camDirty = true;
 }
 window.setView = setView;
+
+// ---------------- shareable links: #@lat,lon,distance m,tilt °,heading ° (or a view name: #kale)
+const deg = THREE.MathUtils.radToDeg, rad = THREE.MathUtils.degToRad;
+function cameraHash(): string {
+  if (!world) return '';
+  const { meta } = world, tg = controls.target;
+  const sph = new THREE.Spherical().setFromVector3(camera.position.clone().sub(tg));
+  const lat = meta.lat0 - tg.z / meta.ky, lon = meta.lon0 + tg.x / meta.kx;
+  return `@${lat.toFixed(5)},${lon.toFixed(5)},${Math.round(sph.radius)},${deg(sph.phi).toFixed(1)},${deg(sph.theta).toFixed(1)}`;
+}
+/** Applies the address-bar hash; false when there is nothing usable in it. */
+function applyHash(): boolean {
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (!h || !world) return false;
+  if (!h.startsWith('@')) { if (!VIEWS[h]) return false; setView(h); return true; }
+  const [lat, lon, d, tilt, heading] = h.slice(1).split(',').map(Number);
+  if (![lat, lon, d, tilt, heading].every(Number.isFinite)) return false;
+  const { meta, terrain } = world;
+  const x = (lon - meta.lon0) * meta.kx, z = -(lat - meta.lat0) * meta.ky;
+  if (Math.abs(x) > meta.w / 2 || Math.abs(z) > meta.h / 2) return false;
+  controls.target.set(x, terrain.at(x, z), z);
+  const dist = THREE.MathUtils.clamp(d, controls.minDistance, controls.maxDistance);
+  camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(new THREE.Spherical(dist, THREE.MathUtils.clamp(rad(tilt), 0.05, controls.maxPolarAngle), rad(heading))));
+  controls.update();
+  camDirty = true;
+  return true;
+}
+// keep the address bar on the current view once the user moves (no history entries)
+let hashMoved = false, hashTimer = 0, hashOwn = '';
+const scheduleHash = () => {
+  clearTimeout(hashTimer);
+  hashTimer = setTimeout(() => { hashOwn = '#' + cameraHash(); history.replaceState(null, '', hashOwn); }, 600);
+};
+controls.addEventListener('start', () => (hashMoved = true));
+addEventListener('hashchange', () => { if (location.hash !== hashOwn) applyHash(); });
 
 // ---------------- time of day
 let timeName: TimeName = 'day';
@@ -398,6 +438,33 @@ qualityBtn.addEventListener('click', () => {
   setLowTier(qualityMode === 'low');
   qualityBtn.textContent = qualityLabel();
 });
+// copy (or, on phones, share) a link to the current view
+const shareBtn = $('share');
+shareBtn.textContent = t('share');
+shareBtn.addEventListener('click', async () => {
+  if (!world) return;
+  hashOwn = '#' + cameraHash();
+  history.replaceState(null, '', hashOwn);
+  const url = location.href;
+  try {
+    if (MOBILE && navigator.share) { await navigator.share({ title: document.title, url }); return; }
+    await navigator.clipboard.writeText(url);
+    shareBtn.textContent = t('share.copied');
+    setTimeout(() => (shareBtn.textContent = t('share')), 1600);
+  } catch { /* share sheet closed or clipboard refused: the link is still in the address bar */ }
+});
+// memory saver (streaming): detailed ground only near the camera; on by default on phones
+let memorySaver = MOBILE;
+try { const v = localStorage.getItem('skopje.memorySaver'); if (v) memorySaver = v === '1'; } catch { /* storage unavailable */ }
+const streamBtn = $('stream');
+streamBtn.classList.toggle('off', !memorySaver);
+streamBtn.addEventListener('click', () => {
+  memorySaver = !memorySaver;
+  streamBtn.classList.toggle('off', !memorySaver);
+  world?.city.setStreaming(memorySaver);
+  try { localStorage.setItem('skopje.memorySaver', memorySaver ? '1' : '0'); } catch { /* storage unavailable */ }
+  camDirty = true;
+});
 // less traffic: an option only, never switched on automatically
 let lightTraffic = false;
 try { lightTraffic = localStorage.getItem('skopje.lightTraffic') === '1'; } catch { /* storage unavailable */ }
@@ -475,15 +542,19 @@ for (const p of popups) {
     p.btn.setAttribute('aria-expanded', String(open));
   });
 }
-// Overview, weather, season and language sit on the bar on desktop and inside the menus on phones
+// Overview, weather, season, bus and language sit on the bar on desktop and inside the menus on
+// phones; on desktop the copy-link item is first in the options menu
 // (same breakpoint as the phone styles in index.html)
 const PHONE = matchMedia('(max-width: 560px), (orientation: portrait) and (any-pointer: coarse) and (max-width: 1180px)');
 const overviewBtn = document.querySelector<HTMLElement>('[data-view="overview"]')!;
 const langBox = document.querySelector<HTMLElement>('.bar .lang')!;
 function placeBarItems(): void {
   const places = $('places'), tools = $('tools');
-  if (PHONE.matches) { places.append(overviewBtn); tools.prepend(weatherBtn); $('live').after(seasonBtn); tools.append(langBox); }
-  else { places.after(overviewBtn); timeBtn.after(weatherBtn); weatherBtn.after(seasonBtn); tools.after(langBox); }
+  const busBtn = $('bus');
+  const shareItem = $('share');
+  // phones: weather, season, bus and copy link first in the options menu
+  if (PHONE.matches) { places.append(overviewBtn); tools.prepend(weatherBtn, seasonBtn, busBtn, shareItem); tools.append(langBox); }
+  else { places.after(overviewBtn); $('fly').after(busBtn); timeBtn.after(weatherBtn); weatherBtn.after(seasonBtn); tools.prepend(shareItem); tools.after(langBox); }
 }
 placeBarItems();
 PHONE.addEventListener('change', () => { closePopups(); placeBarItems(); });
@@ -556,7 +627,7 @@ $('fly-again').addEventListener('click', () => { flyResult.hidden = true; startR
 $('fly-free').addEventListener('click', () => { race = false; try { localStorage.setItem('skopje.race', '0'); } catch { /* storage unavailable */ } applyRace(); });
 const lastShadowAt = new THREE.Vector3(1e9, 0, 0);
 function startFlight(): void {
-  if (!world || world.flight.active) return;
+  if (!world || world.flight.active || world.drive.active) return;
   controls.enabled = false;
   if (race) startRace();
   else {
@@ -585,15 +656,44 @@ function stopFlight(): void {
   game.group.visible = false;
   camDirty = true;
 }
+// ---------------- drive a ЈСП double-decker (shares the flight HUD: speed, exit, arrows)
+function startDrive(): void {
+  if (!world || world.flight.active || world.drive.active) return;
+  const f = new THREE.Vector3().subVectors(controls.target, camera.position);
+  if (!world.drive.start(controls.target, Math.atan2(f.x, -f.z))) return; // no street nearby
+  closePopups();
+  controls.enabled = false;
+  document.body.classList.add('flying', 'driving');
+  flyHud.hidden = false;
+  flyResult.hidden = true;
+  world.game.group.visible = false;
+  if (!live) liveBtn.click();
+}
+function stopDrive(): void {
+  if (!world?.drive.active) return;
+  const { drive, terrain } = world;
+  const p = drive.pos;
+  drive.stop();
+  controls.target.set(p.x, terrain.at(p.x, p.z), p.z);
+  const dir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+  camera.position.copy(controls.target).addScaledVector(dir, 450);
+  controls.enabled = true;
+  controls.update();
+  document.body.classList.remove('flying', 'driving');
+  flyHud.hidden = true;
+  camDirty = true;
+}
+const stopVehicle = () => (world?.drive.active ? stopDrive() : stopFlight());
 $('fly').addEventListener('click', startFlight);
-$('fly-exit').addEventListener('click', stopFlight);
-addEventListener('keydown', (e) => { if (e.code === 'Escape' && world?.flight.active) stopFlight(); });
+$('bus').addEventListener('click', startDrive);
+$('fly-exit').addEventListener('click', stopVehicle);
+addEventListener('keydown', (e) => { if (e.code === 'Escape' && (world?.flight.active || world?.drive.active)) stopVehicle(); });
 // on-screen flight buttons: hold to press; on touch screens БРЗО is a toggle (tap on, tap off)
 flyHud.querySelectorAll<HTMLElement>('[data-k]').forEach((b) => {
   const k = b.dataset.k as 'left' | 'right' | 'up' | 'down' | 'boost';
   const set = (on: boolean) => {
     if (!world) return;
-    const { input } = world.flight;
+    const { input } = world.drive.active ? world.drive : world.flight;
     if (k === 'boost') { input.boost = on; b.setAttribute('aria-pressed', String(on)); } else input[k] = on ? 1 : 0;
     b.classList.toggle('on', on);
   };
@@ -625,6 +725,7 @@ onLangChange(() => {
   weatherBtn.textContent = t(`weather.${wxName}`);
   seasonBtn.textContent = t(`season.${seasonName}`);
   qualityBtn.textContent = qualityLabel();
+  shareBtn.textContent = t('share');
   raceBtn.textContent = raceLabel();
   if (loader.isConnected) loadText.textContent = t(`stage.${lastStage}`);
 });
@@ -637,7 +738,7 @@ $('help-close').addEventListener('click', () => help.close());
 help.addEventListener('click', (e) => { if (e.target === help) help.close(); });
 
 // keyboard + gamepad navigation on the map (flight has its own controls)
-const mapInput = createMapInput({ controls, camera, isActive: () => !!world && !world.flight.active && !document.querySelector('dialog[open]') });
+const mapInput = createMapInput({ controls, camera, isActive: () => !!world && !world.flight.active && !world.drive.active && !document.querySelector('dialog[open]') });
 const padPrev = { a: false, b: false, x: false, y: false, start: false };
 let padHintShown = false;
 addEventListener('gamepadconnected', (e) => console.log('gamepad:', e.gamepad.id, e.gamepad.mapping || 'non-standard (DirectInput)'));
@@ -646,14 +747,18 @@ const clock = new THREE.Clock();
 renderer.setAnimationLoop(() => {
   const dt = clock.getDelta();
   SHARED.uTime.value += dt;
-  if (world?.flight.active || live) governQuality(dt);
+  if (world?.flight.active || world?.drive.active || live) governQuality(dt);
   controls.update();
   if (!world) return; // set at the end of loading: everything exists
-  const { flight, game, terrain, city, traffic, clouds, birds, precip, landmarks, labels } = world;
+  const { flight, drive, game, terrain, city, traffic, clouds, birds, precip, landmarks, labels } = world;
   // ---- gamepad
   const pad = readPad();
   if (pad) {
-    if (flight.active) {
+    if (drive.active) {
+      drive.pad.turn = pad.lx;
+      drive.pad.throttle = pad.rt - pad.lt || -pad.ly;
+      if (pad.b && !padPrev.b) stopDrive();
+    } else if (flight.active) {
       flight.pad.turn = pad.lx;
       flight.pad.climb = -pad.ly;
       flight.pad.boost = pad.a || pad.rt > 0.3;
@@ -664,8 +769,10 @@ renderer.setAnimationLoop(() => {
     Object.assign(padPrev, { a: pad.a, b: pad.b, x: pad.x, y: pad.y, start: pad.start });
     if (!padHintShown) { padHintShown = true; document.body.classList.add('has-pad'); }
   } else if (flight.active) Object.assign(flight.pad, { turn: 0, climb: 0, boost: false });
+  else if (drive.active) Object.assign(drive.pad, { turn: 0, throttle: 0 });
   // ---- keyboard / pad map navigation; keep the orbit target on the ground
   if (mapInput.update(dt, pad)) {
+    hashMoved = true;
     const g = terrain.at(controls.target.x, controls.target.z);
     const dy = (g - controls.target.y) * Math.min(1, dt * 4);
     controls.target.y += dy;
@@ -693,6 +800,23 @@ renderer.setAnimationLoop(() => {
     applyTime(timeNow, wxNow, world);
     fitShadow(flight.active ? 1100 : undefined);
     ink.reset();
+  }
+  if (drive.active) {
+    drive.update(dt);
+    controls.target.copy(drive.pos); // drives shadows, LOD and traffic sizing
+    updateCameraRange();
+    city.updateLOD(camera);
+    if (drive.pos.distanceTo(lastShadowAt) > 60) { fitShadow(400); lastShadowAt.copy(drive.pos); }
+    ink.reset();
+    flyStats.textContent = `${drive.kmh} ${t('u.kmh')}`;
+    if (flyWarn.textContent) flyWarn.textContent = '';
+    traffic.update(dt, camera, controls.target);
+    clouds.update(dt);
+    birds.update(dt);
+    landmarks.update(dt);
+    precip.update(dt, camera, controls.target);
+    ink.render(scene, camera, true);
+    return;
   }
   if (flight.active) {
     flight.update(dt);
@@ -738,8 +862,10 @@ renderer.setAnimationLoop(() => {
     ink.render(scene, camera, true);
     return;
   }
+  if (city.streamPending) { city.updateLOD(camera); ink.reset(); } // detailed ground still arriving
   if (camDirty) {
     camDirty = false;
+    if (hashMoved) scheduleHash();
     updateCameraRange();
     city.updateLOD(camera);
     fitShadow();

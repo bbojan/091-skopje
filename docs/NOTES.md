@@ -36,6 +36,11 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    cypresses keep `aEvergreen`), automatic low quality tier + ⚡ Quality option, 🚗 less
    traffic option, labels for Telecom centre, Daut Pasha Hamam, Св. Спас, City Mall,
    railway station; Kale label on the fortress.
+11. **v1.7.0** (Nov 2026): shareable links (`#@lat,lon,distance,tilt,heading`, 🔗 copy/share), railway
+   station model (Kenzo Tange), red ЈСП buses (half double-deckers), drivable ЈСП
+   double-decker (🚌, `drive.ts`, rounded model shared with traffic), 💾 memory saver:
+   detailed ground streamed per chunk; desktop menu: copy link first; phone menu: weather,
+   season, bus, copy link first.
 
 ## Key decisions (and why)
 
@@ -158,6 +163,8 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 - Real gamepads — only a simulated XInput pad; DirectInput axis layout is a heuristic.
 - The automatic switch to the low quality tier on a really slow device (logic only; the
   low tier itself was measured: 10.9 → 4.7 ms GPU on the Square view at 1600×1000).
+- Memory saver and bus driving on a real phone (memory measured in Node, driving tested
+  with simulated keys on desktop).
 - `prepare.ts` place lookup by OSM id (`PLACE_IDS`) and the Kale name fix — they take
   effect on the next `npm run data`; labels use hard-coded positions until then.
 - Weather on a real phone (particle count is lowered on `MOBILE`, not measured there), and
@@ -165,11 +172,13 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 
 ## Backlog / ideas
 
-- Stream chunks on demand (build full detail only near the camera) — the real fix
-  for iOS memory if the mobile profile is still too heavy.
-- Shareable links with camera position in the URL hash.
-- 3D models for the new labelled landmarks (hamam domes, Telecom centre); they are
-  drawn as ordinary OSM buildings for now.
+- Memory saver (done): draped ground + detailed terrain are built per chunk near the camera
+  (`lazy.ground/terrainHi`, `makeLOD`), on by default on phones. At the Square view a phone
+  keeps 37 of 204 chunks = 213 MB instead of 568 MB; the overview keeps none.
+  Buildings (119 MB) and trees are still built for the whole map.
+- 3D models for the hamam (domes) and the Telecom centre; they are ordinary OSM buildings
+  for now (the railway station has its model, `MODELLED_BUILDINGS` in `city.ts`).
+- Bus mode extras: bus stops, a route to follow, a horn; gamepad button to start the bus.
 - Facade variety by building type (shops, schools, churches), roof-top terraces.
 - `npm run download` should also fetch `data/aerialway.json`.
 
@@ -195,7 +204,10 @@ and LOD scale 0.65. Everything else costs the same on every device. Plan, in ord
 3. ✅ **Lighter traffic CPU** — done as a manual option only (🚗, `traffic.setLight`;
    0.52 → 0.11 ms per frame on desktop). Was: 6.5k cars + 15k people are moved in JS every frame
    (`traffic.ts`). Update half per frame, fewer agents, or animate on the GPU.
-4. **Faster loading on phones** (bigger): parsing the 7 MB `skopje.json` and building the
+4. ❌ **Prebuilt city data** — measured, not viable: the built geometry is ~744 MB (ground
+   480 MB, buildings 119 MB, detailed terrain 88 MB) vs 1.8 MB gzipped `skopje.json`, so
+   phones would download hundreds of MB. The memory saver gets the memory win instead.
+   Was — **Faster loading on phones** (bigger): parsing the 7 MB `skopje.json` and building the
    city on the main thread is most of the load time. Prebuild the chunk geometry in Node
    (`computeCitySteps` output → binary files) so phones only download and upload buffers;
    also cuts peak memory (iOS Safari limits).
