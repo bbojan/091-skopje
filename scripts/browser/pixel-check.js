@@ -2,8 +2,8 @@
 // Paste into the browser console on the dev server (or run it with a browser tool), then:
 //   await __px.record()    // BEFORE the change: saves 9 reference renders in IndexedDB 'px-ref'
 //   await __px.compare()   // AFTER the change (reload first): diffs the same 9 renders
-// Renders day / sunset / night × center / kale / overview at 960×600, with traffic and birds
-// hidden, clouds parked, the shader clock fixed and 24 accumulated frames, so two runs of
+// Renders day / sunset / night × center / kale / overview at 960×600, with traffic, birds and
+// paragliders hidden, clouds parked, the shader clock fixed and 24 accumulated frames, so two runs of
 // the same code match exactly. Only the gondola cabins (moving landmark) may differ a little.
 // The page must be visible (front tab, pane shown): it waits for the app's own frames, and a
 // hidden page gets none. Takes ~12 s for record + compare. Reload afterwards (it hides traffic).
@@ -41,6 +41,7 @@
     const w = __dbg.world, live = document.getElementById('live');
     if (live.getAttribute('aria-pressed') === 'true') live.click(); // stop traffic and clouds moving
     w.traffic.group.visible = false; w.birds.group.visible = false;
+    if (w.gliders) w.gliders.group.visible = false; // paragliders (not in versions before 2.4)
     w.clouds.group.children.forEach((m, i) => m.position.set(-6500 + (i % 6) * 2400, 1100 + i * 6, -4500 + Math.floor(i / 6) * 1600));
     w.clouds.update(0);
   };

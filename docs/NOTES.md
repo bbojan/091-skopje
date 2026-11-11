@@ -65,6 +65,10 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    leaves a burnt patch: charred trees and sooty ground, a colour-only tint in the tree and
    ground shaders (`SHARED.uBurn`, up to 6 patches, skipped while `uBurnOn` is 0, cleared when
    the mode ends). Stepping harness for it: `scripts/browser/fire-harness.js`.
+18. **v2.5.0** (Nov 2026): paragliders soaring over the north slope of Vodno (`createParagliders`
+   in `atmos.ts`): 8 (5 on `MOBILE`), each circling in its own thermal, grown with the zoom like
+   the birds; they stay down at night and in rain or snow. The pixel check hides them, like the
+   birds.
 
 ## Key decisions (and why)
 

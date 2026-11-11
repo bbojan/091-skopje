@@ -17,7 +17,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 - Ink outlines, soft ambient occlusion and temporal supersampling for smooth edges
 
 **Time, weather and seasons**
-- Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, flowing river
+- Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, paragliders over Vodno, flowing river
 - Weather: clear, rain (wet streets, puddles, umbrellas), snow, or snow only on Vodno
 - Seasons: summer, autumn colours, bare winter trees, spring blossom — the default follows the month
 

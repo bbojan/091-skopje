@@ -7,7 +7,7 @@ import { createPrecip, type Precip } from './weather.ts';
 import { createTraffic } from './traffic.ts';
 import { Terrain } from './terrain.ts';
 import { InkRenderer } from './post.ts';
-import { createClouds, createBirds } from './atmos.ts';
+import { createClouds, createBirds, createParagliders } from './atmos.ts';
 import { createFlight, BANNER_TEXT, type Flight } from './flight.ts';
 import { createDrive, type Drive } from './drive.ts';
 import { createWalk, type Walk, type WalkAction } from './walk.ts';
@@ -138,6 +138,7 @@ interface World {
   traffic: ReturnType<typeof createTraffic>;
   clouds: ReturnType<typeof createClouds>;
   birds: ReturnType<typeof createBirds>;
+  gliders: ReturnType<typeof createParagliders>;
   lamps: ReturnType<typeof createLamps>;
   precip: Precip;
   landmarks: ReturnType<typeof createLandmarks>;
@@ -262,14 +263,17 @@ async function init(): Promise<void> {
   scene.add(traffic.group);
   const clouds = createClouds({ hw: W / 2, hh: H / 2 }, 1080);
   const birds = createBirds(terrain, { hw: W / 2, hh: H / 2 }, planes);
-  scene.add(clouds.group, birds.group);
+  // paragliders over Vodno, below the Millennium Cross
+  const vodnoCross = (data.crosses || []).find((c) => /Millennium|Милениум/.test(c.name)) ?? { x: -2736, z: 4451 };
+  const gliders = createParagliders(terrain, vodnoCross, planes, MOBILE ? 5 : 8);
+  scene.add(clouds.group, birds.group, gliders.group);
   ink.compMat.uniforms.clouds.value = clouds.uniforms;
   const lamps = createLamps(city.roadList, terrain, { hw: W / 2, hh: H / 2 }, planes);
   scene.add(lamps.group);
   const precip = createPrecip({ hw: W / 2, hh: H / 2 }, MOBILE ? 9000 : 24000);
   scene.add(precip.mesh);
   ink.skipNormal.push(...lamps.glows, ...traffic.glows, clouds.group, precip.mesh); // soft, see-through: no ink lines
-  applyTime(timeNow, wxNow, { clouds, lamps, traffic, precip });
+  applyTime(timeNow, wxNow, { clouds, lamps, traffic, precip, gliders });
   const landmarks = createLandmarks({ data, terrain, clippingPlanes: planes });
   const labels = createLabels({ meta, terrain, crosses: data.crosses || [], places: data.places || {}, container: $('labels') });
   try { labels.enabled = localStorage.getItem('skopje.labels') !== '0'; } catch { /* storage unavailable */ }
@@ -302,7 +306,7 @@ async function init(): Promise<void> {
     hooks: { nearestBus: traffic.nearestBus, startOro: traffic.startOro, stopOro: traffic.stopOro, scatter: traffic.scatter, startle: birds.startle },
   });
   walk.setInvertY(invertBox.checked);
-  world = { terrain, meta, city, traffic, clouds, birds, lamps, precip, landmarks, labels, game, fire, flight, drive, walk, planeSpot };
+  world = { terrain, meta, city, traffic, clouds, birds, gliders, lamps, precip, landmarks, labels, game, fire, flight, drive, walk, planeSpot };
   console.log('city ready in', Math.round(performance.now() - t0), 'ms', city.stats, traffic.counts);
 
   const maxTex = renderer.capabilities.maxTextureSize;
@@ -404,7 +408,7 @@ try { const saved = localStorage.getItem('skopje.season'); if (saved && saved in
 let seasonNow: Season = SEASONS[seasonName];
 let seasonTween: { from: Season; to: Season; t: number } | null = null;
 /** Lights, colours, night and weather effects; the effects that exist yet are passed in. */
-function applyTime(p: TimeState, w: Weather, fx: (Pick<World, 'clouds' | 'lamps' | 'traffic' | 'precip'> & { fire?: FireMode }) | null): void {
+function applyTime(p: TimeState, w: Weather, fx: (Pick<World, 'clouds' | 'lamps' | 'traffic' | 'precip' | 'gliders'> & { fire?: FireMode }) | null): void {
   const paper = overcastColor(p.paper.clone(), w), haze = overcastColor(p.haze.clone(), w);
   SUN_DIR.copy(p.sunDir);
   sun.color.copy(overcastColor(p.sun.clone(), w, w.grey * 0.6)); sun.intensity = p.sunI * w.sun;
@@ -436,6 +440,7 @@ function applyTime(p: TimeState, w: Weather, fx: (Pick<World, 'clouds' | 'lamps'
     fx.traffic.setWeather(w.rain, w.snowfall);
     fx.precip.set(w.rain, w.snowfall);
     fx.precip.setColors(haze.clone().lerp(new THREE.Color('#ffffff'), 0.35), new THREE.Color('#ffffff').multiplyScalar(1 - 0.55 * p.night));
+    fx.gliders.setConditions(p.night, w.rain, w.snowfall);
     fx.fire?.setNight(p.night);
     fx.fire?.setRain(w.rain);
   }
@@ -988,7 +993,7 @@ renderer.setAnimationLoop(() => {
   if (world?.flight.active || world?.drive.active || world?.walk.active || live) governQuality(dt);
   controls.update();
   if (!world) return; // set at the end of loading: everything exists
-  const { flight, drive, walk, game, terrain, city, traffic, clouds, birds, precip, landmarks, labels } = world;
+  const { flight, drive, walk, game, terrain, city, traffic, clouds, birds, gliders, precip, landmarks, labels } = world;
   // ---- gamepad
   const pad = readPad();
   if (pad) {
@@ -1060,6 +1065,7 @@ renderer.setAnimationLoop(() => {
     traffic.update(dt, camera, controls.target);
     clouds.update(dt);
     birds.update(dt);
+    gliders.update(dt);
     landmarks.update(dt);
     precip.update(dt, camera, controls.target);
     labels.update(camera, controls.target);
@@ -1078,6 +1084,7 @@ renderer.setAnimationLoop(() => {
     traffic.update(dt, camera, controls.target);
     clouds.update(dt);
     birds.update(dt);
+    gliders.update(dt);
     landmarks.update(dt);
     precip.update(dt, camera, controls.target);
     ink.render(scene, camera, true);
@@ -1147,6 +1154,7 @@ renderer.setAnimationLoop(() => {
     traffic.update(dt, camera, controls.target);
     clouds.update(dt);
     birds.update(dt);
+    gliders.update(dt);
     landmarks.update(dt);
     precip.update(dt, camera, controls.target);
     ink.render(scene, camera, true);
@@ -1164,7 +1172,9 @@ renderer.setAnimationLoop(() => {
   if (live) {
     traffic.update(dt, camera, controls.target);
     clouds.update(dt);
-    birds.update(dt, THREE.MathUtils.clamp(camera.position.distanceTo(controls.target) / 700, 1, 5));
+    const far = THREE.MathUtils.clamp(camera.position.distanceTo(controls.target) / 700, 1, 5); // birds and paragliders grow with the zoom
+    birds.update(dt, far);
+    gliders.update(dt, far);
     landmarks.update(dt);
     precip.update(dt, camera, controls.target);
   }

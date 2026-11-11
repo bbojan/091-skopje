@@ -39,7 +39,7 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | `post.ts` | `InkRenderer`: colour + normal/depth passes (one pass in the low tier or with smooth edges off: normals as a second attachment) → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
 | `sky.ts` | Day / sunset / night presets + blending, weather presets (`WEATHER`: clear, rain, snow, snow on Vodno) + blending, street lamps, glow texture |
 | `weather.ts` | Falling rain and snow: GPU-animated quads in a camera-following box (colour pass only) |
-| `atmos.ts` | Translucent clouds (shadows computed in post), bird flocks |
+| `atmos.ts` | Translucent clouds (shadows computed in post), bird flocks, paragliders over Vodno (by day in dry weather) |
 | `traffic.ts` | Animated cars/buses/people on OSM paths, headlights |
 | `walk.ts` | Walking as Итар Пејо / Шарпланинец: first/third person, companion, context action, info cards, building collision, surface height from the draped layers |
 | `drive.ts` | Drivable ЈСП double-decker: arcade handling, soft kerb on a road-segment grid, chase camera (shares the flight HUD) |

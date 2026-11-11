@@ -114,3 +114,76 @@ export function createBirds(terrain: Terrain, bounds: Bounds, clippingPlanes: TH
   function startle(x: number, z: number): void { for (const f of flocks) if (Math.hypot(f.x - x, f.z - z) < 500) f.scare = 1; }
   return { group: mesh, update, startle };
 }
+
+// Paragliders soaring over the north slope of Vodno, below the Millennium Cross: each
+// circles in its own thermal, banking into the turn, rising and sinking slowly.
+// They stay on the ground at night and in rain or snow.
+export function createParagliders(terrain: Terrain, cross: { x: number; z: number }, clippingPlanes: THREE.Plane[], count = 8) {
+  const rnd = mulberry32(1963);
+  // canopy: a curved wing (an arc band across the span, extruded along the chord), top at y = 0, nose toward -z
+  const R = 6.2, T = 0.38, A0 = (38 * Math.PI) / 180, A1 = Math.PI - A0, N = 18, CHORD = 2.6;
+  const band = new THREE.Shape();
+  for (let i = 0; i <= N; i++) { const a = A0 + ((A1 - A0) * i) / N; if (i) band.lineTo(Math.cos(a) * R, Math.sin(a) * R - R); else band.moveTo(Math.cos(a) * R, Math.sin(a) * R - R); }
+  for (let i = N; i >= 0; i--) { const a = A0 + ((A1 - A0) * i) / N; band.lineTo(Math.cos(a) * (R - T), Math.sin(a) * (R - T) - R); }
+  band.closePath();
+  const canopyGeo = new THREE.ExtrudeGeometry(band, { depth: CHORD, bevelEnabled: false }).translate(0, 0, -CHORD / 2);
+  // two tones: the middle panel and the tips are a darker shade of the wing's colour
+  const cp = canopyGeo.getAttribute('position'), shade = new Float32Array(cp.count * 3);
+  for (let i = 0; i < cp.count; i++) { const x = Math.abs(cp.getX(i)), v = x < 0.9 || x > 3.9 ? 0.42 : 1; shade.set([v, v, v], i * 3); }
+  canopyGeo.setAttribute('color', new THREE.BufferAttribute(shade, 3));
+  // rig: the pilot sitting below, and the lines up to the wing
+  const HANG = 7.4;
+  const parts: THREE.BufferGeometry[] = [
+    new THREE.CylinderGeometry(0.3, 0.34, 1.1, 8).rotateX(0.5).translate(0, -HANG, 0.1),
+    new THREE.SphereGeometry(0.24, 8, 6).translate(0, -HANG + 0.78, -0.12),
+  ];
+  const Y = new THREE.Vector3(0, 1, 0);
+  for (const side of [-1, 1]) for (const [x, z] of [[1.4, -0.7], [3.0, 0.7], [4.4, -0.3]]) {
+    const a = new THREE.Vector3(side * 0.28, -HANG + 0.45, 0), b = new THREE.Vector3(side * x, Math.sqrt((R - T) ** 2 - x * x) - R, z);
+    const line = new THREE.CylinderGeometry(0.035, 0.035, a.distanceTo(b), 4);
+    line.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(Y, b.clone().sub(a).normalize()));
+    parts.push(line.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2));
+  }
+  const rigGeo = mergeGeometries(parts);
+  const canopy = new THREE.InstancedMesh(canopyGeo, new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes }), count);
+  const rig = new THREE.InstancedMesh(rigGeo, new THREE.MeshLambertMaterial({ color: '#2f2622', clippingPlanes }), count);
+  rig.instanceMatrix = canopy.instanceMatrix; // one set of transforms for both
+  const colors = ['#d8322a', '#f2c84b', '#2f6fb5', '#e98a3a', '#3e9b5f', '#8a4fa3', '#f6f3ee', '#e0457b'];
+  const col = new THREE.Color();
+  const group = new THREE.Group();
+  for (const m of [canopy, rig]) { m.frustumCulled = false; m.castShadow = true; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); group.add(m); }
+
+  // thermals spread along the slope north of the cross (north is -z)
+  const gliders = Array.from({ length: count }, (_, i) => {
+    canopy.setColorAt(i, col.set(colors[i % colors.length]));
+    const cx = cross.x - 1300 + rnd() * 2700, cz = cross.z - 260 - rnd() * 1150;
+    const r = 70 + rnd() * 90;
+    return { cx, cz, r, w: (10 / r) * (rnd() < 0.5 ? 1 : -1), a: rnd() * 6.28, h: 110 + rnd() * 210, ph: rnd() * 6.28 };
+  });
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), roll = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(), Z = new THREE.Vector3(0, 0, 1);
+  let time = 0;
+  /** `scale` grows them with the zoom, like the birds, so they can be seen from afar */
+  function update(dt: number, scale = 1): void {
+    if (!canopy.visible) return;
+    time += dt;
+    const size = 1.5 * scale;
+    gliders.forEach((g, i) => {
+      g.a += g.w * dt;
+      // the thermal itself wanders a little
+      const cx = g.cx + Math.sin(time * 0.021 + g.ph) * 140, cz = g.cz + Math.cos(time * 0.017 + g.ph) * 90;
+      const x = cx + Math.cos(g.a) * g.r, z = cz + Math.sin(g.a) * g.r;
+      const y = Math.max(terrain.at(cx, cz) + g.h + Math.sin(time * 0.05 + g.ph) * 55, terrain.at(x, z) + 45);
+      const sg = Math.sign(g.w);
+      q.setFromAxisAngle(Y, Math.atan2(Math.sin(g.a) * sg, -Math.cos(g.a) * sg)); // nose (-z) along the circle
+      q.multiply(roll.setFromAxisAngle(Z, -sg * 0.3));                                // banked into the turn
+      canopy.setMatrixAt(i, m.compose(p.set(x, y, z), q, s.setScalar(size)));
+    });
+    canopy.instanceMatrix.needsUpdate = true;
+  }
+  update(0);
+  return {
+    group, update,
+    /** they fly by day in dry weather only (amounts 0…1) */
+    setConditions(night: number, rain: number, snowfall: number): void { canopy.visible = rig.visible = night < 0.5 && rain + snowfall < 0.25; },
+  };
+}
