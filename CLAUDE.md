@@ -84,7 +84,9 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   shaders: geometry changes would not match the ink normal pass. Cypresses carry
   `aEvergreen = 1`. Keep one tree material (a second one changes the draw order and pixels).
 - Quality: `auto` drops to the low tier (no MSAA/AO/cloud shadows, 1024 shadows, two extra
-  resolution steps) when already at the lowest resolution and still slow; `low` forces it.
+  resolution steps) when already at the lowest resolution and still slow; `low` forces it;
+  `high` keeps the full tier at the top resolution (no frame-time governor). The button cycles auto → high → low.
+- On/off options in ⚙ are switches: `class="switch"` + `aria-pressed`, set with `setOn()` in `main.ts`.
   Less traffic is a manual option only.
 - Memory saver (`stream`): draped ground and detailed terrain are built per chunk on demand
   (`desc.lazy`, `makeLOD`). The per-chunk builder must emit triangles in the same order as one

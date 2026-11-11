@@ -39,6 +39,8 @@ applyI18n();
 
 const app = $('app');
 const status = $('status');
+/** On/off options are drawn as switches (CSS `.switch`); the state lives in aria-pressed. */
+function setOn(btn: HTMLElement, on: boolean): void { btn.setAttribute('aria-pressed', String(on)); }
 
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 // Render resolution adapts to frame time. 1.5x is the top level: still frames
@@ -93,11 +95,13 @@ function setQuality(level: number): void {
   camDirty = true;
 }
 // Quality: 'auto' switches to the low tier by itself when the device is too slow;
-// 'low' always uses it. Low tier: no MSAA, no AO, no cloud shadows, 1024 shadow map,
+// 'high' keeps the full tier at the top resolution (no governor); 'low' always uses the low tier. Low tier: no MSAA, no AO, no cloud shadows, 1024 shadow map,
 // shorter tree detail distances, two extra resolution steps.
-type QualityMode = 'auto' | 'low';
+type QualityMode = 'auto' | 'high' | 'low';
+const QUALITY_ORDER: QualityMode[] = ['auto', 'high', 'low'];
 let qualityMode: QualityMode = 'auto';
-try { if (localStorage.getItem('skopje.quality') === 'low') qualityMode = 'low'; } catch { /* storage unavailable */ }
+try { const v = localStorage.getItem('skopje.quality'); if (v === 'low' || v === 'high') qualityMode = v; } catch { /* storage unavailable */ }
+if (qualityMode === 'high') { qLevel = 0; dpr = QUALITY[0]; renderer.setPixelRatio(dpr); renderer.setSize(innerWidth, innerHeight); }
 let lowTier = false;
 let shadowRes = 2048; // set from the device in init()
 function setLowTier(on: boolean): void {
@@ -116,7 +120,7 @@ function setLowTier(on: boolean): void {
 // frame-time governor: only while frames are rendered continuously and visible
 const perf = { avg: 1 / 60, sinceChange: 0 };
 function governQuality(dt: number): void {
-  if (document.hidden || dt > 0.25) return;
+  if (qualityMode === 'high' || document.hidden || dt > 0.25) return;
   perf.avg += (dt - perf.avg) * 0.05;
   perf.sinceChange += dt;
   if (perf.avg > 1 / 40 && perf.sinceChange > 2 && qLevel < QUALITY.length - 1) { setQuality(qLevel + 1); perf.sinceChange = 0; }
@@ -267,7 +271,7 @@ async function init(): Promise<void> {
   const landmarks = createLandmarks({ data, terrain, clippingPlanes: planes });
   const labels = createLabels({ meta, terrain, crosses: data.crosses || [], places: data.places || {}, container: $('labels') });
   try { labels.enabled = localStorage.getItem('skopje.labels') !== '0'; } catch { /* storage unavailable */ }
-  namesBtn.classList.toggle('off', !labels.enabled);
+  setOn(namesBtn, labels.enabled);
   scene.add(landmarks.group);
   try { await document.fonts.load("46px 'Rubik Mono One'"); } catch { /* font optional */ }
   const game = createGame({ terrain, meta, crosses: data.crosses || [], places: data.places || {}, clippingPlanes: planes });
@@ -448,13 +452,14 @@ const seasonBtn = $('season');
 seasonBtn.textContent = t(`season.${seasonName}`);
 seasonBtn.addEventListener('click', () => setSeason(SEASON_ORDER[(SEASON_ORDER.indexOf(seasonName) + 1) % SEASON_ORDER.length]));
 const qualityBtn = $('quality');
-const qualityLabel = () => t(qualityMode === 'low' ? 'quality.low' : lowTier ? 'quality.autoLow' : 'quality.auto');
+const qualityLabel = () => t(qualityMode !== 'auto' ? `quality.${qualityMode}` : lowTier ? 'quality.autoLow' : 'quality.auto');
 qualityBtn.textContent = qualityLabel();
 qualityBtn.addEventListener('click', () => {
-  qualityMode = qualityMode === 'auto' ? 'low' : 'auto';
+  qualityMode = QUALITY_ORDER[(QUALITY_ORDER.indexOf(qualityMode) + 1) % QUALITY_ORDER.length];
   try { localStorage.setItem('skopje.quality', qualityMode); } catch { /* storage unavailable */ }
-  perf.sinceChange = 0;
+  perf.sinceChange = 0; perf.avg = 1 / 60;
   setLowTier(qualityMode === 'low');
+  if (qualityMode === 'high') setQuality(0);
   qualityBtn.textContent = qualityLabel();
 });
 // copy (or, on phones, share) a link to the current view
@@ -476,10 +481,10 @@ shareBtn.addEventListener('click', async () => {
 let memorySaver = MOBILE;
 try { const v = localStorage.getItem('skopje.memorySaver'); if (v) memorySaver = v === '1'; } catch { /* storage unavailable */ }
 const streamBtn = $('stream');
-streamBtn.classList.toggle('off', !memorySaver);
+setOn(streamBtn, memorySaver);
 streamBtn.addEventListener('click', () => {
   memorySaver = !memorySaver;
-  streamBtn.classList.toggle('off', !memorySaver);
+  setOn(streamBtn, memorySaver);
   world?.city.setStreaming(memorySaver);
   try { localStorage.setItem('skopje.memorySaver', memorySaver ? '1' : '0'); } catch { /* storage unavailable */ }
   camDirty = true;
@@ -488,10 +493,10 @@ streamBtn.addEventListener('click', () => {
 let lightTraffic = false;
 try { lightTraffic = localStorage.getItem('skopje.lightTraffic') === '1'; } catch { /* storage unavailable */ }
 const trafficBtn = $('traffic');
-trafficBtn.classList.toggle('off', !lightTraffic);
+setOn(trafficBtn, lightTraffic);
 trafficBtn.addEventListener('click', () => {
   lightTraffic = !lightTraffic;
-  trafficBtn.classList.toggle('off', !lightTraffic);
+  setOn(trafficBtn, lightTraffic);
   world?.traffic.setLight(lightTraffic);
   try { localStorage.setItem('skopje.lightTraffic', lightTraffic ? '1' : '0'); } catch { /* storage unavailable */ }
   ink.reset();
@@ -585,7 +590,7 @@ document.querySelectorAll<HTMLElement>('[data-view]').forEach((b) => b.addEventL
 const inkBtn = $('ink');
 inkBtn.addEventListener('click', () => {
   ink.ink = !ink.ink;
-  inkBtn.classList.toggle('off', !ink.ink);
+  setOn(inkBtn, ink.ink);
   ink.reset();
 });
 const namesBtn = $('names');
@@ -593,14 +598,14 @@ namesBtn.addEventListener('click', () => {
   if (!world) return;
   const { labels } = world;
   labels.enabled = !labels.enabled;
-  namesBtn.classList.toggle('off', !labels.enabled);
+  setOn(namesBtn, labels.enabled);
   try { localStorage.setItem('skopje.labels', labels.enabled ? '1' : '0'); } catch { /* storage unavailable */ }
   labels.update(camera, controls.target);
 });
 const liveBtn = $('live');
 liveBtn.addEventListener('click', () => {
   live = !live;
-  liveBtn.classList.toggle('off', !live);
+  setOn(liveBtn, live);
   ink.reset();
 });
 $('shot').addEventListener('click', () => {

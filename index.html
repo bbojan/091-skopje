@@ -35,7 +35,12 @@
                     padding: 6px 12px; cursor: pointer; box-shadow: 1.5px 1.5px 0 rgba(31, 42, 68, 0.3); transition: background-color 0.15s, color 0.15s; }
       .bar button:hover { background: #fff; }
       .bar button:focus-visible { outline: 2px solid var(--wine); outline-offset: 2px; }
-      .bar button.off { opacity: 0.55; }
+      /* on/off options: a small embroidered-style switch after the text (state in aria-pressed) */
+      .bar button.switch { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+      .bar button.switch::after { content: ''; flex: none; width: 30px; height: 17px; box-sizing: border-box; border: 1.5px solid var(--indigo); border-radius: 9px;
+                                  background: radial-gradient(circle, var(--indigo) 0 4.5px, transparent 5.2px) no-repeat 1px 50% / 12px 12px, var(--linen);
+                                  transition: background-color 0.15s, background-position 0.15s; }
+      .bar button.switch[aria-pressed="true"]::after { background: radial-gradient(circle, var(--linen-hi) 0 4.5px, transparent 5.2px) no-repeat calc(100% - 1px) 50% / 12px 12px, var(--indigo); }
       .bar #fly { background: var(--wine); border-color: var(--wine); color: var(--linen-hi); }
       .bar #fly:hover { background: #8e2a23; }
       .bar .lang { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; color: var(--indigo); background: var(--linen-hi); border: 1.5px solid var(--indigo);
@@ -273,7 +278,7 @@
           <tr><td data-i18n="b.menus">📍 Места · ⚙ Опции</td><td data-i18n="b.menusD">Мени со местата и мени со опциите; на телефон во нив се и Преглед, времето, годишното време и јазикот</td></tr>
           <tr><td data-i18n="bar.ink">Контури</td><td data-i18n="b.inkD">Вклучи/исклучи ги цртаните линии</td></tr>
           <tr><td data-i18n="bar.shot">Зачувај слика</td><td data-i18n="b.shotD">Преземи PNG од тековниот поглед</td></tr>
-          <tr><td data-i18n="b.quality">⚡ Квалитет</td><td data-i18n="b.qualityD">Автоматски преминува на полесно цртање кога компјутерот или телефонот е бавен (без сенчење во аглите и сенки од облаците, помали сенки); „низок“ го вклучува секогаш</td></tr>
+          <tr><td data-i18n="b.quality">⚡ Квалитет</td><td data-i18n="b.qualityD">Автоматски преминува на полесно цртање кога компјутерот или телефонот е бавен (без сенчење во аглите и сенки од облаците, помали сенки); „висок“ секогаш црта сè во најголема резолуција, „низок“ секогаш полесно</td></tr>
           <tr><td data-i18n="bar.traffic">🚗 Помалку сообраќај</td><td data-i18n="b.trafficD">Помалку автомобили и пешаци во движење — помалку работа за процесорот на послаби уреди</td></tr>
           <tr><td data-i18n="b.share">🔗 Копирај линк</td><td data-i18n="b.shareD">Копира врска до тековниот поглед (место и агол на камерата) за да го споделиш; врската е секогаш и во адресата</td></tr>
           <tr><td data-i18n="bar.stream">💾 Штедење меморија</td><td data-i18n="b.streamD">Ги чува деталите на теренот и улиците само близу камерата, а подалеку останува насликаната подлога; вклучено на телефон</td></tr>
@@ -331,15 +336,15 @@
         <button id="weather">🌤 Ведро</button>
         <button id="walk" data-i18n="bar.walk">🚶 Пешачи</button>
         <button id="bus" data-i18n="bar.bus">🚌 Автобус</button>
-        <button id="names" data-i18n="bar.names">Имиња</button>
-        <button id="live" data-i18n="bar.live">Живо</button>
+        <button id="names" class="switch" aria-pressed="true" data-i18n="bar.names">Имиња</button>
+        <button id="live" class="switch" aria-pressed="true" data-i18n="bar.live">Живо</button>
         <button id="season">🌳 Лето</button>
-        <button id="ink" data-i18n="bar.ink">Контури</button>
+        <button id="ink" class="switch" aria-pressed="true" data-i18n="bar.ink">Контури</button>
         <button id="shot" data-i18n="bar.shot">Зачувај слика</button>
         <button id="quality">⚡ Квалитет: автоматски</button>
-        <button id="traffic" class="off" data-i18n="bar.traffic">🚗 Помалку сообраќај</button>
+        <button id="traffic" class="switch" aria-pressed="false" data-i18n="bar.traffic">🚗 Помалку сообраќај</button>
         <button id="share">🔗 Копирај линк</button>
-        <button id="stream" data-i18n="bar.stream">💾 Штедење меморија</button>
+        <button id="stream" class="switch" aria-pressed="false" data-i18n="bar.stream">💾 Штедење меморија</button>
         <label class="lang" title="Јазик" data-i18n-title="bar.lang"><span aria-hidden="true">🌐</span><select id="lang" aria-label="Јазик" data-i18n-aria="bar.lang"></select></label>
       </div>
     </div>

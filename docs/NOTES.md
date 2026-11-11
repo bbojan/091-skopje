@@ -48,6 +48,8 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    nearest-bus pointer, building collision, standing on the drawn surface (draped layers).
 13. **v2.0.1** (Nov 2026): documentation: README features rewritten, IDEAS.md marks what is built,
    help dialog rows for walking and bus controls (6 languages), translation review page regenerated.
+14. **v2.1.0** (Nov 2026): ⚡ quality cycles auto → high → low; „висок“ forces the full tier at the top
+   resolution (no frame-time governor). On/off options in ⚙ are drawn as switches (`aria-pressed`).
 
 ## Key decisions (and why)
 
