@@ -43,6 +43,9 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    season, bus, copy link first.
 12. (unreleased) Rain: ~60 % fewer pedestrians (snowfall ~40 %), most carry coloured umbrellas;
    default season and weather from the month (Dec–Feb winter + snow on Vodno) unless chosen.
+   🚶 Walking as Итар Пејо or a Шарпланинец (`walk.ts`): first/third person, shared invert
+   option, companion, context action (bus, parked plane, gondola, оро, bark), info cards,
+   nearest-bus pointer, building collision, standing on the drawn surface (draped layers).
 
 ## Key decisions (and why)
 
@@ -165,6 +168,9 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 - Real gamepads — only a simulated XInput pad; DirectInput axis layout is a heuristic.
 - The automatic switch to the low quality tier on a really slow device (logic only; the
   low tier itself was measured: 10.9 → 4.7 ms GPU on the Square view at 1600×1000).
+- Walking mode live in a visible window and on touch devices (joystick, drag-look), pointer
+  lock and real gamepads — tested by stepping the simulation and rendering frames, since
+  the browser pane was collapsed.
 - Memory saver and bus driving on a real phone (memory measured in Node, driving tested
   with simulated keys on desktop).
 - `prepare.ts` place lookup by OSM id (`PLACE_IDS`) and the Kale name fix — they take

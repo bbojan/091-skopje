@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { pip, toPts } from './geo.ts';
+import { pip, pipPoly, toPts } from './geo.ts';
+import { isPaintedArea, areaLift, roadLift, CASING_LIFT, CASING_EXTRA, type RoadInfo } from './city.ts';
 import type { Terrain } from './terrain.ts';
-import type { Bounds, BuildingData, CrossData, MapMeta, Places, Ring } from './types.ts';
+import type { AreaData, Bounds, BuildingData, CrossData, MapMeta, Places, Poly, Ring } from './types.ts';
 
 // Walk the city as Итар Пејо (folk trickster) or a Шарпланинец (Šar Mountain dog), in first
 // or third person. The other one follows as a companion. One context action: board a bus,
@@ -154,6 +155,63 @@ function obstacles(buildings: BuildingData[]) {
   };
 }
 
+// ---------------------------------------------------------------- the drawn surface
+// Streets, squares and other areas are draped above the bare terrain; stand on the top one.
+function surface(roads: RoadInfo[], areas: AreaData[]) {
+  const CELL = 30;
+  const key = (i: number, j: number) => i * 100003 + j;
+  const seg: number[] = []; // ax, az, bx, bz, half width, lift, casing half width (0 = none)
+  const segGrid = new Map<number, number[]>();
+  for (const r of roads) {
+    const lift = roadLift(r.kind, r.b), cas = r.kind === 'major' || r.kind === 'minor' ? r.w / 2 + CASING_EXTRA : 0;
+    const reach = Math.max(r.w / 2, cas);
+    for (let k = 0; k < r.pts.length - 1; k++) {
+      const [ax, az] = r.pts[k], [bx, bz] = r.pts[k + 1];
+      const id = seg.length / 7;
+      seg.push(ax, az, bx, bz, r.w / 2, lift, cas);
+      for (let i = Math.floor((Math.min(ax, bx) - reach) / CELL); i <= Math.floor((Math.max(ax, bx) + reach) / CELL); i++)
+        for (let j = Math.floor((Math.min(az, bz) - reach) / CELL); j <= Math.floor((Math.max(az, bz) + reach) / CELL); j++) {
+          let l = segGrid.get(key(i, j));
+          if (!l) segGrid.set(key(i, j), (l = []));
+          l.push(id);
+        }
+    }
+  }
+  const polys: { poly: Poly; lift: number; box: [number, number, number, number] }[] = [];
+  const polyGrid = new Map<number, number[]>();
+  for (const a of areas) {
+    if (isPaintedArea(a.k, a.a)) continue; // painted into the terrain: no lift
+    const poly = a.r.map(toPts);
+    let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+    for (const [x, z] of poly[0]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+    const id = polys.push({ poly, lift: areaLift(a.z), box: [x0, z0, x1, z1] }) - 1;
+    for (let i = Math.floor(x0 / CELL); i <= Math.floor(x1 / CELL); i++)
+      for (let j = Math.floor(z0 / CELL); j <= Math.floor(z1 / CELL); j++) {
+        let l = polyGrid.get(key(i, j));
+        if (!l) polyGrid.set(key(i, j), (l = []));
+        l.push(id);
+      }
+  }
+  /** height of the drawn surface above the bare terrain at (x, z) */
+  return (x: number, z: number): number => {
+    const k = key(Math.floor(x / CELL), Math.floor(z / CELL));
+    let lift = 0;
+    for (const id of segGrid.get(k) ?? []) {
+      const o = id * 7, ax = seg[o], az = seg[o + 1], dx = seg[o + 2] - ax, dz = seg[o + 3] - az;
+      const t = THREE.MathUtils.clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1e-9), 0, 1);
+      const d = Math.hypot(x - (ax + dx * t), z - (az + dz * t));
+      if (d < seg[o + 4]) lift = Math.max(lift, seg[o + 5]);
+      else if (d < seg[o + 6]) lift = Math.max(lift, CASING_LIFT);
+    }
+    for (const id of polyGrid.get(k) ?? []) {
+      const p = polys[id];
+      if (p.lift <= lift || x < p.box[0] || x > p.box[2] || z < p.box[1] || z > p.box[3]) continue;
+      if (pipPoly(x, z, p.poly)) lift = p.lift;
+    }
+    return lift;
+  };
+}
+
 // ---------------------------------------------------------------- walking
 export interface WalkHooks {
   nearestBus: (x: number, z: number, maxD: number) => { x: number; z: number; yaw: number; d: number } | null;
@@ -171,6 +229,9 @@ export interface WalkOptions {
   meta: MapMeta;
   places: Places;
   buildings: BuildingData[];
+  /** draped areas (squares, parking, water…), for the surface height */
+  areas: AreaData[];
+  roads: RoadInfo[];
   crosses: CrossData[];
   gondola: THREE.CatmullRomCurve3 | null;
   /** where the plane is parked while walking, and its heading */
@@ -186,7 +247,9 @@ export function createWalk(o: WalkOptions) {
   const rigs = { pejo: buildPejo(), dog: buildDog() };
   for (const r of Object.values(rigs)) { r.group.visible = false; scene.add(r.group); }
   const walls = obstacles(o.buildings);
-  o.buildings = []; // the outlines are copied into the grid; don't keep the parsed map data alive
+  const lift = surface(o.roads, o.areas);
+  const ground = (x: number, z: number) => terrain.at(x, z) + lift(x, z) + 0.02;
+  o.buildings = []; o.areas = []; // copied into the grids; don't keep the parsed map data alive
 
   // info spots in scene coordinates (exact OSM places when known); the Millennium Cross from the data
   const P = (lat: number, lon: number): [number, number] => [(lon - o.meta.lon0) * o.meta.kx, -(lat - o.meta.lat0) * o.meta.ky];
@@ -236,7 +299,7 @@ export function createWalk(o: WalkOptions) {
     // find a free spot near `at` (spiral out of buildings)
     let x = at.x, z = at.z;
     for (let r = 0; r < 200 && !free(x, z); r += 4) { x = at.x + Math.cos(r) * r; z = at.z + Math.sin(r) * r; }
-    st.pos.set(x, terrain.at(x, z), z);
+    st.pos.set(x, ground(x, z), z);
     Object.assign(st, { active: true, yaw: camYaw, camYaw, pitch: 0.35, speed: 0, ride: null, oro: null });
     st.comp.set(x - Math.sin(camYaw) * 2.5, 0, z + Math.cos(camYaw) * 2.5);
     showModels();
@@ -259,7 +322,7 @@ export function createWalk(o: WalkOptions) {
     if (st.active && c !== st.char) {
       // swap places with the companion
       const p = st.pos.clone(), y = st.yaw;
-      st.pos.set(st.comp.x, terrain.at(st.comp.x, st.comp.z), st.comp.z); st.yaw = st.compYaw;
+      st.pos.set(st.comp.x, ground(st.comp.x, st.comp.z), st.comp.z); st.yaw = st.compYaw;
       st.comp.set(p.x, 0, p.z); st.compYaw = y;
     }
     st.char = c;
@@ -317,7 +380,7 @@ export function createWalk(o: WalkOptions) {
     if (rig === rigs.dog) rig.head.rotation.z = st.bark > 0 ? Math.sin(st.bark * 18) * 0.15 : 0;
   }
   const place = (rig: Rig, x: number, z: number, yaw: number, bob: number) => {
-    rig.group.position.set(x, terrain.at(x, z) + bob, z);
+    rig.group.position.set(x, ground(x, z) + bob, z);
     rig.group.rotation.set(0, Math.PI / 2 - yaw, 0);
   };
 
@@ -342,7 +405,7 @@ export function createWalk(o: WalkOptions) {
       if (done) {
         // step out next to the station
         const out = gondola.getPointAt(st.ride.t), x = out.x + 6, z = out.z + 6;
-        st.pos.set(x, terrain.at(x, z), z);
+        st.pos.set(x, ground(x, z), z);
         st.ride = null;
         cabin.visible = false;
       }
@@ -368,7 +431,7 @@ export function createWalk(o: WalkOptions) {
       if (st.view === 'first') st.yaw = st.camYaw;
       st.pos.x = THREE.MathUtils.clamp(st.pos.x, -bounds.hw + 10, bounds.hw - 10);
       st.pos.z = THREE.MathUtils.clamp(st.pos.z, -bounds.hh + 10, bounds.hh - 10);
-      st.pos.y = terrain.at(st.pos.x, st.pos.z);
+      st.pos.y = ground(st.pos.x, st.pos.z);
       st.phase += st.speed * dt * (st.char === 'dog' ? 2.6 : 2.2);
       // a dancing Пејо hops on the spot; walking away ends the оро
       const dancing = st.oro && st.speed < 0.3;

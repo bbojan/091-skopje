@@ -281,6 +281,7 @@ async function init(): Promise<void> {
   const planeSpot = { x: sq[0] + 40, z: sq[1] + 22, yaw: Math.PI / 2 };
   const walk = createWalk({
     scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, meta, places: data.places || {}, buildings: data.buildings,
+    areas: data.areas, roads: city.roadList,
     crosses: data.crosses || [], gondola: landmarks.gondola, planeSpot,
     hooks: { nearestBus: traffic.nearestBus, startOro: traffic.startOro, stopOro: traffic.stopOro, scatter: traffic.scatter, startle: birds.startle },
   });

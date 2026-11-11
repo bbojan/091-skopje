@@ -206,6 +206,19 @@ function insetRing(ring: Ring, d: number): Ring | null {
   return out;
 }
 
+// ---------------------------------------------------------------- draped layer heights
+// Ground layers are draped this far above the bare terrain (shared with walk.ts, so people
+// stand on the surface that is drawn there).
+/** Large natural areas are painted into the terrain colours instead of draped. */
+export const PAINTED_KINDS = new Set(['wood', 'scrub', 'grass', 'park', 'cemetery', 'fortress', 'dirt', 'campus', 'play']);
+export const isPaintedArea = (k: string, area: number) => PAINTED_KINDS.has(k) && area >= 20000;
+/** draped area height by draw order (AreaData.z) */
+export const areaLift = (z: number) => 0.12 + z * 0.07;
+/** draped road height (bridges a little higher); casings of major/minor roads sit at CASING_LIFT */
+export const roadLift = (kind: RoadKind, bridge: number) =>
+  (kind === 'path' ? 1.14 : kind === 'ped' ? 1.06 : kind === 'service' ? 0.99 : kind === 'minor' ? 1.01 : 1.03) + (bridge ? 0.04 : 0);
+export const CASING_LIFT = 0.9, CASING_EXTRA = 1.6, RAIL_LIFT = 1.08, RAIL_HALF_WIDTH = 2.6;
+
 /** OSM buildings drawn by hand-built models in landmarks.ts instead (the model uses the footprint). */
 export const MODELLED_BUILDINGS = new Set<number>([
   144759771, // Железничка станица Скопје (Kenzo Tange)
@@ -573,13 +586,12 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   const cG = C(PAL.ground), cH = C(PAL.hill);
   // Large natural areas are painted into the terrain's vertex colours (scanline
   // raster at the terrain resolution) instead of being clipped into geometry.
-  const PAINT = new Set(['wood', 'scrub', 'grass', 'park', 'cemetery', 'fortress', 'dirt', 'campus', 'play']);
   const kindList = Object.keys(PAL.area);
   const kindCol = kindList.map((k) => C(PAL.area[k]));
   const paint = new Uint8Array(terrain.nx * terrain.nz); // 0 = bare ground, else kind index + 1
   const xs: number[] = [];
   for (const a of areas) {
-    if (!PAINT.has(a.k) || a.a < 20000) continue;
+    if (!isPaintedArea(a.k, a.a)) continue;
     a.painted = true;
     const [, bz0, , bz1] = bbox(a.poly[0]);
     const ki = kindList.indexOf(a.k) + 1;
@@ -664,7 +676,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     const all = [contour, ...holes].flat();
     const tris = new Float64Array(faces.length * 6);
     faces.forEach(([i, j, k], t) => tris.set([all[i].x, all[i].y, all[j].x, all[j].y, all[k].x, all[k].y], t * 6));
-    const ai = areaTris.push({ col: C(PAL.area[a.k] || PAL.ground), yo: 0.12 + a.z * 0.07, tris }) - 1;
+    const ai = areaTris.push({ col: C(PAL.area[a.k] || PAL.ground), yo: areaLift(a.z), tris }) - 1;
     for (let t = 0; t < faces.length; t++) {
       const o = t * 6, xs = [tris[o], tris[o + 2], tris[o + 4]], zs = [tris[o + 1], tris[o + 3], tris[o + 5]];
       const ci0 = Math.max(0, Math.floor((Math.min(...xs) - terrain.x0) / terrain.cell)), ci1 = Math.min(terrain.nx - 2, Math.floor((Math.max(...xs) - terrain.x0) / terrain.cell));
@@ -740,16 +752,15 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   };
   const roadList = data.roads.map((r) => ({ ...r, pts: toPts(r.p), kind: roadKind(r.k) }));
   type Building = (typeof buildings)[number];
-  for (const r of roadList) if (r.kind === 'major' || r.kind === 'minor') strip(r.pts, r.w / 2 + 1.6, 0.9, C(PAL.road.casing));
+  for (const r of roadList) if (r.kind === 'major' || r.kind === 'minor') strip(r.pts, r.w / 2 + CASING_EXTRA, CASING_LIFT, C(PAL.road.casing));
   for (const r of roadList) {
     const hw = r.w / 2;
-    const yo = r.kind === 'path' ? 1.14 : r.kind === 'ped' ? 1.06 : r.kind === 'service' ? 0.99 : r.kind === 'minor' ? 1.01 : 1.03;
-    strip(r.pts, hw, yo + (r.b ? 0.04 : 0), C(PAL.road[r.kind]));
+    strip(r.pts, hw, roadLift(r.kind, r.b), C(PAL.road[r.kind]));
     for (let i = 0; i < r.pts.length - 1; i++) roadGrid.add(r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1], hw + (r.kind === 'major' || r.kind === 'minor' ? 1.0 : 0.3));
   }
   for (const rl of data.rails) {
     const pts = toPts(rl.p);
-    strip(pts, 2.6, 1.08, C(PAL.road.rail));
+    strip(pts, RAIL_HALF_WIDTH, RAIL_LIFT, C(PAL.road.rail));
     for (let i = 0; i < pts.length - 1; i++) roadGrid.add(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], 3);
   }
 
