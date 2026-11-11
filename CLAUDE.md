@@ -90,8 +90,9 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   in `index.html`). Bottom bar fades to transparent when idle. Help dialog uses it too.
   The owner rejected a red bus-board style — avoid red-dominated UI.
 - Fonts: Lora (Cyrillic) for UI, Rubik Mono One for the 091 badge.
-- Mobile: phones and portrait touch tablets get popup menus (📍 Места, ⚙ Опции);
-  desktop keeps the full bar. `MOBILE` profile halves trees/parked cars, 2048 shadow
+- Bar: popup menus 📍 Места and ⚙ Опции on every screen. On desktop Преглед, the weather
+  button and 🌐 language stay on the bar; on phones and portrait touch tablets they move
+  into the menus (`placeBarItems()` in `main.ts`). `MOBILE` profile halves trees/parked cars, 2048 shadow
   map, 256 px far textures, fewer agents (iOS Safari memory limits).
 - OSM attribution must stay visible (ODbL), also on mobile.
 - **Ask the owner before every `git push`** (it deploys the live site). Commits end with

@@ -30,6 +30,8 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    blended over 2 s and combined with the time of day; falling rain/snow, wet streets
    with puddles, snow on ground, roofs and trees (roads stay slush). On touch screens the
    БРЗО (boost) button is a toggle.
+9. **v1.5.0** (Nov 2026): desktop bar uses the popup menus too (📍 Места, ⚙ Опции), with
+   Преглед, weather and language always on the bar; phones unchanged.
 
 ## Key decisions (and why)
 

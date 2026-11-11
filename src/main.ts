@@ -401,6 +401,18 @@ for (const p of popups) {
     p.btn.setAttribute('aria-expanded', String(open));
   });
 }
+// Overview, weather and language sit on the bar on desktop and inside the menus on phones
+// (same breakpoint as the phone styles in index.html)
+const PHONE = matchMedia('(max-width: 560px), (orientation: portrait) and (any-pointer: coarse) and (max-width: 1180px)');
+const overviewBtn = document.querySelector<HTMLElement>('[data-view="overview"]')!;
+const langBox = document.querySelector<HTMLElement>('.bar .lang')!;
+function placeBarItems(): void {
+  const places = $('places'), tools = $('tools');
+  if (PHONE.matches) { places.append(overviewBtn); tools.prepend(weatherBtn); tools.append(langBox); }
+  else { places.after(overviewBtn); timeBtn.after(weatherBtn); tools.after(langBox); }
+}
+placeBarItems();
+PHONE.addEventListener('change', () => { closePopups(); placeBarItems(); });
 addEventListener('pointerdown', (e) => {
   const target = e.target as Node | null;
   if (!popups.some((p) => p.menu.contains(target) || p.btn.contains(target))) closePopups();

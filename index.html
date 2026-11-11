@@ -43,8 +43,6 @@
       .bar .lang:hover { background: #fff; }
       .bar .lang:focus-within { outline: 2px solid var(--wine); outline-offset: 2px; }
       .bar .lang select { font: inherit; color: inherit; background: transparent; border: 0; outline: 0; padding: 6px 12px 6px 4px; cursor: pointer; appearance: none; -webkit-appearance: none; }
-      .places { display: contents; }
-      .pop-toggle { display: none; }
       #status { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; font-size: 18px; }
       .title { background: rgba(251, 246, 238, 0.88); border: 1.5px solid var(--ink); border-radius: 14px; padding: 8px 14px 9px; box-shadow: 3px 3px 0 rgba(75, 52, 40, 0.35); }
       .me { position: fixed; right: 18px; top: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border-radius: 999px;
@@ -133,20 +131,18 @@
       .fly-flash { font-size: 20px; }
       }
 
-      /* phones and portrait touch tablets: places & options live in small popups;
-         desktop keeps the full bar */
-      @media (max-width: 560px), (orientation: portrait) and (any-pointer: coarse) and (max-width: 1180px) {
-        .pop-toggle { display: inline-block; }
-        .bar button.pop-toggle[aria-expanded="true"], .bar button.pop-toggle[aria-expanded="true"]:hover { background: var(--indigo); color: var(--linen-hi); }
-        .bar { flex-wrap: nowrap; }
-        .places { display: none; position: absolute; left: 0; bottom: calc(100% + 8px); flex-direction: column; gap: 6px; padding: 18px 10px;
-                  background: var(--linen) var(--stitch) repeat-x 0 3px; border: 1.5px solid var(--indigo); border-radius: 12px; box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); }
-        .places.open { display: flex; }
-        .places.tools { left: auto; right: 0; }
-        .places button { text-align: left; font-size: 14px; padding: 8px 14px; box-shadow: none; }
-        .places .lang { font-size: 14px; padding-left: 13px; box-shadow: none; }
-        .places .lang select { padding: 8px 14px 8px 4px; }
-      }
+      /* places & options live in small popup menus on every screen. Overview, weather and
+         language sit on the bar on desktop and move into the menus on phones (main.ts) */
+      .pop-toggle { display: inline-block; }
+      .bar button.pop-toggle[aria-expanded="true"], .bar button.pop-toggle[aria-expanded="true"]:hover { background: var(--indigo); color: var(--linen-hi); }
+      .bar { flex-wrap: nowrap; }
+      .places { display: none; position: absolute; left: 0; bottom: calc(100% + 8px); flex-direction: column; gap: 6px; padding: 18px 10px;
+                background: var(--linen) var(--stitch) repeat-x 0 3px; border: 1.5px solid var(--indigo); border-radius: 12px; box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); }
+      .places.open { display: flex; }
+      .places.tools { left: auto; right: 0; }
+      .places button { text-align: left; font-size: 14px; padding: 8px 14px; box-shadow: none; }
+      .places .lang { font-size: 14px; padding-left: 13px; box-shadow: none; }
+      .places .lang select { padding: 8px 14px 8px 4px; }
 
       /* help dialog */
       dialog.help { max-width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0; border: 2px solid var(--ink); border-radius: 18px;
@@ -241,7 +237,7 @@
           <tr><td data-i18n="b.weather">🌤 Ведро · 🌧 Дожд · ❄ Снег · 🏔 Снег на Водно</td><td data-i18n="b.weatherD">Смени го времето: дожд со мокри улици и локви, снег низ целиот град или снег само на Водно и ридовите</td></tr>
           <tr><td data-i18n="bar.live">Живо</td><td data-i18n="b.liveD">Вклучи/исклучи ги автомобилите, автобусите и пешаците</td></tr>
           <tr><td data-i18n="bar.names">Имиња</td><td data-i18n="b.namesD">Прикажи ги имињата на населбите и знаменитостите</td></tr>
-          <tr><td data-i18n="b.menus">📍 Места · ⚙ Опции</td><td data-i18n="b.menusD">На телефон и таблет копчињата се собрани во мали менија</td></tr>
+          <tr><td data-i18n="b.menus">📍 Места · ⚙ Опции</td><td data-i18n="b.menusD">Мени со местата и мени со опциите; на телефон во нив се и Преглед, времето и јазикот</td></tr>
           <tr><td data-i18n="bar.ink">Контури</td><td data-i18n="b.inkD">Вклучи/исклучи ги цртаните линии</td></tr>
           <tr><td data-i18n="bar.shot">Зачувај слика</td><td data-i18n="b.shotD">Преземи PNG од тековниот поглед</td></tr>
           <tr><td data-i18n="b.lang">🌐 Јазик</td><td data-i18n="b.langD">Смени го јазикот на интерфејсот (имињата на мапата остануваат на македонски)</td></tr>
