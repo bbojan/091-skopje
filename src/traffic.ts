@@ -30,6 +30,8 @@ interface Agent {
   phase: number;
   // standing people keep their first position
   init?: boolean;
+  /** running away (bark) until this time */
+  flee?: number;
   x?: number; z?: number; tx?: number; tz?: number;
 }
 
@@ -151,7 +153,7 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
   const carGeo = carGeometry();
   const carMat = new THREE.MeshLambertMaterial({ clippingPlanes: opts.clippingPlanes });
   const carCols = CAR_COLORS;
-  const buses = cars.filter((c) => c.p.weight === 1 && rnd() < 0.06);
+  const buses = cars.filter((c) => c.p.weight === 1 && rnd() < 0.12); // ~140 ЈСП buses on the main roads
   const busSet = new Set(buses);
   const autos = cars.filter((c) => !busSet.has(c));
   const carMesh = new THREE.InstancedMesh(carGeo, carMat, autos.length);
@@ -187,7 +189,19 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
     headMesh.setColorAt(i, col.set(rnd() < 0.3 ? '#3b2a22' : skins[Math.floor(rnd() * skins.length)]));
   });
 
-  for (const m of [carMesh, busMesh, ddMesh, torsoMesh, headMesh]) {
+  // umbrellas (rain): a coloured canopy over the head on a short pole; most people carry one
+  const umbrellaGeo = mergeGeometries([
+    new THREE.ConeGeometry(0.85, 0.32, 8).translate(0, 2.2, 0),
+    new THREE.CylinderGeometry(0.03, 0.03, 0.9, 4).translate(0, 1.75, 0),
+  ]);
+  const umbrellaMesh = new THREE.InstancedMesh(umbrellaGeo, carMat, people.length);
+  const ru = mulberry32(77); // own random stream: the rest of the traffic stays as it was
+  const umbrellaCols = ['#1f2430', '#c8322b', '#24407a', '#f2c14e', '#3e7d4f', '#7a2f6b', '#e9e4da'];
+  const umbrellaOf = new Float32Array(people.length); // 1 = carries an umbrella
+  people.forEach((_, i) => { umbrellaMesh.setColorAt(i, col.set(umbrellaCols[Math.floor(ru() * umbrellaCols.length)])); umbrellaOf[i] = ru() < 0.85 ? 1 : 0; });
+  umbrellaMesh.count = 0;
+
+  for (const m of [carMesh, busMesh, ddMesh, torsoMesh, headMesh, umbrellaMesh]) {
     m.frustumCulled = false;
     m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     group.add(m);
@@ -203,7 +217,7 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
     arr[o + 12] = x; arr[o + 13] = y; arr[o + 14] = z; arr[o + 15] = 1;
   };
   const step = (a: Agent, dt: number) => {
-    a.s += a.v * dt * a.dir;
+    a.s += a.v * dt * a.dir * (a.flee !== undefined && a.flee > time ? 3 : 1);
     if (a.s > a.p.len) { a.s = a.p.len; a.dir = -1; }
     else if (a.s < 0) { a.s = 0; a.dir = 1; }
     locate(a, loc);
@@ -212,6 +226,15 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
   // "less traffic" option: only the first share of each list moves and is drawn
   // (agents are in random order, so that is a random subset)
   let nAutos = autos.length, nSingles = singles.length, nDoubles = doubles.length, nPeople = people.length;
+  // weather: fewer people out in rain and falling snow; umbrellas in the rain
+  let rain = 0, snow = 0;
+  // last positions, for the walking mode: buses to board, people for the оро and the bark
+  const busAt = new Float32Array(buses.length * 4); // x, z, tx, tz (singles first, then doubles)
+  const personAt = new Float32Array(people.length * 2);
+  let shownPeople = people.length;
+  // оро: a circle of people dancing around a centre
+  const oroOf = new Int16Array(people.length).fill(-1); // place in the circle, -1 = not dancing
+  let oro: { x: number; z: number; n: number } | null = null;
   let time = 0;
   function update(dt: number, camera?: THREE.Camera, target?: THREE.Vector3): void {
     dt = Math.min(dt, 0.1);
@@ -221,26 +244,42 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
     const carS = THREE.MathUtils.clamp(dist / 1100, 1, 3.2);
     const pplS = THREE.MathUtils.clamp(dist / 520, 1.25, 6);
     const showPeople = dist < 9000;
-    torsoMesh.visible = headMesh.visible = showPeople;
+    torsoMesh.visible = headMesh.visible = umbrellaMesh.visible = showPeople;
     const ca = carMesh.instanceMatrix.array, ba = busMesh.instanceMatrix.array, da = ddMesh.instanceMatrix.array;
     for (let i = 0; i < nAutos; i++) { const a = autos[i]; step(a, dt); write(ca, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, carS); }
-    for (let i = 0; i < nSingles; i++) { const a = singles[i]; step(a, dt); write(ba, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, Math.min(carS, 2)); }
-    for (let i = 0; i < nDoubles; i++) { const a = doubles[i]; step(a, dt); write(da, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, Math.min(carS, 2)); }
+    // buses grow with zoom like cars, so they can be found from afar
+    for (let i = 0; i < nSingles; i++) { const a = singles[i]; step(a, dt); write(ba, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, carS); busAt.set([loc.x, loc.z, loc.tx, loc.tz], i * 4); }
+    for (let i = 0; i < nDoubles; i++) { const a = doubles[i]; step(a, dt); write(da, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, carS); busAt.set([loc.x, loc.z, loc.tx, loc.tz], (singles.length + i) * 4); }
     if (!showPeople) { for (const m of [carMesh, busMesh, ddMesh]) m.instanceMatrix.needsUpdate = true; return; }
-    const ta = torsoMesh.instanceMatrix.array, ha = headMesh.instanceMatrix.array;
-    for (let i = 0; i < nPeople; i++) {
+    const ta = torsoMesh.instanceMatrix.array, ha = headMesh.instanceMatrix.array, ua = umbrellaMesh.instanceMatrix.array;
+    const out = THREE.MathUtils.clamp(1 - 0.6 * rain - 0.4 * snow, 0.3, 1); // share of people still outside
+    const nShown = Math.ceil(nPeople * out), umbrellas = rain > 0.02;
+    shownPeople = nShown;
+    torsoMesh.count = headMesh.count = nShown;
+    umbrellaMesh.count = umbrellas ? nShown : 0;
+    for (let i = 0; i < nShown; i++) {
       const a = people[i];
       if (a.v > 0) step(a, dt);
       else if (a.seg === 0 && !a.init) { locate(a, loc); a.init = true; a.x = loc.x; a.z = loc.z; a.tx = loc.tx; a.tz = loc.tz; }
-      const x = a.v > 0 ? loc.x : a.x ?? loc.x, z = a.v > 0 ? loc.z : a.z ?? loc.z;
-      const tx = a.v > 0 ? loc.tx : a.tx ?? 1, tz = a.v > 0 ? loc.tz : a.tz ?? 0;
-      const bob = a.v > 0 ? Math.abs(Math.sin(time * 7 + a.phase)) * 0.12 : 0;
+      let x = a.v > 0 ? loc.x : a.x ?? loc.x, z = a.v > 0 ? loc.z : a.z ?? loc.z;
+      let tx = a.v > 0 ? loc.tx : a.tx ?? 1, tz = a.v > 0 ? loc.tz : a.tz ?? 0;
+      let bob = a.v > 0 ? Math.abs(Math.sin(time * 7 + a.phase)) * 0.12 : 0;
+      const k = oroOf[i];
+      if (oro && k >= 0) {
+        // оро: hand in hand on a circle, moving to the right with hopping steps
+        const ang = (k / oro.n) * Math.PI * 2 + time * 0.55, R = 3.2 + oro.n * 0.18;
+        x = oro.x + Math.cos(ang) * R; z = oro.z + Math.sin(ang) * R;
+        tx = -Math.sin(ang); tz = Math.cos(ang);
+        bob = Math.abs(Math.sin(time * 7 + k)) * 0.3;
+      }
+      personAt[i * 2] = x; personAt[i * 2 + 1] = z;
       const y = terrain.at(x, z) + 1.0 + bob;
       // slightly oversized so they read as lively dots from above
       write(ta, i, x, y, z, tx, tz, pplS);
       write(ha, i, x, y, z, tx, tz, pplS);
+      if (umbrellas) write(ua, i, x, y, z, tx, tz, pplS * umbrellaOf[i]); // scale 0 = no umbrella
     }
-    for (const m of [carMesh, busMesh, ddMesh, torsoMesh, headMesh]) m.instanceMatrix.needsUpdate = true;
+    for (const m of [carMesh, busMesh, ddMesh, torsoMesh, headMesh, umbrellaMesh]) m.instanceMatrix.needsUpdate = true;
   }
   update(0.001);
   // headlights: an additive glow on the road ahead, sharing the car transforms
@@ -265,9 +304,49 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
     ddMesh.count = beams[2].count = nDoubles;
     torsoMesh.count = headMesh.count = nPeople;
   }
+  /** nearest ЈСП bus within maxD metres: position and heading (yaw: 0 = north) */
+  function nearestBus(x: number, z: number, maxD: number): { x: number; z: number; yaw: number; d: number } | null {
+    let best: { x: number; z: number; yaw: number; d: number } | null = null;
+    const n = buses.length;
+    for (let i = 0; i < n; i++) {
+      if (i < singles.length ? i >= nSingles : i - singles.length >= nDoubles) continue;
+      const o = i * 4, d = Math.hypot(busAt[o] - x, busAt[o + 1] - z);
+      if (d < maxD && (!best || d < best.d)) best = { x: busAt[o], z: busAt[o + 1], yaw: Math.atan2(busAt[o + 2], -busAt[o + 3]), d };
+    }
+    return best;
+  }
+  /** оро around (x, z) with up to 12 nearby people; returns how many joined */
+  function startOro(x: number, z: number): number {
+    stopOro();
+    const near: [number, number][] = [];
+    for (let i = 0; i < shownPeople; i++) {
+      const d = Math.hypot(personAt[i * 2] - x, personAt[i * 2 + 1] - z);
+      if (d < 120) near.push([d, i]);
+    }
+    near.sort((a, b) => a[0] - b[0]);
+    const ids = near.slice(0, 12).map(([, i]) => i);
+    ids.forEach((i, k) => (oroOf[i] = k));
+    oro = ids.length ? { x, z, n: ids.length } : null;
+    return ids.length;
+  }
+  function stopOro(): void { oroOf.fill(-1); oro = null; }
+  /** a bark: people within r metres run away for a few seconds */
+  function scatter(x: number, z: number, r: number): void {
+    for (let i = 0; i < shownPeople; i++) {
+      const px = personAt[i * 2], pz = personAt[i * 2 + 1];
+      if (Math.hypot(px - x, pz - z) > r || oroOf[i] >= 0) continue;
+      const a = people[i], { pts } = a.p, s = a.seg;
+      const tx = pts[s + 1][0] - pts[s][0], tz = pts[s + 1][1] - pts[s][1];
+      a.dir = tx * (px - x) + tz * (pz - z) >= 0 ? 1 : -1; // along the path, away from the dog
+      if (a.v === 0) { a.v = 1.2; a.init = false; }
+      a.flee = time + 3;
+    }
+  }
+  /** weather amounts 0…1 (rain: umbrellas and fewer people; falling snow: fewer people) */
+  function setWeather(r: number, s: number): void { rain = r; snow = s; }
   function setNight(f: number): void {
     beamMat.opacity = 0.7 * THREE.MathUtils.smoothstep(f, 0.15, 0.9);
     for (const b of beams) b.visible = f > 0.1;
   }
-  return { group, update, setNight, setLight, glows: beams as THREE.Object3D[], counts: { cars: cars.length, people: people.length } };
+  return { group, update, setNight, setLight, setWeather, nearestBus, startOro, stopOro, scatter, glows: beams as THREE.Object3D[], counts: { cars: cars.length, people: people.length } };
 }

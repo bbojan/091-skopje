@@ -41,6 +41,8 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    double-decker (🚌, `drive.ts`, rounded model shared with traffic), 💾 memory saver:
    detailed ground streamed per chunk; desktop menu: copy link first; phone menu: weather,
    season, bus, copy link first.
+12. (unreleased) Rain: ~60 % fewer pedestrians (snowfall ~40 %), most carry coloured umbrellas;
+   default season and weather from the month (Dec–Feb winter + snow on Vodno) unless chosen.
 
 ## Key decisions (and why)
 

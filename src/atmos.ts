@@ -73,14 +73,15 @@ export function createBirds(terrain: Terrain, bounds: Bounds, clippingPlanes: TH
   geo.computeVertexNormals();
   const mat = new THREE.MeshBasicMaterial({ color: '#3b2f2a', side: THREE.DoubleSide, clippingPlanes });
   type Bird = { ox: number; oy: number; oz: number; ph: number };
-  const flocks: { cx: number; cz: number; R: number; h: number; w: number; a: number; birds: Bird[] }[] = [];
+  // scare: 0…1 after a bark (fly faster and higher), fades out
+  const flocks: { cx: number; cz: number; R: number; h: number; w: number; a: number; birds: Bird[]; scare: number; x: number; z: number }[] = [];
   const { hw, hh } = bounds;
   for (let f = 0; f < 14; f++) {
     const cx = (rnd() * 2 - 1) * (hw - 1200), cz = (rnd() * 2 - 1) * (hh - 900);
     const birds: Bird[] = [];
     const n = 5 + Math.floor(rnd() * 6);
     for (let b = 0; b < n; b++) birds.push({ ox: (rnd() - 0.5) * 30, oy: (rnd() - 0.5) * 8, oz: (rnd() - 0.5) * 30, ph: rnd() * 6.28 });
-    flocks.push({ cx, cz, R: 140 + rnd() * 260, h: 90 + rnd() * 120, w: (0.06 + rnd() * 0.06) * (rnd() < 0.5 ? 1 : -1), a: rnd() * 6.28, birds });
+    flocks.push({ cx, cz, R: 140 + rnd() * 260, h: 90 + rnd() * 120, w: (0.06 + rnd() * 0.06) * (rnd() < 0.5 ? 1 : -1), a: rnd() * 6.28, birds, scare: 0, x: cx, z: cz });
   }
   const total = flocks.reduce((s, f) => s + f.birds.length, 0);
   const mesh = new THREE.InstancedMesh(geo, mat, total);
@@ -92,20 +93,24 @@ export function createBirds(terrain: Terrain, bounds: Bounds, clippingPlanes: TH
     time += dt;
     let i = 0;
     for (const f of flocks) {
-      f.a += f.w * dt;
+      f.scare = Math.max(0, f.scare - dt * 0.2);
+      f.a += f.w * dt * (1 + 3 * f.scare);
       const x = f.cx + Math.cos(f.a) * f.R, z = f.cz + Math.sin(f.a) * f.R;
+      f.x = x; f.z = z;
       const ground = terrain.at(x, z);
       const sg = Math.sign(f.w);
       const heading = Math.atan2(Math.sin(f.a) * sg, -Math.cos(f.a) * sg); // nose (-z) along the circle
       q.setFromAxisAngle(up, heading);
       for (const b of f.birds) {
         const flap = 0.35 + 0.65 * Math.abs(Math.sin(time * 7 + b.ph));
-        p.set(x + b.ox, ground + f.h + b.oy + Math.sin(time * 0.8 + b.ph) * 2, z + b.oz);
+        p.set(x + b.ox, ground + f.h + f.scare * 80 + b.oy + Math.sin(time * 0.8 + b.ph) * 2, z + b.oz);
         mesh.setMatrixAt(i++, m.compose(p, q, s.set(1.6 * scale, 1.6 * scale * (flap * 2 - 1), 1.6 * scale)));
       }
     }
     mesh.instanceMatrix.needsUpdate = true;
   }
   update(0);
-  return { group: mesh, update };
+  /** startle the flocks near (x, z): they climb and fly off faster */
+  function startle(x: number, z: number): void { for (const f of flocks) if (Math.hypot(f.x - x, f.z - z) < 500) f.scare = 1; }
+  return { group: mesh, update, startle };
 }

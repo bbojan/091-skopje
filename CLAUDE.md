@@ -70,6 +70,9 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
 ## Weather
 
 - Weather is a second axis on top of the time of day: `applyTime(time, weather)` in `main.ts`.
+  Defaults come from the month (Dec–Feb: winter + snow on Vodno, Mar–May spring, Jun–Aug summer,
+  Sep–Nov autumn) unless the visitor has chosen; comparisons against the reference images must
+  set `skopje.weather = clear` and `skopje.season = summer` first.
   **Clear must stay neutral** (multipliers 1, amounts 0): clear renders pixel-identical to
   v1.1.0 (checked by rendering fixed views and diffing; only the moving gondola cabins differ).
 - Wet streets, puddles and snow are shader code in `city.ts` (`groundShader`, facade, foliage),

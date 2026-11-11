@@ -73,6 +73,7 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
   const mc = (data.crosses || []).find((c) => /Millennium|Милениум/.test(c.name));
   let crossMat: THREE.MeshLambertMaterial | null = null;
   let stationGlass: THREE.MeshLambertMaterial | null = null; // concourse glows at night
+  let gondola: THREE.CatmullRomCurve3 | null = null; // the cable line (for riding it)
   if (mc) {
     const parts: THREE.BufferGeometry[] = [];
     const base = new THREE.Vector3(mc.x, T(mc.x, mc.z) - 0.5, mc.z);
@@ -231,6 +232,7 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
     const cableH = (p: Pt) => Tp(p) + (isStation(p) ? 8 : 18);
     const path = line.map((p) => new THREE.Vector3(p[0], cableH(p), p[1]));
     const curve = new THREE.CatmullRomCurve3(path, false, 'centripetal');
+    gondola = curve;
     const cable = new THREE.TubeGeometry(curve, Math.max(60, line.length * 12), 0.18, 4, false);
     group.add(new THREE.Mesh(cable, M('#3a3431')));
     const steel = M('#8f8d94');
@@ -269,6 +271,7 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
 
   return {
     group,
+    gondola,
     update(dt: number): void {
       for (const f of animated) f(dt);
       if (crossMat) crossMat.emissiveIntensity = SHARED.uNight.value * 0.9;

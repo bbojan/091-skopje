@@ -115,6 +115,29 @@
       body.driving .fly-only, body.driving .race-only, body.driving .fly-flash { display: none !important; }
       body:not(.driving) .drive-only { display: none !important; }
 
+      /* walking */
+      body.walking .bar, body.walking .title { display: none; }
+      #walkhud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+      #walkhud[hidden], #walkhud [hidden] { display: none !important; }
+      #walkhud .chip.warn:empty { display: none; }
+      #walk-exit { cursor: pointer; font-family: inherit; color: var(--ink); }
+      .walk-arrow { display: inline-block; color: #d8322a; transition: transform 0.1s linear; }
+      .walk-info { position: absolute; left: 22px; top: 70px; max-width: min(340px, calc(100vw - 44px)); padding: 16px 16px 12px; pointer-events: auto;
+                   background: var(--linen) var(--stitch) repeat-x 0 3px; color: var(--indigo); border: 1.5px solid var(--indigo); border-radius: 12px;
+                   box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); }
+      .walk-info b { display: block; font-size: 16px; margin-top: 6px; color: var(--wine); }
+      .walk-info p { margin: 6px 0 0; font-size: 13.5px; line-height: 1.45; }
+      .walk-flash { position: absolute; left: 50%; top: 36%; transform: translateX(-50%); font-size: 28px; font-weight: 700; color: #fff8ec;
+                    text-shadow: 2px 2px 0 #4b3428, -1px -1px 0 #4b3428, 1px -1px 0 #4b3428, -1px 1px 0 #4b3428; }
+      .walk-stick { position: absolute; left: 26px; bottom: 30px; width: 130px; height: 130px; border-radius: 50%; pointer-events: auto; touch-action: none;
+                    background: rgba(251, 246, 238, 0.35); border: 2px solid rgba(75, 52, 40, 0.5); display: none; place-items: center; }
+      .walk-stick .knob { width: 52px; height: 52px; border-radius: 50%; background: rgba(251, 246, 238, 0.92); border: 2px solid var(--ink); }
+      .walk-btns { position: absolute; right: 22px; bottom: 26px; display: flex; gap: 10px; align-items: flex-end; }
+      .walk-btns .fly-btn { font-size: 22px; }
+      .walk-btns .walk-act { width: 92px; height: 92px; border-radius: 50%; font-size: 34px; background: #f2c84b; }
+      .walk-touch { display: none !important; }
+      @media (pointer: coarse) { .walk-stick { display: grid; } .walk-touch { display: grid !important; } #walkhud .fly-keys { display: none; } }
+
       /* narrow screens: keep the top corners from colliding */
       @media (max-width: 560px) {
         .title { left: 12px; top: 12px; padding: 6px 10px 7px; }
@@ -238,6 +261,7 @@
           <tr><td data-i18n="v.overview">Преглед</td><td data-i18n="b.overviewD">Целиот град од високо</td></tr>
           <tr><td data-i18n="bar.fly">✈ Авион</td><td data-i18n="b.planeD">Летај над градот во трето лице</td></tr>
           <tr><td data-i18n="bar.bus">🚌 Автобус</td><td data-i18n="b.busD">Вози црвен двокатен ЈСП автобус низ улиците: ↑ гас, ↓ сопирачка/назад, ← → волан</td></tr>
+          <tr><td data-i18n="bar.walk">🚶 Пешачи</td><td data-i18n="b.walkD">Прошетај низ градот како Итар Пејо или како шарпланинец, во прво или трето лице: глушец/десен стик за гледање, E за акција — влези во автобус, качи се на гондолата, полетај со авионот, заиграј оро (Пејо) или залај (кучето)</td></tr>
           <tr><td data-i18n="b.times">☀ Ден · 🌇 Зајдисонце · 🌙 Ноќ</td><td data-i18n="b.timesD">Смени го делот од денот — ноќе светат прозорците, уличните светилки и фаровите</td></tr>
           <tr><td data-i18n="b.weather">🌤 Ведро · 🌧 Дожд · ❄ Снег · 🏔 Снег на Водно</td><td data-i18n="b.weatherD">Смени го времето: дожд со мокри улици и локви, снег низ целиот град или снег само на Водно и ридовите</td></tr>
           <tr><td data-i18n="b.season">🌳 Лето · 🍂 Есен · ☃ Зима · 🌸 Пролет</td><td data-i18n="b.seasonD">Смени го годишното време: цут и свежо зеленило напролет, есенски бои или голи дрвја во зима; зимзелените дрвја остануваат зелени</td></tr>
@@ -302,6 +326,7 @@
       <button class="pop-toggle" id="tools-toggle" aria-expanded="false" aria-controls="tools" data-i18n="bar.tools">⚙ Опции</button>
       <div class="places tools" id="tools">
         <button id="weather">🌤 Ведро</button>
+        <button id="walk" data-i18n="bar.walk">🚶 Пешачи</button>
         <button id="bus" data-i18n="bar.bus">🚌 Автобус</button>
         <button id="names" data-i18n="bar.names">Имиња</button>
         <button id="live" data-i18n="bar.live">Живо</button>
@@ -337,6 +362,24 @@
       <button class="fly-btn fly-only" id="fly-boost" data-k="boost" data-i18n="fly.boost">БРЗО</button>
       <div class="fly-keys chip drive-only" data-i18n="drive.keys">← → волан · ↑ гас · ↓ сопирачка/назад · Esc излез</div>
       <div class="fly-keys chip fly-only" data-i18n="fly.keys">← → свртување · ↑ ↓ нагоре/надолу · Shift брзо · Esc излез</div>
+    </div>
+    <div id="walkhud" hidden>
+      <div class="fly-top">
+        <span class="chip" id="walk-who"></span>
+        <span class="chip warn" id="walk-hint"></span>
+        <span class="chip" id="walk-bus" hidden><span class="walk-arrow" id="walk-bus-arrow">▲</span> <span id="walk-bus-dist"></span></span>
+        <button class="chip" id="walk-exit" data-i18n="fly.exit">✕ Излез</button>
+      </div>
+      <div class="walk-info" id="walk-info" hidden><b id="walk-info-name"></b><p id="walk-info-text"></p></div>
+      <div class="walk-flash" id="walk-flash"></div>
+      <div class="walk-stick" id="walk-stick"><div class="knob"></div></div>
+      <div class="walk-btns">
+        <button class="fly-btn" id="walk-view" aria-label="1/3"></button>
+        <button class="fly-btn" id="walk-char" aria-label="⇄"></button>
+        <button class="fly-btn walk-touch" id="walk-run" aria-label="run">🏃</button>
+        <button class="fly-btn walk-act" id="walk-act"></button>
+      </div>
+      <div class="fly-keys chip" data-i18n="walk.keys">WASD одење · глушец гледање · E акција · Shift трчање · V поглед · C лик · Esc излез</div>
     </div>
     <div id="status"></div>
     <div id="loader" role="status" aria-live="polite">
