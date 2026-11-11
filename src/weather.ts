@@ -6,7 +6,7 @@ import type { Bounds } from './types.ts';
 // camera. Drops are anchored in world space and wrap around the box, so they
 // don't swim when the camera moves. The box grows with zoom and the drops are
 // sized in screen terms, so rain reads the same up close and from the overview.
-// Only drawn in the colour pass (see InkRenderer.skipNormal): no ink lines.
+// No ink lines: skipped in the normal pass (InkRenderer.skipNormal), zero in the low tier's normal attachment.
 
 const VERT = /* glsl */ `
   attribute vec3 aCorner;              // quad corner x (-1..1), y (0..1), per-drop random
@@ -48,7 +48,9 @@ const FRAG = /* glsl */ `
   varying vec2 vC;
   varying vec3 vW;
   varying float vSnow;
+  layout(location = 1) out highp vec4 gInk; // normal attachment of the low tier's colour pass (post.ts)
   void main() {
+    gInk = vec4(0.0); // blended away: no ink lines
     if (abs(vW.x) > uBounds.x || abs(vW.z) > uBounds.y) discard; // stay over the diorama
     float a = vSnow > 0.5
       ? (1.0 - smoothstep(0.35, 1.0, length(vC))) * 0.95

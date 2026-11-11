@@ -50,6 +50,10 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    help dialog rows for walking and bus controls (6 languages), translation review page regenerated.
 14. **v2.1.0** (Nov 2026): ⚡ quality cycles auto → high → low; „висок“ forces the full tier at the top
    resolution (no frame-time governor). On/off options in ⚙ are drawn as switches (`aria-pressed`).
+15. **v2.2.0** (Nov 2026): performance: the low tier draws the scene once (normals from the colour
+   pass, ~25 % less GPU time, same pixels); ✨ Мазни рабови switch (4× MSAA, off = single pass in the
+   full tier too); menus that do not fit above the bar wrap into two columns; per-pass GPU timing
+   script (`scripts/browser/pass-timing.js`).
 
 ## Key decisions (and why)
 
@@ -88,6 +92,8 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 | Tree density per area kind | `DENS` in `computeCitySteps()`, `src/city.ts` |
 | Overall tree / parked-car density | `density` option of `computeCitySteps` (mobile uses 0.5) |
 | Render resolution levels | `QUALITY` in `src/main.ts` |
+| MSAA / single pass (smooth edges, low tier) | `setMSAA()`, `setLow()`, `_path()` in `src/post.ts` |
+| Menu wrapping into two columns | `fitPopup()` in `src/main.ts`, `.places.cols` in `index.html` |
 | Mobile profile (shadow size, bake size, agents) | `MOBILE` checks in `init()`, `src/main.ts` |
 | Moving cars / people counts | `opts.cars`, `opts.people` in `src/traffic.ts` |
 | Clouds count, size, wind | `MAX_CLOUDS`, `createClouds()` in `src/atmos.ts` |
@@ -122,6 +128,10 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
   sRGB. Baked far-ground textures use an sRGB render target on purpose.
 - **Transparent/additive things must skip the normal pass** (`ink.skipNormal`) or they
   get ink outlines and occlude AO/edges (clouds, lamp pools, headlights, race beam).
+  In the low tier, or with smooth edges off, there is no normal pass: the colour pass writes the normals too, and a
+  material writes none when it is `transparent` (so mark see-through things `transparent`
+  with `depthWrite: false`). A custom `ShaderMaterial` in the scene must declare and write
+  `gInk` itself (`weather.ts` shows how), or the normals under it are undefined.
 - **Mobile detection needs the user agent**: emulated or real phones may report a
   desktop-sized viewport at module load; iPadOS reports itself as a Mac with touch.
 - **The canvas has no `preserveDrawingBuffer`**: to save an image, render and call
@@ -183,7 +193,12 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
   run `node scripts/browser/shot-sink.ts <scratch folder>` and POST the data URL to
   `http://127.0.0.1:5199/<name>` (example in the file); then open the saved JPEG.
 - **GPU time**: `EXT_disjoint_timer_query_webgl2` around `ink.render`; frame times in a hidden
-  pane mean nothing.
+  pane mean nothing. Per pass: paste `scripts/browser/pass-timing.js`, then `await __passes()`.
+  Time whole chains that end on the canvas and subtract: a pass timed alone reads as ~0,
+  because the GPU only finishes what the final image depends on.
+- **Set ⚡ quality to high (or low) before measuring or recording references.** On `auto` the
+  governor sees the stalls a measuring script causes and switches to the low tier for the rest
+  of the visit, so the numbers and reference images silently come from the wrong tier.
 - **Memory** (memory saver): was measured by building the city in Node with the same code
   (that script was not kept); real phones are still on the "Not verified" list below.
 - **Translations**: `npm run typecheck` catches a missing key; `npm run strings` then
@@ -203,6 +218,10 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
   with simulated keys on desktop).
 - `prepare.ts` place lookup by OSM id (`PLACE_IDS`) and the Kale name fix — they take
   effect on the next `npm run data`; labels use hard-coded positions until then.
+- ✨ Мазни рабови off, watched live while the camera moves (edges are then smoothed only by the
+  accumulation): toggled and rendered without errors, timed, but not judged by eye. Not timed on
+  a phone either; all pass timings are from an M5 Pro.
+- Two-column menus on a real phone (checked at emulated 375×560, 375×330 and 1200×380).
 - Weather on a real phone (particle count is lowered on `MOBILE`, not measured there), and
   the 2 s weather blend watched live (verified via direct renders; the pane was hidden).
 
@@ -233,10 +252,19 @@ and LOD scale 0.65. Everything else costs the same on every device. Plan, in ord
    accumulation already antialiases), AO off, cloud shadows off or fewer clouds (the
    composite loops over all `MAX_CLOUDS` per pixel), 1024 shadow map with plain PCF, extra
    resolution steps 0.6 / 0.5, fewer moving cars/people, shorter tree LOD distances.
-2. **Drop the normal/depth pass** (medium, helps everyone): `InkRenderer` re-renders the
-   whole scene (430k trees) for ink normals. Reconstruct normals from depth in the
-   composite instead (or render them into a second target in the colour pass). Check the
-   ink lines still look the same.
+2. ✅ **Drop the normal/depth pass — done for the low tier** (`gRT` in `post.ts`): the colour
+   pass writes the normals into a second attachment. Normals and depth are the same as the
+   separate pass gave, the low tier is pixel-identical, and a frame costs about 25 % less
+   (2400×1500, M5 Pro: 6.4 → 4.8 ms Square, 9.5 → 6.8 Kale, 9.0 → 6.7 overview).
+   Not used in the full tier: with 4× MSAA the resolve averages normals and depth, and the ink
+   lines come out visibly thinner (it would save 1–3 ms of 10–12).
+   Per pass, full tier, same size: colour pass with MSAA ≈ 8–10 ms, normal pass 1–2 ms,
+   composite ≈ 1.2 ms, accumulation + output ≈ 0.4 ms; a shadow map refresh adds 4–6 ms on
+   frames where the camera moved. **MSAA is the biggest cost**: the same frame without it (single pass)
+   is 6.2–8.2 ms instead of 9.9–12.5, with identical ink lines; colour edges would then rely
+   on the temporal accumulation alone, also while the camera moves. It is an option:
+   ✨ Мазни рабови in ⚙ (on by default; `skopje.smooth`), off = single pass in the full tier too.
+   In the low tier the switch changes nothing (already single pass).
 3. ✅ **Lighter traffic CPU** — done as a manual option only (🚗, `traffic.setLight`;
    0.52 → 0.11 ms per frame on desktop). Was: 6.5k cars + 15k people are moved in JS every frame
    (`traffic.ts`). Update half per frame, fewer agents, or animate on the GPU.

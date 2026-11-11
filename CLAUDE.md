@@ -36,7 +36,7 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | `main.ts` | App shell: renderer, controls, loading (staged build + progress card), views, time of day, flight/race wiring, popups, help, gamepad, adaptive quality |
 | `city.ts` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds |
 | `terrain.ts` | Heightfield with exact mesh-matching interpolation; chunk/low-res meshes; triangle clipping for draping |
-| `post.ts` | `InkRenderer`: colour + normal/depth passes → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
+| `post.ts` | `InkRenderer`: colour + normal/depth passes (one pass in the low tier or with smooth edges off: normals as a second attachment) → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
 | `sky.ts` | Day / sunset / night presets + blending, weather presets (`WEATHER`: clear, rain, snow, snow on Vodno) + blending, street lamps, glow texture |
 | `weather.ts` | Falling rain and snow: GPU-animated quads in a camera-following box (colour pass only) |
 | `atmos.ts` | Translucent clouds (shadows computed in post), bird flocks |
@@ -85,11 +85,14 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
 - Seasons (`SHARED.uAutumn / uWinter / uSpring`) are colour-only tints in the tree and ground
   shaders: geometry changes would not match the ink normal pass. Cypresses carry
   `aEvergreen = 1`. Keep one tree material (a second one changes the draw order and pixels).
-- Quality: `auto` drops to the low tier (no MSAA/AO/cloud shadows, 1024 shadows, two extra
-  resolution steps) when already at the lowest resolution and still slow; `low` forces it;
+- Quality: `auto` drops to the low tier (no MSAA/AO/cloud shadows, normals from the colour pass
+  instead of a second scene pass, 1024 shadows, two extra resolution steps) when already at the lowest resolution and still slow; `low` forces it;
   `high` keeps the full tier at the top resolution (no frame-time governor). The button cycles auto → high → low.
 - On/off options in ⚙ are switches: `class="switch"` + `aria-pressed`, set with `setOn()` in `main.ts`.
-  Less traffic is a manual option only.
+  Less traffic is a manual option only. ✨ Мазни рабови (smooth edges, on by default) is 4× MSAA
+  in the full tier; off draws the scene in one pass (`ink.setMSAA`), same ink lines, faster.
+- A popup menu that does not fit above the bar wraps into two columns (`fitPopup()` in `main.ts`,
+  `.places.cols` in `index.html`) and scrolls if it is still too tall.
 - Memory saver (`stream`): draped ground and detailed terrain are built per chunk on demand
   (`desc.lazy`, `makeLOD`). The per-chunk builder must emit triangles in the same order as one
   global pass, and meshes must be created in the same order (three.js breaks depth ties by

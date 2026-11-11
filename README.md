@@ -30,7 +30,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 **For every screen**
 - Interface in Macedonian, English, Serbian, Croatian, Slovenian and Albanian (map names stay Macedonian), in a Вез (folk embroidery) style; help dialog behind the 091 logo
 - Mouse, touch, keyboard and gamepad (XInput / DirectInput) controls
-- Phone and tablet layout; automatic low-quality mode for slow devices, a less-traffic option, and a memory saver (on by default on phones)
+- Phone and tablet layout; automatic low-quality mode for slow devices, a smooth-edges switch (off is faster), a less-traffic option, and a memory saver (on by default on phones); long menus wrap into two columns on short screens
 
 More context for development (architecture, conventions, decisions, gotchas):
 [CLAUDE.md](CLAUDE.md) and [docs/NOTES.md](docs/NOTES.md).

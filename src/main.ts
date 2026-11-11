@@ -489,6 +489,18 @@ streamBtn.addEventListener('click', () => {
   try { localStorage.setItem('skopje.memorySaver', memorySaver ? '1' : '0'); } catch { /* storage unavailable */ }
   camDirty = true;
 });
+// smooth edges (4× MSAA): off is faster, and only changes how moving pictures look at the edges
+let smoothEdges = true;
+try { smoothEdges = localStorage.getItem('skopje.smooth') !== '0'; } catch { /* storage unavailable */ }
+ink.setMSAA(smoothEdges);
+const smoothBtn = $('smooth');
+setOn(smoothBtn, smoothEdges);
+smoothBtn.addEventListener('click', () => {
+  smoothEdges = !smoothEdges;
+  setOn(smoothBtn, smoothEdges);
+  ink.setMSAA(smoothEdges);
+  try { localStorage.setItem('skopje.smooth', smoothEdges ? '1' : '0'); } catch { /* storage unavailable */ }
+});
 // less traffic: an option only, never switched on automatically
 let lightTraffic = false;
 try { lightTraffic = localStorage.getItem('skopje.lightTraffic') === '1'; } catch { /* storage unavailable */ }
@@ -564,8 +576,16 @@ for (const p of popups) {
     closePopups(p);
     p.menu.classList.toggle('open', open);
     p.btn.setAttribute('aria-expanded', String(open));
+    fitPopup(p.menu);
   });
 }
+// a menu taller than the space above the bar wraps into two columns (and scrolls if still too tall)
+function fitPopup(menu: HTMLElement): void {
+  menu.classList.remove('cols');
+  if (!menu.classList.contains('open')) return;
+  if (menu.getBoundingClientRect().top < 8) menu.classList.add('cols');
+}
+addEventListener('resize', () => popups.forEach((p) => fitPopup(p.menu)));
 // Overview, weather, season, bus and language sit on the bar on desktop and inside the menus on
 // phones; on desktop the copy-link item is first in the options menu
 // (same breakpoint as the phone styles in index.html)

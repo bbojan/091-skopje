@@ -7,22 +7,64 @@ const FS_VERT = /* glsl */ `varying vec2 vUv; void main() { vUv = uv; gl_Positio
 const halton = (i: number, b: number) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b); } return r; };
 const JITTER: [number, number][] = Array.from({ length: 32 }, (_, i) => [halton(i + 1, 2) - 0.5, halton(i + 1, 3) - 0.5]);
 
+// Single pass (low quality tier, or smooth edges switched off): the colour pass also writes the view-space normal into a second
+// attachment (the ink lines need it), so the scene is drawn once instead of once more with
+// a normal material. Every built-in mesh material gets it through these shader chunks, which
+// must be patched before the first material compiles. Opaque materials write the normal
+// exactly as MeshNormalMaterial would (measured: same normals and depth as the separate
+// pass); see-through ones (clouds, glows, rain) write zero, which their blending turns into
+// "leave what is there", so they draw no ink lines. A custom ShaderMaterial in the scene
+// must write gInk itself (see weather.ts). With MSAA the output is simply unused: the
+// resolve would average normals and depth and thin the ink lines, so that path keeps the
+// separate normal pass.
+const C = THREE.ShaderChunk;
+C.common += /* glsl */ `
+varying vec3 vInkN;`;
+C.project_vertex += /* glsl */ `
+vec3 inkN = vec3(normal);
+#ifdef USE_INSTANCING
+  mat3 inkIm = mat3(instanceMatrix);
+  inkN /= vec3(dot(inkIm[0], inkIm[0]), dot(inkIm[1], inkIm[1]), dot(inkIm[2], inkIm[2]));
+  inkN = inkIm * inkN;
+#endif
+vInkN = normalize(normalMatrix * inkN);`;
+C.clipping_planes_pars_fragment += /* glsl */ `
+layout(location = 1) out highp vec4 gInk;`;
+C.dithering_fragment += /* glsl */ `
+#ifdef OPAQUE
+  vec3 inkNrm = normalize(vInkN);
+  #ifdef DOUBLE_SIDED
+    inkNrm *= gl_FrontFacing ? 1.0 : -1.0;
+  #endif
+  gInk = vec4(inkNrm * 0.5 + 0.5, 1.0);
+#else
+  gInk = vec4(0.0);
+#endif`;
+
 // Illustrated renderer:
-//   colour pass + normal/depth pass → composite (ink lines, AO, grade, haze)
+//   colour pass + normal/depth pass (or a single pass for both)
+//   → composite (ink lines, AO, grade, haze)
 //   → temporal accumulation of jittered frames (supersampled antialiasing)
 //   → display (paper grain, sRGB)
 export class InkRenderer {
   r: THREE.WebGLRenderer;
   colorRT: THREE.WebGLRenderTarget;
   normalRT: THREE.WebGLRenderTarget;
+  /** single pass: colour (0) + view normal (1) + depth together, no MSAA */
+  gRT: THREE.WebGLRenderTarget;
+  low = false;
+  /** 4× MSAA in the colour pass (full tier only); off = single pass */
+  msaa = true;
+  /** the scene is drawn once, into gRT: the low tier, or MSAA switched off */
+  single = false;
+  normalMat: THREE.MeshNormalMaterial;
+  /** additive glows etc. that must not create ink lines (normal pass; the single pass goes by `transparent`) */
+  skipNormal: THREE.Object3D[];
   compRT: THREE.WebGLRenderTarget;
   /** accumulation ping-pong: [previous, next] */
   acc: [THREE.WebGLRenderTarget, THREE.WebGLRenderTarget];
-  normalMat: THREE.MeshNormalMaterial;
   /** draw ink lines */
   ink: boolean;
-  /** additive glows etc. that must not create ink lines */
-  skipNormal: THREE.Object3D[];
   /** frames accumulated since the last reset */
   frame: number;
   maxSamples: number;
@@ -41,11 +83,14 @@ export class InkRenderer {
     this.colorRT = new THREE.WebGLRenderTarget(1, 1, { ...hf, samples: 4 });
     this.normalRT = new THREE.WebGLRenderTarget(1, 1, { type: THREE.UnsignedByteType });
     this.normalRT.depthTexture = new THREE.DepthTexture(1, 1, THREE.FloatType);
+    this.gRT = new THREE.WebGLRenderTarget(1, 1, { ...hf, count: 2 });
+    this.gRT.textures[1].type = THREE.UnsignedByteType;
+    this.gRT.depthTexture = new THREE.DepthTexture(1, 1, THREE.FloatType);
+    this.normalMat = new THREE.MeshNormalMaterial();
+    this.skipNormal = [];
     this.compRT = new THREE.WebGLRenderTarget(1, 1, hf);
     this.acc = [new THREE.WebGLRenderTarget(1, 1, hf), new THREE.WebGLRenderTarget(1, 1, hf)];
-    this.normalMat = new THREE.MeshNormalMaterial();
     this.ink = true;
-    this.skipNormal = [];
     this.frame = 0;
     this.maxSamples = 24;
     this.liveBlend = 0.22;
@@ -205,13 +250,27 @@ export class InkRenderer {
   }
 
   /** Low quality tier: no MSAA in the colour pass (the temporal accumulation still
-   *  antialiases) and no ambient occlusion. */
+   *  antialiases), normals from that same pass, and no ambient occlusion. */
   setLow(low: boolean): void {
+    this.low = low;
     this.compMat.uniforms.aoOn.value = low ? 0 : 1;
-    const samples = low ? 0 : 4;
-    if (this.colorRT.samples !== samples) {
-      this.colorRT.samples = samples;
-      this.colorRT.dispose(); // re-created with the new sample count on next use
+    this._path();
+  }
+
+  /** Smooth edges (4× MSAA) on or off. Off draws the scene once instead of twice; the ink
+   *  lines are the same, colour edges are then smoothed by the temporal accumulation only. */
+  setMSAA(on: boolean): void { this.msaa = on; this._path(); }
+
+  _path(): void {
+    const single = this.low || !this.msaa;
+    if (single !== this.single) {
+      this.single = single;
+      const u = this.compMat.uniforms;
+      // free the targets of the other path; they are re-created on next use
+      if (single) { this.colorRT.dispose(); this.normalRT.dispose(); } else this.gRT.dispose();
+      u.tColor.value = single ? this.gRT.textures[0] : this.colorRT.texture;
+      u.tNormal.value = single ? this.gRT.textures[1] : this.normalRT.texture;
+      u.tDepth.value = single ? this.gRT.depthTexture : this.normalRT.depthTexture;
     }
     this.reset();
   }
@@ -221,7 +280,7 @@ export class InkRenderer {
   setSize(w: number, h: number, dpr: number): void {
     const W = Math.floor(w * dpr), H = Math.floor(h * dpr);
     this.size = [W, H];
-    for (const rt of [this.colorRT, this.normalRT, this.compRT, ...this.acc]) rt.setSize(W, H);
+    for (const rt of [this.colorRT, this.normalRT, this.gRT, this.compRT, ...this.acc]) rt.setSize(W, H);
     this.compMat.uniforms.texel.value.set(1 / W, 1 / H);
     this.compMat.uniforms.px.value = Math.max(1, dpr * 0.85);
     this.reset();
@@ -258,10 +317,10 @@ export class InkRenderer {
     const bg = scene.background;
     scene.background = null;
     r.setClearColor(0x000000, 0);
-    r.setRenderTarget(this.colorRT);
+    r.setRenderTarget(this.single ? this.gRT : this.colorRT);
     r.clear();
     r.render(scene, camera);
-    if (this.ink) {
+    if (this.ink && !this.single) {
       const hidden = this.skipNormal.filter((o) => o.visible);
       for (const o of hidden) o.visible = false;
       scene.overrideMaterial = this.normalMat;
