@@ -32,6 +32,10 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    БРЗО (boost) button is a toggle.
 9. **v1.5.0** (Nov 2026): desktop bar uses the popup menus too (📍 Места, ⚙ Опции), with
    Преглед, weather and language always on the bar; phones unchanged.
+10. **v1.6.0** (Nov 2026): seasons 🌳 summer / 🍂 autumn / ☃ winter / 🌸 spring (tree and grass tints;
+   cypresses keep `aEvergreen`), automatic low quality tier + ⚡ Quality option, 🚗 less
+   traffic option, labels for Telecom centre, Daut Pasha Hamam, Св. Спас, City Mall,
+   railway station; Kale label on the fortress.
 
 ## Key decisions (and why)
 
@@ -152,6 +156,10 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 
 - Real iPhone/iPad (memory limits ~1–1.5 GB per tab) — only emulated.
 - Real gamepads — only a simulated XInput pad; DirectInput axis layout is a heuristic.
+- The automatic switch to the low quality tier on a really slow device (logic only; the
+  low tier itself was measured: 10.9 → 4.7 ms GPU on the Square view at 1600×1000).
+- `prepare.ts` place lookup by OSM id (`PLACE_IDS`) and the Kale name fix — they take
+  effect on the next `npm run data`; labels use hard-coded positions until then.
 - Weather on a real phone (particle count is lowered on `MOBILE`, not measured there), and
   the 2 s weather blend watched live (verified via direct renders; the pane was hidden).
 
@@ -160,11 +168,9 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 - Stream chunks on demand (build full detail only near the camera) — the real fix
   for iOS memory if the mobile profile is still too heavy.
 - Shareable links with camera position in the URL hash.
-- More landmarks: Telecom tower, Holy Saviour church, Daut Pasha Hamam, City Mall,
-  railway station; better Kale label position (no OSM name match).
+- 3D models for the new labelled landmarks (hamam domes, Telecom centre); they are
+  drawn as ordinary OSM buildings for now.
 - Facade variety by building type (shops, schools, churches), roof-top terraces.
-- Seasonal looks: autumn colours / bare trees in winter (tint in `toonFoliage`, same hook
-  as the snow on trees). Weather (rain, snow, snow on Vodno) is done.
 - `npm run download` should also fetch `data/aerialway.json`.
 
 ### Performance on slower machines and weak phones
@@ -176,7 +182,7 @@ and LOD scale 0.65. Everything else costs the same on every device. Plan, in ord
 0. **Measure first**: time each pass with `EXT_disjoint_timer_query_webgl2` (colour,
    normal/depth, composite, accumulation, output, shadow map) on a weak device, so the
    work goes where the time is.
-1. **Automatic low tier** (easy, desktop look unchanged): when the governor is already at
+1. ✅ **Automatic low tier** — done (`setLowTier()` in `main.ts`, ⚡ Quality option). Was: when the governor is already at
    the lowest resolution and frames are still slow (or forced by a "Quality: Auto / Low"
    option in ⚙), switch to: no MSAA in `colorRT` (`samples: 4` → 0; the temporal
    accumulation already antialiases), AO off, cloud shadows off or fewer clouds (the
@@ -186,7 +192,8 @@ and LOD scale 0.65. Everything else costs the same on every device. Plan, in ord
    whole scene (430k trees) for ink normals. Reconstruct normals from depth in the
    composite instead (or render them into a second target in the colour pass). Check the
    ink lines still look the same.
-3. **Lighter traffic CPU** (medium): 6.5k cars + 15k people are moved in JS every frame
+3. ✅ **Lighter traffic CPU** — done as a manual option only (🚗, `traffic.setLight`;
+   0.52 → 0.11 ms per frame on desktop). Was: 6.5k cars + 15k people are moved in JS every frame
    (`traffic.ts`). Update half per frame, fewer agents, or animate on the GPU.
 4. **Faster loading on phones** (bigger): parsing the 7 MB `skopje.json` and building the
    city on the main thread is most of the load time. Prebuild the chunk geometry in Node

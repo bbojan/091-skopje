@@ -69,6 +69,7 @@ export class InkRenderer {
         clouds: { value: Array.from({ length: MAX_CLOUDS }, () => new THREE.Vector4()) },
         cloudShade: { value: 0.24 },
         // weather: saturation and haze (clear = as authored)
+        aoOn: { value: 1 }, // 0 in the low quality tier
         sat: { value: 1.12 },
         hazeAmt: { value: 0.3 },
         hazeRange: { value: new THREE.Vector2(4000, 26000) },
@@ -82,7 +83,7 @@ export class InkRenderer {
         uniform mat4 projInv, camWorld;
         uniform vec3 sunDir;
         uniform vec4 clouds[${MAX_CLOUDS}];
-        uniform float cloudShade, sat, hazeAmt;
+        uniform float cloudShade, sat, hazeAmt, aoOn;
         uniform vec2 hazeRange;
         vec3 worldPos(vec2 uv) {
           float d = texture2D(tDepth, uv).x;
@@ -114,6 +115,7 @@ export class InkRenderer {
           float dist = 1.0 / max(c, 1e-7);
 
           // --- ambient occlusion: pairwise 1/z test (planes give exactly zero)
+          if (aoOn > 0.5) {
           float ao = 0.0;
           float rpx = clamp(3.2 * focal / dist, 2.0, 28.0);
           float rot = hash(gl_FragCoord.xy + seed) * 6.2831;
@@ -129,6 +131,7 @@ export class InkRenderer {
           }
           ao = ao / 4.0;
           col = mix(col, col * vec3(0.70, 0.70, 0.86), ao * 0.75);
+          }
 
           // --- drifting cloud shadows: project the pixel along the sun to each cloud
           if (cloudShade > 0.001) {
@@ -199,6 +202,18 @@ export class InkRenderer {
     this.qScene = new THREE.Scene();
     this.qScene.add(this.quad);
     this.qCam = new THREE.Camera();
+  }
+
+  /** Low quality tier: no MSAA in the colour pass (the temporal accumulation still
+   *  antialiases) and no ambient occlusion. */
+  setLow(low: boolean): void {
+    this.compMat.uniforms.aoOn.value = low ? 0 : 1;
+    const samples = low ? 0 : 4;
+    if (this.colorRT.samples !== samples) {
+      this.colorRT.samples = samples;
+      this.colorRT.dispose(); // re-created with the new sample count on next use
+    }
+    this.reset();
   }
 
   setClipping(planes: THREE.Plane[]): void { this.normalMat.clippingPlanes = planes; }

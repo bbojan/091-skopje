@@ -152,6 +152,9 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
     locate(a, loc);
   };
 
+  // "less traffic" option: only the first share of each list moves and is drawn
+  // (agents are in random order, so that is a random subset)
+  let nAutos = autos.length, nBuses = buses.length, nPeople = people.length;
   let time = 0;
   function update(dt: number, camera?: THREE.Camera, target?: THREE.Vector3): void {
     dt = Math.min(dt, 0.1);
@@ -163,11 +166,12 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
     const showPeople = dist < 9000;
     torsoMesh.visible = headMesh.visible = showPeople;
     const ca = carMesh.instanceMatrix.array, ba = busMesh.instanceMatrix.array;
-    autos.forEach((a, i) => { step(a, dt); write(ca, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, carS); });
-    buses.forEach((a, i) => { step(a, dt); write(ba, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, Math.min(carS, 2)); });
+    for (let i = 0; i < nAutos; i++) { const a = autos[i]; step(a, dt); write(ca, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, carS); }
+    for (let i = 0; i < nBuses; i++) { const a = buses[i]; step(a, dt); write(ba, i, loc.x, terrain.at(loc.x, loc.z) + 1.0, loc.z, loc.tx, loc.tz, Math.min(carS, 2)); }
     if (!showPeople) { for (const m of [carMesh, busMesh]) m.instanceMatrix.needsUpdate = true; return; }
     const ta = torsoMesh.instanceMatrix.array, ha = headMesh.instanceMatrix.array;
-    people.forEach((a, i) => {
+    for (let i = 0; i < nPeople; i++) {
+      const a = people[i];
       if (a.v > 0) step(a, dt);
       else if (a.seg === 0 && !a.init) { locate(a, loc); a.init = true; a.x = loc.x; a.z = loc.z; a.tx = loc.tx; a.tz = loc.tz; }
       const x = a.v > 0 ? loc.x : a.x ?? loc.x, z = a.v > 0 ? loc.z : a.z ?? loc.z;
@@ -177,7 +181,7 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
       // slightly oversized so they read as lively dots from above
       write(ta, i, x, y, z, tx, tz, pplS);
       write(ha, i, x, y, z, tx, tz, pplS);
-    });
+    }
     for (const m of [carMesh, busMesh, torsoMesh, headMesh]) m.instanceMatrix.needsUpdate = true;
   }
   update(0.001);
@@ -194,9 +198,17 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
     group.add(b);
     beams.push(b);
   }
+  /** Less traffic: ~35 % of the cars, buses and people (less CPU work per frame). */
+  function setLight(on: boolean): void {
+    const k = on ? 0.35 : 1;
+    nAutos = Math.ceil(autos.length * k); nBuses = Math.ceil(buses.length * k); nPeople = Math.ceil(people.length * k);
+    carMesh.count = beams[0].count = nAutos;
+    busMesh.count = beams[1].count = nBuses;
+    torsoMesh.count = headMesh.count = nPeople;
+  }
   function setNight(f: number): void {
     beamMat.opacity = 0.7 * THREE.MathUtils.smoothstep(f, 0.15, 0.9);
     for (const b of beams) b.visible = f > 0.1;
   }
-  return { group, update, setNight, glows: beams as THREE.Object3D[], counts: { cars: cars.length, people: people.length } };
+  return { group, update, setNight, setLight, glows: beams as THREE.Object3D[], counts: { cars: cars.length, people: people.length } };
 }

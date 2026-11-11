@@ -75,6 +75,12 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   driven by `SHARED.uWet / uSnow / uSnowLine`; each block is skipped when its amount is 0.
   Snow on roads stays as slush: roads are detected by their exact palette colour.
 - Rain/snow add ~1 ms GPU per frame at 1600×1000 (desktop); clear costs nothing.
+- Seasons (`SHARED.uAutumn / uWinter / uSpring`) are colour-only tints in the tree and ground
+  shaders: geometry changes would not match the ink normal pass. Cypresses carry
+  `aEvergreen = 1`. Keep one tree material (a second one changes the draw order and pixels).
+- Quality: `auto` drops to the low tier (no MSAA/AO/cloud shadows, 1024 shadows, two extra
+  resolution steps) when already at the lowest resolution and still slow; `low` forces it.
+  Less traffic is a manual option only.
 - Version lives in `package.json` (`version`); Vite injects it as `__APP_VERSION__`, shown at
   the bottom of the help dialog. Releases are tagged `vX.Y.Z`.
 

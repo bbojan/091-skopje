@@ -223,6 +223,10 @@ export const SHARED = {
   uSnow: { value: 0 },
   uSnowLine: { value: -1000 },
   uPuddle: { value: new THREE.Vector3(0.6, 0.65, 0.72) },
+  // seasons (both zero in summer: the season code paths are skipped)
+  uAutumn: { value: 0 },
+  uWinter: { value: 0 },
+  uSpring: { value: 0 },
 };
 
 // ---------------------------------------------------------------- weather in the ground shader
@@ -235,6 +239,15 @@ const WX_NOISE = /* glsl */ `
     vec2 i = floor(p), f = fract(p);
     f = f * f * (3.0 - 2.0 * f);
     return mix(mix(wxHash(i), wxHash(i + vec2(1.0, 0.0)), f.x), mix(wxHash(i + vec2(0.0, 1.0)), wxHash(i + vec2(1.0, 1.0)), f.x), f.y);
+  }`;
+// grass and park greens: fresher in spring, olive in autumn, straw in winter
+const SEASON_GROUND = /* glsl */ `
+  if (uAutumn > 0.0 || uWinter > 0.0 || uSpring > 0.0) {
+    float green = smoothstep(0.02, 0.10, raw.g - max(raw.r, raw.b)) * (1.0 - wm);
+    float gl = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(gl * 1.3, gl * 1.08, gl * 0.42), green * uAutumn * 0.6);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(gl * 1.2, gl * 1.02, gl * 0.72), green * uWinter * 0.85);
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.92, 1.12, 0.8) + vec3(0.0, 0.03, 0.0), green * uSpring * 0.7);
   }`;
 // expects: raw (colour before weather), wm (water mask), vWPos, vNy
 const WX_GROUND = /* glsl */ `
@@ -283,6 +296,9 @@ function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boole
   sh.uniforms.uSnow = SHARED.uSnow;
   sh.uniforms.uSnowLine = SHARED.uSnowLine;
   sh.uniforms.uPuddle = SHARED.uPuddle;
+  sh.uniforms.uAutumn = SHARED.uAutumn;
+  sh.uniforms.uWinter = SHARED.uWinter;
+  sh.uniforms.uSpring = SHARED.uSpring;
   sh.uniforms.uRoad = { value: ROAD_LIN };
   const waterLin = C(PAL.area.water), poolLin = C(PAL.area.pool);
   sh.uniforms.uWater = { value: new THREE.Vector3(waterLin.r, waterLin.g, waterLin.b) };
@@ -294,13 +310,14 @@ function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boole
     .replace('#include <common>', `#include <common>
       varying vec3 vWPos;
       varying float vNy;
-      uniform float uTime, uWet, uSnow, uSnowLine;
+      uniform float uTime, uWet, uSnow, uSnowLine, uAutumn, uWinter, uSpring;
       uniform vec3 uWater, uPool, uPuddle;
       uniform vec3 uRoad[${ROAD_LIN.length}];
       ${WX_NOISE}`)
     .replace('#include <color_fragment>', `#include <color_fragment>
       vec3 raw = diffuseColor.rgb;
       float wm = ${water ? '1.0 - smoothstep(0.012, 0.045, min(distance(raw, uWater), distance(raw, uPool)))' : '0.0'};
+      ${SEASON_GROUND}
       ${WX_GROUND}
       ${water ? WATER_GLINT : ''}`);
 }
@@ -398,14 +415,20 @@ function facadeMaterial(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMateri
 }
 
 // Lambert with a two-tone cartoon ramp: warm lit side, cool shade side
+// One material for all trees (a second one would change the draw order, and with it
+// pixels). Cypress geometry carries aEvergreen = 1: no autumn colours, not bare in winter.
 function toonFoliage(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial {
   const m = new THREE.MeshLambertMaterial({ clippingPlanes });
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uSnow = SHARED.uSnow;
+    sh.uniforms.uAutumn = SHARED.uAutumn;
+    sh.uniforms.uWinter = SHARED.uWinter;
+    sh.uniforms.uSpring = SHARED.uSpring;
     sh.uniforms.uSnowLine = SHARED.uSnowLine;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying float vSnowY;\nvarying float vSnowN;')
+      .replace('#include <common>', '#include <common>\nattribute float aEvergreen;\nvarying float vEvergreen;\nvarying float vSnowY;\nvarying float vSnowN;')
       .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vEvergreen = aEvergreen;
         vec4 sWp = vec4(transformed, 1.0);
         #ifdef USE_INSTANCING
           sWp = instanceMatrix * sWp;
@@ -413,8 +436,21 @@ function toonFoliage(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial 
         vSnowY = (modelMatrix * sWp).y;
         vSnowN = normal.y;`);
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vSnowY;\nvarying float vSnowN;\nuniform float uSnow, uSnowLine;')
+      .replace('#include <common>', '#include <common>\nvarying float vEvergreen;\nvarying float vSnowY;\nvarying float vSnowN;\nuniform float uSnow, uSnowLine, uAutumn, uWinter, uSpring;')
       .replace('#include <color_fragment>', `#include <color_fragment>
+        if ((uAutumn > 0.0 || uWinter > 0.0 || uSpring > 0.0) && vEvergreen < 0.5) {
+          // each tree picks its own shade from its (random) instance colour
+          vec3 leaf = diffuseColor.rgb;
+          float h = fract(sin(dot(leaf, vec3(12.9898, 78.233, 37.719)) * 97.0) * 43758.5453);
+          vec3 autumn = h < 0.3 ? vec3(0.78, 0.50, 0.08) : h < 0.55 ? vec3(0.74, 0.27, 0.05) : h < 0.72 ? vec3(0.52, 0.09, 0.04) : vec3(0.40, 0.23, 0.09);
+          vec3 bare = mix(vec3(0.24, 0.20, 0.17), vec3(0.36, 0.31, 0.27), fract(h * 7.3));
+          diffuseColor.rgb = mix(leaf, autumn, uAutumn * (1.0 - step(0.86, h)));   // a few stay green
+          diffuseColor.rgb = mix(diffuseColor.rgb, bare, uWinter * (1.0 - step(0.8, h))); // pines and other evergreens
+          // spring: about a third of the trees in blossom (pink or white), the rest fresh light green
+          vec3 blossom = fract(h * 3.7) < 0.5 ? vec3(0.92, 0.52, 0.62) : vec3(0.95, 0.90, 0.92);
+          vec3 fresh = leaf * vec3(1.12, 1.25, 0.72) + vec3(0.03, 0.05, 0.0);
+          diffuseColor.rgb = mix(diffuseColor.rgb, h < 0.3 ? blossom : fresh, uSpring);
+        }
         if (uSnow > 0.0) {
           float sAlt = smoothstep(uSnowLine - 30.0, uSnowLine + 30.0, vSnowY);
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.93, 0.95, 0.99), uSnow * sAlt * smoothstep(0.2, 0.75, vSnowN) * 0.85);
@@ -430,7 +466,7 @@ function toonFoliage(clippingPlanes?: THREE.Plane[]): THREE.MeshLambertMaterial 
       #include <opaque_fragment>`
     );
   };
-  m.customProgramCacheKey = () => 'toon-foliage-v2';
+  m.customProgramCacheKey = () => 'toon-foliage-v3';
   return m;
 }
 
@@ -1091,6 +1127,8 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
   const blobFar = new THREE.IcosahedronGeometry(1.15, 0);
   const cypHi = mergeGeometries([new THREE.IcosahedronGeometry(1, 1).scale(1, 2.6, 1), new THREE.IcosahedronGeometry(0.7, 1).scale(1, 2.0, 1).translate(0, 1.9, 0)]);
   const cypLo = new THREE.IcosahedronGeometry(1, 0).scale(1, 3.0, 1);
+  // cypresses stay green through the seasons (other trees have no aEvergreen: reads as 0)
+  for (const g of [cypHi, cypLo]) g.setAttribute('aEvergreen', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count).fill(1), 1));
   const carGeo = carGeometry();
 
   const inst = (geo: THREE.BufferGeometry, mat: THREE.Material, pk: Packed) => {
@@ -1105,8 +1143,8 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
     return mesh;
   };
   // another detail level reusing the same per-instance GPU buffers
-  const share = (src: THREE.InstancedMesh, geo: THREE.BufferGeometry) => {
-    const m = new THREE.InstancedMesh(geo, treeMat, 0);
+  const share = (src: THREE.InstancedMesh, geo: THREE.BufferGeometry, mat: THREE.Material) => {
+    const m = new THREE.InstancedMesh(geo, mat, 0);
     m.count = src.count;
     m.instanceMatrix = src.instanceMatrix;
     m.instanceColor = src.instanceColor;
@@ -1131,13 +1169,15 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
       m.castShadow = m.receiveShadow = true;
       group.add(m);
     }
-    const sets: [PackedSet | null, THREE.BufferGeometry, THREE.BufferGeometry, THREE.BufferGeometry][] = [[d.trees, blobHi, blobLo, blobFar], [d.forest, blobMid, blobLo, blobFar], [d.cyp, cypHi, cypLo, cypLo]];
-    for (const [set, hiGeo, loGeo, farGeo] of sets) {
+    const sets: [PackedSet | null, THREE.BufferGeometry, THREE.BufferGeometry, THREE.BufferGeometry, THREE.Material][] = [
+      [d.trees, blobHi, blobLo, blobFar, treeMat], [d.forest, blobMid, blobLo, blobFar, treeMat], [d.cyp, cypHi, cypLo, cypLo, treeMat],
+    ];
+    for (const [set, hiGeo, loGeo, farGeo, mat] of sets) {
       if (!set) continue;
-      const hi = inst(hiGeo, treeMat, set.hi);
+      const hi = inst(hiGeo, mat, set.hi);
       L.hi.push(hi);
-      L.lo.push(share(hi, loGeo));
-      if (set.far.n) L.far.push(inst(farGeo, treeMat, set.far));
+      L.lo.push(share(hi, loGeo, mat));
+      if (set.far.n) L.far.push(inst(farGeo, mat, set.far));
     }
     if (d.cars) {
       const m = inst(carGeo, carMat, d.cars);

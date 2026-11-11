@@ -154,7 +154,15 @@ for (const el of raw.elements) {
 // exact positions of named places (area-weighted centroid of the largest matching shape)
 const PLACE_NAMES: Record<string, string> = {
   square: 'Плоштад Македонија', porta: 'Порта Македонија', park: 'Градски парк', zoo: 'Зоолошка градина Скопје',
-  arena: 'Национална арена Тодор Проески', bazaar: 'Стара скопска чаршија', kale: 'Скопско Кале',
+  arena: 'Национална арена Тодор Проески', bazaar: 'Стара скопска чаршија', kale: 'Скопско кале',
+};
+// places matched by OSM way id (names that are ambiguous or long: there are two „Св. Спас“)
+const PLACE_IDS: Record<string, number> = {
+  telecom: 32490009, // Пошта на Македонија — Telecommunications Centre (Janko Konstantinov)
+  hamam: 172171547, // Даут пашин амам — National Gallery
+  spas: 1137300477, // Св. Спас in the old town
+  mall: 189429723, // Skopje City Mall
+  station: 144759771, // Железничка станица Скопје
 };
 const areaCentroid = (r: Ring): Pt => {
   let a = 0, cx = 0, cz = 0;
@@ -174,6 +182,11 @@ for (const [key, name] of Object.entries(PLACE_NAMES)) {
     }
   }
   if (best) out.places[key] = r1p(best.c);
+}
+for (const [key, id] of Object.entries(PLACE_IDS)) {
+  const el = raw.elements.find((e) => e.type === 'way' && e.id === id);
+  const poly = el ? polygonsOf(el)[0] : undefined;
+  if (poly) out.places[key] = r1p(areaCentroid(poly[0]));
 }
 // Vodno gondola (separate small download: data/aerialway.json)
 if (fs.existsSync('data/aerialway.json')) {

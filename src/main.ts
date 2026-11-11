@@ -44,7 +44,10 @@ const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'h
 const MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) // iPadOS reports a Mac
   || matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 600;
-const QUALITY = [1.5, 1.25, 1.0, 0.8].map((q) => Math.min(window.devicePixelRatio, q));
+// resolution levels; the low quality tier adds two more at the bottom
+const BASE_Q = [1.5, 1.25, 1.0, 0.8], LOW_Q = [...BASE_Q, 0.6, 0.5];
+const qLevels = (list: number[]) => list.map((q) => Math.min(window.devicePixelRatio, q));
+let QUALITY = qLevels(BASE_Q);
 let qLevel = MOBILE ? 2 : 0;
 let dpr = QUALITY[qLevel];
 renderer.setPixelRatio(dpr);
@@ -87,6 +90,27 @@ function setQuality(level: number): void {
   ink.setSize(innerWidth, innerHeight, dpr);
   camDirty = true;
 }
+// Quality: 'auto' switches to the low tier by itself when the device is too slow;
+// 'low' always uses it. Low tier: no MSAA, no AO, no cloud shadows, 1024 shadow map,
+// shorter tree detail distances, two extra resolution steps.
+type QualityMode = 'auto' | 'low';
+let qualityMode: QualityMode = 'auto';
+try { if (localStorage.getItem('skopje.quality') === 'low') qualityMode = 'low'; } catch { /* storage unavailable */ }
+let lowTier = false;
+let shadowRes = 2048; // set from the device in init()
+function setLowTier(on: boolean): void {
+  if (on === lowTier) return;
+  lowTier = on;
+  QUALITY = qLevels(on ? LOW_Q : BASE_Q);
+  setQuality(qLevel);
+  ink.setLow(on);
+  const size = on ? 1024 : shadowRes;
+  if (sun.shadow.mapSize.x !== size) { sun.shadow.mapSize.set(size, size); sun.shadow.map?.dispose(); sun.shadow.map = null; }
+  world?.city.setLODScale((MOBILE ? 0.65 : 1) * (on ? 0.6 : 1));
+  if (world) applyTime(timeNow, wxNow, world); // cloud shadows follow the tier
+  qualityBtn.textContent = qualityLabel();
+  camDirty = true;
+}
 // frame-time governor: only while frames are rendered continuously and visible
 const perf = { avg: 1 / 60, sinceChange: 0 };
 function governQuality(dt: number): void {
@@ -94,6 +118,8 @@ function governQuality(dt: number): void {
   perf.avg += (dt - perf.avg) * 0.05;
   perf.sinceChange += dt;
   if (perf.avg > 1 / 40 && perf.sinceChange > 2 && qLevel < QUALITY.length - 1) { setQuality(qLevel + 1); perf.sinceChange = 0; }
+  // already at the lowest resolution and still slow: switch to the low tier (stays on for this visit)
+  else if (qualityMode === 'auto' && !lowTier && perf.avg > 1 / 40 && perf.sinceChange > 3) { setLowTier(true); perf.sinceChange = 0; }
   else if (perf.avg < 1 / 57 && perf.sinceChange > 8 && qLevel > 0) { setQuality(qLevel - 1); perf.sinceChange = 0; }
 }
 
@@ -220,6 +246,7 @@ async function init(): Promise<void> {
   await nextFrame();
   city.bakeGround(renderer, MOBILE ? 256 : 512);
   const traffic = createTraffic(city, terrain, MOBILE ? { clippingPlanes: planes, cars: 2500, people: 5000 } : { clippingPlanes: planes });
+  traffic.setLight(lightTraffic);
   scene.add(traffic.group);
   const clouds = createClouds({ hw: W / 2, hh: H / 2 }, 1080);
   const birds = createBirds(terrain, { hw: W / 2, hh: H / 2 }, planes);
@@ -246,11 +273,12 @@ async function init(): Promise<void> {
   console.log('city ready in', Math.round(performance.now() - t0), 'ms', city.stats, traffic.counts);
 
   const maxTex = renderer.capabilities.maxTextureSize;
-  const shadowRes = Math.min(MOBILE ? 2048 : 8192, maxTex);
+  shadowRes = Math.min(MOBILE ? 2048 : 8192, maxTex);
   sun.shadow.mapSize.set(shadowRes, shadowRes);
   sun.shadow.bias = -0.0003;
   sun.shadow.normalBias = 0.5;
   sun.shadow.radius = 2;
+  if (qualityMode === 'low') setLowTier(true);
 
   const P = (lat: number, lon: number) => [(lon - meta.lon0) * meta.kx, -(lat - meta.lat0) * meta.ky] as const;
   const at = (lat: number, lon: number): Vec3 => { const [x, z] = P(lat, lon); return [x, terrain.at(x, z), z]; };
@@ -289,6 +317,18 @@ let wxName: WeatherName = 'clear';
 try { const saved = localStorage.getItem('skopje.weather'); if (isWeatherName(saved)) wxName = saved; } catch { /* storage unavailable */ }
 let wxNow: Weather = WEATHER[wxName];
 let wxTween: { from: Weather; to: Weather; t: number } | null = null;
+// seasons: autumn colours / bare winter trees on top of everything ('summer' changes nothing)
+type SeasonName = 'summer' | 'autumn' | 'winter' | 'spring';
+interface Season { autumn: number; winter: number; spring: number }
+const SEASONS: Record<SeasonName, Season> = {
+  summer: { autumn: 0, winter: 0, spring: 0 }, autumn: { autumn: 1, winter: 0, spring: 0 },
+  winter: { autumn: 0, winter: 1, spring: 0 }, spring: { autumn: 0, winter: 0, spring: 1 },
+};
+const SEASON_ORDER: SeasonName[] = ['summer', 'autumn', 'winter', 'spring']; // follows the year
+let seasonName: SeasonName = 'summer';
+try { const saved = localStorage.getItem('skopje.season'); if (saved && saved in SEASONS) seasonName = saved as SeasonName; } catch { /* storage unavailable */ }
+let seasonNow: Season = SEASONS[seasonName];
+let seasonTween: { from: Season; to: Season; t: number } | null = null;
 /** Lights, colours, night and weather effects; the effects that exist yet are passed in. */
 function applyTime(p: TimeState, w: Weather, fx: Pick<World, 'clouds' | 'lamps' | 'traffic' | 'precip'> | null): void {
   const paper = overcastColor(p.paper.clone(), w), haze = overcastColor(p.haze.clone(), w);
@@ -308,7 +348,10 @@ function applyTime(p: TimeState, w: Weather, fx: Pick<World, 'clouds' | 'lamps' 
   SHARED.uSnowLine.value = w.snowLine;
   SHARED.uPuddle.value.set(haze.r, haze.g, haze.b);
   u.sunDir.value.copy(p.sunDir);
-  u.cloudShade.value = 0.62 * (1 - p.night) * (1 - 0.5 * w.grey);
+  u.cloudShade.value = lowTier ? 0 : 0.62 * (1 - p.night) * (1 - 0.5 * w.grey);
+  SHARED.uAutumn.value = seasonNow.autumn;
+  SHARED.uWinter.value = seasonNow.winter;
+  SHARED.uSpring.value = seasonNow.spring;
   if (fx) {
     fx.clouds.material.color.set('#ffffff').lerp(new THREE.Color('#59608f'), p.night).lerp(new THREE.Color(w.overcast).multiplyScalar(0.8), w.clouds * w.grey);
     fx.clouds.material.emissive.copy(p.sky).multiplyScalar(0.35);
@@ -336,6 +379,37 @@ function setWeather(name: WeatherName): void {
   weatherBtn.textContent = t(`weather.${name}`);
   try { localStorage.setItem('skopje.weather', name); } catch { /* storage unavailable */ }
 }
+function setSeason(name: SeasonName): void {
+  seasonTween = { from: seasonNow, to: SEASONS[name], t: 0 };
+  seasonName = name;
+  seasonBtn.textContent = t(`season.${name}`);
+  try { localStorage.setItem('skopje.season', name); } catch { /* storage unavailable */ }
+}
+const seasonBtn = $('season');
+seasonBtn.textContent = t(`season.${seasonName}`);
+seasonBtn.addEventListener('click', () => setSeason(SEASON_ORDER[(SEASON_ORDER.indexOf(seasonName) + 1) % SEASON_ORDER.length]));
+const qualityBtn = $('quality');
+const qualityLabel = () => t(qualityMode === 'low' ? 'quality.low' : lowTier ? 'quality.autoLow' : 'quality.auto');
+qualityBtn.textContent = qualityLabel();
+qualityBtn.addEventListener('click', () => {
+  qualityMode = qualityMode === 'auto' ? 'low' : 'auto';
+  try { localStorage.setItem('skopje.quality', qualityMode); } catch { /* storage unavailable */ }
+  perf.sinceChange = 0;
+  setLowTier(qualityMode === 'low');
+  qualityBtn.textContent = qualityLabel();
+});
+// less traffic: an option only, never switched on automatically
+let lightTraffic = false;
+try { lightTraffic = localStorage.getItem('skopje.lightTraffic') === '1'; } catch { /* storage unavailable */ }
+const trafficBtn = $('traffic');
+trafficBtn.classList.toggle('off', !lightTraffic);
+trafficBtn.addEventListener('click', () => {
+  lightTraffic = !lightTraffic;
+  trafficBtn.classList.toggle('off', !lightTraffic);
+  world?.traffic.setLight(lightTraffic);
+  try { localStorage.setItem('skopje.lightTraffic', lightTraffic ? '1' : '0'); } catch { /* storage unavailable */ }
+  ink.reset();
+});
 const weatherBtn = $('weather');
 weatherBtn.textContent = t(`weather.${wxName}`);
 weatherBtn.addEventListener('click', () => setWeather(WEATHER_ORDER[(WEATHER_ORDER.indexOf(wxName) + 1) % WEATHER_ORDER.length]));
@@ -401,15 +475,15 @@ for (const p of popups) {
     p.btn.setAttribute('aria-expanded', String(open));
   });
 }
-// Overview, weather and language sit on the bar on desktop and inside the menus on phones
+// Overview, weather, season and language sit on the bar on desktop and inside the menus on phones
 // (same breakpoint as the phone styles in index.html)
 const PHONE = matchMedia('(max-width: 560px), (orientation: portrait) and (any-pointer: coarse) and (max-width: 1180px)');
 const overviewBtn = document.querySelector<HTMLElement>('[data-view="overview"]')!;
 const langBox = document.querySelector<HTMLElement>('.bar .lang')!;
 function placeBarItems(): void {
   const places = $('places'), tools = $('tools');
-  if (PHONE.matches) { places.append(overviewBtn); tools.prepend(weatherBtn); tools.append(langBox); }
-  else { places.after(overviewBtn); timeBtn.after(weatherBtn); tools.after(langBox); }
+  if (PHONE.matches) { places.append(overviewBtn); tools.prepend(weatherBtn); $('live').after(seasonBtn); tools.append(langBox); }
+  else { places.after(overviewBtn); timeBtn.after(weatherBtn); weatherBtn.after(seasonBtn); tools.after(langBox); }
 }
 placeBarItems();
 PHONE.addEventListener('change', () => { closePopups(); placeBarItems(); });
@@ -549,6 +623,8 @@ langSel.addEventListener('change', () => { setLang(langSel.value); closePopups()
 onLangChange(() => {
   timeBtn.textContent = t(`time.${timeName}`);
   weatherBtn.textContent = t(`weather.${wxName}`);
+  seasonBtn.textContent = t(`season.${seasonName}`);
+  qualityBtn.textContent = qualityLabel();
   raceBtn.textContent = raceLabel();
   if (loader.isConnected) loadText.textContent = t(`stage.${lastStage}`);
 });
@@ -596,7 +672,7 @@ renderer.setAnimationLoop(() => {
     camera.position.y += dy;
     camDirty = true;
   }
-  if (tween || wxTween) {
+  if (tween || wxTween || seasonTween) {
     if (tween) {
       tween.t = Math.min(1, tween.t + dt / 1.4);
       timeNow = blendTimes(presetOf(tween.from), tween.to, tween.t * tween.t * (3 - 2 * tween.t));
@@ -606,6 +682,13 @@ renderer.setAnimationLoop(() => {
       wxTween.t = Math.min(1, wxTween.t + dt / 2);
       wxNow = blendWeather(wxTween.from, wxTween.to, wxTween.t * wxTween.t * (3 - 2 * wxTween.t));
       if (wxTween.t >= 1) { wxNow = wxTween.to; wxTween = null; }
+    }
+    if (seasonTween) {
+      seasonTween.t = Math.min(1, seasonTween.t + dt / 2);
+      const e = seasonTween.t * seasonTween.t * (3 - 2 * seasonTween.t), { from, to } = seasonTween;
+      const mix = (a: number, b: number) => a + (b - a) * e;
+      seasonNow = { autumn: mix(from.autumn, to.autumn), winter: mix(from.winter, to.winter), spring: mix(from.spring, to.spring) };
+      if (seasonTween.t >= 1) { seasonNow = to; seasonTween = null; }
     }
     applyTime(timeNow, wxNow, world);
     fitShadow(flight.active ? 1100 : undefined);
