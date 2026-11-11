@@ -112,7 +112,7 @@
   <header>
     <div class="band" aria-hidden="true"></div>
     <h1><span class="code">091</span>Скопје translations</h1>
-    <p class="lead">Every text in the app's interface, with <b>Macedonian</b> as the source and its English, Serbian, Croatian, Slovenian and Albanian versions beside it. Map labels, districts, landmarks and race-ring names stay Macedonian and aren't listed. Rows marked in wine are wording choices I made that are worth a native speaker's second look.</p>
+    <p class="lead">Every text in the app's interface, with <b>Macedonian</b> as the source and its English, Serbian, Croatian, Slovenian and Albanian versions beside it. Map labels, districts, landmarks, race-ring names and the names on the info cards stay Macedonian and aren't listed. Rows marked in wine are wording choices I made that are worth a native speaker's second look.</p>
   </header>
 
   <div class="controls">
@@ -143,16 +143,18 @@
 
   // where each string appears in the app
   const GROUPS = [
-    ['bar', 'Button bar', (k) => /^(bar\.|v\.|time\.)/.test(k)],
+    ['bar', 'Button bar and options', (k) => /^(bar\.|v\.|time\.|weather\.|season\.|quality\.|share)/.test(k)],
     ['help', 'Help dialog', (k) => /^(logo\.|close$|help\.|h\.|c\.|k\.|p\.|b\.|f\.|s\.|me$)/.test(k)],
-    ['flight', 'Flying and the race', (k) => /^(fly\.|r\.|a\.|race$|u\.|finish|newBest$|best$|warn\.)/.test(k)],
+    ['flight', 'Flying, the race and the bus', (k) => /^(fly\.|r\.|a\.|race$|u\.|finish|newBest$|best$|warn\.|drive\.)/.test(k)],
+    ['walk', 'Walking (Пејо and the dog)', (k) => /^(char\.|act\.|bark$|info\.|walk\.)/.test(k)],
     ['loading', 'Loading and errors', (k) => /^(loading$|stage\.|error$)/.test(k)],
     ['credits', 'Attribution', (k) => k === 'attr'],
   ];
   const WHERE = {
     'logo.title': 'tooltip on the logo', 'close': 'screen-reader label', 'me': 'top-right name pill',
     'bar.lang': 'tooltip / screen-reader label', 'a.left': 'screen-reader label', 'a.right': 'screen-reader label', 'a.up': 'screen-reader label', 'a.down': 'screen-reader label',
-    'fly.keys': 'hint at the bottom while flying', 'best': '{t} is the time, e.g. 1:42.3', 'finish': 'shown as “Finish: Плоштад” before the last ring',
+    'fly.keys': 'hint at the bottom while flying', 'walk.keys': 'hint at the bottom while walking', 'drive.keys': 'hint at the bottom while driving the bus',
+    'act.bus': 'the action button text while walking', 'info.cross': 'info card near the landmark', 'best': '{t} is the time, e.g. 1:42.3', 'finish': 'shown as “Finish: Плоштад” before the last ring',
     'u.kmh': 'speed unit in the flight bar', 'warn.edge': 'flight warning', 'warn.low': 'flight warning', 'error': 'followed by the technical message',
   };
   const NOTES = {
@@ -171,6 +173,14 @@
     'f.race': 'Slovenian uses “prebodi” (pierce) for popping balloons.',
     'fly.boost': 'Slovenian “HITRO” and Albanian “SHPEJT” are on a round button; check they still fit.',
     'r.title': 'Albanian keeps “Finish!”.',
+    'weather.vodno': 'Locative of Vodno: на Водну / na Vodnu (sr, hr, sl); Albanian keeps “në Vodno”.',
+    'act.oro': 'Croatian and Slovenian say “kolo”, Albanian “valle”: the usual word for a circle dance there.',
+    'char.dog': 'Albanian “Qeni i Sharrit” (the Šar dog); the others use the breed name.',
+    'bark': 'Each language’s own dog sound: Ав! / Woof! / Vau! / Hov! / Ham!',
+    'info.station': 'Worded as “following the plan of Kenzo Tange”, which is the safe claim about the station.',
+    'info.square': 'The statue is called by its official name, “Warrior on a Horse”.',
+    'quality.autoLow': 'Shown when the automatic mode has switched to low by itself.',
+    'bar.stream': 'Memory saver: on by default on phones.',
   };
 
   const rows = (window.STRINGS || []).map((r) => ({ ...r, group: (GROUPS.find(([, , f]) => f(r.key)) || GROUPS[0])[0] }));

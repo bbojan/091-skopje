@@ -46,6 +46,8 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    🚶 Walking as Итар Пејо or a Шарпланинец (`walk.ts`): first/third person, shared invert
    option, companion, context action (bus, parked plane, gondola, оро, bark), info cards,
    nearest-bus pointer, building collision, standing on the drawn surface (draped layers).
+13. **v2.0.1** (Nov 2026): documentation: README features rewritten, IDEAS.md marks what is built,
+   help dialog rows for walking and bus controls (6 languages), translation review page regenerated.
 
 ## Key decisions (and why)
 

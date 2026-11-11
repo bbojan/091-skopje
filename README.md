@@ -10,15 +10,27 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 
 ## Features
 
+**The city**
 - ~20,000 buildings on real terrain (Vardar valley, Kale, Vodno) with procedural windows, shutters, awnings, cornices, tiled roofs and parapets
-- Landmarks: Warrior on a Horse, Stone Bridge, Porta Macedonia, Kale with its towers, the Millennium Cross, the Vodno gondola
-- ~430k cartoon trees, parked cars and live traffic: cars, buses and pedestrians
-- Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, flowing river
+- Landmarks: Warrior on a Horse, Stone Bridge, Porta Macedonia, Kale with its towers, the Millennium Cross, the Vodno gondola, the railway station (Kenzo Tange), with labels for the Old Bazaar, Daut Pasha Hamam, Св. Спас, the Telecommunications Centre, City Mall and more
+- ~430k cartoon trees, parked cars and live traffic: cars, red ЈСП buses (half double-deckers) and pedestrians
 - Ink outlines, soft ambient occlusion and temporal supersampling for smooth edges
-- ✈ Airplane mode in a Macedonian-flag light aircraft, with an optional ring race and 091 balloons
+
+**Time, weather and seasons**
+- Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, flowing river
+- Weather: clear, rain (wet streets, puddles, umbrellas), snow, or snow only on Vodno
+- Seasons: summer, autumn colours, bare winter trees, spring blossom — the default follows the month
+
+**Things to do**
+- 🚶 Walk the city as **Итар Пејо** or a **Шарпланинец** dog, in first or third person: board a bus, ride the gondola to Vodno, take off in the plane, start an оро, or bark; info cards at the landmarks
+- 🚌 Drive a red ЈСП double-decker through the streets
+- ✈ Fly a Macedonian-flag light aircraft, with an optional ring race and 091 balloons
+- 🔗 Shareable links: the camera position is always in the address bar
+
+**For every screen**
+- Interface in Macedonian, English, Serbian, Croatian, Slovenian and Albanian (map names stay Macedonian), in a Вез (folk embroidery) style; help dialog behind the 091 logo
 - Mouse, touch, keyboard and gamepad (XInput / DirectInput) controls
-- Macedonian UI in a Вез (folk embroidery) style, place labels, help dialog (click the 091 logo)
-- Phone and tablet layout with a lighter memory profile
+- Phone and tablet layout; automatic low-quality mode for slow devices, a less-traffic option, and a memory saver (on by default on phones)
 
 More context for development (architecture, conventions, decisions, gotchas):
 [CLAUDE.md](CLAUDE.md) and [docs/NOTES.md](docs/NOTES.md).
@@ -53,4 +65,4 @@ npm run data       # → public/skopje.json
 
 - Map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (ODbL)
 - Elevation: [Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) on AWS Open Data
-- Built with [three.js](https://threejs.org) by [Бојан Божиновски](https://www.linkedin.com/in/bojanb/)
+- Built with [three.js](https://threejs.org) and TypeScript by [Бојан Божиновски](https://www.linkedin.com/in/bojanb/)
