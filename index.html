@@ -257,6 +257,7 @@
           <tr><td><kbd>F</kbd> <kbd>R</kbd></td><td data-i18n="k.rf">Навалување нагоре/надолу</td></tr>
           <tr><td><kbd>C</kbd> <kbd>V</kbd></td><td data-i18n="k.cv">Камерата повисоко/пониско — исто и со хоризонталното тркалце на глушецот</td></tr>
           <tr><td data-i18n="k.zoomKeys"><kbd>+</kbd> <kbd>−</kbd> или <kbd>X</kbd> <kbd>Z</kbd></td><td data-i18n="k.zoom">Зумирање</td></tr>
+          <tr><td><kbd>Q</kbd> <kbd>E</kbd> · <kbd>F</kbd> <kbd>R</kbd></td><td data-i18n="k.stunt">Во лет: превртување лево/десно · лупинг нагоре/надолу</td></tr>
           <tr><td><kbd>E</kbd> <kbd>V</kbd> <kbd>C</kbd></td><td data-i18n="k.walkD">При пешачење: акција · прво/трето лице · смени лик</td></tr>
         </table>
 
@@ -309,7 +310,7 @@
           <tr><td data-i18n="f.phone">На телефон</td><td data-i18n="f.phoneD">Држи ги стрелките на екранот, а допри „БРЗО“ за да го вклучиш или исклучиш забрзувањето</td></tr>
           <tr><td data-i18n="f.esc"><kbd>Esc</kbd> или „Излез“</td><td data-i18n="f.escD">Назад на мапата</td></tr>
         </table>
-        <label class="opt"><input type="checkbox" id="opt-invert" /> <span data-i18n="f.invert"><b>Инвертирај горе/долу</b> — како вистински пилот: ↑ го спушта носот, ↓ го крева; важи и за навалувањето на мапата (F / R, десен стик)</span></label>
+        <label class="opt"><input type="checkbox" id="opt-invert" /> <span data-i18n="f.invert"><b>Инвертирај горе/долу</b> — како вистински пилот: ↑ го спушта носот, ↓ го крева; важи и за F / R (навалување на мапата, лупинг во лет) и за десниот стик на мапата</span></label>
         <p data-i18n="f.race"><b>Трка (опционално):</b> во летот притисни „🏁 Трка“ и пролетај низ 12-те прстени по ред — од Плоштадот, преку Кале, Градскиот парк и Водно, до финишот. Стрелката горе покажува кон следниот прстен, а светлиот столб го означува. Пукни ги балоните „091“ по патот. Најдоброто време се памти.</p>
         <p data-i18n="f.fire"><b>Гаснење пожари (опционално):</b> во летот притисни „🔥 Пожар“ и авионот станува жолт противпожарен „Ер трактор“. Горат најмногу два пожара одеднаш — дел од шума, зграда или автобус; чадот се гледа оддалеку, а стрелката горе покажува кон најблискиот. Прелетај над огнот и држи <kbd>Space</kbd> (или копчето 💧) за да испуштиш вода — белиот круг на земјата покажува каде ќе падне. Кога резервоарот ќе се испразни, спушти се ниско над Вардар за да го наполниш. Штом еден пожар ќе изгасне, се пали нов на друго место.</p>
         <p data-i18n="f.auto">Авионот секогаш лета напред, не може да удри во земја и сам се враќа кога ќе стигне до работ на мапата.</p>
@@ -391,8 +392,8 @@
       <button class="fly-btn fly-only" id="fly-boost" data-k="boost" data-i18n="fly.boost">БРЗО</button>
       <button class="fly-btn fly-only fire-only" id="fly-water" data-k="drop" aria-label="Вода" data-i18n-aria="a.water">💧</button>
       <div class="fly-keys chip drive-only" data-i18n="drive.keys">← → волан · ↑ гас · ↓ сопирачка/назад · Esc излез</div>
-      <div class="fly-keys chip fly-only nofire" data-i18n="fly.keys">← → свртување · ↑ ↓ нагоре/надолу · Shift брзо · Esc излез</div>
-      <div class="fly-keys chip fly-only fire-only" data-i18n="fire.keys">← → свртување · ↑ ↓ нагоре/надолу · Space вода · Shift брзо · Esc излез</div>
+      <div class="fly-keys chip fly-only nofire" data-i18n="fly.keys">← → свртување · ↑ ↓ нагоре/надолу · Q E F R акробации · Shift брзо · Esc излез</div>
+      <div class="fly-keys chip fly-only fire-only" data-i18n="fire.keys">← → свртување · ↑ ↓ нагоре/надолу · Q E F R акробации · Space вода · Shift брзо · Esc излез</div>
     </div>
     <div id="walkhud" hidden>
       <div class="fly-top">

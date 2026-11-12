@@ -461,8 +461,18 @@ export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) 
     ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down',
     ShiftLeft: 'boost', ShiftRight: 'boost', Space: 'boost',
   };
+  // stunt keys: Q / E roll left / right; F loops up and over, R nose down and under, the
+  // other way round with "invert up/down" on (the same rule as the map's F / R tilt)
+  const stuntKeys: Record<string, ['roll' | 'loop', 1 | -1]> = { KeyQ: ['roll', -1], KeyE: ['roll', 1], KeyF: ['loop', 1], KeyR: ['loop', -1] };
   const onKey = (down: boolean) => (e: KeyboardEvent) => {
     if (!st.active) return;
+    const s = stuntKeys[e.code];
+    if (s) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return; // Cmd+R, Ctrl+F … stay the browser's
+      e.preventDefault();
+      if (down && !e.repeat) startStunt(s[0], s[0] === 'loop' && invertY ? (-s[1] as 1 | -1) : s[1]);
+      return;
+    }
     let k = keymap[e.code];
     if (!k) return;
     e.preventDefault();
@@ -473,6 +483,17 @@ export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) 
   addEventListener('keydown', onKey(true));
   addEventListener('keyup', onKey(false));
   addEventListener('blur', () => Object.assign(input, idle));
+
+  /** start a roll (dir 1 right, -1 left) or a loop (1 up and over, -1 nose down and under); false if it cannot start now */
+  function startStunt(kind: 'roll' | 'loop', dir: 1 | -1): boolean {
+    if (!st.active || stunt) return false;
+    if (kind === 'loop' && dir < 0) {
+      const room = st.pos.y - terrain.at(st.pos.x, st.pos.z) - st.floor - 25;
+      if (room < (2 * st.speed) / LOOP_RATE + 10) { lowT = 1.5; return false; }
+    }
+    stunt = { kind, dir, a: 0 };
+    return true;
+  }
 
   function start(target: THREE.Vector3, yaw: number): void {
     st.active = true;
@@ -609,19 +630,12 @@ export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) 
     plane, start, stop, update, input, pad,
     setInvertY(v: boolean): void { invertY = v; },
     /**
-     * Start a stunt (the pad's right stick): a roll to the right (dir 1) or left (-1), or a
-     * loop pulling up and over (dir 1) or nose down and under (-1). One at a time; the loop
-     * under needs room below, otherwise "too low" shows and nothing happens.
+     * Start a stunt (the pad's right stick; the keys Q / E / F / R): a roll to the right
+     * (dir 1) or left (-1), or a loop pulling up and over (dir 1) or nose down and under
+     * (-1). One at a time; the loop under needs room below, otherwise "too low" shows and
+     * nothing happens.
      */
-    stunt(kind: 'roll' | 'loop', dir: 1 | -1): boolean {
-      if (!st.active || stunt) return false;
-      if (kind === 'loop' && dir < 0) {
-        const room = st.pos.y - terrain.at(st.pos.x, st.pos.z) - st.floor - 25;
-        if (room < (2 * st.speed) / LOOP_RATE + 10) { lowT = 1.5; return false; }
-      }
-      stunt = { kind, dir, a: 0 };
-      return true;
-    },
+    stunt: startStunt,
     get stunting(): boolean { return !!stunt; },
     /** firefighting mode: the Air Tractor, and Space drops water */
     setFire(on: boolean): void {

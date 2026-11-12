@@ -43,7 +43,7 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | `traffic.ts` | Animated cars/buses/people on OSM paths, headlights |
 | `walk.ts` | Walking as Итар Пејо / Шарпланинец: first/third person, companion, context action, info cards, building collision, surface height from the draped layers |
 | `drive.ts` | Drivable ЈСП double-decker: arcade handling, soft kerb on a road-segment grid, chase camera (shares the flight HUD) |
-| `flight.ts` | Arcade plane (Macedonian-flag livery) and the yellow Air Tractor on floats for firefighting, chase camera (pulls back and up near a fire and while water falls), tow banner (fire out; after a roll or loop while firefighting), stunts on the pad's right stick (roll, loop), keyboard/pad input, invert-Y |
+| `flight.ts` | Arcade plane (Macedonian-flag livery) and the yellow Air Tractor on floats for firefighting, chase camera (pulls back and up near a fire and while water falls), tow banner (fire out; after a roll or loop while firefighting), stunts (roll, loop: Q / E, F / R, the pad's right stick), keyboard/pad input, invert-Y |
 | `game.ts` | Optional ring race over landmarks, 091 balloons, best time |
 | `fire.ts` | Optional firefighting game: at most two fires (forest patch, building roof, ЈСП bus), spawning from a land-cover grid, flames / smoke / glow as GPU-animated quads, water hits, best count |
 | `water.ts` | The Air Tractor's water: tank, falling curtain, a little spilled in a roll or loop, splash and steam, spray while scooping, landing ring; closed-form paths shared by the shader and the hit test |

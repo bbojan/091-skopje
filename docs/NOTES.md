@@ -110,6 +110,11 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    Checked with synthetic key, wheel and gamepad events and by stepping the flight with
    `fire-harness.js`, not with a real mouse or pad. Seen while testing, not looked into:
    ink lines of what is behind the tow banner show through the cloth (both texts).
+22. **v2.7.1** (Nov 2026): stunt keys in the flight: Q / E roll left / right, F a loop up and
+   over, R a loop nose down and under; "invert up/down" swaps F and R, the same rule as the
+   map's F / R tilt. With Cmd / Ctrl / Alt held the keys stay the browser's (reload, find).
+   The key hint in the flight says „Q E F R акробации“, the help dialog has a row for them.
+   Checked by stepping the flight with synthetic key presses, both invert states.
 
 ## Key decisions (and why)
 
