@@ -8,6 +8,7 @@ import type { Bounds, Vec3 } from './types.ts';
 const SPEED = 55, BOOST = 140; // m/s
 const TURN = 0.75; // rad/s at full input
 const MIN_AGL = 38, MAX_ALT = 1500;
+const ROLL_TIME = 1.1, LOOP_RATE = 1.7; // stunts: seconds for one roll, rad/s around a loop (3.7 s; 32 m radius at cruise)
 const AIM_UP = 90, AIM_BACK = 88; // how much higher and further back the chase camera goes to show where the water lands
 const SWING = 0.62;     // how far the camera swings to the side to read the banner, rad
 
@@ -270,9 +271,12 @@ function buildAirTractor(): { group: THREE.Group; prop: THREE.Group } {
 // points dragged behind the tail and moved on the CPU: a shader-only wave would not be
 // seen by the ink normal pass. The text reads correctly from both sides.
 export const BANNER_TEXT = 'Стојанче го спаси градот';
+/** towed after a roll or a loop while firefighting: showing off while the town burns (the proverb) */
+export const ROLL_BANNER_TEXT = 'Село гори, баба се чешла';
+const ROLL_BANNER_TIME = 6, ROLL_SWING = 3; // seconds the stunt banner flies; seconds the camera stays out to the side
 const BANNER_LEN = 46, BANNER_H = 6.2, BANNER_SEGS = 30, TOW = 11;
 
-function bannerTexture(): THREE.CanvasTexture {
+function bannerTexture(text: string): THREE.CanvasTexture {
   const W = 2048, H = 276;
   const c = document.createElement('canvas');
   c.width = W; c.height = H;
@@ -301,8 +305,8 @@ function bannerTexture(): THREE.CanvasTexture {
   g.fillText('091', W - 150, H / 2 + 6);
   g.fillStyle = '#1f2a44';
   let size = 150;
-  do { g.font = `700 ${size}px 'Lora', Georgia, serif`; size -= 4; } while (g.measureText(BANNER_TEXT).width > W - 360 && size > 60);
-  g.fillText(BANNER_TEXT, (W - 250) / 2 + 10, H / 2 + 6);
+  do { g.font = `700 ${size}px 'Lora', Georgia, serif`; size -= 4; } while (g.measureText(text).width > W - 360 && size > 60);
+  g.fillText(text, (W - 250) / 2 + 10, H / 2 + 6);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 8;
@@ -324,19 +328,25 @@ function createBanner(scene: THREE.Scene) {
   geo.setAttribute('normal', nrmAttr);
   geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
   geo.setIndex(index);
-  const tex = bannerTexture();
-  // the other face shows the same texture mirrored, so the words read from both sides
-  const back = tex.clone();
-  back.wrapS = THREE.RepeatWrapping;
-  back.repeat.x = -1;
-  back.needsUpdate = true;
+  // one cloth, two texts: [front, back] textures for each. The other face shows the same
+  // texture mirrored, so the words read from both sides.
+  const faces = [BANNER_TEXT, ROLL_BANNER_TEXT].map((text) => {
+    const tex = bannerTexture(text), back = tex.clone();
+    back.wrapS = THREE.RepeatWrapping;
+    back.repeat.x = -1;
+    back.needsUpdate = true;
+    return [tex, back] as const;
+  });
   const group = new THREE.Group();
-  for (const [map, side] of [[tex, THREE.FrontSide], [back, THREE.BackSide]] as const) {
-    const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ map, side }));
+  const cloth = ([THREE.FrontSide, THREE.BackSide] as const).map((side, i) => {
+    const mat = new THREE.MeshLambertMaterial({ map: faces[0][i], side });
+    const m = new THREE.Mesh(geo, mat);
     m.frustumCulled = false;
     m.castShadow = true;
     group.add(m);
-  }
+    return mat;
+  });
+  let shown = 0; // which text is on the cloth
   const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1, 5), new THREE.MeshLambertMaterial({ color: '#4b3428' }));
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, BANNER_H * 1.06, 6), new THREE.MeshLambertMaterial({ color: '#7a1f1a' }));
   rope.frustumCulled = pole.frustumCulled = false;
@@ -350,8 +360,13 @@ function createBanner(scene: THREE.Scene) {
   let left = 0;       // seconds it still flies
   let clock = 0;
 
-  /** unroll it (or keep it out) for `seconds` */
-  function show(seconds: number, tail: THREE.Vector3, fwd: THREE.Vector3): void {
+  /** unroll it (or keep it out) for `seconds`; `text`: 0 the fire is out, 1 the roll banner */
+  function show(seconds: number, tail: THREE.Vector3, fwd: THREE.Vector3, text = 0): void {
+    if (text !== shown) {
+      shown = text;
+      cloth.forEach((mat, i) => { mat.map = faces[text][i]; });
+      group.visible = false; // another text: it unrolls anew
+    }
     if (!group.visible) {
       out = 0;
       for (let i = 0; i < n; i++) pts[i].copy(tail).addScaledVector(fwd, -TOW - i * 0.2);
@@ -401,7 +416,7 @@ function createBanner(scene: THREE.Scene) {
     pole.position.copy(pts[0]);
   }
 
-  return { group, show, hide, update, get visible(): boolean { return group.visible; } };
+  return { group, show, hide, update, get visible(): boolean { return group.visible; }, /** 0 the fire is out, 1 the roll banner */ get text(): number { return shown; } };
 }
 
 export interface FlightOptions {
@@ -436,6 +451,10 @@ export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) 
   const camPos = new THREE.Vector3(), look = new THREE.Vector3();
   const fwd = new THREE.Vector3(), tail = new THREE.Vector3();
   const idle = { left: 0, right: 0, up: 0, down: 0, boost: false, drop: false };
+  // a stunt in progress: a roll (dir 1 right, -1 left) or a loop (dir 1 pulling up and over
+  // backwards, -1 nose down and under); `a` is how far through it is, 0…1
+  let stunt: { kind: 'roll' | 'loop'; dir: number; a: number } | null = null;
+  let lowT = 0; // seconds the "too low" warning stays after a refused loop
 
   const keymap: Record<string, FlightKey> = {
     ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
@@ -463,6 +482,8 @@ export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) 
     st.speed = SPEED;
     st.floor = floorWant = MIN_AGL;
     st.side = st.swing = st.aim = st.drop = 0;
+    stunt = null;
+    lowT = 0;
     aim = falling = false;
     banner.hide();
     st.pos.set(target.x, Math.max(target.y, terrain.at(target.x, target.z)) + 230, target.z);
@@ -475,6 +496,7 @@ export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) 
   function stop(): void {
     st.active = false;
     plane.visible = false;
+    stunt = null;
     banner.hide();
     Object.assign(input, idle);
   }
@@ -510,11 +532,28 @@ export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) 
     const agl = st.pos.y - ground;
     if (agl < floor + soft) { climb = Math.max(climb, (floor + soft - agl) / soft); if (agl < floor + 5) st.warn = 'low'; }
     if (st.pos.y > MAX_ALT) climb = Math.min(climb, -0.5);
+    if (lowT > 0) { lowT -= dt; st.warn = st.warn || 'low'; }
+
+    // stunts: a loop flies a full circle in the vertical plane (no steering meanwhile),
+    // a roll turns the plane once around its own axis while it flies on
+    const looping = stunt?.kind === 'loop';
+    let roll = 0, stunted = false;
+    if (stunt) {
+      const step = dt * (looping ? LOOP_RATE / (2 * Math.PI) : 1 / ROLL_TIME), left = 1 - stunt.a;
+      if (looping) st.pitch += stunt.dir * Math.min(step, left) * 2 * Math.PI;
+      stunt.a += step;
+      if (stunt.a >= 1) {
+        if (looping) st.pitch -= stunt.dir * 2 * Math.PI; // once round: the same pitch as before
+        stunted = fire; // firefighting: a roll or a loop earns its banner
+        stunt = null;
+      } else if (!looping) roll = -stunt.dir * 2 * Math.PI * stunt.a * stunt.a * (3 - 2 * stunt.a);
+    }
+    if (looping) turn = 0;
 
     st.speed += ((boosting ? BOOST : SPEED) - st.speed) * (1 - Math.exp(-dt * 1.6));
     st.yaw += turn * TURN * dt * (0.8 + 0.2 * (SPEED / st.speed));
     st.bank += (-turn * 0.65 - st.bank) * (1 - Math.exp(-dt * 3));
-    st.pitch += (climb * 0.32 - st.pitch) * (1 - Math.exp(-dt * 2.2));
+    if (!looping) st.pitch += (climb * 0.32 - st.pitch) * (1 - Math.exp(-dt * 2.2));
 
     forward(fwd);
     st.pos.addScaledVector(fwd, st.speed * dt);
@@ -523,10 +562,16 @@ export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) 
     st.pos.y = Math.max(st.pos.y, ground + floor);
 
     plane.position.copy(st.pos);
-    plane.rotation.set(st.pitch, -st.yaw, st.bank, 'YXZ');
+    plane.rotation.set(st.pitch, -st.yaw, st.bank + roll, 'YXZ');
     const spin = dt * (boosting ? 60 : 35);
     cessna.prop.rotation.z += spin;
     tractor.prop.rotation.z += spin;
+    // after a roll or a loop with the Air Tractor: the stunt banner for a few seconds, the camera
+    // out to the side as for a fire put out (which keeps its own banner if that one is flying)
+    if (stunted && !(banner.visible && banner.text === 0)) {
+      banner.show(ROLL_BANNER_TIME, tail.copy(st.pos).addScaledVector(fwd, -7.5), fwd, 1);
+      st.swing = ROLL_SWING;
+    }
     banner.update(dt, tail.copy(st.pos).addScaledVector(fwd, -7.5), fwd);
 
     // chase camera: behind and above, looking a little ahead. Firefighting looks from
@@ -548,12 +593,14 @@ export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) 
     const back = 62 + (st.speed - SPEED) * 0.12 + 46 * st.side + AIM_BACK * far;
     const camYaw = st.yaw - SWING * st.side;
     const flat = new THREE.Vector3(Math.sin(camYaw), 0, -Math.cos(camYaw));
-    const want = st.pos.clone().addScaledVector(flat, -back).add(new THREE.Vector3(0, 20 + AIM_UP * far - st.pitch * 30, 0));
+    // in a loop the camera stays level behind the plane and watches it go round
+    const camPitch = looping ? Math.sin(st.pitch) * 0.32 : st.pitch;
+    const want = st.pos.clone().addScaledVector(flat, -back).add(new THREE.Vector3(0, 20 + AIM_UP * far - camPitch * 30, 0));
     const camGround = terrain.at(want.x, want.z) + 12;
     if (want.y < camGround) want.y = camGround;
     camPos.lerp(want, dt === 0 ? 1 : 1 - Math.exp(-dt * 3.5));
     camera.position.copy(camPos);
-    look.copy(st.pos).addScaledVector(fwd, 30 + 100 * Math.max(1, h / 75) * ahead - 12 * below - 72 * st.side); // the banner: toward its middle
+    look.copy(st.pos).addScaledVector(looping ? flat : fwd, 30 + 100 * Math.max(1, h / 75) * ahead - 12 * below - 72 * st.side); // the banner: toward its middle
     look.y -= 0.42 * h * ahead + (0.5 * h + 16) * below;
     camera.lookAt(look);
   }
@@ -561,6 +608,21 @@ export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) 
   return {
     plane, start, stop, update, input, pad,
     setInvertY(v: boolean): void { invertY = v; },
+    /**
+     * Start a stunt (the pad's right stick): a roll to the right (dir 1) or left (-1), or a
+     * loop pulling up and over (dir 1) or nose down and under (-1). One at a time; the loop
+     * under needs room below, otherwise "too low" shows and nothing happens.
+     */
+    stunt(kind: 'roll' | 'loop', dir: 1 | -1): boolean {
+      if (!st.active || stunt) return false;
+      if (kind === 'loop' && dir < 0) {
+        const room = st.pos.y - terrain.at(st.pos.x, st.pos.z) - st.floor - 25;
+        if (room < (2 * st.speed) / LOOP_RATE + 10) { lowT = 1.5; return false; }
+      }
+      stunt = { kind, dir, a: 0 };
+      return true;
+    },
+    get stunting(): boolean { return !!stunt; },
     /** firefighting mode: the Air Tractor, and Space drops water */
     setFire(on: boolean): void {
       fire = on;

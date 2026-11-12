@@ -73,7 +73,7 @@ const FRAG = /* glsl */ `
 /** Something the water can put out: a disc of radius r whose top is at height y. */
 export interface WaterTarget { id: number; x: number; y: number; z: number; r: number }
 
-interface Landing { t: number; x: number; y: number; z: number; id: number }
+interface Landing { t: number; x: number; y: number; z: number; id: number; spill?: boolean }
 
 export function createWater(terrain: Terrain, light = false) {
   const CAP = light ? 1400 : 2600, PER_BLOB = light ? 4 : 8;
@@ -105,7 +105,7 @@ export function createWater(terrain: Terrain, light = false) {
   const group = new THREE.Group();
   group.add(mesh, marker);
 
-  let time = 0, tank = 1, acc = 0, sprayAcc = 0;
+  let time = 0, tank = 1, acc = 0, sprayAcc = 0, dripAcc = 0;
   let cursor = 0, dirtyFrom = -1, dirtyN = 0, full = false;
   const blobs: Landing[] = [];
   const q = new THREE.Vector3(), a0 = new THREE.Vector3(), b0 = new THREE.Vector3();
@@ -170,27 +170,40 @@ export function createWater(terrain: Terrain, light = false) {
   /**
    * One frame. `pos`/`vel` are the plane's; while `dropping` the tank empties into a
    * curtain of water. `onHit(id)` is called for every packet that lands on a target.
+   * `spill` (0…1) lets a little water slop out while the doors are shut (a roll or a loop
+   * with water on board): the same packets at that share of the drop rate, thinner.
    */
-  function update(dt: number, pos: THREE.Vector3, vel: THREE.Vector3, dropping: boolean, targets: WaterTarget[], onHit: (id: number) => void): void {
+  function update(dt: number, pos: THREE.Vector3, vel: THREE.Vector3, dropping: boolean, targets: WaterTarget[], onHit: (id: number) => void, spill = 0): void {
     time += dt;
     uniforms.uTime.value = time;
     a0.copy(pos); a0.y -= 2.4;                    // the hopper doors under the belly
     b0.copy(vel).multiplyScalar(0.94); b0.y -= 5;
-    if (dropping && tank > 0) {
-      acc += dt;
+    const rate = dropping ? 1 : spill;
+    if (rate > 0 && tank > 0) {
+      acc += dt * rate;
       while (acc >= BLOB_EVERY && tank > 0) {
         acc -= BLOB_EVERY;
         tank = Math.max(0, tank - BLOB_EVERY / DROP_TIME);
-        const hit = land(a0, b0, targets, { t: 0, x: 0, y: 0, z: 0, id: -1 });
+        const hit = land(a0, b0, targets, { t: 0, x: 0, y: 0, z: 0, id: -1, spill: !dropping });
         hit.t += time;
         blobs.push(hit);
-        for (let i = 0; i < PER_BLOB; i++) {
+        for (let i = 0; i < (dropping ? PER_BLOB : Math.ceil(PER_BLOB / 2)); i++) {
           emit(0, a0.x + (rnd() - 0.5) * 1.6, a0.y, a0.z + (rnd() - 0.5) * 1.6,
             b0.x + (rnd() - 0.5) * 7, b0.y + (rnd() - 0.5) * 5, b0.z + (rnd() - 0.5) * 7,
             (hit.t - time) * (0.94 + rnd() * 0.1), 0.8 + rnd() * 0.6, rnd() * BLOB_EVERY);
         }
       }
     } else acc = 0;
+    // spilling: besides those few packets, a thin trail of drops flung off the plane so it shows
+    if (!dropping && spill > 0 && tank > 0) {
+      dripAcc += dt;
+      const every = light ? 0.05 : 0.025, life = Math.max(0.6, aim.t); // about as long as the fall from here (last frame's aim)
+      while (dripAcc >= every) {
+        dripAcc -= every;
+        emit(0, a0.x + (rnd() - 0.5) * 2.4, a0.y + 1.5, a0.z + (rnd() - 0.5) * 2.4,
+          b0.x + (rnd() - 0.5) * 12, b0.y + 5 + (rnd() - 0.5) * 6, b0.z + (rnd() - 0.5) * 12, life * (0.9 + rnd() * 0.1), 1.5 + rnd() * 1.1);
+      }
+    } else dripAcc = 0;
     // packets reaching the ground or a fire
     for (let i = blobs.length - 1; i >= 0; i--) {
       const b = blobs[i];
@@ -238,7 +251,7 @@ export function createWater(terrain: Terrain, light = false) {
     /** a full tank, nothing in the air */
     reset(): void {
       tank = 1;
-      acc = sprayAcc = 0;
+      acc = sprayAcc = dripAcc = 0;
       blobs.length = 0;
       tt.fill(0);
       full = true;
@@ -251,8 +264,8 @@ export function createWater(terrain: Terrain, light = false) {
     get tank(): number { return tank; },
     /** height of the place where water released now would land */
     get aimY(): number { return aim.y; },
-    /** water is in the air (released and not landed yet) */
-    get falling(): boolean { return blobs.length > 0; },
+    /** dropped water is in the air (released and not landed yet); spilled drips do not count */
+    get falling(): boolean { return blobs.some((b) => !b.spill); },
   };
 }
 

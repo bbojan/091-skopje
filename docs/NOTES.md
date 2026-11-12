@@ -78,6 +78,38 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 20. **v2.6.1** (Nov 2026): gamepad reads only pads with the browser's standard mapping (Xbox,
    PlayStation, …); the DirectInput axis/hat guesses are gone and unmapped pads are ignored.
    The most recently used pad wins.
+21. **v2.7.0** (Nov 2026): fires are easier to put out (`KIND` in `fire.ts`). Measured with
+   scripted level passes at cruise speed (water released when the ring turns yellow): a
+   full-grown roof fire needed 30 packets and a dead-centre pass landed 21, 16 m off centre
+   landed none; full-grown forest and bus fires were marginal (35 of 33, 13 of 12). Now less
+   water is needed (`tough` forest 1 → 0.8, building 0.9 → 0.55, bus 0.35 → 0.3) and water
+   counts a little further out for roofs and buses (`pad` 8 / 9 → 12 m): one pass puts out a
+   full-grown fire when flown within 12 m of the middle of a roof, 10 m of a bus, 25 m of a
+   forest. Growth, the tank and the drop are unchanged.
+   Camera height in the map view (`input.ts`): C higher / V lower, a horizontal mouse wheel
+   (left higher, right lower, a fifth of the distance per notch) and the pad's bumpers
+   (LB higher, RB lower). The camera goes straight up or down, still looking at the same
+   place, so the tilt changes; at the steepest or flattest angle it keeps changing height
+   along its line of sight (zooming), within the usual distance limits. Tried and taken out
+   again: the mouse back / forward buttons (they stay the browser's) and a variant that
+   kept the tilt and slid the orbit target along the ground instead.
+   Z / X zoom and R / F tilt swapped: X in, Z out; F up, R down; "invert up/down" turns the
+   map's tilt round (F / R and the pad's right stick; stick up is the flatter view, with
+   invert on it is toward top-down).
+   Stunts in the flight on the pad's right stick, flicked (`flight.stunt`): left / right a
+   roll (1.1 s, the plane flies straight on), back a loop up and over, forward a loop nose
+   down and under (1.7 rad/s: 3.7 s, 32 m radius at cruise; the loop under needs that room
+   below, otherwise "too low" shows). One at a time, no steering in a loop, the chase camera
+   stays level and watches. With water on board a stunt spills a little (`SPILL` in
+   `fire.ts`: a tenth of the drop rate, about 3 % of the tank in a roll and 14 % in a loop,
+   plus a thin trail of drops so it shows); spilled water can hit a fire but does not pull
+   the camera back. After a roll or a loop in the firefighting mode the tow banner flies for 6 s with
+   „Село гори, баба се чешла“, the camera out to the side for 3 s as for a fire put out
+   (a second text on the same cloth; the fire-out banner wins if it is flying).
+   🔊 Sound is on by default now (it was off since v2.6.0); switching it off is remembered.
+   Checked with synthetic key, wheel and gamepad events and by stepping the flight with
+   `fire-harness.js`, not with a real mouse or pad. Seen while testing, not looked into:
+   ink lines of what is behind the tow banner show through the cloth (both texts).
 
 ## Key decisions (and why)
 
@@ -151,12 +183,12 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | ✨ Мазни рабови | `skopje.smooth` | on |
 | 💾 Memory saver | `skopje.memorySaver` | on for `MOBILE`, off on desktop |
 | 🚗 Less traffic | `skopje.lightTraffic` | off |
-| 🔊 Sound | `skopje.sound` | off (when saved as on, audio starts with the first click or key press: browsers do not allow it earlier) |
+| 🔊 Sound | `skopje.sound` | on (audio starts with the first click or key press: browsers do not allow it earlier) |
 | Имиња (labels) | `skopje.labels` | on |
 | 🌐 Language | `skopje.lang` | the browser's first regional language (never English by itself), else Macedonian; `?lang=` in the link wins over everything |
 | 🏁 Race / free flight | `skopje.race` | free flight |
 | 🔥 Firefighting | `skopje.fire` | off (race and firefighting exclude each other; if both are saved, the race wins) |
-| Invert Y | `skopje.invertY` | off |
+| Invert Y (flight, walking look, the map's tilt: F / R keys and the pad's right stick) | `skopje.invertY` | off |
 | Best race time | `skopje.bestRace` | none |
 | Most fires put out in one flight | `skopje.bestFire` | 0 |
 

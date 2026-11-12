@@ -8,7 +8,7 @@ import { createTraffic } from './traffic.ts';
 import { Terrain } from './terrain.ts';
 import { InkRenderer } from './post.ts';
 import { createClouds, createBirds, createParagliders } from './atmos.ts';
-import { createFlight, BANNER_TEXT, type Flight } from './flight.ts';
+import { createFlight, BANNER_TEXT, ROLL_BANNER_TEXT, type Flight } from './flight.ts';
 import { createDrive, type Drive } from './drive.ts';
 import { createWalk, type Walk, type WalkAction } from './walk.ts';
 import { createGame, fmtTime, type Game } from './game.ts';
@@ -280,7 +280,7 @@ async function init(): Promise<void> {
   try { labels.enabled = localStorage.getItem('skopje.labels') !== '0'; } catch { /* storage unavailable */ }
   setOn(namesBtn, labels.enabled);
   scene.add(landmarks.group);
-  try { await document.fonts.load("46px 'Rubik Mono One'"); await document.fonts.load("700 140px 'Lora'", BANNER_TEXT); } catch { /* font optional */ }
+  try { await document.fonts.load("46px 'Rubik Mono One'"); await document.fonts.load("700 140px 'Lora'", BANNER_TEXT + ROLL_BANNER_TEXT); } catch { /* font optional */ }
   const game = createGame({ terrain, meta, crosses: data.crosses || [], places: data.places || {}, clippingPlanes: planes });
   scene.add(game.group);
   ink.skipNormal.push(game.beam);
@@ -524,11 +524,11 @@ smoothBtn.addEventListener('click', () => {
 // less traffic: an option only, never switched on automatically
 let lightTraffic = false;
 try { lightTraffic = localStorage.getItem('skopje.lightTraffic') === '1'; } catch { /* storage unavailable */ }
-// 🔊 sound: off unless switched on, and the choice is saved. The switch is in ⚙; the flight
+// 🔊 sound: on unless switched off, and the choice is saved. The switch is in ⚙; the flight
 // and walking HUDs carry a small speaker button for the same thing (the bar is hidden there).
 const sound = createSound();
-let soundOn = false;
-try { soundOn = localStorage.getItem('skopje.sound') === '1'; } catch { /* storage unavailable */ }
+let soundOn = true;
+try { soundOn = localStorage.getItem('skopje.sound') !== '0'; } catch { /* storage unavailable */ }
 const soundBtn = $('sound'), soundChips = document.querySelectorAll<HTMLElement>('.snd');
 function setSound(v: boolean, save = true): void {
   soundOn = v;
@@ -540,7 +540,7 @@ function setSound(v: boolean, save = true): void {
 soundBtn.addEventListener('click', () => setSound(!soundOn));
 soundChips.forEach((b) => b.addEventListener('click', () => setSound(!soundOn)));
 if (soundOn) {
-  // saved as on: show it, but browsers only let audio start from a click or a key press
+  // on (the default, or saved): show it, but browsers only let audio start from a click or a key press
   setOn(soundBtn, true);
   soundChips.forEach((b) => { b.textContent = '🔊'; b.setAttribute('aria-pressed', 'true'); });
   const arm = () => { removeEventListener('pointerdown', arm, true); removeEventListener('keydown', arm, true); if (soundOn) sound.setOn(true); };
@@ -1013,8 +1013,8 @@ $('help-close').addEventListener('click', () => help.close());
 help.addEventListener('click', (e) => { if (e.target === help) help.close(); });
 
 // keyboard + gamepad navigation on the map (flight has its own controls)
-const mapInput = createMapInput({ controls, camera, isActive: () => !!world && !world.flight.active && !world.drive.active && !world.walk.active && !document.querySelector('dialog[open]') });
-const padPrev = { a: false, b: false, x: false, y: false, start: false };
+const mapInput = createMapInput({ controls, camera, invertY: () => invertBox.checked, isActive: () => !!world && !world.flight.active && !world.drive.active && !world.walk.active && !document.querySelector('dialog[open]') });
+const padPrev = { a: false, b: false, x: false, y: false, start: false, flick: false };
 let padHintShown = false;
 addEventListener('gamepadconnected', (e) => console.log('gamepad:', e.gamepad.id, e.gamepad.mapping === 'standard' ? 'standard' : 'not mapped by the browser: ignored'));
 
@@ -1041,6 +1041,7 @@ renderer.setAnimationLoop(() => {
   // ---- gamepad
   const pad = readPad();
   if (pad) {
+    const flick = Math.abs(pad.rx) > 0.7 || Math.abs(pad.ry) > 0.7; // right stick pushed right over (a stunt in the flight)
     if (walk.active) {
       walk.stick.x = pad.lx; walk.stick.y = -pad.ly;
       walk.look.x += pad.rx * 900 * dt; walk.look.y += pad.ry * 650 * dt;
@@ -1058,12 +1059,17 @@ renderer.setAnimationLoop(() => {
       flight.pad.climb = -pad.ly;
       flight.pad.boost = pad.a || pad.rt > 0.3;
       flight.pad.drop = pad.lt > 0.3; // water (firefighting)
+      // right stick, flicked: a roll to that side, or a loop (forward: nose down and under, back: up and over)
+      if (flick && !padPrev.flick) {
+        if (Math.abs(pad.rx) >= Math.abs(pad.ry)) flight.stunt('roll', pad.rx > 0 ? 1 : -1);
+        else flight.stunt('loop', pad.ry > 0 ? 1 : -1);
+      }
       if (pad.b && !padPrev.b) stopFlight();
       if (pad.x && !padPrev.x) raceBtn.click(); // race on/off
       if (pad.y && !padPrev.y) fireBtn.click(); // firefighting on/off
       if (pad.start && !padPrev.start && race) { flyResult.hidden = true; startRace(); } // restart race
     } else if (pad.y && !padPrev.y) startFlight();
-    Object.assign(padPrev, { a: pad.a, b: pad.b, x: pad.x, y: pad.y, start: pad.start });
+    Object.assign(padPrev, { a: pad.a, b: pad.b, x: pad.x, y: pad.y, start: pad.start, flick });
     if (!padHintShown) { padHintShown = true; document.body.classList.add('has-pad'); }
   } else if (flight.active) Object.assign(flight.pad, { turn: 0, climb: 0, boost: false, drop: false });
   else if (drive.active) Object.assign(drive.pad, { turn: 0, throttle: 0 });
@@ -1147,7 +1153,7 @@ renderer.setAnimationLoop(() => {
     // firefighting HUD: fires put out, tank, the nearest fire, hints for the water
     if (fireOn) {
       const { fire } = world;
-      fire.update(dt, flight.pos, flight.velocity(planeVel), flight.yaw, flight.dropping);
+      fire.update(dt, flight.pos, flight.velocity(planeVel), flight.yaw, flight.dropping, flight.stunting);
       const f = fire.state, p = flight.pos;
       flight.setFloor(f.overWater ? WATER_FLOOR : null); // low enough over water to scoop it
       const pct = Math.round(f.tank * 100);

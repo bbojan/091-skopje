@@ -43,14 +43,14 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | `traffic.ts` | Animated cars/buses/people on OSM paths, headlights |
 | `walk.ts` | Walking as Итар Пејо / Шарпланинец: first/third person, companion, context action, info cards, building collision, surface height from the draped layers |
 | `drive.ts` | Drivable ЈСП double-decker: arcade handling, soft kerb on a road-segment grid, chase camera (shares the flight HUD) |
-| `flight.ts` | Arcade plane (Macedonian-flag livery) and the yellow Air Tractor on floats for firefighting, chase camera (pulls back and up near a fire and while water falls), tow banner, keyboard/pad input, invert-Y |
+| `flight.ts` | Arcade plane (Macedonian-flag livery) and the yellow Air Tractor on floats for firefighting, chase camera (pulls back and up near a fire and while water falls), tow banner (fire out; after a roll or loop while firefighting), stunts on the pad's right stick (roll, loop), keyboard/pad input, invert-Y |
 | `game.ts` | Optional ring race over landmarks, 091 balloons, best time |
 | `fire.ts` | Optional firefighting game: at most two fires (forest patch, building roof, ЈСП bus), spawning from a land-cover grid, flames / smoke / glow as GPU-animated quads, water hits, best count |
-| `water.ts` | The Air Tractor's water: tank, falling curtain, splash and steam, spray while scooping, landing ring; closed-form paths shared by the shader and the hit test |
+| `water.ts` | The Air Tractor's water: tank, falling curtain, a little spilled in a roll or loop, splash and steam, spray while scooping, landing ring; closed-form paths shared by the shader and the hit test |
 | `landmarks.ts` | Hand-built models: Millennium Cross lattice, Warrior on a Horse, Stone Bridge, Porta Macedonia, Vodno gondola |
-| `sound.ts` | Optional sound, off by default: Web Audio synthesis only (engine, wind, rain, water, fire, birds, crickets, short signals), fed a `SoundScene` once per frame from `main.ts` |
+| `sound.ts` | Sound, on by default (a switch turns it off): Web Audio synthesis only (engine, wind, rain, water, fire, birds, crickets, short signals), fed a `SoundScene` once per frame from `main.ts` |
 | `labels.ts` | HTML Cyrillic labels (districts far, landmarks near), positions from `data.places` |
-| `input.ts` | Keyboard map navigation + gamepad reading (browser "standard" mapping only; unmapped pads are ignored) |
+| `input.ts` | Keyboard map navigation, camera height (C / V, horizontal wheel, LB / RB) + gamepad reading (browser "standard" mapping only; unmapped pads are ignored) |
 | `i18n.ts` | UI translations (mk, en, sr Cyrillic, hr, sl, sq): `t(key)`, `data-i18n*` attributes in `index.html`, 🌐 picker, auto-detect, `?lang=` |
 | `types.ts` | Shared types: 2D geometry (`Pt`, `Ring`, `Poly`) and the `skopje.json` format (`CityData`) written by `prepare.ts` |
 | `geo.ts` | 2D helpers: rng, PIP, OBB, spatial grids, scanline `rowCrossings` |

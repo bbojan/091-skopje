@@ -204,12 +204,17 @@ interface Slot {
   mark: number;
 }
 
-// starting strength, growth per second, water needed (1 = a full tank on a full fire)
+// starting strength, growth per second, water needed (packets to put out a full fire = tough / DAMAGE),
+// pad: how far outside the flames water still counts (m), weight: how often this kind starts.
+// Tuned so that one level pass at cruise speed puts out even a full-grown fire when it is
+// flown within about 12 m of the middle (25 m for a forest): such a pass lands 20–35 packets
+// on a forest or a roof and 12–17 on a bus (measured with scripts/browser/fire-harness.js).
 const KIND: Record<FireKind, { hp0: number; grow: number; tough: number; pad: number; weight: number }> = {
-  forest: { hp0: 0.35, grow: 1 / 85, tough: 1, pad: 9, weight: 0.45 },
-  building: { hp0: 0.4, grow: 1 / 100, tough: 0.9, pad: 8, weight: 0.35 },
-  bus: { hp0: 0.6, grow: 1 / 220, tough: 0.35, pad: 9, weight: 0.2 },
+  forest: { hp0: 0.35, grow: 1 / 85, tough: 0.8, pad: 9, weight: 0.45 },
+  building: { hp0: 0.4, grow: 1 / 100, tough: 0.55, pad: 12, weight: 0.35 },
+  bus: { hp0: 0.6, grow: 1 / 220, tough: 0.3, pad: 12, weight: 0.2 },
 };
+const SPILL = 0.1; // share of the drop rate that slops out during a roll or a loop (a roll: about 3 % of the tank, a loop: 14 %)
 const DAMAGE = 0.03; // strength taken by one packet of water (a full tank is 65 packets; a pass lands about a third of them)
 
 export function createFireMode({ terrain, bounds, areas, buildings, bus, light = false, onOut }: FireOptions) {
@@ -433,7 +438,8 @@ export function createFireMode({ terrain, bounds, areas, buildings, bus, light =
   }
 
   const targets: WaterTarget[] = [];
-  function update(dt: number, plane: THREE.Vector3, vel: THREE.Vector3, yaw: number, dropping: boolean): void {
+  /** `spilling`: the plane is rolling or looping, so a little of the water it carries slops out */
+  function update(dt: number, plane: THREE.Vector3, vel: THREE.Vector3, yaw: number, dropping: boolean, spilling = false): void {
     if (!st.on) return;
     time += dt;
     uTime.value = time;
@@ -471,7 +477,7 @@ export function createFireMode({ terrain, bounds, areas, buildings, bus, light =
     st.overWater = isWater(plane.x, plane.z);
     st.scooping = st.overWater && water.tank < 1 && plane.y - terrain.at(plane.x, plane.z) < SCOOP_AGL;
     if (st.scooping) water.scoop(dt, plane, vel);
-    water.update(dt, plane, vel, dropping, targets, hit);
+    water.update(dt, plane, vel, dropping, targets, hit, spilling ? SPILL : 0);
   }
 
   return {

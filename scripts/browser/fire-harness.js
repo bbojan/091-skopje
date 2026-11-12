@@ -6,6 +6,7 @@
 //   __h.until(() => __h.near() < 185); __h.key('keydown'); __h.step(200); __h.key('keyup')
 //   __h.info()                    // fires put out, tank, the fires with strength and distance
 // Space is the water key; __h.key('keydown', 'ArrowLeft') steers. The flight HUD is not updated.
+//   __h.w.flight.stunt('roll', 1)   // a roll to the right (-1 left); 'loop', 1 up and over, -1 down and under
 (() => {
   document.getElementById('fly').click();
   if (!document.body.classList.contains('firefighting')) document.getElementById('fly-fire').click();
@@ -27,7 +28,7 @@
   const step = (n = 1, dt = 1 / 60) => {
     for (let i = 0; i < n; i++) {
       w.flight.update(dt);
-      w.fire.update(dt, w.flight.pos, w.flight.velocity(vel), w.flight.yaw, w.flight.dropping);
+      w.fire.update(dt, w.flight.pos, w.flight.velocity(vel), w.flight.yaw, w.flight.dropping, w.flight.stunting);
       w.flight.setFloor(w.fire.state.overWater ? 5 : null);
       const [f, nd] = nearest(), p = w.flight.pos;
       const close = !!f && nd < 480 && (f.x - p.x) * Math.sin(w.flight.yaw) - (f.z - p.z) * Math.cos(w.flight.yaw) > -60;
