@@ -1016,7 +1016,7 @@ help.addEventListener('click', (e) => { if (e.target === help) help.close(); });
 const mapInput = createMapInput({ controls, camera, isActive: () => !!world && !world.flight.active && !world.drive.active && !world.walk.active && !document.querySelector('dialog[open]') });
 const padPrev = { a: false, b: false, x: false, y: false, start: false };
 let padHintShown = false;
-addEventListener('gamepadconnected', (e) => console.log('gamepad:', e.gamepad.id, e.gamepad.mapping || 'non-standard (DirectInput)'));
+addEventListener('gamepadconnected', (e) => console.log('gamepad:', e.gamepad.id, e.gamepad.mapping === 'standard' ? 'standard' : 'not mapped by the browser: ignored'));
 
 const clock = new THREE.Clock();
 renderer.setAnimationLoop(() => {

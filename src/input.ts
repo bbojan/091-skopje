@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import type { MapControls } from 'three/addons/controls/MapControls.js';
 
-// Keyboard + gamepad (XInput "standard" mapping and DirectInput fallbacks)
-// for moving around the map. Flight uses the same pad through readPad().
+// Keyboard + gamepad (the browser's "standard" mapping only: Xbox, PlayStation
+// and other pads the browser recognises) for moving around the map.
+// Flight, bus and walk use the same pad through readPad().
 
 type MapAction = 'fwd' | 'back' | 'left' | 'right' | 'rotL' | 'rotR' | 'tiltUp' | 'tiltDown' | 'zoomIn' | 'zoomOut';
 
@@ -17,33 +18,26 @@ const dz = (v: number, d = 0.15) => (Math.abs(v) < d ? 0 : (v - Math.sign(v) * d
 /** Normalised gamepad state: sticks in −1…1, triggers 0…1, buttons as booleans. */
 export interface PadState {
   id: string;
-  standard: boolean;
   lx: number; ly: number; rx: number; ry: number;
   lt: number; rt: number;
   a: boolean; b: boolean; x: boolean; y: boolean; start: boolean;
 }
 
-// Normalised pad state; works for "standard" (XInput, most modern pads) and
-// common DirectInput layouts where the right stick sits on axes 2/5 or 2/3.
+// The most recently used pad with the standard layout (W3C Gamepad spec):
+// axes 0-3 sticks, buttons 0-3 A/B/X/Y, 6/7 triggers, 9 Start, 12-15 D-pad.
+// Pads the browser does not map are ignored: their layouts differ per pad.
 export function readPad(): PadState | null {
-  const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter((p): p is Gamepad => !!p) : [];
-  const gp = pads.find((p) => p.connected);
+  if (!navigator.getGamepads) return null;
+  let gp: Gamepad | null = null;
+  for (const p of navigator.getGamepads()) if (p?.connected && p.mapping === 'standard' && (!gp || p.timestamp > gp.timestamp)) gp = p;
   if (!gp) return null;
   const a = gp.axes, b = gp.buttons;
-  const btn = (i: number) => (b[i] ? b[i].value || (b[i].pressed ? 1 : 0) : 0);
-  const std = gp.mapping === 'standard';
-  const rx = a[2] ?? 0;
-  const ry = std ? (a[3] ?? 0) : a.length > 5 ? a[5] : (a[3] ?? 0);
-  // D-pad: standard buttons 12-15; DirectInput often reports a POV hat on axis 9
-  let dx = btn(15) - btn(14), dy = btn(13) - btn(12);
-  if (!std && a.length > 9 && Math.abs(a[9]) <= 1.01 && a[9] !== 0) {
-    const hat = Math.round((a[9] + 1) * 3.5); // 0..7 clockwise from up
-    const dirs: [number, number][] = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
-    if (dirs[hat]) [dx, dy] = dirs[hat];
-  }
+  const btn = (i: number) => b[i]?.value ?? 0;
+  const dx = btn(15) - btn(14), dy = btn(13) - btn(12);
   return {
-    id: gp.id, standard: std,
-    lx: dz(a[0] ?? 0) + dx, ly: dz(a[1] ?? 0) + dy, rx: dz(rx), ry: dz(ry),
+    id: gp.id,
+    lx: THREE.MathUtils.clamp(dz(a[0] ?? 0) + dx, -1, 1), ly: THREE.MathUtils.clamp(dz(a[1] ?? 0) + dy, -1, 1),
+    rx: dz(a[2] ?? 0), ry: dz(a[3] ?? 0),
     lt: btn(6), rt: btn(7), a: btn(0) > 0.5, b: btn(1) > 0.5, x: btn(2) > 0.5, y: btn(3) > 0.5, start: btn(9) > 0.5,
   };
 }

@@ -75,6 +75,9 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    and crackle by distance, birds by day and crickets at night, and short signals (ring, balloon,
    finish, new fire, fire out, bark). A switch in ⚙ and a speaker button in the flight and
    walking HUDs; the choice is saved. The audio graph is built on the first switch-on.
+20. **v2.6.1** (Nov 2026): gamepad reads only pads with the browser's standard mapping (Xbox,
+   PlayStation, …); the DirectInput axis/hat guesses are gone and unmapped pads are ignored.
+   The most recently used pad wins.
 
 ## Key decisions (and why)
 
@@ -295,7 +298,8 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 ## Not verified yet
 
 - Real iPhone/iPad — only emulated. Memory limits there: see "A larger map" at the end.
-- Real gamepads — only a simulated XInput pad; DirectInput axis layout is a heuristic.
+- Real gamepads — only a simulated standard-mapping pad. Pads the browser does not map
+  (`mapping` not `"standard"`, e.g. some generic DirectInput pads) are ignored on purpose.
 - The automatic switch to the low quality tier on a really slow device (logic only; the
   low tier itself was measured: 10.9 → 4.7 ms GPU on the Square view at 1600×1000).
 - Walking mode live in a visible window and on touch devices (joystick, drag-look), pointer
