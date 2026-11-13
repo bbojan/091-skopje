@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { pip, pipPoly, toPts } from './geo.ts';
 import { isPaintedArea, areaLift, roadLift, CASING_LIFT, CASING_EXTRA, type RoadInfo } from './city.ts';
 import type { Terrain } from './terrain.ts';
+import type { CitySpec } from './cities.ts';
 import type { AreaData, Bounds, BuildingData, CrossData, MapMeta, Places, Poly, Ring } from './types.ts';
 
 // Walk the city as Итар Пејо (folk trickster) or a Шарпланинец (Šar Mountain dog), in first
@@ -17,18 +18,8 @@ const SPEC = {
   dog: { walk: 4, run: 12, eye: 0.8 * SCALE, head: 0.9 * SCALE, dist: 5 },
 } as const;
 
-/** Places with an info card (names are map data, Macedonian; texts: i18n `info.<key>`). */
-const SPOTS: [key: string, name: string, lat: number, lon: number, radius: number, place?: string][] = [
-  ['square', 'Плоштад Македонија', 41.9955, 21.4319, 60, 'square'],
-  ['bridge', 'Камен мост', 41.9970, 21.4331, 35],
-  ['kale', 'Кале', 42.0008, 21.4335, 110, 'kale'],
-  ['bazaar', 'Стара чаршија', 42.0018, 21.4378, 90, 'bazaar'],
-  ['hamam', 'Даут-пашин амам', 41.99872, 21.43572, 40, 'hamam'],
-  ['spas', 'Св. Спас', 42.00082, 21.43572, 35, 'spas'],
-  ['porta', 'Порта Македонија', 41.99445, 21.43242, 40, 'porta'],
-  ['station', 'Железничка станица', 41.99096, 21.44589, 80, 'station'],
-  ['telecom', 'Телекомуникациски центар', 41.99834, 21.42988, 60, 'telecom'],
-];
+// Places with an info card: `spots` per city in cities.ts (names are map data, Macedonian;
+// texts: i18n `info.<key>`).
 
 // ---------------------------------------------------------------- models (front along +x)
 const lambert = (color: THREE.ColorRepresentation) => new THREE.MeshLambertMaterial({ color });
@@ -222,6 +213,7 @@ export interface WalkHooks {
 }
 
 export interface WalkOptions {
+  city: CitySpec;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   terrain: Terrain;
@@ -237,6 +229,8 @@ export interface WalkOptions {
   /** where the plane is parked while walking, and its heading */
   planeSpot: { x: number; z: number; yaw: number };
   hooks: WalkHooks;
+  /** ends the window key listeners when the city is unloaded */
+  signal?: AbortSignal;
 }
 
 /** What the action button does right now. */
@@ -253,7 +247,7 @@ export function createWalk(o: WalkOptions) {
 
   // info spots in scene coordinates (exact OSM places when known); the Millennium Cross from the data
   const P = (lat: number, lon: number): [number, number] => [(lon - o.meta.lon0) * o.meta.kx, -(lat - o.meta.lat0) * o.meta.ky];
-  const spots = SPOTS.map(([key, name, lat, lon, radius, place]) => {
+  const spots = o.city.spots.map(([key, name, lat, lon, radius, place]) => {
     const [x, z] = (place && o.places[place]) || P(lat, lon);
     return { key, name, x, z, radius };
   });
@@ -286,13 +280,13 @@ export function createWalk(o: WalkOptions) {
     const k = keys[e.code];
     if (k) { e.preventDefault(); (input as Record<string, number | boolean>)[k] = 1; }
     if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') input.run = true;
-  });
+  }, { signal: o.signal });
   addEventListener('keyup', (e) => {
     const k = keys[e.code];
     if (k) (input as Record<string, number | boolean>)[k] = 0;
     if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') input.run = false;
-  });
-  addEventListener('blur', () => Object.assign(input, { fwd: 0, back: 0, left: 0, right: 0, run: false }));
+  }, { signal: o.signal });
+  addEventListener('blur', () => Object.assign(input, { fwd: 0, back: 0, left: 0, right: 0, run: false }), { signal: o.signal });
 
   const free = (x: number, z: number) => !walls.blocked(x, z);
   function start(at: THREE.Vector3, camYaw: number): void {

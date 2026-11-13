@@ -1,8 +1,8 @@
 // Converts raw Overpass JSON (out geom) into a compact, projected scene description.
-// Usage: node scripts/prepare.mjs data/skopje_raw.json public/skopje.json
+// Usage: node scripts/prepare.ts [city]   (FILES.raw → FILES.scene; default skopje)
 import fs from 'node:fs';
 
-import { lat0, lon0, kx, ky, proj, W, H } from './config.ts';
+import { CITY, FILES, lat0, lon0, kx, ky, proj, W, H, type CityName } from './config.ts';
 import { obb, PolyGrid } from '../src/geo.ts';
 import type { CityData, Poly, Pt, Ring } from '../src/types.ts';
 
@@ -22,9 +22,9 @@ interface OsmElement {
 }
 interface OsmJson { elements: OsmElement[] }
 
-const [, , inFile, outFile] = process.argv;
-if (!inFile || !outFile) {
-  console.error('usage: node scripts/prepare.ts <raw overpass json> <out scene json>');
+const inFile = FILES.raw, outFile = FILES.scene;
+if (!fs.existsSync(inFile)) {
+  console.error(`${inFile} is missing: run \`npm run download -- ${CITY}\` first`);
   process.exit(1);
 }
 const raw = JSON.parse(fs.readFileSync(inFile, 'utf8')) as OsmJson;
@@ -124,9 +124,110 @@ const parseNum = (v: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-// Old Bazaar (Čaršija) – low, tiled, dense
-const OLD = { s: 41.9995, n: 42.0048, w: 21.4342, e: 21.4425 };
-const SQUARE = proj(41.9961, 21.4316); // Macedonia Square
+// What differs per city: the old town box (low, tiled, dense), the main square, hand-modelled
+// landmarks, named places for labels and rings, and district boxes for height guesses.
+type Zone = [s: number, n: number, w: number, e: number];
+interface CityPrep {
+  old: { s: number; n: number; w: number; e: number } | null;
+  square: [lat: number, lon: number];
+  /** OSM ids of the outlines of hand-modelled landmarks (src/landmarks.ts) */
+  landmarks: { stoneBridge?: number; fountain?: number; porta?: number; ossuary?: number; heroes?: number; vatasa?: number; townhall?: number };
+  /** names of the places (largest matching shape wins) */
+  placeNames: Record<string, string>;
+  /** places matched by OSM way id */
+  placeIds: Record<string, number>;
+  /** places at OSM nodes */
+  placeNodes: Record<string, number>;
+  /** coordinates of those nodes as OSM has them, used when the download did not include the node */
+  nodeLL: Record<number, [lat: number, lon: number]>;
+  /** hand-modelled landmarks that are not in OSM, by position */
+  landmarkLL?: {
+    revolution?: [lat: number, lon: number];
+    /** a building OSM lacks: centre and heading (radians, of its long axis from south toward east) */
+    culture?: [lat: number, lon: number, heading: number];
+  };
+  tall: Zone[];
+  mid: Zone[];
+  /** a few extra storeys for blocks close to the main square (a capital's centre) */
+  squareBonus: boolean;
+  /** highest guessed storey count (tagged buildings keep their tags) */
+  maxLevels: number;
+  /** the Vodno gondola (separate small download) */
+  aerialway?: string;
+}
+const PREP: Record<CityName, CityPrep> = {
+  skopje: {
+    old: { s: 41.9995, n: 42.0048, w: 21.4342, e: 21.4425 }, // Old Bazaar (Čaršija)
+    square: [41.9961, 21.4316], // Macedonia Square
+    landmarks: { stoneBridge: 411079115, fountain: 176160189, porta: 239422349 },
+    placeNames: {
+      square: 'Плоштад Македонија', porta: 'Порта Македонија', park: 'Градски парк', zoo: 'Зоолошка градина Скопје',
+      arena: 'Национална арена Тодор Проески', bazaar: 'Стара скопска чаршија', kale: 'Скопско кале',
+    },
+    // ambiguous or long names (there are two „Св. Спас“)
+    placeIds: {
+      telecom: 32490009, // Пошта на Македонија — Telecommunications Centre (Janko Konstantinov)
+      hamam: 172171547, // Даут пашин амам — National Gallery
+      spas: 1137300477, // Св. Спас in the old town
+      mall: 189429723, // Skopje City Mall
+      station: 144759771, // Железничка станица Скопје
+    },
+    placeNodes: {},
+    nodeLL: {},
+    tall: [
+      [42.000, 42.013, 21.372, 21.407], // Karpoš 3/4, Taftalidže
+      [41.978, 41.996, 21.452, 21.502], // Aerodrom, Novo Lisiče
+      [41.984, 41.993, 21.438, 21.455], // Kisela Voda blocks
+    ],
+    mid: [
+      [41.988, 42.001, 21.405, 21.445], // Centar, Kapištec, Debar Maalo
+      [42.000, 42.020, 21.428, 21.452], // Čair
+      [42.003, 42.016, 21.350, 21.372], // Gjorče Petrov centre
+      [41.973, 41.988, 21.425, 21.450], // Kisela Voda
+      [42.005, 42.020, 21.452, 21.480], // Gazi Baba centre
+    ],
+    squareBonus: true,
+    maxLevels: Infinity,
+    aerialway: 'data/aerialway.json',
+  },
+  kavadarci: {
+    old: null,
+    square: [41.43344, 22.01227], // Плоштад Маршал Тито
+    landmarks: {
+      ossuary: 1275768512, // Спомен-костурница on the hill east of the centre
+      heroes: 11845001868, // monument to the People's Heroes Kiro Atanasovski-Nalbatot and Dimče Mirčev (node)
+      vatasa: 7626158238, // memorial to the Vataša massacre, in its memorial park (node)
+      townhall: 790445885, // Општина Кавадарци, modelled after photos (2020, 2025)
+    },
+    placeNames: { square: 'Плоштад Маршал Тито', vatasa: 'Спомен парк Ваташа', katunisko: 'Катунишко Езеро' },
+    placeIds: {
+      ossuary: 1275768512,
+      dimitrij: 1111874740, // Св. Димитриј
+      townhall: 790445885, // Општина Кавадарци
+    },
+    placeNodes: { heroes: 11845001868, museum: 529811458 }, // culture: the building centre (landmarkLL), not the OSM point
+    // copied from OSM (Nov 2026); data/query.overpassql fetches these node types from now on
+    nodeLL: {
+      11845001868: [41.43364, 22.01948], // historic=memorial, the People's Heroes
+      7626158238: [41.40143, 22.02843], // historic=memorial, Масакр во Ваташа
+      529811458: [41.43437, 22.01652], // tourism=museum, Музеј Галерија Кавадарци
+      373135640: [41.43396, 22.0122], // amenity=theatre, Дом на културата
+    },
+    // not in OSM: Monument to the Revolution (Petar Palavičini, 1958), position from spomenikdatabase.org/kavadarci
+    // Дом на културата „Иван Мазов-Климе“ is not in OSM: placed from the site and floor plans of the
+    // fire-safety report (АРХИКОНС, Dec 2023): 41.4 m long, parallel to Илинденска (≈ 14° east of north),
+    // its foyer facing ул. 7 Септември at the corner of the two streets
+    landmarkLL: { revolution: [41.43322, 22.01231], culture: [41.434017, 22.012032, 0.241] },
+    // a small town: blocks of flats around the square, lower everywhere else
+    tall: [],
+    mid: [[41.4285, 41.4385, 22.003, 22.0225]], // the centre around Плоштад Маршал Тито
+    squareBonus: false,
+    maxLevels: 9,
+  },
+};
+const CFG = PREP[CITY];
+const OLD = CFG.old;
+const SQUARE = proj(...CFG.square);
 
 const out: CityData = {
   meta: { w: r1(W), h: r1(H), lat0, lon0, kx, ky, square: SQUARE.map(r1), attribution: '© OpenStreetMap contributors' },
@@ -142,28 +243,42 @@ const out: CityData = {
   places: {},
 };
 // hand-modelled landmarks (rendered by src/landmarks.ts instead of generic geometry)
-const LANDMARK_IDS = { stoneBridge: 411079115, fountain: 176160189, porta: 239422349 };
-const SKIP_BUILDINGS = new Set<number>([LANDMARK_IDS.porta]);
+const LANDMARK_IDS = CFG.landmarks;
+// outlines replaced by a model
+const SKIP_BUILDINGS = new Set<number>([LANDMARK_IDS.porta, LANDMARK_IDS.ossuary, LANDMARK_IDS.townhall].filter((id): id is number => id != null));
+/** an OSM node's position: from the download, else from `nodeLL` */
+const nodeAt = (id: number): Pt | null => {
+  const el = raw.elements.find((e) => e.type === 'node' && e.id === id);
+  if (el) return proj(el.lat!, el.lon!);
+  const ll = CFG.nodeLL[id];
+  return ll ? proj(...ll) : null;
+};
+for (const [key, id] of [['heroes', LANDMARK_IDS.heroes], ['vatasa', LANDMARK_IDS.vatasa]] as const) {
+  const p = id != null ? nodeAt(id) : null;
+  if (p) out.landmarks[key] = r1p(p);
+}
+if (CFG.landmarkLL?.revolution) {
+  out.landmarks.revolution = r1p(proj(...CFG.landmarkLL.revolution));
+  out.places.revolution = out.landmarks.revolution;
+}
+if (CFG.landmarkLL?.culture) {
+  const [lat, lon, heading] = CFG.landmarkLL.culture;
+  const c = r1p(proj(lat, lon));
+  out.landmarks.culture = [c[0], c[1], heading];
+  out.places.culture = c;
+}
 for (const el of raw.elements) {
   if (el.type !== 'way') continue;
   const pts = wayPts(el.geometry || []);
   if (el.id === LANDMARK_IDS.stoneBridge) out.landmarks.stoneBridge = flat(pts);
   if (el.id === LANDMARK_IDS.fountain) { const r = dropLast(pts); out.landmarks.warrior = r1p(centroid(r)); }
   if (el.id === LANDMARK_IDS.porta) out.landmarks.porta = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.ossuary) out.landmarks.ossuary = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.townhall) out.landmarks.townhall = flat(dropLast(pts));
 }
 // exact positions of named places (area-weighted centroid of the largest matching shape)
-const PLACE_NAMES: Record<string, string> = {
-  square: 'Плоштад Македонија', porta: 'Порта Македонија', park: 'Градски парк', zoo: 'Зоолошка градина Скопје',
-  arena: 'Национална арена Тодор Проески', bazaar: 'Стара скопска чаршија', kale: 'Скопско кале',
-};
-// places matched by OSM way id (names that are ambiguous or long: there are two „Св. Спас“)
-const PLACE_IDS: Record<string, number> = {
-  telecom: 32490009, // Пошта на Македонија — Telecommunications Centre (Janko Konstantinov)
-  hamam: 172171547, // Даут пашин амам — National Gallery
-  spas: 1137300477, // Св. Спас in the old town
-  mall: 189429723, // Skopje City Mall
-  station: 144759771, // Железничка станица Скопје
-};
+const PLACE_NAMES = CFG.placeNames;
+const PLACE_IDS = CFG.placeIds;
 const areaCentroid = (r: Ring): Pt => {
   let a = 0, cx = 0, cz = 0;
   for (let i = 0, n = r.length; i < n; i++) {
@@ -188,9 +303,13 @@ for (const [key, id] of Object.entries(PLACE_IDS)) {
   const poly = el ? polygonsOf(el)[0] : undefined;
   if (poly) out.places[key] = r1p(areaCentroid(poly[0]));
 }
+for (const [key, id] of Object.entries(CFG.placeNodes)) {
+  const p = nodeAt(id);
+  if (p) out.places[key] = r1p(p);
+}
 // Vodno gondola (separate small download: data/aerialway.json)
-if (fs.existsSync('data/aerialway.json')) {
-  const aw = JSON.parse(fs.readFileSync('data/aerialway.json', 'utf8')) as OsmJson;
+if (CFG.aerialway && fs.existsSync(CFG.aerialway)) {
+  const aw = JSON.parse(fs.readFileSync(CFG.aerialway, 'utf8')) as OsmJson;
   for (const el of aw.elements) {
     if (el.type === 'way' && el.tags?.aerialway === 'gondola') out.landmarks.gondola = flat(wayPts(el.geometry || []));
   }
@@ -231,19 +350,9 @@ function areaKind(t: Tags): string | null {
 const AREA_Z: Record<string, number> = { campus: 0, fortress: 1, dirt: 1, cemetery: 2, grass: 3, scrub: 3, park: 3, wood: 4, play: 5, parking: 5, plaza: 5, pitch: 6, clay: 6, court: 6, water: 7, pool: 8 };
 
 // Known districts (lat/lon boxes) that shape height guesses where OSM has no tags
-const inZone = (lat: number, lon: number, z: number[]) => lat > z[0] && lat < z[1] && lon > z[2] && lon < z[3];
-const ZONES_TALL = [
-  [42.000, 42.013, 21.372, 21.407], // Karpoš 3/4, Taftalidže
-  [41.978, 41.996, 21.452, 21.502], // Aerodrom, Novo Lisiče
-  [41.984, 41.993, 21.438, 21.455], // Kisela Voda blocks
-];
-const ZONES_MID = [
-  [41.988, 42.001, 21.405, 21.445], // Centar, Kapištec, Debar Maalo
-  [42.000, 42.020, 21.428, 21.452], // Čair
-  [42.003, 42.016, 21.350, 21.372], // Gjorče Petrov centre
-  [41.973, 41.988, 21.425, 21.450], // Kisela Voda
-  [42.005, 42.020, 21.452, 21.480], // Gazi Baba centre
-];
+const inZone = (lat: number, lon: number, z: Zone) => lat > z[0] && lat < z[1] && lon > z[2] && lon < z[3];
+const ZONES_TALL = CFG.tall;
+const ZONES_MID = CFG.mid;
 const HOUSE = ['house', 'detached', 'semidetached_house', 'terrace', 'bungalow', 'farm', 'cabin', 'hut', 'garage', 'garages', 'shed', 'kiosk', 'service', 'toilets'];
 const INDUSTRIAL = ['industrial', 'warehouse', 'factory', 'manufacture', 'hangar', 'storage_tank', 'transportation'];
 const PUBLIC = ['school', 'university', 'college', 'hospital', 'public', 'civic', 'government', 'office', 'kindergarten', 'train_station'];
@@ -274,7 +383,7 @@ function buildingInfo(el: OsmElement, poly: Poly): BuildingInfo {
   const a = Math.abs(area(outer));
   const [cx, cz] = centroid(outer);
   const lat = lat0 - cz / ky, lon = lon0 + cx / kx;
-  const old = lat > OLD.s && lat < OLD.n && lon > OLD.w && lon < OLD.e;
+  const old = !!OLD && lat > OLD.s && lat < OLD.n && lon > OLD.w && lon < OLD.e;
   const dSq = Math.hypot(cx - SQUARE[0], cz - SQUARE[1]);
   const type = t.building ?? 'yes';
   let levels = parseNum(t['building:levels']);
@@ -312,8 +421,9 @@ function buildingInfo(el: OsmElement, poly: Poly): BuildingInfo {
       else if (a < 420) levels = tall || mid ? between(3, 3) : between(2, 2);
       else levels = tall || mid ? between(4, 4) : between(2, 3);
       if (apt) levels = Math.max(levels, rv2 < 0.5 ? 3 : 4);
-      if (!old && dSq < 900 && a > 150) levels += Math.floor(rv2 * 3);
+      if (CFG.squareBonus && !old && dSq < 900 && a > 150) levels += Math.floor(rv2 * 3);
     }
+    levels = Math.min(levels, CFG.maxLevels);
     if (inCastle) levels = Math.min(levels, 2);
   }
   // levels is set whenever h is missing (the block above)

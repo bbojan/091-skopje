@@ -20,5 +20,8 @@
   way["man_made"~"cross"];
   node["summit:cross"];
   node["natural"="peak"];
+  node["historic"~"memorial|monument"];
+  node["tourism"="museum"];
+  node["amenity"~"theatre|townhall"];
 );
 out geom;

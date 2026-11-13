@@ -1,26 +1,12 @@
 import * as THREE from 'three';
 import type { Terrain } from './terrain.ts';
+import type { CitySpec, LabelKind } from './cities.ts';
 import type { CrossData, MapMeta, Places, Pt } from './types.ts';
 
-// Hand-lettered place labels: districts when zoomed out, landmarks up close.
-const DISTRICTS: [name: string, lat: number, lon: number][] = [
-  ['Центар', 41.9930, 21.4250], ['Карпош', 42.0040, 21.3920], ['Аеродром', 41.9850, 21.4720],
-  ['Кисела Вода', 41.9760, 21.4420], ['Чаир', 42.0110, 21.4420], ['Бутел', 42.0330, 21.4430],
-  ['Гази Баба', 42.0130, 21.4800], ['Ѓорче Петров', 42.0090, 21.3560], ['Шуто Оризари', 42.0380, 21.4250],
-];
-// [name, lat, lon, lift, key in data.places (exact OSM position, preferred)]
-const LANDMARKS: [name: string, lat: number, lon: number, lift: number, key?: string][] = [
-  ['Плоштад Македонија', 41.9955, 21.4319, 30, 'square'], ['Камен мост', 41.9970, 21.4331, 14], ['Кале', 42.0008, 21.4335, 40, 'kale'],
-  ['Стара чаршија', 42.0018, 21.4378, 20, 'bazaar'], ['Порта Македонија', 41.99445, 21.43242, 30, 'porta'], ['Градски парк', 42.0075, 21.4190, 25, 'park'],
-  ['Национална арена', 42.00575, 21.42551, 40, 'arena'], ['Зоолошка градина', 42.0064, 21.41767, 20, 'zoo'], ['Вардар', 41.9994, 21.4110, 6],
-  ['Телекомуникациски центар', 41.99834, 21.42988, 34, 'telecom'], ['Даут-пашин амам', 41.99872, 21.43572, 14, 'hamam'],
-  ['Св. Спас', 42.00082, 21.43572, 10, 'spas'], ['Сити Мол', 42.00468, 21.39177, 24, 'mall'],
-  ['Железничка станица', 41.99096, 21.44589, 24, 'station'],
-];
-
-type LabelKind = 'district' | 'landmark' | 'river';
+// Hand-lettered place labels: districts when zoomed out, landmarks up close (lists per city in cities.ts).
 
 export interface LabelOptions {
+  city: CitySpec;
   meta: MapMeta;
   terrain: Terrain;
   crosses: CrossData[];
@@ -28,7 +14,7 @@ export interface LabelOptions {
   container: HTMLElement;
 }
 
-export function createLabels({ meta, terrain, crosses, places = {}, container }: LabelOptions) {
+export function createLabels({ city, meta, terrain, crosses, places = {}, container }: LabelOptions) {
   const P = (lat: number, lon: number): Pt => [(lon - meta.lon0) * meta.kx, -(lat - meta.lat0) * meta.ky];
   const items: { el: HTMLDivElement; kind: LabelKind; p: THREE.Vector3; shown: boolean }[] = [];
   const mk = (name: string, x: number, z: number, lift: number, kind: LabelKind) => {
@@ -38,15 +24,13 @@ export function createLabels({ meta, terrain, crosses, places = {}, container }:
     container.appendChild(el);
     items.push({ el, kind, p: new THREE.Vector3(x, terrain.at(x, z) + lift, z), shown: false });
   };
-  for (const [n, lat, lon] of DISTRICTS) { const [x, z] = P(lat, lon); mk(n, x, z, 60, 'district'); }
-  for (const [n, lat, lon, lift, key] of LANDMARKS) {
+  for (const [n, lat, lon, lift = 60] of city.districts) { const [x, z] = P(lat, lon); mk(n, x, z, lift, 'district'); }
+  for (const [n, lat, lon, lift, key, kind = 'landmark'] of city.labels) {
     const [x, z] = (key && places[key]) || P(lat, lon);
-    mk(n, x, z, lift, n === 'Вардар' ? 'river' : 'landmark');
+    mk(n, x, z, lift, kind);
   }
   const mc = crosses.find((c) => /Millennium|Милениум/.test(c.name));
   if (mc) mk('Милениумски крст', mc.x, mc.z, mc.h + 12, 'landmark');
-  const [vx, vz] = P(41.9690, 21.4000);
-  mk('Водно', vx, vz, 120, 'district');
 
   const v = new THREE.Vector3();
   let enabled = true;
@@ -69,6 +53,8 @@ export function createLabels({ meta, terrain, crosses, places = {}, container }:
   }
   return {
     update,
+    /** removes the labels from the page (the city is unloaded) */
+    dispose(): void { for (const it of items) it.el.remove(); items.length = 0; },
     set enabled(on: boolean) { enabled = on; },
     get enabled(): boolean { return enabled; },
   };

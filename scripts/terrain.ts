@@ -1,8 +1,9 @@
 // Builds a heightfield for the map extent from AWS Terrarium elevation tiles.
-// Output: public/terrain.bin (Uint16, decimetres above the minimum) + public/terrain.json
+// Usage: node scripts/terrain.ts [city]. Output: FILES.terrainBin (Uint16, decimetres above the
+// minimum) + FILES.terrainJson (public/terrain.* for Skopje)
 import fs from 'node:fs';
 import zlib from 'node:zlib';
-import { BBOX, unproj, W, H } from './config.ts';
+import { BBOX, FILES, unproj, W, H } from './config.ts';
 
 const Z = 15;
 const CELL = 10; // metres between samples
@@ -112,6 +113,6 @@ let min = Infinity, max = -Infinity;
 for (const v of g) { if (v < min) min = v; if (v > max) max = v; }
 const out = new Uint16Array(g.length);
 for (let i = 0; i < g.length; i++) out[i] = Math.round((g[i] - min) * 10);
-fs.writeFileSync('public/terrain.bin', Buffer.from(out.buffer));
-fs.writeFileSync('public/terrain.json', JSON.stringify({ nx, nz, cell: CELL, x0: -W / 2, z0: -H / 2, min: +min.toFixed(1), max: +max.toFixed(1) }));
+fs.writeFileSync(FILES.terrainBin, Buffer.from(out.buffer));
+fs.writeFileSync(FILES.terrainJson, JSON.stringify({ nx, nz, cell: CELL, x0: -W / 2, z0: -H / 2, min: +min.toFixed(1), max: +max.toFixed(1) }));
 console.log(`terrain ${nx}x${nz} @${CELL}m, elevation ${min.toFixed(0)}–${max.toFixed(0)} m`);

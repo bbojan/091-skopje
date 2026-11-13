@@ -607,6 +607,24 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   for (const b of buildings) bGrid.add(b.poly, b);
   const areas = data.areas.map((a) => ({ ...a, poly: a.r.map(toPts), painted: false }));
   for (const a of areas) if (['water', 'pool', 'pitch', 'clay', 'court', 'parking', 'plaza'].includes(a.k)) blockGrid.add(a.poly, a);
+  // clearings for the hand-modelled monuments (landmarks.ts; Kavadarci): no trees, sheds or cars on them
+  const LM = data.landmarks || {};
+  const around = (c: Pt, ax: Pt, hl: number, hw: number): Poly => {
+    const px = -ax[1], pz = ax[0];
+    return [[[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]): Pt => [c[0] + ax[0] * hl * u + px * hw * v, c[1] + ax[1] * hl * u + pz * hw * v])];
+  };
+  if (LM.heroes) blockGrid.add(around(LM.heroes, [1, 0], 10, 10), null);
+  if (LM.vatasa) blockGrid.add(around(LM.vatasa, [1, 0], 10, 10), null);
+  if (LM.revolution) blockGrid.add(around(LM.revolution, [1, 0], 5, 5), null);
+  const ossOb = LM.ossuary ? obb(toPts(LM.ossuary)) : null;
+  if (ossOb) blockGrid.add(around(ossOb.c, ossOb.a, 17, 17), null); // the courtyard is ~21 m square
+  const hallOb = LM.townhall ? obb(toPts(LM.townhall)) : null;
+  if (hallOb) blockGrid.add(around(hallOb.c, hallOb.a, hallOb.L + 2, hallOb.W + 2), null);
+  if (LM.culture) { // Дом на културата: 41.4 m along its heading, wings to the east, vestibule to the west
+    const [cx, cz, h] = LM.culture;
+    const ax: Pt = [Math.sin(h), Math.cos(h)], ex = Math.cos(h), ez = -Math.sin(h);
+    blockGrid.add(around([cx + ex * 2.4, cz + ez * 2.4], ax, 23, 15), null);
+  }
 
   // ---------------- terrain chunks + skirt
   const cellsPer = Math.round(chunkSize / terrain.cell);
@@ -1457,5 +1475,12 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THRE
     get streaming(): boolean { return stream; },
     /** how many chunks have their detailed ground built (for checks) */
     get hiChunks(): number { return lodChunks.filter((L) => L.terrainHi).length; },
+    /** frees the baked far-ground targets (the meshes in `group` are disposed by whoever removes it) */
+    dispose(): void {
+      for (const L of lodChunks) { L.tex?.dispose(); L.tex = null; }
+      lodChunks.length = 0;
+      want.length = 0;
+      pending = false;
+    },
   };
 }

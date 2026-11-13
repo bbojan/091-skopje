@@ -1,12 +1,12 @@
 {
   "name": "091-skopje",
   "private": true,
-  "version": "2.7.1",
+  "version": "2.8.0",
   "type": "module",
   "scripts": {
-    "download": "node scripts/download.ts data/skopje_raw.json",
+    "download": "node scripts/download.ts",
     "terrain": "node scripts/terrain.ts",
-    "data": "node scripts/prepare.ts data/skopje_raw.json public/skopje.json",
+    "data": "node scripts/prepare.ts",
     "strings": "node scripts/strings.ts",
     "dev": "vite --port 5173",
     "typecheck": "tsc -p tsconfig.json && tsc -p scripts/tsconfig.json",
