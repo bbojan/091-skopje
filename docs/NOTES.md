@@ -157,6 +157,19 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
      260-seat hall, the foyer and main entrance toward ул. 7 Септември, wings to the east, a vestibule
      to the west. No photo of its outside was found: plain rendered walls and window bands.
    Walking collides with both buildings (`landmarkFootprints()` in `landmarks.ts`).
+   No red ЈСП buses in Kavadarci (`buses: false` in `src/cities.ts`): none in the traffic, the 🚌
+   button is hidden and driving does not start; boarding a bus, the bus pointer and bus fires
+   disappear with them. Skopje's traffic is unchanged (same random sequence).
+   Terrain (Nov 2026): the Kavadarci heightfield matched EU-DEM 25 m within 0.6 m RMS at 100 points
+   (SRTM 30 m differs by 5 m RMS), so the source was right; what looked wrong came from the
+   processing. Now per city (`terrain` in `scripts/config.ts`, `terrainExag` in `src/cities.ts`):
+   Kavadarci is drawn at true heights (Skopje keeps its 12 % stretch), smoothed once instead of
+   three times, its lakes have one water level (Tikveš Lake's surface wandered over 249–266 m, now
+   250.0; the shore is at 250.2), Плоштад Маршал Тито is flat (1.4 m → 0.3 m, blended over 15 m)
+   and the Луда Мара, its stream and the canal are cut in as channels (the ground 30 m beside the
+   river was 0.2 m above the bed, now 2.2 m), not under roads. Known heights can be added as
+   `points` ([lat, lon, metres, radius]); none yet. Still 0.67 m RMS from EU-DEM. Skopje's
+   terrain and pixels are unchanged (pixel check: 0 except the gondola cabin).
    Their outlines are kept free of trees, sheds and parked cars (`blockGrid` in `city.ts`).
    The firefighting plane refills from Тиквешко Езеро (its northern arm is in the map's south-west
    corner); Катунишко Езеро is only a ~100 m pond.

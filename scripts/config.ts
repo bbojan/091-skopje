@@ -14,19 +14,43 @@ export interface CityFiles {
   terrainJson: string;
 }
 
+/** How scripts/terrain.ts shapes a city's heightfield. Everything except `smooth` reads the raw OSM download. */
+export interface TerrainSpec {
+  /** 3×3 box-blur passes after sampling (each pass softens features under ~10–15 m more) */
+  smooth: number;
+  /** lakes and reservoirs get one flat water level (their lowest part) */
+  flatWater?: boolean;
+  /** squares (OSM `name`) made flat at their middle height, blended into the ground around them */
+  flatSquares?: string[];
+  /** river channels cut along waterways: tag → [half width, depth] in metres; not under roads (bridges, culverts) */
+  rivers?: Record<string, [halfWidth: number, depth: number]>;
+  /** known heights the ground is bent to: [lat, lon, metres above sea, radius m (default 150)] */
+  points?: [lat: number, lon: number, metres: number, radius?: number][];
+}
+
 export const CITIES = {
   skopje: {
     bbox: { s: 41.955, w: 21.33, n: 42.055, e: 21.525 },
     tiles: [3, 2] as [number, number],
     files: { raw: 'data/skopje_raw.json', scene: 'public/skopje.json', terrainBin: 'public/terrain.bin', terrainJson: 'public/terrain.json' },
+    terrain: { smooth: 3 } as TerrainSpec, // unchanged since v1 (the reference images depend on it)
   },
   // Кавадарци: the town, Ваташа and Глишиќ, the Луда Мара and Катунишко Езеро to the south-east
   kavadarci: {
     bbox: { s: 41.38, w: 21.958, n: 41.462, e: 22.062 },
     tiles: [2, 2] as [number, number],
     files: { raw: 'data/kavadarci_raw.json', scene: 'public/kavadarci.json', terrainBin: 'public/kavadarci-terrain.bin', terrainJson: 'public/kavadarci-terrain.json' },
+    // EU-DEM 25 m underneath (checked: 0.6 m RMS at 100 points): little smoothing, flat water and
+    // square, the Луда Мара's regulated channel cut in; add known heights to `points`
+    terrain: {
+      smooth: 1,
+      flatWater: true,
+      flatSquares: ['Плоштад Маршал Тито'],
+      rivers: { river: [6, 2.5], stream: [3, 1.5], canal: [2, 1] },
+      points: [],
+    } as TerrainSpec,
   },
-} satisfies Record<string, { bbox: { s: number; w: number; n: number; e: number }; tiles: [number, number]; files: CityFiles }>;
+} satisfies Record<string, { bbox: { s: number; w: number; n: number; e: number }; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec }>;
 export type CityName = keyof typeof CITIES;
 const isCity = (s: string | undefined): s is CityName => !!s && s in CITIES;
 

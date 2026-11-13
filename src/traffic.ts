@@ -134,6 +134,8 @@ export interface TrafficOptions {
   clippingPlanes?: THREE.Plane[];
   cars?: number;
   people?: number;
+  /** red ЈСП city buses on the main roads (Skopje); false leaves only cars */
+  buses?: boolean;
 }
 
 export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions = {}) {
@@ -153,7 +155,7 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
   const carGeo = carGeometry();
   const carMat = new THREE.MeshLambertMaterial({ clippingPlanes: opts.clippingPlanes });
   const carCols = CAR_COLORS;
-  const buses = cars.filter((c) => c.p.weight === 1 && rnd() < 0.12); // ~140 ЈСП buses on the main roads
+  const buses = opts.buses === false ? [] : cars.filter((c) => c.p.weight === 1 && rnd() < 0.12); // ~140 ЈСП buses on the main roads
   const busSet = new Set(buses);
   const autos = cars.filter((c) => !busSet.has(c));
   const carMesh = new THREE.InstancedMesh(carGeo, carMat, autos.length);

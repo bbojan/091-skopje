@@ -86,6 +86,13 @@ python3 -c "import json,collections; d=json.load(open('data/ohrid_raw.json')); p
 `terrain` prints the elevation range. Note it: the snow line of the "snow on the hills" weather is
 300 m above the map's lowest point.
 
+Shape the terrain with the city's `terrain` settings in `scripts/config.ts` (needs the raw download):
+`smooth` (box passes; 1 for EU-DEM areas, Skopje keeps 3), `flatWater` (one level per lake),
+`flatSquares` (OSM names), `rivers` (waterway tag → [half width, depth]; never under roads) and
+`points` (known heights [lat, lon, metres, radius]). In `src/cities.ts`, `terrainExag: 1` draws
+true heights. Check the result against an independent DEM before trusting your eyes, e.g. 100 points
+from `https://api.opentopodata.org/v1/eudem25m?locations=lat,lon|…` (1 request a second).
+
 ## 4. Reading OSM: `PREP` in `scripts/prepare.ts`
 
 Add an entry (the `CityPrep` type documents every field):

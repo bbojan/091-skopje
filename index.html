@@ -36,6 +36,7 @@
       .city-menu .code { font-size: 12px; padding: 4px 5px 3px; border-radius: 6px; box-shadow: 1.5px 1.5px 0 var(--ink); }
       /* menu items and help paragraphs that belong to one city only */
       body:not(.city-skopje) [data-city="skopje"], body:not(.city-kavadarci) [data-city="kavadarci"] { display: none !important; }
+      body.no-buses #bus { display: none !important; } /* no red ЈСП buses in this city */
       .title .h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.15; display: flex; align-items: center; gap: 12px; }
       .code { display: inline-block; font-family: 'Rubik Mono One', 'Lora', sans-serif; font-weight: 400; font-size: 19px; letter-spacing: 0.04em; line-height: 1;
               color: #fff8ec; background: #d8643c; padding: 6px 8px 5px; border-radius: 8px; border: 2px solid var(--ink);
