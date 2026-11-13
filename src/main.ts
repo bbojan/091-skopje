@@ -247,7 +247,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   await nextFrame();
   // build on the main thread in stages, letting the progress bar repaint between them
   // (a background worker gets throttled to a fraction of this speed)
-  const terrain = new Terrain(tm, new Uint16Array(tb));
+  const terrain = new Terrain(tm, new Uint16Array(tb), spec.terrainExag);
   const steps = computeCitySteps(data, terrain, { density: MOBILE ? 0.5 : 1, stream: memorySaver });
   let desc: CityDesc;
   for (;;) {
@@ -274,7 +274,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   showProgress('assemble', 1);
   await nextFrame();
   city.bakeGround(renderer, MOBILE ? 256 : 512);
-  const traffic = createTraffic(city, terrain, MOBILE ? { clippingPlanes: planes, cars: 2500, people: 5000 } : { clippingPlanes: planes });
+  const traffic = createTraffic(city, terrain, MOBILE ? { clippingPlanes: planes, cars: 2500, people: 5000, buses: spec.buses } : { clippingPlanes: planes, buses: spec.buses });
   traffic.setLight(lightTraffic);
   scene.add(traffic.group);
   const clouds = createClouds({ hw: W / 2, hh: H / 2 }, 1080);
@@ -371,6 +371,7 @@ function hideLoader(): void {
 function applyCityChrome(spec: CitySpec): void {
   document.title = `${spec.code} ${spec.name}`;
   for (const id of CITY_IDS) document.body.classList.toggle(`city-${id}`, id === spec.id);
+  document.body.classList.toggle('no-buses', !spec.buses); // hides 🚌 (the drivable ЈСП bus)
   document.querySelectorAll<HTMLElement>('.city-code').forEach((el) => (el.textContent = spec.code));
   document.querySelectorAll<HTMLElement>('.city-name').forEach((el) => (el.textContent = spec.name));
   cityMenu.querySelectorAll<HTMLElement>('[data-city-id]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.cityId === spec.id)));
@@ -921,7 +922,7 @@ function stopFlight(): void {
 }
 // ---------------- drive a ЈСП double-decker (shares the flight HUD: speed, exit, arrows)
 function startDrive(at?: THREE.Vector3, yaw?: number): boolean {
-  if (!world || world.flight.active || world.drive.active || world.walk.active) return false;
+  if (!world || !world.spec.buses || world.flight.active || world.drive.active || world.walk.active) return false;
   const f = new THREE.Vector3().subVectors(controls.target, camera.position);
   if (!world.drive.start(at ?? controls.target, yaw ?? Math.atan2(f.x, -f.z))) return false; // no street nearby
   closePopups();

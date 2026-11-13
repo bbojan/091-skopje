@@ -78,6 +78,9 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   far-ground targets freed (`city.dispose()`), labels removed, the flight / bus / walking key listeners
   ended (`AbortSignal`). The loader shows while the next city builds. Only the lights, the renderer, the
   ink passes and the settings stay.
+- Terrain per city: `terrain` in `scripts/config.ts` (smoothing, flat water, flat squares, river
+  channels, known heights; applied by `scripts/terrain.ts` from the raw OSM) and `terrainExag` in
+  `src/cities.ts` (Skopje 1.12, Kavadarci 1 = true heights). OSM reading helpers: `scripts/osm.ts`.
 - A new city: step by step in [docs/ADDING_A_CITY.md](docs/ADDING_A_CITY.md) (bbox in `scripts/config.ts`,
   `PREP` in `scripts/prepare.ts`, `CITIES` in `src/cities.ts`, `data-city` items and the CSS rule in
   `index.html`, strings in 6 languages, monuments from references, the checks).

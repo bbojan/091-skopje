@@ -36,6 +36,10 @@ export interface CitySpec {
   spots: SpotSpec[];
   /** paragliders circle over the slope north of the Millennium Cross (Skopje only) */
   gliders: boolean;
+  /** red ЈСП city buses in the traffic and the drivable double-decker (🚌): Skopje only */
+  buses: boolean;
+  /** heights are drawn this many times taller than real (1 = true heights) */
+  terrainExag: number;
   /** weather preset 'vodno' is called by the local mountain; the firefighting water source */
   snowLabel: Key;
   refillLabel: Key;
@@ -95,6 +99,8 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['telecom', 'Телекомуникациски центар', 41.99834, 21.42988, 60, 'telecom'],
     ],
     gliders: true,
+    buses: true,
+    terrainExag: 1.12, // Skopje's look since v1 (Vodno a little more dramatic)
     snowLabel: 'weather.vodno',
     refillLabel: 'fire.refill',
     bestRaceKey: 'skopje.bestRace',
@@ -151,6 +157,8 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['k.lake', 'Катунишко Езеро', 41.39186, 22.03766, 90, 'katunisko'],
     ],
     gliders: false,
+    buses: false, // Kavadarci has no red ЈСП buses
+    terrainExag: 1, // true heights
     snowLabel: 'weather.hills',
     refillLabel: 'fire.refill.lake',
     bestRaceKey: 'skopje.bestRace.kavadarci',
