@@ -13,11 +13,12 @@ import { createDrive, type Drive } from './drive.ts';
 import { createWalk, type Walk, type WalkAction } from './walk.ts';
 import { createGame, fmtTime, type Game } from './game.ts';
 import { createFireMode, WATER_FLOOR, type FireMode } from './fire.ts';
-import { createLandmarks } from './landmarks.ts';
+import { createLandmarks, landmarkFootprints } from './landmarks.ts';
 import { createSound } from './sound.ts';
 import { createLabels } from './labels.ts';
 import { createMapInput, readPad } from './input.ts';
 import { LANGS, lang, t, applyI18n, setLang, onLangChange, type Key } from './i18n.ts';
+import { CITIES, CITY_IDS, cityFromUrl, urlForCity, type CityId, type CitySpec } from './cities.ts';
 import type { CityData, MapMeta, TerrainMeta, Vec3 } from './types.ts';
 
 /** From package.json, injected by vite.config.ts. */
@@ -38,6 +39,9 @@ function $<T extends HTMLElement = HTMLElement>(id: string): T {
 }
 
 applyI18n();
+
+/** The city on the map: from the address (`?city=kavadarci`), Skopje without it. */
+let city: CitySpec = CITIES[cityFromUrl()];
 
 const app = $('app');
 const status = $('status');
@@ -83,6 +87,8 @@ const hemi = new THREE.HemisphereLight('#dcdcf4', '#f3e2c8', 2.25);
 const sun = new THREE.DirectionalLight('#fff2df', 2.2);
 sun.castShadow = true;
 scene.add(hemi, sun, sun.target);
+/** what stays in the scene from one city to the next; everything else belongs to the loaded city */
+const SCENE_BASE = new Set<THREE.Object3D>(scene.children);
 const SUN_DIR = new THREE.Vector3(-0.7, 0.9, 0.32).normalize(); // updated by the time of day
 
 const ink = new InkRenderer(renderer);
@@ -133,6 +139,9 @@ function governQuality(dt: number): void {
 
 /** Everything built while loading; null until the city is ready. */
 interface World {
+  spec: CitySpec;
+  /** ends the window listeners of the city's flight, bus and walking */
+  abort: AbortController;
   terrain: Terrain;
   meta: MapMeta;
   city: City;
@@ -186,9 +195,10 @@ function showProgress(stage: StageKey, f: number): void {
   loadBar.style.width = `${Math.round((st[0] + (st[1] - st[0]) * f) * 100)}%`;
   loadText.textContent = t(`stage.${next}`);
 }
-async function fetchJSON<T>(url: string, onProgress: (f: number) => void): Promise<T> {
+async function fetchJSON<T>(url: string, onProgress: (f: number) => void, expected = 7e6): Promise<T> {
   const res = await fetch(url);
-  const total = Number(res.headers.get('content-length')) || 7e6;
+  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+  const total = Number(res.headers.get('content-length')) || expected;
   if (!res.body) return res.json() as Promise<T>;
   const reader = res.body.getReader();
   const parts: Uint8Array[] = [];
@@ -219,14 +229,19 @@ const nextFrame = () => new Promise<void>((resolve) => {
   setTimeout(go, 100); // rAF may never fire in an occluded or minimised window
 });
 
-async function init(): Promise<void> {
+let loading = false;
+let shadowReady = false;
+/** Builds the city in stages behind the loading card; `world` is set when everything exists. */
+async function loadCity(spec: CitySpec): Promise<void> {
+  loading = true;
+  showLoader(spec);
   const t0 = performance.now();
   showProgress('download', 0);
   const terrainP = Promise.all([
-    fetch('./terrain.json').then((r) => r.json() as Promise<TerrainMeta>),
-    fetch('./terrain.bin').then((r) => r.arrayBuffer()),
+    fetch(spec.files.terrainJson).then((r) => r.json() as Promise<TerrainMeta>),
+    fetch(spec.files.terrainBin).then((r) => r.arrayBuffer()),
   ]);
-  const data = await fetchJSON<CityData>('./skopje.json', (f) => showProgress('download', f * 0.95));
+  const data = await fetchJSON<CityData>(spec.files.scene, (f) => showProgress('download', f * 0.95), spec.sceneBytes);
   const [tm, tb] = await terrainP;
   showProgress('download', 1);
   await nextFrame();
@@ -255,7 +270,7 @@ async function init(): Promise<void> {
   await nextFrame();
   const city = assembleCity(desc, { clippingPlanes: planes, stream: memorySaver });
   scene.add(city.group);
-  if (MOBILE) city.setLODScale(0.65);
+  if (MOBILE || lowTier) city.setLODScale((MOBILE ? 0.65 : 1) * (lowTier ? 0.6 : 1));
   showProgress('assemble', 1);
   await nextFrame();
   city.bakeGround(renderer, MOBILE ? 256 : 512);
@@ -264,9 +279,9 @@ async function init(): Promise<void> {
   scene.add(traffic.group);
   const clouds = createClouds({ hw: W / 2, hh: H / 2 }, 1080);
   const birds = createBirds(terrain, { hw: W / 2, hh: H / 2 }, planes);
-  // paragliders over Vodno, below the Millennium Cross
+  // paragliders over Vodno, below the Millennium Cross (Skopje only: elsewhere none)
   const vodnoCross = (data.crosses || []).find((c) => /Millennium|Милениум/.test(c.name)) ?? { x: -2736, z: 4451 };
-  const gliders = createParagliders(terrain, vodnoCross, planes, MOBILE ? 5 : 8);
+  const gliders = createParagliders(terrain, vodnoCross, planes, spec.gliders ? (MOBILE ? 5 : 8) : 0);
   scene.add(clouds.group, birds.group, gliders.group);
   ink.compMat.uniforms.clouds.value = clouds.uniforms;
   const lamps = createLamps(city.roadList, terrain, { hw: W / 2, hh: H / 2 }, planes);
@@ -276,15 +291,16 @@ async function init(): Promise<void> {
   ink.skipNormal.push(...lamps.glows, ...traffic.glows, clouds.group, precip.mesh); // soft, see-through: no ink lines
   applyTime(timeNow, wxNow, { clouds, lamps, traffic, precip, gliders });
   const landmarks = createLandmarks({ data, terrain, clippingPlanes: planes });
-  const labels = createLabels({ meta, terrain, crosses: data.crosses || [], places: data.places || {}, container: $('labels') });
+  const labels = createLabels({ city: spec, meta, terrain, crosses: data.crosses || [], places: data.places || {}, container: $('labels') });
   try { labels.enabled = localStorage.getItem('skopje.labels') !== '0'; } catch { /* storage unavailable */ }
   setOn(namesBtn, labels.enabled);
   scene.add(landmarks.group);
   try { await document.fonts.load("46px 'Rubik Mono One'"); await document.fonts.load("700 140px 'Lora'", BANNER_TEXT + ROLL_BANNER_TEXT); } catch { /* font optional */ }
-  const game = createGame({ terrain, meta, crosses: data.crosses || [], places: data.places || {}, clippingPlanes: planes });
+  const game = createGame({ city: spec, terrain, meta, crosses: data.crosses || [], places: data.places || {}, clippingPlanes: planes });
   scene.add(game.group);
   ink.skipNormal.push(game.beam);
-  const flight = createFlight({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 } });
+  const abort = new AbortController();
+  const flight = createFlight({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, signal: abort.signal });
   flight.setInvertY(invertBox.checked);
   // firefighting: fires, smoke and water are see-through (no ink lines)
   const fire = createFireMode({
@@ -296,46 +312,164 @@ async function init(): Promise<void> {
   ink.skipNormal.push(fire.group);
   fire.setNight(timeNow.night);
   fire.setRain(wxNow.rain);
-  const drive = createDrive({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, roads: city.roadList });
-  // walking: the plane waits on Macedonia Square
-  const sq = data.places?.square ?? [365, 1035];
+  const drive = createDrive({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, roads: city.roadList, signal: abort.signal });
+  // walking: the plane waits on the main square
+  const sq = data.places?.square ?? data.meta.square;
   const planeSpot = { x: sq[0] + 40, z: sq[1] + 22, yaw: Math.PI / 2 };
   const walk = createWalk({
-    scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, meta, places: data.places || {}, buildings: data.buildings,
+    city: spec, signal: abort.signal, scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, meta, places: data.places || {}, buildings: [...data.buildings, ...landmarkFootprints(data)],
     areas: data.areas, roads: city.roadList,
     crosses: data.crosses || [], gondola: landmarks.gondola, planeSpot,
     hooks: { nearestBus: traffic.nearestBus, startOro: traffic.startOro, stopOro: traffic.stopOro, scatter: traffic.scatter, startle: birds.startle },
   });
   walk.setInvertY(invertBox.checked);
-  world = { terrain, meta, city, traffic, clouds, birds, gliders, lamps, precip, landmarks, labels, game, fire, flight, drive, walk, planeSpot };
+  world = { spec, abort, terrain, meta, city, traffic, clouds, birds, gliders, lamps, precip, landmarks, labels, game, fire, flight, drive, walk, planeSpot };
   console.log('city ready in', Math.round(performance.now() - t0), 'ms', city.stats, traffic.counts);
 
-  const maxTex = renderer.capabilities.maxTextureSize;
-  shadowRes = Math.min(MOBILE ? 2048 : 8192, maxTex);
-  sun.shadow.mapSize.set(shadowRes, shadowRes);
-  sun.shadow.bias = -0.0003;
-  sun.shadow.normalBias = 0.5;
-  sun.shadow.radius = 2;
-  if (qualityMode === 'low') setLowTier(true);
+  if (!shadowReady) { // once per visit: the shadow map stays from one city to the next
+    shadowReady = true;
+    const maxTex = renderer.capabilities.maxTextureSize;
+    shadowRes = Math.min(MOBILE ? 2048 : 8192, maxTex);
+    sun.shadow.mapSize.set(shadowRes, shadowRes);
+    sun.shadow.bias = -0.0003;
+    sun.shadow.normalBias = 0.5;
+    sun.shadow.radius = 2;
+    if (qualityMode === 'low') setLowTier(true);
+  }
 
-  const P = (lat: number, lon: number) => [(lon - meta.lon0) * meta.kx, -(lat - meta.lat0) * meta.ky] as const;
-  const at = (lat: number, lon: number): Vec3 => { const [x, z] = P(lat, lon); return [x, terrain.at(x, z), z]; };
-  const park = data.places?.park;
-  Object.assign(VIEWS, {
-    center: { t: at(41.9968, 21.4318), d: 620, polar: 0.74, az: 0.08 },
-    kale: { t: at(42.0012, 21.4355), d: 640, polar: 0.72, az: 0.3 },
-    park: { t: park ? [park[0], terrain.at(...park), park[1]] : at(42.0075, 21.4190), d: 1000, polar: 0.72, az: -0.25 },
-    vodno: { t: at(41.9725, 21.4020), d: 3600, polar: 1.02, az: Math.PI - 0.25 },
-    overview: { t: [0, 60, 600], d: 19000, polar: 0.7, az: 0 },
-  } satisfies Record<string, View>);
+  // camera views of this city: around a lat/lon, at an exact place from the data, or a scene point
+  const at = (lat: number, lon: number): Vec3 => { const x = (lon - meta.lon0) * meta.kx, z = -(lat - meta.lat0) * meta.ky; return [x, terrain.at(x, z), z]; };
+  for (const k of Object.keys(VIEWS)) delete VIEWS[k];
+  for (const [name, v] of Object.entries(spec.views)) {
+    const pl = v.place ? data.places?.[v.place] : undefined;
+    const tg: Vec3 = v.xyz ?? (pl ? [pl[0], terrain.at(...pl), pl[1]] : at(...v.ll!));
+    VIEWS[name] = { t: tg, d: v.d, polar: v.polar, az: v.az };
+  }
   applyHash() || setView('center');
   // memory saver: build the detailed ground around the first view before showing it
   for (let i = 0; i < 400; i++) { city.updateLOD(camera); if (!city.streamPending) break; await nextFrame(); }
   showProgress('bake', 1);
   status.textContent = '';
-  loader.classList.add('done');
-  setTimeout(() => loader.remove(), 700);
+  hideLoader();
+  loading = false;
 }
+
+// ---------------- cities: the badge at the top left picks one; the choice lives in the address (?city=)
+function showLoader(spec: CitySpec): void {
+  clearTimeout(loaderTimer);
+  loader.hidden = false;
+  loader.classList.remove('done');
+  loadBar.style.width = '0%';
+  applyCityChrome(spec);
+}
+let loaderTimer = 0;
+function hideLoader(): void {
+  loader.classList.add('done');
+  loaderTimer = setTimeout(() => { loader.hidden = true; }, 700);
+}
+/** Badge, title, help and the city's own menu items (`data-city` in index.html). */
+function applyCityChrome(spec: CitySpec): void {
+  document.title = `${spec.code} ${spec.name}`;
+  for (const id of CITY_IDS) document.body.classList.toggle(`city-${id}`, id === spec.id);
+  document.querySelectorAll<HTMLElement>('.city-code').forEach((el) => (el.textContent = spec.code));
+  document.querySelectorAll<HTMLElement>('.city-name').forEach((el) => (el.textContent = spec.name));
+  cityMenu.querySelectorAll<HTMLElement>('[data-city-id]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.cityId === spec.id)));
+  weatherBtn.textContent = weatherLabel();
+}
+
+/** Frees the GPU buffers and textures of everything under `root`. */
+function disposeTree(root: THREE.Object3D): void {
+  const geos = new Set<THREE.BufferGeometry>(), mats = new Set<THREE.Material>(), texs = new Set<THREE.Texture>();
+  root.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (m.geometry) geos.add(m.geometry);
+    if (m.material) for (const x of Array.isArray(m.material) ? m.material : [m.material]) mats.add(x);
+    if ((o as THREE.InstancedMesh).isInstancedMesh) (o as THREE.InstancedMesh).dispose();
+  });
+  for (const mat of mats) {
+    for (const v of Object.values(mat)) if (v instanceof THREE.Texture) texs.add(v);
+    const u = (mat as THREE.ShaderMaterial).uniforms;
+    if (u) for (const { value } of Object.values(u)) if (value instanceof THREE.Texture) texs.add(value);
+    mat.dispose();
+  }
+  for (const g of geos) g.dispose();
+  for (const tx of texs) tx.dispose();
+}
+
+/** Takes the loaded city apart: back to the map, everything it added to the scene and the page is freed. */
+function unloadWorld(): void {
+  const w = world;
+  if (!w) return;
+  resumeWalk = false;
+  if (w.flight.active) stopFlight();
+  if (w.drive.active) stopDrive();
+  if (w.walk.active) stopWalk();
+  w.fire.stop();
+  closePopups();
+  world = null; // the frame loop draws nothing from here on
+  w.abort.abort();
+  w.labels.dispose();
+  w.city.dispose();
+  for (const o of [...scene.children]) if (!SCENE_BASE.has(o)) { scene.remove(o); disposeTree(o); }
+  ink.skipNormal.length = 0;
+  renderer.renderLists.dispose();
+  clearTimeout(hashTimer);
+  hashMoved = false;
+  lastShadowAt.set(1e9, 0, 0);
+  Object.assign(heard, { ring: 0, popped: 0, finished: false, out: 0, fires: 0, bark: false });
+  hudCache.clear();
+  flyResult.hidden = true;
+}
+
+let queuedCity: CityId | null = null;
+/** Unloads the current city and loads another; `push` adds a history entry with its address. */
+async function switchCity(id: CityId, push = true): Promise<void> {
+  if (push && id !== cityFromUrl()) history.pushState(null, '', urlForCity(id));
+  if (loading) { queuedCity = id; return; }
+  if (id === city.id && world) return;
+  city = CITIES[id];
+  unloadWorld();
+  try { await loadCity(city); } catch (e) { loadFailed(e); return; }
+  if (queuedCity && queuedCity !== city.id) { const next = queuedCity; queuedCity = null; await switchCity(next, false); }
+  queuedCity = null;
+}
+function loadFailed(e: unknown): void {
+  console.error(e);
+  loading = false;
+  loadText.textContent = t('error') + (e instanceof Error ? e.message : String(e));
+}
+// the browser's back / forward between cities
+addEventListener('popstate', () => { const id = cityFromUrl(); if (id !== city.id || loading) void switchCity(id, false); });
+
+// city menu under the badge
+const cityBtn = $('city-btn'), cityMenu = $('city-menu');
+for (const id of CITY_IDS) {
+  const spec = CITIES[id];
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.setAttribute('role', 'menuitemradio');
+  b.dataset.cityId = id;
+  b.innerHTML = `<span class="code">${spec.code}</span><span>${spec.name}</span>`;
+  b.addEventListener('click', () => { setCityMenu(false); void switchCity(id); });
+  cityMenu.append(b);
+}
+function setCityMenu(open: boolean): void {
+  cityMenu.hidden = !open;
+  cityBtn.setAttribute('aria-expanded', String(open));
+  if (open) cityMenu.querySelector<HTMLElement>('[aria-checked="true"]')?.focus();
+}
+cityBtn.addEventListener('click', (e) => { e.stopPropagation(); setCityMenu(cityMenu.hidden === true); });
+addEventListener('pointerdown', (e) => { if (!cityMenu.hidden && !cityMenu.contains(e.target as Node) && !cityBtn.contains(e.target as Node)) setCityMenu(false); });
+addEventListener('keydown', (e) => {
+  if (cityMenu.hidden) return;
+  if (e.code === 'Escape') { setCityMenu(false); cityBtn.focus(); return; }
+  if (e.code === 'ArrowDown' || e.code === 'ArrowUp') {
+    e.preventDefault();
+    const items = [...cityMenu.querySelectorAll<HTMLElement>('button')];
+    const i = items.indexOf(document.activeElement as HTMLElement);
+    items[(i + (e.code === 'ArrowDown' ? 1 : items.length - 1)) % items.length]?.focus();
+  }
+});
 
 function setView(name: string): void {
   const v = VIEWS[name] || VIEWS.center;
@@ -456,10 +590,12 @@ function setTime(name: TimeName): void {
 const timeBtn = $('time');
 timeBtn.textContent = t(`time.${timeName}`);
 timeBtn.addEventListener('click', () => setTime(TIME_ORDER[(TIME_ORDER.indexOf(timeName) + 1) % TIME_ORDER.length]));
+/** 'vodno' (snow only up high) is named after the city's own hills */
+const weatherLabel = () => t(wxName === 'vodno' ? city.snowLabel : `weather.${wxName}`);
 function setWeather(name: WeatherName): void {
   wxTween = { from: wxNow, to: WEATHER[name], t: 0 };
   wxName = name;
-  weatherBtn.textContent = t(`weather.${name}`);
+  weatherBtn.textContent = weatherLabel();
   try { localStorage.setItem('skopje.weather', name); } catch { /* storage unavailable */ }
 }
 function setSeason(name: SeasonName): void {
@@ -561,7 +697,7 @@ trafficBtn.addEventListener('click', () => {
   ink.reset();
 });
 const weatherBtn = $('weather');
-weatherBtn.textContent = t(`weather.${wxName}`);
+weatherBtn.textContent = weatherLabel();
 weatherBtn.addEventListener('click', () => setWeather(WEATHER_ORDER[(WEATHER_ORDER.indexOf(wxName) + 1) % WEATHER_ORDER.length]));
 
 // Shadow frustum follows the view so close-ups get crisp shadows
@@ -678,7 +814,7 @@ liveBtn.addEventListener('click', () => {
 $('shot').addEventListener('click', () => {
   ink.render(scene, camera, false); // draw now so the canvas still holds the frame
   const a = document.createElement('a');
-  a.download = 'skopje.png';
+  a.download = `${city.id}.png`;
   a.href = renderer.domElement.toDataURL('image/png');
   a.click();
 });
@@ -995,14 +1131,14 @@ for (const [code, name] of LANGS) langSel.add(new Option(name, code, false, code
 langSel.addEventListener('change', () => { setLang(langSel.value); closePopups(); });
 onLangChange(() => {
   timeBtn.textContent = t(`time.${timeName}`);
-  weatherBtn.textContent = t(`weather.${wxName}`);
+  weatherBtn.textContent = weatherLabel();
   seasonBtn.textContent = t(`season.${seasonName}`);
   qualityBtn.textContent = qualityLabel();
   shareBtn.textContent = t('share');
   hudCache.clear();
   raceBtn.textContent = raceLabel();
   fireBtn.textContent = fireLabel();
-  if (loader.isConnected) loadText.textContent = t(`stage.${lastStage}`);
+  if (loading) loadText.textContent = t(`stage.${lastStage}`);
 });
 
 // help dialog behind the logo
@@ -1173,7 +1309,7 @@ renderer.setAnimationLoop(() => {
       }
       if (f.scooping) warn = t('fire.scoop');
       else if (h.warn === 'low' && f.overWater) warn = ''; // skimming the river on purpose
-      else if (!warn && f.tank <= 0) warn = t('fire.refill');
+      else if (!warn && f.tank <= 0) warn = t(world.spec.refillLabel);
       // sound: the fire gets louder as it nears; a signal for a fire out and for a new one
       soundFx.fire = near ? THREE.MathUtils.clamp(1 - nd / 520, 0, 1) : 0;
       soundFx.dropping = flight.dropping && f.tank > 0;
@@ -1245,9 +1381,6 @@ renderer.setAnimationLoop(() => {
   ink.render(scene, camera, live);
 });
 
-window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; } };
+window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, switchCity, get cityId() { return city.id; }, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; } };
 
-init().catch((e: unknown) => {
-  console.error(e);
-  loadText.textContent = t('error') + (e instanceof Error ? e.message : String(e));
-});
+loadCity(city).catch(loadFailed);

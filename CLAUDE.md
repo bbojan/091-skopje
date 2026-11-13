@@ -16,6 +16,8 @@ npm run build        # static site → dist/ (relative paths, Pages-ready)
 npm run download     # OSM via Overpass → data/skopje_raw.json (not in git, ~25 MB)
 npm run terrain      # AWS Terrarium elevation tiles → public/terrain.bin/.json
 npm run data         # data/skopje_raw.json (+ data/aerialway.json) → public/skopje.json
+npm run download -- kavadarci   # the same three for another city (first argument; default skopje)
+                                # → data/kavadarci_raw.json, public/kavadarci.json, public/kavadarci-terrain.*
 npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js (translation review page)
 ```
 
@@ -24,7 +26,9 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
   extent or `scripts/prepare.ts`.
 - `data/aerialway.json` (Vodno gondola) is a separate small Overpass download that
   is committed; `npm run download` does not fetch it.
-- Map extent lives in `scripts/config.ts` (BBOX) — keep `data/query.overpassql` in sync.
+- Map extents live in `scripts/config.ts` (`CITIES`: bbox, tiles, file names); `data/query.overpassql`
+  holds the layers (the box is added per tile). Per-city OSM interpretation (old town box, square,
+  landmark ids, named places, height zones) is `PREP` in `scripts/prepare.ts`.
 - Deploy: pushing to `main` runs `.github/workflows/deploy.yml` (build → Pages, ~40 s).
   Check with `gh run list --limit 1`. GitHub auth is per machine (`gh auth login`);
   never commit tokens or credentials.
@@ -33,7 +37,8 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 
 | File | Role |
 |---|---|
-| `main.ts` | App shell: renderer, controls, loading (staged build + progress card), views, time of day, flight/race wiring, popups, help, gamepad, adaptive quality |
+| `main.ts` | App shell: renderer, controls, loading (staged build + progress card), city switching (`loadCity` / `unloadWorld` / `switchCity`), views, time of day, flight/race wiring, popups, help, gamepad, adaptive quality |
+| `cities.ts` | The cities (Skopje, Kavadarci) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
 | `city.ts` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds |
 | `terrain.ts` | Heightfield with exact mesh-matching interpolation; chunk/low-res meshes; triangle clipping for draping |
 | `post.ts` | `InkRenderer`: colour + normal/depth passes (one pass in the low tier or with smooth edges off: normals as a second attachment) → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
@@ -47,7 +52,7 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | `game.ts` | Optional ring race over landmarks, 091 balloons, best time |
 | `fire.ts` | Optional firefighting game: at most two fires (forest patch, building roof, ЈСП bus), spawning from a land-cover grid, flames / smoke / glow as GPU-animated quads, water hits, best count |
 | `water.ts` | The Air Tractor's water: tank, falling curtain, a little spilled in a roll or loop, splash and steam, spray while scooping, landing ring; closed-form paths shared by the shader and the hit test |
-| `landmarks.ts` | Hand-built models: Millennium Cross lattice, Warrior on a Horse, Stone Bridge, Porta Macedonia, Vodno gondola |
+| `landmarks.ts` | Hand-built models: Millennium Cross lattice, Warrior on a Horse, Stone Bridge, Porta Macedonia, Vodno gondola; Kavadarci (after photos): Memorial Ossuary, People's Heroes, Vataša memorial, Monument to the Revolution |
 | `sound.ts` | Sound, on by default (a switch turns it off): Web Audio synthesis only (engine, wind, rain, water, fire, birds, crickets, short signals), fed a `SoundScene` once per frame from `main.ts` |
 | `labels.ts` | HTML Cyrillic labels (districts far, landmarks near), positions from `data.places` |
 | `input.ts` | Keyboard map navigation, camera height (C / V, horizontal wheel, LB / RB) + gamepad reading (browser "standard" mapping only; unmapped pads are ignored) |
@@ -61,6 +66,22 @@ roads, landmark shapes (`landmarks`), exact named-place centroids (`places`).
 
 Debug handle in the browser console: `window.__dbg` (scene, renderer, camera,
 controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview')`.
+
+## Cities
+
+- The badge at the top left (`091 Скопје ▾`) is the city picker; the `?` on its corner opens the help
+  (shared by every city; per-city paragraphs carry `data-city="…"`, hidden by the `city-<id>` body class).
+- The city is in the address: `?city=kavadarci`; no parameter = Skopje. Switching pushes a history entry
+  (back / forward switch too) and drops the camera hash. Per-city menu items in `index.html` use `data-city`.
+- Switching unloads the city completely (`unloadWorld()` in `main.ts`): modes stopped, everything the
+  city added to the scene removed and its geometries, materials and textures disposed, the baked
+  far-ground targets freed (`city.dispose()`), labels removed, the flight / bus / walking key listeners
+  ended (`AbortSignal`). The loader shows while the next city builds. Only the lights, the renderer, the
+  ink passes and the settings stay.
+- A new city: step by step in [docs/ADDING_A_CITY.md](docs/ADDING_A_CITY.md) (bbox in `scripts/config.ts`,
+  `PREP` in `scripts/prepare.ts`, `CITIES` in `src/cities.ts`, `data-city` items and the CSS rule in
+  `index.html`, strings in 6 languages, monuments from references, the checks).
+- Skopje must stay pixel-identical when another city is added (run the pixel check).
 
 ## TypeScript
 

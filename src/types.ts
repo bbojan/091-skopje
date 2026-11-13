@@ -75,9 +75,18 @@ export interface LandmarkData {
   stoneBridge?: Flat;
   gondola?: Flat;
   pylons?: Flat;
+  /** Kavadarci: the memorial ossuary's outline, the People's Heroes monument, the Vataša memorial,
+   *  the Monument to the Revolution on the square */
+  ossuary?: Flat;
+  heroes?: Pt;
+  vatasa?: Pt;
+  revolution?: Pt;
+  /** Kavadarci: the town hall's outline; Дом на културата as [x, z, heading of its long axis] */
+  townhall?: Flat;
+  culture?: Flat;
 }
 
-/** Exact positions of named places, by key (square, porta, park, zoo, arena, bazaar). */
+/** Exact positions of named places, by key (Skopje: square, porta, park, zoo, arena, bazaar…; Kavadarci: square, ossuary, heroes, vatasa, lake…). */
 export type Places = Record<string, Pt>;
 
 export interface CityData {

@@ -424,11 +424,13 @@ export interface FlightOptions {
   camera: THREE.PerspectiveCamera;
   terrain: Terrain;
   bounds: Bounds;
+  /** ends the window key listeners when the city is unloaded */
+  signal?: AbortSignal;
 }
 
 type FlightKey = 'left' | 'right' | 'up' | 'down' | 'boost' | 'drop';
 
-export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) {
+export function createFlight({ scene, camera, terrain, bounds, signal }: FlightOptions) {
   // one group holds both aircraft; the firefighting mode shows the Air Tractor
   const plane = new THREE.Group();
   const cessna = buildPlane(), tractor = buildAirTractor();
@@ -480,9 +482,9 @@ export function createFlight({ scene, camera, terrain, bounds }: FlightOptions) 
     if (k === 'boost' || k === 'drop') input[k] = down;
     else input[k] = down ? 1 : 0;
   };
-  addEventListener('keydown', onKey(true));
-  addEventListener('keyup', onKey(false));
-  addEventListener('blur', () => Object.assign(input, idle));
+  addEventListener('keydown', onKey(true), { signal });
+  addEventListener('keyup', onKey(false), { signal });
+  addEventListener('blur', () => Object.assign(input, idle), { signal });
 
   /** start a roll (dir 1 right, -1 left) or a loop (1 up and over, -1 nose down and under); false if it cannot start now */
   function startStunt(kind: 'roll' | 'loop', dir: 1 | -1): boolean {

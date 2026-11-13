@@ -1,7 +1,8 @@
 # 091 Скопје — project notes
 
 Context for continuing the work (on any machine, in any Claude Code session).
-For commands, architecture and conventions see [../CLAUDE.md](../CLAUDE.md).
+For commands, architecture and conventions see [../CLAUDE.md](../CLAUDE.md); for adding a city,
+[ADDING_A_CITY.md](ADDING_A_CITY.md).
 
 ## Goal
 
@@ -115,6 +116,51 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    map's F / R tilt. With Cmd / Ctrl / Alt held the keys stay the browser's (reload, find).
    The key hint in the flight says „Q E F R акробации“, the help dialog has a row for them.
    Checked by stepping the flight with synthetic key presses, both invert states.
+23. **v2.8.0** (Nov 2026): a second city, **043 Кавадарци** (`?city=kavadarci`, BBOX 41.380–41.462 N,
+   21.958–22.062 E ≈ 8.7 × 9.1 km: the town, Ваташа, Глишиќ, the Луда Мара and Катунишко Езеро). The
+   badge at the top left is the city picker (a menu in the Вез style; the `?` on its corner keeps the
+   help). The city lives in the address; without `?city=` the map opens on Skopje; switching pushes a
+   history entry, so back / forward switch the city too. The previous city is unloaded completely before
+   the next one builds behind the loading card (`unloadWorld()` in `main.ts`).
+   Everything that differs per city is in `src/cities.ts` (views, labels, race route, walking info
+   spots, paragliders, labels for snow on the hills and the refill) and `PREP` in `scripts/prepare.ts`;
+   the data scripts take the city as their first argument. Kavadarci has its own places menu (Плоштад,
+   Спомен-костурница, Ваташа, Тиквешко Езеро, Преглед), a 10-ring race, seven info cards and four
+   hand-built monuments (`landmarks.ts`), modelled after photos on Wikimedia Commons and the
+   descriptions on mk.wikipedia and spomenikdatabase.org/kavadarci (proportions read off photos):
+   - Спомен-костурница (Petar Muličkovski, 1976; replaces the OSM building): a stylised old
+     Macedonian house on a fluted concrete shaft, ~13 m: a first storey and a wider open top storey
+     with raised ends, both on radial brackets with a band of diamond reliefs; a ~21 m courtyard ringed
+     by fluted wall blocks of different heights, steps down (amphitheatre) to the shaft, iron
+     grape-vine gates on the north and south sides.
+   - People's Heroes Kiro Atanasovski (Kiro Krstev) and Dimče Mirčev, where they fell (north-west
+     corner of the town park): an ~8 m concrete pillar, a raised wall with a bronze relief (Tome
+     Andreevski, 1959), a marble pylon behind, steps between cheek walls. OSM names him
+     „Киро Атанасовски-Налбатот“, Commons „Киро Крстев“: the same person.
+   - Vataša memorial at Moklište (Jordan Grabul, 1963; 12 youths shot on 16 June 1943): two curved
+     ~5 m concrete walls round a small altar, the inscription on the south one. No photo was found:
+     modelled from the description only.
+   - Monument to the Revolution on the square (Petar Palavičini, 1958; not in OSM, position from
+     spomenikdatabase.org), after a photo of Dec 2020: a young man, a woman raising one arm, a youth
+     sinking forward under her hand, on a tall speckled granite plinth „За слободата на народот свој“,
+     facing the square with the town hall behind it.
+   - Плоштад Маршал Тито after photos of Dec 2020 and 1 June 2025 (US Army, public domain; an
+     „Immediate Response 2025“ open day on the square): Општина Кавадарци (replaces the OSM building;
+     three storeys of salmon and cream stone panels, a projecting entrance bay with the lettering,
+     steps, trimmed conifers, two Macedonian flags and the EU flag), a round dark-granite fountain on
+     each side of the entrance, round granite planters with flowers and curved wooden seats, black
+     granite ball bollards along the streets, curved paving bands. The planters' positions are
+     approximate; the 2018 layout (boat-shaped planters, a water channel, an amphitheatre) is gone.
+   - Дом на културата „Иван Мазов-Климе“: not in OSM at all (only a point). Placed and shaped from
+     the site and ground-floor plans of a fire-safety report on the municipality's site (АРХИКОНС,
+     Dec 2023): 41.4 m along Илинденска, ground floor + one storey, stage block at the north, the
+     260-seat hall, the foyer and main entrance toward ул. 7 Септември, wings to the east, a vestibule
+     to the west. No photo of its outside was found: plain rendered walls and window bands.
+   Walking collides with both buildings (`landmarkFootprints()` in `landmarks.ts`).
+   Their outlines are kept free of trees, sheds and parked cars (`blockGrid` in `city.ts`).
+   The firefighting plane refills from Тиквешко Езеро (its northern arm is in the map's south-west
+   corner); Катунишко Езеро is only a ~100 m pond.
+   No paragliders in Kavadarci. Best race time is kept per city (`skopje.bestRace.kavadarci`).
 
 ## Key decisions (and why)
 
@@ -170,7 +216,10 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 | Building height heuristics, district zones | `buildingInfo()`, `ZONES_TALL`, `ZONES_MID` in `scripts/prepare.ts` |
 | Road widths, area kinds and draw order | `ROAD_W`, `areaKind()`, `AREA_Z` in `scripts/prepare.ts` |
 | Exact named places (labels, rings) | `PLACE_NAMES` in `scripts/prepare.ts` |
-| Map extent | `BBOX` in `scripts/config.ts` (+ `data/query.overpassql`) |
+| Map extents per city | `CITIES` in `scripts/config.ts` (+ layers in `data/query.overpassql`) |
+| Per-city OSM interpretation (square, old town, landmark ids, places, height zones) | `PREP` in `scripts/prepare.ts` |
+| Per-city views, labels, race route, info spots | `CITIES` in `src/cities.ts` |
+| Kavadarci monuments | `createLandmarks()` in `src/landmarks.ts` (after the Skopje ones) |
 
 ## Settings: what is saved, what resets, what the code decides
 
@@ -196,9 +245,12 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Invert Y (flight, walking look, the map's tilt: F / R keys and the pad's right stick) | `skopje.invertY` | off |
 | Best race time | `skopje.bestRace` | none |
 | Most fires put out in one flight | `skopje.bestFire` | 0 |
+| Best race time in Kavadarci | `skopje.bestRace.kavadarci` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
+The city is not in storage either: it is `?city=` in the address (no parameter = Skopje), so a link
+always opens the city it was copied in.
 
 **Not saved — back to the default on every load**
 

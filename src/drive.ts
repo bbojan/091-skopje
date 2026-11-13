@@ -103,11 +103,13 @@ export interface DriveOptions {
   terrain: Terrain;
   bounds: Bounds;
   roads: RoadInfo[];
+  /** ends the window key listeners when the city is unloaded */
+  signal?: AbortSignal;
 }
 
 type DriveKey = 'left' | 'right' | 'up' | 'down';
 
-export function createDrive({ scene, camera, terrain, bounds, roads }: DriveOptions) {
+export function createDrive({ scene, camera, terrain, bounds, roads, signal }: DriveOptions) {
   const bus = buildBus();
   bus.visible = false;
   scene.add(bus);
@@ -129,9 +131,9 @@ export function createDrive({ scene, camera, terrain, bounds, roads }: DriveOpti
     e.preventDefault();
     input[k] = down ? 1 : 0;
   };
-  addEventListener('keydown', onKey(true));
-  addEventListener('keyup', onKey(false));
-  addEventListener('blur', () => Object.assign(input, { left: 0, right: 0, up: 0, down: 0 }));
+  addEventListener('keydown', onKey(true), { signal });
+  addEventListener('keyup', onKey(false), { signal });
+  addEventListener('blur', () => Object.assign(input, { left: 0, right: 0, up: 0, down: 0 }), { signal });
 
   /** Start on the street nearest to `near`, heading along it. False if no street nearby. */
   function start(near: THREE.Vector3, preferYaw: number): boolean {

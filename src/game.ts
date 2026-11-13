@@ -1,26 +1,11 @@
 import * as THREE from 'three';
 import { mulberry32 } from './geo.ts';
 import type { Terrain } from './terrain.ts';
+import type { CitySpec } from './cities.ts';
 import type { CrossData, MapMeta, Places, Pt } from './types.ts';
 
-// Ring race over Skopje's landmarks + "091" balloons to pop.
-// [name, lat, lon, height above ground, key in data.places (exact OSM position)]
-// Names are map data (Macedonian, like the labels); the last ring is the finish.
-// lat/lon null = next to the Millennium Cross.
-const ROUTE: [name: string, lat: number | null, lon: number | null, agl: number, key?: string][] = [
-  ['Плоштад Македонија', 41.9955, 21.4319, 85, 'square'],
-  ['Камен мост', 41.9970, 21.4331, 65],
-  ['Кале', 42.0003, 21.4327, 105],
-  ['Стара чаршија', 42.0018, 21.4378, 85, 'bazaar'],
-  ['Национална арена', 42.00575, 21.42551, 95, 'arena'],
-  ['Градски парк', 42.0075, 21.4190, 85, 'park'],
-  ['Зоолошка градина', 42.0064, 21.41767, 95, 'zoo'],
-  ['Карпош', 42.0040, 21.3950, 130],
-  ['Средно Водно', 41.9800, 21.4070, 120],
-  ['Милениумски крст', null, null, 125],
-  ['Кисела Вода', 41.9820, 21.4400, 115],
-  ['Плоштад', 41.9955, 21.4319, 80, 'square'],
-];
+// Ring race over the city's landmarks + "091" balloons to pop. The route is per city
+// (`route` in cities.ts): names are map data (Macedonian, like the labels); the last ring is the finish.
 const RING_R = 26;
 
 function balloonTexture(): THREE.CanvasTexture {
@@ -41,6 +26,7 @@ function balloonTexture(): THREE.CanvasTexture {
 }
 
 export interface GameOptions {
+  city: CitySpec;
   terrain: Terrain;
   meta: MapMeta;
   crosses: CrossData[];
@@ -57,7 +43,8 @@ export interface Ring {
   base: THREE.Material;
 }
 
-export function createGame({ terrain, meta, crosses, places = {}, clippingPlanes }: GameOptions) {
+export function createGame({ city, terrain, meta, crosses, places = {}, clippingPlanes }: GameOptions) {
+  const ROUTE = city.route;
   const P = (lat: number, lon: number): Pt => [(lon - meta.lon0) * meta.kx, -(lat - meta.lat0) * meta.ky];
   const group = new THREE.Group();
   group.visible = false;
@@ -120,7 +107,7 @@ export function createGame({ terrain, meta, crosses, places = {}, clippingPlanes
 
   const st = { next: 0, time: 0, running: false, finished: false, newBest: false, popped: 0, flash: '' };
   let best: number | null = null;
-  try { best = Number(localStorage.getItem('skopje.bestRace')) || null; } catch { /* storage unavailable */ }
+  try { best = Number(localStorage.getItem(city.bestRaceKey)) || null; } catch { /* storage unavailable */ }
 
   function reset(): void {
     Object.assign(st, { next: 0, time: 0, running: false, finished: false, newBest: false, popped: 0, flash: '' });
@@ -156,7 +143,7 @@ export function createGame({ terrain, meta, crosses, places = {}, clippingPlanes
           if (!best || st.time < best) {
             best = st.time;
             st.newBest = true;
-            try { localStorage.setItem('skopje.bestRace', String(best)); } catch { /* storage unavailable */ }
+            try { localStorage.setItem(city.bestRaceKey, String(best)); } catch { /* storage unavailable */ }
           } else st.newBest = false;
         }
       }
