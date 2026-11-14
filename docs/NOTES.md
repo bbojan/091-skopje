@@ -118,7 +118,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    Checked by stepping the flight with synthetic key presses, both invert states.
 23. **v2.8.0** (Nov 2026): a second city, **043 Кавадарци** (`?city=kavadarci`, BBOX 41.380–41.462 N,
    21.958–22.062 E ≈ 8.7 × 9.1 km: the town, Ваташа, Глишиќ, the Луда Мара and Катунишко Езеро). The
-   badge at the top left is the city picker (a menu in the Вез style; the `?` on its corner keeps the
+   badge at the top left is the city picker (a menu in the Вез style; the round `?` right after it keeps the
    help). The city lives in the address; without `?city=` the map opens on Skopje; switching pushes a
    history entry, so back / forward switch the city too. The previous city is unloaded completely before
    the next one builds behind the loading card (`unloadWorld()` in `main.ts`).

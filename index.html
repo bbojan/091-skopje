@@ -13,13 +13,14 @@
       canvas { display: block; }
       .title { position: fixed; left: 22px; top: 18px; font: inherit; color: inherit; text-align: left; z-index: 6; }
       .title:hover { background: #fff; }
-      /* the badge is the city picker; the ? on its corner opens the help (the same for every city) */
+      /* the badge is the city picker; the round ? right after it opens the help (the same for every city) */
       .city-btn { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; display: block; }
       .city-btn:focus-visible, .title .hint:focus-visible { outline: 2.5px solid #d8643c; outline-offset: 3px; }
       .city-btn .caret { font-size: 0.5em; opacity: 0.7; margin-left: -4px; transition: transform 0.15s; }
       .city-btn[aria-expanded="true"] .caret { transform: rotate(180deg); }
-      .title .hint { position: absolute; right: -11px; top: -11px; width: 24px; height: 24px; padding: 0; border-radius: 50%; background: var(--ink); color: #fff8ec; cursor: pointer;
-                     font: inherit; font-size: 13px; font-weight: 700; display: grid; place-items: center; border: 2px solid #fff8ec; }
+      .title .hint { position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%); width: 34px; height: 34px; padding: 0; border-radius: 50%;
+                     background: var(--ink); color: #fff8ec; cursor: pointer; font: inherit; font-size: 17px; font-weight: 700; display: grid; place-items: center;
+                     border: 2px solid #fff8ec; box-shadow: 0 0 0 1.5px var(--ink), 2px 3px 0 rgba(43, 29, 22, 0.4); }
       .title .hint:hover { background: var(--wine); }
       .city-menu { position: absolute; left: -1.5px; top: calc(100% + 8px); display: flex; flex-direction: column; gap: 6px; min-width: calc(100% + 3px); box-sizing: border-box;
                    padding: 18px 10px; background: var(--linen); border: 1.5px solid var(--indigo); border-radius: 12px; box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); }

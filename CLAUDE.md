@@ -69,7 +69,7 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
 
 ## Cities
 
-- The badge at the top left (`091 Скопје ▾`) is the city picker; the `?` on its corner opens the help
+- The badge at the top left (`091 Скопје ▾`) is the city picker; the round `?` right after it opens the help
   (shared by every city; per-city paragraphs carry `data-city="…"`, hidden by the `city-<id>` body class).
 - The city is in the address: `?city=kavadarci`; no parameter = Skopje. Switching pushes a history entry
   (back / forward switch too) and drops the camera hash. Per-city menu items in `index.html` use `data-city`.
