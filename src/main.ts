@@ -285,7 +285,7 @@ async function init(): Promise<void> {
   scene.add(game.group);
   ink.skipNormal.push(game.beam);
   const flight = createFlight({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 } });
-  flight.setInvertY(invertBox.checked);
+  flight.setInvertY(invertPlane);
   // firefighting: fires, smoke and water are see-through (no ink lines)
   const fire = createFireMode({
     terrain, bounds: { hw: W / 2, hh: H / 2 }, areas: data.areas, buildings: data.buildings, light: MOBILE,
@@ -306,7 +306,7 @@ async function init(): Promise<void> {
     crosses: data.crosses || [], gondola: landmarks.gondola, planeSpot,
     hooks: { nearestBus: traffic.nearestBus, startOro: traffic.startOro, stopOro: traffic.stopOro, scatter: traffic.scatter, startle: birds.startle },
   });
-  walk.setInvertY(invertBox.checked);
+  walk.setInvertY(invertY);
   world = { terrain, meta, city, traffic, clouds, birds, gliders, lamps, precip, landmarks, labels, game, fire, flight, drive, walk, planeSpot };
   console.log('city ready in', Math.round(performance.now() - t0), 'ms', city.stats, traffic.counts);
 
@@ -336,6 +336,18 @@ async function init(): Promise<void> {
   loader.classList.add('done');
   setTimeout(() => loader.remove(), 700);
 }
+
+// the ▾ on the LinkedIn button: the developers (Bojan 091, Riste 043)
+const meBtn = $('me-more'), meMenu = $('me-menu');
+function setMeMenu(open: boolean): void {
+  meMenu.hidden = !open;
+  meBtn.setAttribute('aria-expanded', String(open));
+  if (open) meMenu.querySelector<HTMLElement>('a')?.focus();
+}
+meBtn.addEventListener('click', (e) => { e.stopPropagation(); setMeMenu(meMenu.hidden === true); });
+meMenu.addEventListener('click', () => setMeMenu(false));
+addEventListener('pointerdown', (e) => { if (!meMenu.hidden && !meMenu.contains(e.target as Node) && !meBtn.contains(e.target as Node)) setMeMenu(false); });
+addEventListener('keydown', (e) => { if (!meMenu.hidden && e.code === 'Escape') { setMeMenu(false); meBtn.focus(); } });
 
 function setView(name: string): void {
   const v = VIEWS[name] || VIEWS.center;
@@ -615,6 +627,11 @@ setTimeout(() => barWake(0), 3500); // show it at first, then fade
 // mobile popups (places, options); on desktop the groups are shown inline
 interface Popup { btn: HTMLElement; menu: HTMLElement }
 const popups: Popup[] = [...document.querySelectorAll<HTMLElement>('.pop-toggle')].map((btn) => ({ btn, menu: $(btn.getAttribute('aria-controls') ?? '') }));
+// ⚙ → 🎨 Графика / 🎮 Управување open a submenu in place of the options menu; ‹ Назад returns
+for (const id of ['gfx', 'ctl']) {
+  popups.push({ btn: $(`${id}-open`), menu: $(id) });
+  $(`${id}-back`).addEventListener('click', (e) => { e.stopPropagation(); $('tools-toggle').click(); $(`${id}-open`).focus(); });
+}
 const closePopups = (except?: Popup) => popups.forEach((p) => { if (p !== except) { p.menu.classList.remove('open'); p.btn.setAttribute('aria-expanded', 'false'); } });
 for (const p of popups) {
   p.btn.addEventListener('click', (e) => {
@@ -687,6 +704,12 @@ $('shot').addEventListener('click', () => {
 const flyHud = $('flyhud');
 const flyStats = $('fly-stats'), flyWarn = $('fly-warn');
 const flyGame = $('fly-game'), flyArrow = $('fly-arrow'), flyDist = $('fly-dist');
+// turn the HUD arrow the short way round (a jump from +180° to -180° would spin it a full turn)
+let arrowRot = 0;
+function pointArrow(a: number): void {
+  arrowRot += ((((a - arrowRot + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) - Math.PI;
+  flyArrow.style.transform = `rotate(${arrowRot}rad)`;
+}
 const flyResult = $('fly-result'), flyFlash = $('fly-flash');
 let resultShown = false;
 // the ring race is optional: free flight by default
@@ -980,13 +1003,26 @@ flyHud.querySelectorAll<HTMLElement>('[data-k]').forEach((b) => {
   b.addEventListener('contextmenu', (e) => e.preventDefault());
 });
 
-// invert-Y preference (remembered per browser)
-const invertBox = $<HTMLInputElement>('opt-invert');
-try { invertBox.checked = localStorage.getItem('skopje.invertY') === '1'; } catch { /* storage unavailable */ }
-invertBox.addEventListener('change', () => {
-  world?.flight.setInvertY(invertBox.checked);
-  world?.walk.setInvertY(invertBox.checked);
-  try { localStorage.setItem('skopje.invertY', invertBox.checked ? '1' : '0'); } catch { /* storage unavailable */ }
+// invert up/down (⚙ → 🎮 Управување, remembered per browser): one switch for the map and walking
+// (off by default), one for the plane (on by default: ↑ lowers the nose, like a real pilot)
+const invertBtn = $('invert'), invertPlaneBtn = $('invert-plane');
+let invertY = false, invertPlane = true;
+try { invertY = localStorage.getItem('skopje.invertY') === '1'; invertPlane = localStorage.getItem('skopje.invertYPlane') !== '0'; } catch { /* storage unavailable */ }
+setOn(invertBtn, invertY);
+setOn(invertPlaneBtn, invertPlane);
+document.body.classList.toggle('plane-inv', invertPlane);
+invertBtn.addEventListener('click', () => {
+  invertY = !invertY;
+  setOn(invertBtn, invertY);
+  world?.walk.setInvertY(invertY);
+  try { localStorage.setItem('skopje.invertY', invertY ? '1' : '0'); } catch { /* storage unavailable */ }
+});
+invertPlaneBtn.addEventListener('click', () => {
+  invertPlane = !invertPlane;
+  setOn(invertPlaneBtn, invertPlane);
+document.body.classList.toggle('plane-inv', invertPlane);
+  world?.flight.setInvertY(invertPlane);
+  try { localStorage.setItem('skopje.invertYPlane', invertPlane ? '1' : '0'); } catch { /* storage unavailable */ }
 });
 
 // interface language (map names stay Macedonian)
@@ -1013,7 +1049,7 @@ $('help-close').addEventListener('click', () => help.close());
 help.addEventListener('click', (e) => { if (e.target === help) help.close(); });
 
 // keyboard + gamepad navigation on the map (flight has its own controls)
-const mapInput = createMapInput({ controls, camera, invertY: () => invertBox.checked, isActive: () => !!world && !world.flight.active && !world.drive.active && !world.walk.active && !document.querySelector('dialog[open]') });
+const mapInput = createMapInput({ controls, camera, invertY: () => invertY, isActive: () => !!world && !world.flight.active && !world.drive.active && !world.walk.active && !document.querySelector('dialog[open]') });
 const padPrev = { a: false, b: false, x: false, y: false, start: false, flick: false };
 let padHintShown = false;
 addEventListener('gamepadconnected', (e) => console.log('gamepad:', e.gamepad.id, e.gamepad.mapping === 'standard' ? 'standard' : 'not mapped by the browser: ignored'));
@@ -1168,7 +1204,7 @@ renderer.setAnimationLoop(() => {
       const close = !!near && nd < 480 && (near.x - p.x) * Math.sin(flight.yaw) - (near.z - p.z) * Math.cos(flight.yaw) > -60;
       flight.setAim(close, f.falling, close && near ? near.top : f.aimY);
       if (near) {
-        flyArrow.style.transform = `rotate(${Math.atan2(near.x - p.x, -(near.z - p.z)) - flight.yaw}rad)`;
+        pointArrow(Math.atan2(near.x - p.x, -(near.z - p.z)) - flight.yaw);
         setText('fly-dist', `🔥 ${t(`fire.kind.${near.kind}`)} · ${nd > 1000 ? (nd / 1000).toFixed(1) + ' ' + t('u.km') : Math.round(nd) + ' ' + t('u.m')}`);
       }
       if (f.scooping) warn = t('fire.scoop');
@@ -1197,7 +1233,7 @@ renderer.setAnimationLoop(() => {
       if (!g.finished) {
         const tp = g.nextRing.p, p = flight.pos;
         const bearing = Math.atan2(tp.x - p.x, -(tp.z - p.z));
-        flyArrow.style.transform = `rotate(${bearing - flight.yaw}rad)`;
+        pointArrow(bearing - flight.yaw);
         const dm = Math.hypot(tp.x - p.x, tp.z - p.z);
         const name = g.nextRing.final ? `${t('finish')}: ${g.nextRing.name}` : g.nextRing.name;
         flyDist.textContent = `${name} · ${dm > 1000 ? (dm / 1000).toFixed(1) + ' ' + t('u.km') : Math.round(dm) + ' ' + t('u.m')}`;

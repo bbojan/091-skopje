@@ -131,7 +131,10 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
 - Bar: popup menus 📍 Места and ⚙ Опции on every screen. On desktop Преглед, 🚶 walk, 🚌 bus,
   the weather and season buttons and 🌐 language stay on the bar, and 🔗 copy link is first in
   ⚙; on phones and portrait touch tablets they move into the menus, with weather, season,
-  walk, bus and copy link first (`placeBarItems()` in `main.ts`). `MOBILE` profile halves trees/parked cars, 2048 shadow
+  walk, bus and copy link first (`placeBarItems()` in `main.ts`). The graphics options (contours,
+  quality, smooth edges, memory saver, less traffic) sit in a submenu: ⚙ → 🎨 Графика › opens `#gfx` in
+  place of ⚙, ‹ Назад returns; 🎮 Управување (`#ctl`) the same way holds the two invert up/down switches
+  (map and walking, off by default; flight, on by default). `MOBILE` profile halves trees/parked cars, 2048 shadow
   map, 256 px far textures, fewer agents (iOS Safari memory limits).
 - OSM attribution must stay visible (ODbL), also on mobile.
 - **Ask the owner before every `git push`** (it deploys the live site). Commits end with
