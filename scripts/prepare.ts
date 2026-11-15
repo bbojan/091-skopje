@@ -40,7 +40,7 @@ interface CityPrep {
   old: { s: number; n: number; w: number; e: number } | null;
   square: [lat: number, lon: number];
   /** OSM ids of the outlines of hand-modelled landmarks (src/landmarks.ts) */
-  landmarks: { stoneBridge?: number; fountain?: number; porta?: number; ossuary?: number; heroes?: number; vatasa?: number; townhall?: number };
+  landmarks: { stoneBridge?: number; fountain?: number; porta?: number; ossuary?: number; heroes?: number; vatasa?: number; townhall?: number; stadium?: number };
   /** names of the places (largest matching shape wins) */
   placeNames: Record<string, string>;
   /** places matched by OSM way id */
@@ -107,12 +107,14 @@ const PREP: Record<CityName, CityPrep> = {
       heroes: 11845001868, // monument to the People's Heroes Kiro Atanasovski-Nalbatot and Dimče Mirčev (node)
       vatasa: 7626158238, // memorial to the Vataša massacre, in its memorial park (node)
       townhall: 790445885, // Општина Кавадарци, modelled after photos (2020, 2025)
+      stadium: 1276210010, // the city stadium's pitch (grass, lit); the stands round it are modelled
     },
     placeNames: { square: 'Плоштад Маршал Тито', vatasa: 'Спомен парк Ваташа', katunisko: 'Катунишко Езеро' },
     placeIds: {
       ossuary: 1275768512,
       dimitrij: 1111874740, // Св. Димитриј
       townhall: 790445885, // Општина Кавадарци
+      stadium: 1276210010, // Градски стадион
     },
     placeNodes: { heroes: 11845001868, museum: 529811458 }, // culture: the building centre (landmarkLL), not the OSM point
     // copied from OSM (Nov 2026); data/query.overpassql fetches these node types from now on
@@ -184,6 +186,7 @@ for (const el of raw.elements) {
   if (el.id === LANDMARK_IDS.porta) out.landmarks.porta = flat(dropLast(pts));
   if (el.id === LANDMARK_IDS.ossuary) out.landmarks.ossuary = flat(dropLast(pts));
   if (el.id === LANDMARK_IDS.townhall) out.landmarks.townhall = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.stadium) out.landmarks.stadium = flat(dropLast(pts));
 }
 // exact positions of named places (area-weighted centroid of the largest matching shape)
 const PLACE_NAMES = CFG.placeNames;

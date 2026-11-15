@@ -13,7 +13,7 @@ import { createDrive, type Drive } from './drive.ts';
 import { createWalk, type Walk, type WalkAction } from './walk.ts';
 import { createGame, fmtTime, type Game } from './game.ts';
 import { createFireMode, WATER_FLOOR, type FireMode } from './fire.ts';
-import { createLandmarks, landmarkFootprints } from './landmarks.ts';
+import { createLandmarks, landmarkFootprints, landmarkGround } from './landmarks.ts';
 import { createSound } from './sound.ts';
 import { createLabels } from './labels.ts';
 import { createMapInput, readPad } from './input.ts';
@@ -274,7 +274,8 @@ async function loadCity(spec: CitySpec): Promise<void> {
   showProgress('assemble', 1);
   await nextFrame();
   city.bakeGround(renderer, MOBILE ? 256 : 512);
-  const traffic = createTraffic(city, terrain, MOBILE ? { clippingPlanes: planes, cars: 2500, people: 5000, buses: spec.buses } : { clippingPlanes: planes, buses: spec.buses });
+  const platform = landmarkGround(data, terrain); // raised monument terraces: people walk on top
+  const traffic = createTraffic(city, terrain, { clippingPlanes: planes, buses: spec.buses, platform, ...(MOBILE ? { cars: 2500, people: 5000 } : {}) });
   traffic.setLight(lightTraffic);
   scene.add(traffic.group);
   const clouds = createClouds({ hw: W / 2, hh: H / 2 }, 1080);
@@ -317,7 +318,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   const sq = data.places?.square ?? data.meta.square;
   const planeSpot = { x: sq[0] + 40, z: sq[1] + 22, yaw: Math.PI / 2 };
   const walk = createWalk({
-    city: spec, signal: abort.signal, scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, meta, places: data.places || {}, buildings: [...data.buildings, ...landmarkFootprints(data)],
+    city: spec, signal: abort.signal, scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, meta, places: data.places || {}, buildings: [...data.buildings, ...landmarkFootprints(data, terrain)], platform,
     areas: data.areas, roads: city.roadList,
     crosses: data.crosses || [], gondola: landmarks.gondola, planeSpot,
     hooks: { nearestBus: traffic.nearestBus, startOro: traffic.startOro, stopOro: traffic.stopOro, scatter: traffic.scatter, startle: birds.startle },
@@ -1097,9 +1098,9 @@ function updateWalkHud(): void {
   const label = key ? t(key) : '';
   setText('walk-hint', label ? (MOBILE ? label : `E — ${label}`) : '');
   setText('walk-act', label ? label.split(' ')[0] : '·');
-  setText('walk-who', t(`char.${walk.character}`));
+  setText('walk-who', t(walk.label));
   setText('walk-view', walk.view === 'third' ? '👁' : '🎥');
-  setText('walk-char', walk.character === 'pejo' ? '🐕' : '🧔');
+  setText('walk-char', walk.character === 'pejo' ? '🐕' : t(world.spec.walker === 'suit' ? 'char.suit' : 'char.pejo').split(' ')[0]);
   // the nearest bus, with a direction arrow relative to where the camera looks
   const b = a === 'bus' ? null : traffic.nearestBus(walk.pos.x, walk.pos.z, 2500);
   const busEl = $('walk-bus');

@@ -40,6 +40,8 @@ export interface CitySpec {
   buses: boolean;
   /** heights are drawn this many times taller than real (1 = true heights) */
   terrainExag: number;
+  /** how the walking person looks: Итар Пејо in folk costume, or a man in a dark suit (Kavadarci) */
+  walker: 'pejo' | 'suit';
   /** weather preset 'vodno' is called by the local mountain; the firefighting water source */
   snowLabel: Key;
   refillLabel: Key;
@@ -101,6 +103,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     gliders: true,
     buses: true,
     terrainExag: 1.12, // Skopje's look since v1 (Vodno a little more dramatic)
+    walker: 'pejo',
     snowLabel: 'weather.vodno',
     refillLabel: 'fire.refill',
     bestRaceKey: 'skopje.bestRace',
@@ -125,9 +128,10 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['Споменик на револуцијата', 41.43322, 22.01231, 9, 'revolution'],
       ['Дом на културата', 41.434017, 22.012032, 16, 'culture'],
       ['Општина Кавадарци', 41.43287, 22.01222, 18, 'townhall'],
-      ['Народни херои', 41.43364, 22.01948, 16, 'heroes'],
+      ['Споменик Киро Крстев и Димче Мирчев', 41.43364, 22.01948, 13, 'heroes'],
       ['Спомен-костурница', 41.43261, 22.02287, 28, 'ossuary'],
       ['Музеј Галерија', 41.43437, 22.01652, 16, 'museum'],
+      ['Градски стадион', 41.43511, 22.02336, 14, 'stadium'],
       ['Св. Димитриј', 41.43459, 22.00856, 20, 'dimitrij'],
       ['Спомен-парк Ваташа', 41.40188, 22.02834, 24, 'vatasa'],
       ['Катунишко Езеро', 41.39186, 22.03766, 12, 'katunisko'],
@@ -138,7 +142,7 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['Св. Димитриј', 41.43459, 22.00856, 75, 'dimitrij'],
       ['Глишиќ', 41.4528, 22.0247, 95],
       ['Спомен-костурница', 41.43261, 22.02287, 85, 'ossuary'],
-      ['Народни херои', 41.43364, 22.01948, 70, 'heroes'],
+      ['Споменик Киро Крстев и Димче Мирчев', 41.43364, 22.01948, 70, 'heroes'],
       ['Ваташа', 41.4164, 22.0191, 90],
       ['Спомен-парк Ваташа', 41.40188, 22.02834, 85, 'vatasa'],
       ['Тиквешко Езеро', 41.3952, 21.9690, 55],
@@ -150,7 +154,8 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['k.revolution', 'Споменик на револуцијата', 41.43322, 22.01231, 18, 'revolution'],
       ['k.townhall', 'Општина Кавадарци', 41.43287, 22.01222, 34, 'townhall'],
       ['k.culture', 'Дом на културата „Иван Мазов-Климе“', 41.434017, 22.012032, 30, 'culture'],
-      ['k.heroes', 'Народни херои', 41.43364, 22.01948, 30, 'heroes'],
+      ['k.heroes', 'Споменик Киро Крстев и Димче Мирчев', 41.43364, 22.01948, 30, 'heroes'],
+      ['k.stadium', 'Градски стадион', 41.43511, 22.02336, 75, 'stadium'],
       ['k.ossuary', 'Спомен-костурница', 41.43261, 22.02287, 60, 'ossuary'],
       ['k.museum', 'Музеј Галерија Кавадарци', 41.43437, 22.01652, 35, 'museum'],
       ['k.vatasa', 'Спомен-парк Ваташа', 41.40188, 22.02834, 70, 'vatasa'],
@@ -159,6 +164,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     gliders: false,
     buses: false, // Kavadarci has no red ЈСП buses
     terrainExag: 1, // true heights
+    walker: 'suit',
     snowLabel: 'weather.hills',
     refillLabel: 'fire.refill.lake',
     bestRaceKey: 'skopje.bestRace.kavadarci',

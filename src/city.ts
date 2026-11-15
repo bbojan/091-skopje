@@ -220,6 +220,9 @@ export const roadLift = (kind: RoadKind, bridge: number) =>
 export const CASING_LIFT = 0.9, CASING_EXTRA = 1.6, RAIL_LIFT = 1.08, RAIL_HALF_WIDTH = 2.6;
 
 /** OSM buildings drawn by hand-built models in landmarks.ts instead (the model uses the footprint). */
+/** Kavadarci, the Kiro Krstev and Dimče Mirčev memorial: the relief faces down the OSM steps
+ *  (way 1275768508, ~17° west of north); the model's local +z points that way. */
+export const HEROES_TURN = Math.atan2(-6.2, -20.5);
 export const MODELLED_BUILDINGS = new Set<number>([
   144759771, // Железничка станица Скопје (Kenzo Tange)
 ]);
@@ -613,11 +616,16 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     const px = -ax[1], pz = ax[0];
     return [[[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]): Pt => [c[0] + ax[0] * hl * u + px * hw * v, c[1] + ax[1] * hl * u + pz * hw * v])];
   };
-  if (LM.heroes) blockGrid.add(around(LM.heroes, [1, 0], 10, 10), null);
+  if (LM.heroes) { // the raised terrace, its steps (local +z) and the ramp behind (landmarks.ts)
+    const c = Math.cos(HEROES_TURN), s = Math.sin(HEROES_TURN), [hx, hz] = LM.heroes;
+    blockGrid.add(around([hx + c - 2 * s, hz - s - 2 * c], [c, -s], 10, 12), null);
+  }
   if (LM.vatasa) blockGrid.add(around(LM.vatasa, [1, 0], 10, 10), null);
   if (LM.revolution) blockGrid.add(around(LM.revolution, [1, 0], 5, 5), null);
   const ossOb = LM.ossuary ? obb(toPts(LM.ossuary)) : null;
   if (ossOb) blockGrid.add(around(ossOb.c, ossOb.a, 17, 17), null); // the courtyard is ~21 m square
+  const stadOb = LM.stadium ? obb(toPts(LM.stadium)) : null; // the stands and the clubhouse round the pitch (landmarks.ts)
+  if (stadOb) blockGrid.add(around([stadOb.c[0] - stadOb.a[0] * 4 * Math.sign(stadOb.a[0]), stadOb.c[1] - stadOb.a[1] * 4 * Math.sign(stadOb.a[0])], stadOb.a, stadOb.L + 24, stadOb.W + 14), null);
   const hallOb = LM.townhall ? obb(toPts(LM.townhall)) : null;
   if (hallOb) blockGrid.add(around(hallOb.c, hallOb.a, hallOb.L + 2, hallOb.W + 2), null);
   if (LM.culture) { // Дом на културата: 41.4 m along its heading, wings to the east, vestibule to the west

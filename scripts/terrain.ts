@@ -139,7 +139,7 @@ const segDist = (px: number, pz: number, a: Pt, b: Pt) => {
   const t = l2 ? Math.min(1, Math.max(0, ((px - a[0]) * dx + (pz - a[1]) * dz) / l2)) : 0;
   return Math.hypot(px - a[0] - t * dx, pz - a[1] - t * dz);
 };
-const fixes = SPEC.flatWater || SPEC.flatSquares?.length || SPEC.rivers || SPEC.points?.length;
+const fixes = SPEC.flatWater || SPEC.flatSquares?.length || SPEC.flatWays?.length || SPEC.rivers || SPEC.points?.length;
 if (fixes) {
   if (!fs.existsSync(FILES.raw)) { console.error(`${FILES.raw} is missing: run \`npm run download -- ${CITY}\` first`); process.exit(1); }
   const raw = JSON.parse(fs.readFileSync(FILES.raw, 'utf8')) as OsmJson;
@@ -211,14 +211,17 @@ if (fixes) {
     console.log(`flat water: ${lakes} lakes`);
   }
 
-  // squares: flat at their median height, blended back into the ground over 15 m around them
-  for (const name of SPEC.flatSquares ?? []) {
-    const els = raw.elements.filter((e) => e.tags?.name === name);
-    for (const el of els) for (const poly of polygonsOf(el)) {
+  // squares and listed ways: flat at their median (or given) height, blended back into the ground
+  // over 15 m around them
+  const flats: [label: string, el: OsmJson['elements'][number], level?: number, pad?: number][] = [];
+  for (const name of SPEC.flatSquares ?? []) for (const el of raw.elements.filter((e) => e.tags?.name === name)) flats.push([`square: ${name}`, el]);
+  for (const [id, lv, pad] of SPEC.flatWays ?? []) for (const el of raw.elements.filter((e) => e.type === 'way' && e.id === id)) flats.push([`way ${id}`, el, lv, pad]);
+  for (const [label, el, given, pad = 0] of flats) {
+    for (const poly of polygonsOf(el)) {
       const inside = new Set(cellsIn(poly));
       if (inside.size < 2) continue;
-      const hs = [...inside].map((k) => g[k]).sort((a, b) => a - b), level = hs[hs.length >> 1];
-      const F = 15, ring = poly[0];
+      const hs = [...inside].map((k) => g[k]).sort((a, b) => a - b), level = given ?? hs[hs.length >> 1];
+      const F = 15 + pad, ring = poly[0];
       let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
       for (const [x, z] of ring) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
       for (let j = Math.max(0, Math.floor((z0 - F + H / 2) / CELL)); j <= Math.min(nz - 1, Math.ceil((z1 + F + H / 2) / CELL)); j++)
@@ -227,9 +230,9 @@ if (fixes) {
           if (inside.has(k)) { g[k] = level; continue; }
           let d = Infinity;
           for (let m = 0; m < ring.length; m++) d = Math.min(d, segDist(cellX(i), cellZ(j), ring[m], ring[(m + 1) % ring.length]));
-          if (d < F) g[k] = level + (g[k] - level) * smoothstep(0, F, d);
+          if (d < F) g[k] = level + (g[k] - level) * smoothstep(pad, F, d);
         }
-      console.log(`flat square: ${name} at ${level.toFixed(1)} m`);
+      console.log(`flat ${label} at ${level.toFixed(1)} m (was ${hs[0].toFixed(1)}–${hs[hs.length - 1].toFixed(1)})`);
     }
   }
 

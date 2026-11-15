@@ -84,6 +84,8 @@ export interface LandmarkData {
   /** Kavadarci: the town hall's outline; Дом на културата as [x, z, heading of its long axis] */
   townhall?: Flat;
   culture?: Flat;
+  /** Kavadarci: the city stadium's pitch outline (the stands are modelled round it) */
+  stadium?: Flat;
 }
 
 /** Exact positions of named places, by key (Skopje: square, porta, park, zoo, arena, bazaar…; Kavadarci: square, ossuary, heroes, vatasa, lake…). */

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { toPts, obb, pip } from './geo.ts';
-import { SHARED, MODELLED_BUILDINGS, areaLift } from './city.ts';
+import { SHARED, MODELLED_BUILDINGS, HEROES_TURN, areaLift, roadLift } from './city.ts';
 import type { Terrain } from './terrain.ts';
 import type { BuildingData, CityData, Flat, Pt, Vec3 } from './types.ts';
 
@@ -54,8 +54,79 @@ function lattice(out: THREE.BufferGeometry[], { origin, axis, side, w, len, seg,
 
 const flatten = (gs: THREE.BufferGeometry[]) => gs.map((g) => (g.index ? g.toNonIndexed() : g));
 
+// ---------------- Kavadarci, the memorial to Kiro Krstev and Dimče Mirčev: the layout shared by
+// the model, walking collision and the walking ground. Local frame: origin at the OSM node, +z
+// down the steps (HEROES_TURN), heights from the bare terrain at the node. The elevation data is
+// flat here (~0.3 m), but the photos show ~14 steps: the terrace is raised by the model, ~2 m above
+// the draped paths (which sit PATH_LIFT above the bare terrain).
+const PATH_LIFT = roadLift('path', 0);
+const HZ = {
+  H: PATH_LIFT + 1.95, // terrace height
+  top: [-6.2, 8.4, -5.4, 3.6] as const, // terrace x0, x1, z0, z1: the OSM footway ring round the monument
+  bank: 2.6, under: 0.8, // the grass bank: run outward, depth below the ground
+  stairs: { cx: 3.5, w: 4.4, tread: 0.38 }, // the OSM steps arrive at x ≈ 3.5
+  ramp: { cx: 0.5, w: 2.6, len: 8 }, // the OSM path into the park leaves at x ≈ 0.5
+};
+function heroesFrame(data: CityData, terrain: Terrain) {
+  const p = data.landmarks?.heroes;
+  if (!p) return null;
+  const [x, z] = p, rot = HEROES_TURN, c = Math.cos(rot), s = Math.sin(rot);
+  const world = (lx: number, lz: number): Pt => [x + lx * c + lz * s, z - lx * s + lz * c];
+  const local = (wx: number, wz: number): Pt => { const dx = wx - x, dz = wz - z; return [dx * c - dz * s, dx * s + dz * c]; };
+  const y0 = terrain.at(x, z), at = (lx: number, lz: number) => terrain.at(...world(lx, lz)) - y0;
+  const { H, top: [, , z0, z1], stairs: st, ramp } = HZ;
+  const n = Math.max(6, Math.round((H - PATH_LIFT - at(st.cx, z1 + 5)) / 0.155)); // risers, the last one up from the path
+  const run = (n - 1) * st.tread, yb = at(st.cx, z1 + run) + PATH_LIFT, rise = (H - yb) / n;
+  return { x, z, y0, rot, world, local, n, run, yb, rise, rb: at(ramp.cx, z0 - ramp.len) + PATH_LIFT };
+}
+
+/** Kavadarci, the city stadium: what the model, the collision and the clearing share. Local frame:
+ *  +x east along the pitch, +z south; the stands start `front` m off the grass. */
+const STAD = {
+  front: 2.5,
+  north: { u0: 24, u1: -40, rows: 10, tread: 0.75, rise: 0.38 }, // old covered stand; its back wall 0.4 m
+  east: { R: 16, rows: 9, tread: 0.72, rise: 0.35, end: 8 }, // ends `end` m short of the south side; brick wall behind
+  south: { u0: -32, u1: 32, rows: 8, tread: 0.8, rise: 0.4 }, // 2023, white canopy
+  clubs: [[-13, 8, 11, 10, 6.4], [-11, -14, 9, 24, 3.6]] as const, // [u from the west end, v, w, d, h]: clubhouse, the long building north of it
+};
+/** Kavadarci, the city stadium: the pitch's oriented box; local +x east along the long side, +z south. */
+function stadiumFrame(data: CityData) {
+  const r = data.landmarks?.stadium;
+  const o = r ? obb(toPts(r)) : null;
+  if (!o) return null;
+  const a: Pt = o.a[0] < 0 ? [-o.a[0], -o.a[1]] : o.a;
+  const rot = Math.atan2(-a[1], a[0]), cs = Math.cos(rot), sn = Math.sin(rot);
+  const world = (u: number, v: number): Pt => [o.c[0] + u * cs + v * sn, o.c[1] - u * sn + v * cs];
+  const { front, north: N, east: E, south: S } = STAD, hl = o.L, hw = o.W;
+  const nd = N.rows * N.tread + 0.4, ed = E.rows * E.tread + 1.1, sd = S.rows * S.tread + 0.25, eu = hl + front, nv = -hw - front;
+  /** walking collision: [u0, u1, v0, v1] */
+  const blocks: [number, number, number, number][] = [
+    [N.u1, N.u0, nv - nd, nv], [S.u0, S.u1, hw + front, hw + front + sd],
+    [eu, eu + ed, nv + E.R, hw - E.end], [N.u0, eu + ed, nv - ed, nv + E.R],
+    ...STAD.clubs.map(([u, v, w, d]): [number, number, number, number] => [-hl + u - w / 2, -hl + u + w / 2, v - d / 2, v + d / 2]),
+  ];
+  return { c: o.c, a, rot, L: hl, W: hw, world, blocks };
+}
+
+/** Raised ground of modelled monuments for walking (absolute height, −∞ off them), or null. */
+export function landmarkGround(data: CityData, terrain: Terrain): ((x: number, z: number) => number) | null {
+  const f = heroesFrame(data, terrain);
+  if (!f) return null;
+  const { H, bank, under, top: [x0, x1, z0, z1], stairs: st, ramp } = HZ;
+  return (x, z) => {
+    const [lx, lz] = f.local(x, z);
+    if (Math.abs(lx) > 25 || Math.abs(lz) > 25) return -Infinity;
+    let h = -Infinity;
+    const d = Math.max(x0 - lx, lx - x1, z0 - lz, lz - z1, 0);
+    if (d < bank) h = H - (d * (H + under)) / bank;
+    if (Math.abs(lx - st.cx) < st.w / 2 && lz >= z1 && lz <= z1 + f.run) h = Math.max(h, H - ((lz - z1) / st.tread) * f.rise);
+    if (Math.abs(lx - ramp.cx) < ramp.w / 2 && lz <= z0 && lz >= z0 - ramp.len) h = Math.max(h, H - ((z0 - lz) / ramp.len) * (H - f.rb));
+    return f.y0 + h;
+  };
+}
+
 /** Outlines of modelled buildings that are not (or no longer) OSM buildings, so walking collides with them. */
-export function landmarkFootprints(data: CityData): BuildingData[] {
+export function landmarkFootprints(data: CityData, terrain: Terrain): BuildingData[] {
   const L = data.landmarks || {}, out: BuildingData[] = [];
   const add = (r: Flat, h: number) => out.push({ id: -1 - out.length, r: [r], h, mh: 0, lv: 2, old: 0, t: 'yes', rs: null, w: null, c: null });
   const hall = L.townhall ? obb(toPts(L.townhall)) : null;
@@ -69,6 +140,15 @@ export function landmarkFootprints(data: CityData): BuildingData[] {
       [[x0, z0], [x1, z0], [x1, z1], [x0, z1]].flatMap(([lx, lz]) => [x + lx * c + lz * s, z - lx * s + lz * c]);
     for (const [x0, x1, z0, z1] of [[-7.55, 7.55, -20.7, 20.7], [7.55, 16.1, -20.7, -7.73], [7.55, 13.5, -6.13, 0.34], [7.55, 16.1, 8.2, 17.0], [-11.25, -7.55, -2.5, 0.7]])
       add(rect(x0, x1, z0, z1), 7);
+  }
+  const sf = stadiumFrame(data);
+  if (sf) for (const [u0, u1, v0, v1] of sf.blocks) add([[u0, v0], [u1, v0], [u1, v1], [u0, v1]].flatMap(([u, v]) => sf.world(u, v)), 6); // stands, clubhouse
+  const hf = heroesFrame(data, terrain);
+  if (hf) { // the slab on its piers, the low wall, the pillar, the pylon, the walls along the steps
+    const { stairs: st, top: [, , , z1] } = HZ, px = st.cx + st.w / 2 + 0.25;
+    const parts = [[-4.25, 2.8, -0.35, 0.35], [1.49, 4.6, -0.55, 0.75], [px - 0.55, px + 0.55, -0.75, 0.15], [-2.8, -2.2, -3.7, -3.3]];
+    for (const sd of [-1, 1]) { const wx = st.cx + sd * (st.w / 2 + 0.25); parts.push([wx - 0.25, wx + 0.25, z1 - 0.6, z1 + hf.run + 0.3]); }
+    for (const [x0, x1, z0, z1] of parts) add([[x0, z0], [x1, z0], [x1, z1], [x0, z1]].flatMap(([lx, lz]) => hf.world(lx, lz)), 3);
   }
   return out;
 }
@@ -422,30 +502,97 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
     }
   }
 
-  // ---------------- People's Heroes Kiro Krstev (Atanasovski) and Dimče Mirčev, where they fell
-  // (north-west corner of the town park): a tall concrete pillar (~8 m) beside a raised wall
-  // (~6 m) with a bronze relief of figures (Tome Andreevski, 1959), a marble pylon behind,
-  // wide steps up between stone cheek walls
-  if (L.heroes) {
-    const [x, z] = L.heroes;
-    const y = T(x, z), rot = facing(x, z);
-    const C: THREE.BufferGeometry[] = [], S: THREE.BufferGeometry[] = [], D: THREE.BufferGeometry[] = [], B: THREE.BufferGeometry[] = [], W: THREE.BufferGeometry[] = [];
-    S.push(box(9, 3.1, 6, 0, -1.5, -0.5)); // platform on its base
-    for (let k = 0; k < 8; k++) S.push(box(5, 0.2 * (k + 1) + 1.5, 0.36, 0, -1.5, 2.5 + (7 - k + 0.5) * 0.36));
-    for (const sd of [-1, 1]) S.push(box(0.6, 3.3, 3.2, sd * 2.8, -1.5, 3.95)); // cheek walls
-    D.push(box(6, 2.3, 0.6, -0.9, 1.6, -0.9)); // the relief wall
-    for (let i = 0; i < 9; i++) { // relief: a row of figures standing out of the wall
-      const fx = -3.4 + i * 0.62, tall = 0.85 + ((i * 5) % 3) * 0.12;
-      B.push(new THREE.CapsuleGeometry(0.17, tall, 3, 8).translate(fx, 2.45 + tall / 2, -0.52));
-      B.push(new THREE.SphereGeometry(0.15, 8, 6).translate(fx + 0.03, 2.75 + tall, -0.5));
+  // ---------------- Kiro Krstev and Dimče Mirčev, where they fell on 7 April 1944 (north-west
+  // corner of the town park; Tome Andreevski, 1959). After two photos of June 2019 (Commons): a
+  // raised terrace reached by a flight of steps between rubble-stone walls; on it a long concrete
+  // slab, its top rising to the right and its ends cut on a slant, with the names on the left and
+  // a dark relief of charging fighters on the right, resting on two piers of white stone blocks
+  // (the path into the park passes between them); a tall square concrete pillar at the top of
+  // the steps; a small marble pylon behind (inscription, from the description only)
+  const hf = heroesFrame(data, terrain);
+  if (hf) {
+    const { x: hx, z: hz, y0, rot, n, rise, run, yb, rb } = hf;
+    const [x0, x1, z0, z1] = HZ.top, { H, bank, under } = HZ, st = HZ.stairs, rp = HZ.ramp;
+    const G: THREE.BufferGeometry[] = [], P: THREE.BufferGeometry[] = [], R: THREE.BufferGeometry[] = [], C: THREE.BufferGeometry[] = [];
+    const Wst: THREE.BufferGeometry[] = [], Gr: THREE.BufferGeometry[] = [], B: THREE.BufferGeometry[] = [], Ltr: THREE.BufferGeometry[] = [];
+    const Mb: THREE.BufferGeometry[] = [], Sh: THREE.BufferGeometry[] = [], Pl: THREE.BufferGeometry[] = [];
+    // a side profile [z, y][] extruded across x from cx − w/2 to cx + w/2
+    const profile = (pts: [number, number][], w: number, cx: number) => {
+      const sh = new THREE.Shape(pts.map(([u, v]) => new THREE.Vector2(u, v)));
+      return new THREE.ExtrudeGeometry(sh, { depth: w, bevelEnabled: false }).rotateY(-Math.PI / 2).translate(cx + w / 2, 0, 0);
+    };
+    // the grass bank: a box whose top face is drawn in by `bank` on every side
+    const bankGeo = new THREE.BoxGeometry(x1 - x0 + 2 * bank, H + under, z1 - z0 + 2 * bank);
+    const pos = bankGeo.attributes.position, kx = (x1 - x0) / (x1 - x0 + 2 * bank), kz = (z1 - z0) / (z1 - z0 + 2 * bank);
+    for (let i = 0; i < pos.count; i++) if (pos.getY(i) > 0) pos.setXYZ(i, pos.getX(i) * kx, pos.getY(i), pos.getZ(i) * kz);
+    bankGeo.computeVertexNormals();
+    G.push(bankGeo.translate((x0 + x1) / 2, (H - under) / 2 - 0.1, (z0 + z1) / 2));
+    P.push(box(x1 - x0 + 0.3, 0.25, z1 - z0 + 0.3, (x0 + x1) / 2, H - 0.25, (z0 + z1) / 2)); // paving
+    // the steps down to the street, between rubble-stone walls
+    for (let k = 0; k < n - 1; k++) P.push(box(st.w, H - (k + 1) * rise + under, st.tread + 0.02, st.cx, -under, z1 + (k + 0.5) * st.tread));
+    for (const sd of [-1, 1])
+      R.push(profile([[z1 - 0.6, -under], [z1 + run + 0.3, -under], [z1 + run + 0.3, yb + 0.35], [z1 - 0.6, H + 0.35]], 0.5, st.cx + sd * (st.w / 2 + 0.25)));
+    // the path into the park: a gentle ramp behind
+    P.push(profile([[z0 + 0.2, -under], [z0 + 0.2, H - 0.02], [z0 - rp.len, rb + 0.03], [z0 - rp.len, -under]], rp.w, rp.cx));
+    // the slab (photo: ~7 m, the right end ~0.7 m higher; heights above the terrace)
+    const slabShape = new THREE.Shape([[-4.11, 2.75], [2.38, 3.48], [2.77, 1.8], [-0.52, 1.13], [-2.8, 1.07], [-4.23, 1.47]].map(([u, v]) => new THREE.Vector2(u, v + H)));
+    C.push(new THREE.ExtrudeGeometry(slabShape, { depth: 0.45, bevelEnabled: false }).translate(0, 0, -0.225));
+    // white stone piers: blocks in courses over darker mortar
+    const piers = (bx0: number, bx1: number, h: number, bz0: number, bz1: number) => {
+      Gr.push(box(bx1 - bx0 - 0.04, h - 0.02, bz1 - bz0 - 0.04, (bx0 + bx1) / 2, H, (bz0 + bz1) / 2));
+      const rows = Math.max(2, Math.round(h / 0.24)), rh = h / rows;
+      for (let r = 0; r < rows; r++) {
+        let u = bx0;
+        const first = r % 2 ? 0.26 : 0.42;
+        while (u < bx1 - 0.05) {
+          const len = Math.min(u === bx0 ? first : 0.44, bx1 - u);
+          Wst.push(box(len - 0.035, rh - 0.035, bz1 - bz0, u + len / 2, H + r * rh, (bz0 + bz1) / 2));
+          u += len;
+        }
+      }
+    };
+    piers(-2.93, -0.47, 1.12, -0.45, 0.45); // left pier
+    piers(1.49, 2.32, 1.95, -0.42, 0.42); // right column, up into the slab
+    piers(1.49, 4.6, 1.14, -0.55, 0.75); // the low wall on to the pillar
+    // the names: two lines of letters on the left
+    for (const [ly, cnt] of [[2.24, 11], [2.05, 12]] as const)
+      for (let i = 0; i < cnt; i++) Ltr.push(box(0.055, 0.12, 0.03, -3.3 + i * 0.085, H + ly - 0.06, 0.235));
+    // the relief: a crowd of fighters charging to the right, fists and rifles raised, two thrown
+    // to their knees, the last one reeling back
+    for (let i = 0; i < 8; i++) {
+      const bx = -0.7 + i * 0.4, foot = H + 1.84, kneel = i === 2 || i === 5, back = i === 7;
+      const lean = back ? -0.25 : 0.38 + ((i * 7) % 3) * 0.12, zf = 0.3 + (i % 2) * 0.05, tall = 0.5 + ((i * 5) % 3) * 0.05;
+      const hip: Vec3 = [bx, foot + (kneel ? 0.36 : 0.56), zf];
+      const sh: Vec3 = [hip[0] + Math.sin(lean) * tall, hip[1] + Math.cos(lean) * tall, zf];
+      B.push(beam(hip, sh, 0.3)); // body
+      B.push(new THREE.SphereGeometry(0.14, 8, 6).translate(sh[0] + Math.sin(lean) * 0.17, sh[1] + 0.16, zf)); // head
+      if (kneel) { B.push(beam(hip, [bx + 0.08, foot + 0.05, zf], 0.16)); B.push(beam([bx + 0.08, foot + 0.05, zf], [bx - 0.3, foot + 0.08, zf], 0.14)); }
+      else B.push(beam(hip, [bx - 0.3, foot + 0.02, zf], 0.16));
+      B.push(beam(hip, [bx + (back ? 0.15 : 0.32), foot, zf], 0.16)); // front leg
+      if (i % 2 === 0 || back) { // a fist raised high
+        const fist: Vec3 = [sh[0] + (back ? -0.1 : 0.14), sh[1] + 0.44, zf];
+        B.push(beam(sh, fist, 0.12), new THREE.SphereGeometry(0.08, 6, 4).translate(...fist));
+      } else B.push(beam([sh[0] + 0.36, sh[1] - 0.16, zf + 0.04], [sh[0] - 0.14, sh[1] + 0.34, zf + 0.04], 0.07)); // rifle
+      B.push(beam(sh, [sh[0] + 0.3, sh[1] - 0.14, zf], 0.12)); // the other arm forward
     }
-    C.push(box(1.5, 8, 1.1, 3.1, 1.6, -1.3)); // the pillar
-    W.push(box(0.7, 3.2, 0.7, 0.2, 1.6, -3.0)); // marble pylon behind
-    place(S, M('#bdb3a3'), x, y, z, rot);
-    place(C, concrete, x, y, z, rot);
-    place(D, darkConcrete, x, y, z, rot);
-    place(B, bronze, x, y, z, rot);
-    place(W, M('#f1eee8'), x, y, z, rot);
+    // the tall pillar at the top of the steps
+    Pl.push(box(1.1, 8, 0.9, st.cx + st.w / 2 + 0.25, H - 0.2, -0.3));
+    // the marble pylon behind
+    Mb.push(box(0.55, 1.3, 0.35, -2.5, H - 0.05, -3.5));
+    // shrubs on the bank
+    for (const [u, v, r, d] of [[x0 - 1, z1 + 0.6, 1.1, 1], [x0 - 0.9, z0 + 2, 1.3, 0.9], [x1 + 0.9, z0 + 1.5, 1.2, 0.9], [x1 + 0.8, z1 - 1.5, 1, 0.8], [-1.5, z1 + 1.1, 1.2, 1.1]] as const)
+      Sh.push(new THREE.IcosahedronGeometry(r, 1).scale(1, 0.75, 1).translate(u, H - (d * (H + under)) / bank + r * 0.3, v));
+    place(G, M('#a5d167'), hx, y0, hz, rot);
+    place(P, M('#c9c5bd'), hx, y0, hz, rot);
+    place(R, M('#a19c92'), hx, y0, hz, rot);
+    place(C, M('#a29f98'), hx, y0, hz, rot);
+    place(Pl, concrete, hx, y0, hz, rot);
+    place(Gr, M('#8a867e'), hx, y0, hz, rot);
+    place(Wst, M('#efede7'), hx, y0, hz, rot);
+    place(Ltr, darkConcrete, hx, y0, hz, rot);
+    place(B, M('#4a4640', { emissive: '#120e0a' }), hx, y0, hz, rot);
+    place(Mb, M('#f1eee8'), hx, y0, hz, rot);
+    place(Sh, M('#5f8c3e'), hx, y0, hz, rot);
   }
 
   // ---------------- Vataša memorial at Moklište (Jordan Grabul, 1963), for the 12 youths shot
@@ -747,6 +894,149 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
     place(R, M('#bdb6ab'), x, y, z, rot);
     cultureGlass = M('#4a5866', { emissive: '#ffd590', emissiveIntensity: 0 });
     place(G, cultureGlass, x, y, z, rot);
+  }
+
+  // ---------------- Градски стадион (city stadium, ГФК Тиквеш; first match 19 March 1950), round
+  // the OSM pitch. After photos of 2010, 2013 and 2020 (Commons), the municipality's photos of the
+  // works (Oct 2020) and a match photo of Sept 2024: the old covered north stand (concrete terraces
+  // under a dark red roof on red steel columns, a white block wall behind), the east stand rebuilt in
+  // 2020 (terraces curving round the north-east corner, a brick wall behind), the roofed south stand
+  // of 2023 (a white steel canopy), a white clubhouse behind the west goal, the marked pitch, goals
+  // and a white fence. The pitch is flattened in the terrain (`flatWays`, scripts/config.ts).
+  const sf = stadiumFrame(data);
+  if (sf) {
+    const { c, rot, L: hl, W: hw } = sf;
+    const y = T(c[0], c[1]);
+    const pitchArea = data.areas.find((a) => a.k === 'pitch' && pip(c[0], c[1], toPts(a.r[0])));
+    const lineY = areaLift(pitchArea?.z ?? 6) + 0.08;
+    const lines: THREE.BufferGeometry[] = [], goals: THREE.BufferGeometry[] = [], terr: THREE.BufferGeometry[] = [];
+    const wall: THREE.BufferGeometry[] = [], brick: THREE.BufferGeometry[] = [], redRoof: THREE.BufferGeometry[] = [], redSteel: THREE.BufferGeometry[] = [];
+    const white: THREE.BufferGeometry[] = [], canopy: THREE.BufferGeometry[] = [], tiles: THREE.BufferGeometry[] = [], yellow: THREE.BufferGeometry[] = [], glass: THREE.BufferGeometry[] = [];
+    // the markings of a 105 × 68 m field
+    const FL = 52.5, FW = 34, lw = 0.22;
+    const hline = (u0: number, u1: number, v: number) => lines.push(box(u1 - u0 + lw, 0.02, lw, (u0 + u1) / 2, lineY, v));
+    const vline = (u: number, v0: number, v1: number) => lines.push(box(lw, 0.02, v1 - v0 + lw, u, lineY, (v0 + v1) / 2));
+    hline(-FL, FL, -FW); hline(-FL, FL, FW); vline(-FL, -FW, FW); vline(FL, -FW, FW); vline(0, -FW, FW);
+    const ring = (r: number, u: number) => lines.push(new THREE.RingGeometry(r - lw / 2, r + lw / 2, r > 1 ? 56 : 12).rotateX(-Math.PI / 2).translate(u, lineY + 0.02, 0));
+    ring(9.15, 0); ring(0.25, 0);
+    for (const s of [-1, 1]) {
+      for (const [deep, half] of [[16.5, 20.16], [5.5, 9.16]]) { vline(s * (FL - deep), -half, half); hline(Math.min(s * FL, s * (FL - deep)), Math.max(s * FL, s * (FL - deep)), -half); hline(Math.min(s * FL, s * (FL - deep)), Math.max(s * FL, s * (FL - deep)), half); }
+      ring(0.25, s * (FL - 11));
+      // the goal: 7.32 × 2.44 m, posts and bar, a frame for the net behind
+      const g = lineY - 0.08, gu = s * FL, bu = s * (FL + 1.8);
+      for (const v of [-3.66, 3.66]) { goals.push(box(0.12, 2.44, 0.12, gu, g, v)); goals.push(beam([gu, g + 2.44, v], [bu, g + 0.9, v], 0.06), beam([bu, g, v], [bu, g + 0.9, v], 0.06)); }
+      goals.push(box(0.12, 0.12, 7.44, gu, g + 2.38, 0), beam([bu, g + 0.9, -3.66], [bu, g + 0.9, 3.66], 0.06));
+    }
+    // a prism swept along a path (u, v; front edge of a stand), from offset o0 to o1 on the outer
+    // side (left of travel: travel east → south, west → north, north → east), heights y0..y1
+    const sweep = (out: THREE.BufferGeometry[], path: [number, number][], o0: number, o1: number, y0: number, y1: number) => {
+      const n = path.length, nrm: [number, number][] = [];
+      for (let i = 0; i < n; i++) {
+        const a = path[Math.max(0, i - 1)], b = path[Math.min(n - 1, i + 1)];
+        let tu = b[0] - a[0], tv = b[1] - a[1];
+        const l = Math.hypot(tu, tv) || 1; tu /= l; tv /= l;
+        let k = 1;
+        if (i > 0 && i < n - 1) { // miter: divide by the cosine of half the turn
+          const p = path[i - 1], q = path[i], r = path[i + 1];
+          const t1 = [q[0] - p[0], q[1] - p[1]], t2 = [r[0] - q[0], r[1] - q[1]];
+          const l1 = Math.hypot(t1[0], t1[1]), l2 = Math.hypot(t2[0], t2[1]);
+          k = 1 / Math.max(0.5, Math.cos(Math.acos(Math.max(-1, Math.min(1, (t1[0] * t2[0] + t1[1] * t2[1]) / (l1 * l2)))) / 2));
+        }
+        nrm.push([-tv * k, tu * k]);
+      }
+      const P = (i: number, o: number, h: number) => new THREE.Vector3(path[i][0] + nrm[i][0] * o, h, path[i][1] + nrm[i][1] * o);
+      const pos: number[] = [];
+      const quad = (a: THREE.Vector3, b: THREE.Vector3, cc: THREE.Vector3, d: THREE.Vector3, want: THREE.Vector3) => {
+        const nn = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(cc, a));
+        const tri = nn.dot(want) >= 0 ? [a, b, cc, a, cc, d] : [a, cc, b, a, d, cc];
+        for (const v of tri) pos.push(v.x, v.y, v.z);
+      };
+      const UPv = new THREE.Vector3(0, 1, 0);
+      for (let i = 0; i < n - 1; i++) {
+        const out_ = new THREE.Vector3(nrm[i][0] + nrm[i + 1][0], 0, nrm[i][1] + nrm[i + 1][1]);
+        quad(P(i, o0, y1), P(i + 1, o0, y1), P(i + 1, o1, y1), P(i, o1, y1), UPv);
+        quad(P(i, o0, y0), P(i + 1, o0, y0), P(i + 1, o0, y1), P(i, o0, y1), out_.clone().negate());
+        quad(P(i, o1, y0), P(i + 1, o1, y0), P(i + 1, o1, y1), P(i, o1, y1), out_);
+      }
+      for (const [i, j] of [[0, 1], [n - 1, n - 2]]) {
+        const want = new THREE.Vector3(path[i][0] - path[j][0], 0, path[i][1] - path[j][1]);
+        quad(P(i, o0, y0), P(i, o1, y0), P(i, o1, y1), P(i, o0, y1), want);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.computeVertexNormals();
+      const uv = new Float32Array((pos.length / 3) * 2);
+      geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+      out.push(geo);
+    };
+    const terraces = (path: [number, number][], rows: number, tread: number, rise: number, base = 0.35) => {
+      for (let k = 0; k < rows; k++) sweep(terr, path, k * tread, (k + 1) * tread + 0.02, -2, base + (k + 1) * rise);
+      return { depth: rows * tread, top: base + rows * rise };
+    };
+    const { front, north: N, east: E, south: S } = STAD;
+    // north: the old covered stand (~64 m)
+    const nU0 = N.u0, nU1 = N.u1, nv = -hw - front;
+    const ns = terraces([[nU0, nv], [nU1, nv]], N.rows, N.tread, N.rise);
+    sweep(wall, [[nU0, nv], [nU1, nv]], ns.depth, ns.depth + 0.4, -2, ns.top + 3.3);
+    const nLen = nU0 - nU1 + 1, nMid = (nU0 + nU1) / 2;
+    { // the roof: falls toward the pitch, overhanging the front row
+      const back = nv - ns.depth - 0.2, fr = nv + 1.2, yb = ns.top + 3.4, yf = ns.top + 1.9, d = Math.hypot(back - fr, yb - yf);
+      redRoof.push(new THREE.BoxGeometry(nLen, 0.2, d).rotateX(-Math.atan2(yb - yf, fr - back)).translate(nMid, (yb + yf) / 2, (back + fr) / 2));
+      for (let u = nU1 + 1; u <= nU0 - 1; u += 7.9) {
+        const cv = nv - 1.6, cy = 0.35 + 3 * 0.38, top = yf + ((yb - yf) * (fr - cv)) / (fr - back);
+        redSteel.push(box(0.28, top - cy, 0.28, u, cy, cv));
+        redSteel.push(beam([u, top - 0.05, cv], [u, yb - 0.1, back + 0.3], 0.18));
+      }
+    }
+    // yellow huts and the benches by the west end of the north side (photo 2020)
+    yellow.push(box(7, 2.6, 3, nU1 - 9, 0.3, nv - 1), box(5, 2.2, 2.5, nU1 - 17, 0.3, nv - 0.8));
+    // east: rebuilt in 2020, curving round the north-east corner on to the north side
+    const eu = hl + front, R = E.R, ccu = eu - R, ccv = -hw - front + R;
+    const ePath: [number, number][] = [[eu, hw - E.end], [eu, ccv]];
+    for (let i = 1; i <= 8; i++) { const t = (-Math.PI / 2 * i) / 8; ePath.push([ccu + R * Math.cos(t), ccv + R * Math.sin(t)]); }
+    ePath.push([nU0 + 0.5, nv]);
+    const es = terraces(ePath, E.rows, E.tread, E.rise);
+    sweep(brick, ePath, es.depth + 0.8, es.depth + 1.1, -2, es.top + 2.2);
+    // south: the roofed stand of 2023, a white steel canopy
+    const sU0 = S.u0, sU1 = S.u1, sv = hw + front;
+    const ss = terraces([[sU0, sv], [sU1, sv]], S.rows, S.tread, S.rise);
+    sweep(white, [[sU0, sv], [sU1, sv]], ss.depth, ss.depth + 0.25, -2, ss.top + 1.1); // back rail wall
+    {
+      const roofY = ss.top + 4, back = sv + ss.depth + 0.4, fr = sv - 1;
+      canopy.push(box(sU1 - sU0 + 2, 0.15, back - fr, (sU0 + sU1) / 2, roofY, (back + fr) / 2));
+      for (let u = sU0; u <= sU1 + 0.1; u += 8) {
+        white.push(box(0.22, roofY - 0.4, 0.22, u, 0.4, sv + 0.3), box(0.25, roofY - ss.top, 0.25, u, ss.top, back - 0.2));
+        white.push(beam([u, roofY - 0.05, fr], [u, roofY - 0.05, back], 0.3), beam([u, roofY - 0.9, back - 0.2], [u, roofY - 0.1, sv + 2], 0.12));
+      }
+      white.push(box(sU1 - sU0 + 2, 0.45, 0.3, (sU0 + sU1) / 2, roofY - 0.3, fr)); // front fascia
+    }
+    // the fence round the grass
+    const fo = 1.0;
+    white.push(box(2 * hl + 2 * fo, 1.0, 0.07, 0, 0.3, -hw - fo), box(2 * hl + 2 * fo, 1.0, 0.07, 0, 0.3, hw + fo));
+    white.push(box(0.07, 1.0, 2 * hw + 2 * fo, -hl - fo, 0.3, 0), box(0.07, 1.0, 2 * hw + 2 * fo, hl + fo, 0.3, 0));
+    // west: the white clubhouse (two storeys, tiled roof) and a long single-storey building
+    const hip = (w: number, d: number, h: number, u: number, yb: number, v: number) =>
+      new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1).rotateY(Math.PI / 4).scale(w * 1.08, h, d * 1.08).translate(u, yb + h / 2, v);
+    for (const [du, v, w, d, h] of STAD.clubs) {
+      const u = -hl + du;
+      wall.push(box(w, h + 0.4, d, u, -0.4, v));
+      tiles.push(hip(w, d, h > 5 ? 2.6 : 1.8, u, h, v));
+      for (let f = 0; f < Math.floor(h / 3); f++) // windows on the side facing the pitch
+        for (let k = 0; k < Math.floor(d / 3.2); k++) glass.push(box(0.1, 1.3, 1.2, u + w / 2 + 0.03, 1.1 + f * 3, v - d / 2 + 1.6 + k * 3.2));
+    }
+    const pl = (parts: THREE.BufferGeometry[], mat: THREE.Material) => place(parts, mat, c[0], y, c[1], rot);
+    pl(lines, M('#f7f5ef'));
+    pl(goals, M('#fbfbf8'));
+    pl(terr, M('#cdc8be'));
+    pl(wall, M('#ebe7df'));
+    pl(brick, M('#b4614a'));
+    pl(redRoof, M('#8b2e26'));
+    pl(redSteel, M('#a8392f'));
+    pl(white, M('#f3f3f0'));
+    pl(canopy, M('#dfe2e4'));
+    pl(tiles, M('#74594c'));
+    pl(glass, M('#4d5866'));
+    pl(yellow, M('#e8c23a'));
   }
 
   return {

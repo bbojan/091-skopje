@@ -133,10 +133,34 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
      with raised ends, both on radial brackets with a band of diamond reliefs; a ~21 m courtyard ringed
      by fluted wall blocks of different heights, steps down (amphitheatre) to the shaft, iron
      grape-vine gates on the north and south sides.
-   - People's Heroes Kiro Atanasovski (Kiro Krstev) and Dimče Mirčev, where they fell (north-west
-     corner of the town park): an ~8 m concrete pillar, a raised wall with a bronze relief (Tome
-     Andreevski, 1959), a marble pylon behind, steps between cheek walls. OSM names him
-     „Киро Атанасовски-Налбатот“, Commons „Киро Крстев“: the same person.
+   - Споменик Киро Крстев и Димче Мирчев, where the two People's Heroes died on 7 April 1944
+     (north-west corner of the town park; Tome Andreevski, 1959). Rebuilt after two Commons photos of
+     June 2019 („Kiro Krstev i Dimce Mircev - spomenik Kavadarci“): a ~7 m concrete slab, its top
+     rising to the right and its ends cut on a slant, the names on the left and a dark relief of
+     charging fighters on the right, on two piers of white stone blocks (the park path passes between
+     them, a low wall runs on to the pillar); a tall pale concrete pillar (~8 m) at the top of the
+     steps; 13 steps between rubble-stone walls. Layout from OSM: the steps (way 1275768508) arrive at
+     the footway ring round the node and the path into the park leaves behind; the relief faces down
+     the steps (`HEROES_TURN`). The elevation data is flat there, so the model raises its own terrace
+     ~2 m above the paths (grass bank, a ramp down into the park behind); walking and the city's
+     pedestrians stand on it (`landmarkGround()` in `landmarks.ts`). From the description only: the
+     marble pylon behind (spomenikdatabase.org), the ramp. The Commons photo GPS is ~150 m off;
+     OSM and spomenikdatabase agree within 4 m. OSM names him „Киро Атанасовски-Налбатот“,
+     Commons „Киро Крстев“: the same person.
+   - Градски стадион (ГФК Тиквеш; first match 19 March 1950), round the OSM pitch (way 1276210010,
+     lit grass, no stands in OSM; en.wikipedia's coordinates fall on it). After Commons photos of 2010,
+     2013 and Nov 2020, the municipality's photos of the works (16 Oct 2020) and a GFK Tikveš match
+     photo of Sept 2024 (stativa.mk): the old covered north stand (10 concrete rows, a dark red roof
+     falling toward the pitch on red steel columns, a white block wall behind, yellow huts by its
+     west end), the east stand rebuilt in 2020 (9 rows curving round the north-east corner, a brick
+     wall behind), the roofed south stand finished in 2023 (8 rows under a white steel canopy), a white
+     two-storey clubhouse with a tiled roof behind the west goal and a long low building north of it,
+     a 105 × 68 m marked field, goals, a white fence. The 25 m terrain ran ~6 m up across the pitch:
+     `flatWays` in scripts/config.ts flattens the pitch and a 12 m pad round it at 282.3 m (the low,
+     street side), so the north stand is dug into the hill as in the photos. Not from photos: the stand
+     lengths and the south stand's row count (from „1000 covered seats“), the clubhouse sizes, no
+     floodlights (OSM says lit, no photo shows masts), seat colours (left as concrete). Capacity is
+     given as 4,000 to 9,000 by different sources, so the info card leaves it out.
    - Vataša memorial at Moklište (Jordan Grabul, 1963; 12 youths shot on 16 June 1943): two curved
      ~5 m concrete walls round a small altar, the inscription on the south one. No photo was found:
      modelled from the description only.

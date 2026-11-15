@@ -22,6 +22,9 @@ export interface TerrainSpec {
   flatWater?: boolean;
   /** squares (OSM `name`) made flat at their middle height, blended into the ground around them */
   flatSquares?: string[];
+  /** OSM ways (pitches…) made flat the same way, at the given height (metres above sea) or their middle height,
+   *  also `pad` metres round them (stands), then blended over 15 m */
+  flatWays?: [id: number, level?: number, pad?: number][];
   /** river channels cut along waterways: tag → [half width, depth] in metres; not under roads (bridges, culverts) */
   rivers?: Record<string, [halfWidth: number, depth: number]>;
   /** known heights the ground is bent to: [lat, lon, metres above sea, radius m (default 150)] */
@@ -46,6 +49,9 @@ export const CITIES = {
       smooth: 1,
       flatWater: true,
       flatSquares: ['Плоштад Маршал Тито'],
+      // the city stadium's pitch and its stands: dug into the slope north of it, level with the street
+      // on the south side (photos); the 25 m data runs ~6 m up across it
+      flatWays: [[1276210010, 282.3, 12]],
       rivers: { river: [6, 2.5], stream: [3, 1.5], canal: [2, 1] },
       points: [],
     } as TerrainSpec,
