@@ -79,8 +79,6 @@
       .me-main { display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px 9px 15px; color: inherit; text-decoration: none; border-radius: 999px 0 0 999px; }
       .me-more { font: inherit; font-size: 11px; color: inherit; background: transparent; border: 0; border-left: 1px solid rgba(255, 248, 236, 0.35);
                  padding: 0 12px 0 9px; cursor: pointer; border-radius: 0 999px 999px 0; }
-      .me-more[hidden] { display: none; }
-      .me:not(:has(.me-more:not([hidden]))) .me-main { border-radius: 999px; padding-right: 15px; }
       .me-main:hover, .me-more:hover, .me-more[aria-expanded="true"] { background: #0a66c2; }
       .me-main:focus-visible, .me-more:focus-visible { outline: 2px solid #fff8ec; outline-offset: -4px; }
       .me svg { width: 17px; height: 17px; fill: currentColor; }
@@ -383,7 +381,7 @@
           Податоци © соработниците на <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> (ODbL) ·
           Релјеф: <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Terrain Tiles</a> (AWS Open Data) ·
           Изработено со three.js од <a href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">Бојан Божиновски</a>
-          <span class="soon" hidden>и <a href="https://www.linkedin.com/in/ristes/" target="_blank" rel="noopener">Ристе Самарџиев</a> (Кавадарци)</span>
+          и <a href="https://www.linkedin.com/in/ristes/" target="_blank" rel="noopener">Ристе Самарџиев</a> (Кавадарци)
         </p>
         <p class="version" id="app-version"></p>
       </div>
@@ -393,7 +391,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
         <span class="me-name" data-i18n="me">Бојан Божиновски</span>
       </a>
-      <button class="me-more" id="me-more" type="button" hidden aria-haspopup="menu" aria-expanded="false" aria-controls="me-menu" aria-label="Програмери" title="Програмери" data-i18n-aria="me.more" data-i18n-title="me.more">▼</button>
+      <button class="me-more" id="me-more" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="me-menu" aria-label="Програмери" title="Програмери" data-i18n-aria="me.more" data-i18n-title="me.more">▼</button>
       <div class="city-menu me-menu" id="me-menu" role="menu" aria-label="Програмери" data-i18n-aria="me.more" hidden>
         <a role="menuitem" href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener"><span class="code">091</span><span data-i18n="me">Бојан Божиновски</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg></a>
         <a role="menuitem" href="https://www.linkedin.com/in/ristes/" target="_blank" rel="noopener"><span class="code">043</span><span data-i18n="me.riste">Ристе Самарџиев</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg></a>
