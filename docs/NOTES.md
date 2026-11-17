@@ -115,6 +115,13 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    map's F / R tilt. With Cmd / Ctrl / Alt held the keys stay the browser's (reload, find).
    The key hint in the flight says „Q E F R акробации“, the help dialog has a row for them.
    Checked by stepping the flight with synthetic key presses, both invert states.
+23. **v2.8.0** (Nov 2026): ⚙ Опции got two submenus, 🎨 Графика (contours, quality, smooth
+   edges, memory saver, less traffic) and 🎮 Управување (invert up/down for the map and walking,
+   off by default; in flight, on by default). The flight / fire key hints and the help's ↑ ↓
+   line follow the flight switch. Race / fire direction arrow: a bold SVG arrow that turns the
+   short way round. The help ? is a round button right after the title badge. The LinkedIn
+   button can list the developers (▼), hidden for now with Riste's credit in the help footer
+   (`hidden` on `#me-more` and the `.soon` spans; shown on the Kavadarci branch).
 
 ## Key decisions (and why)
 
