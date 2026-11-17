@@ -18,6 +18,8 @@ export const LANGS = [
 const OSM = '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
 const TILES = '<a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Terrain Tiles</a>';
 const ME = (name: string) => `<a href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">${name}</a>`;
+// the other developers stay hidden for now (remove `hidden` to show them again)
+const SOON = (html: string) => `<span class="soon" hidden>${html}</span>`;
 const RISTE = (name: string) => `<a href="https://www.linkedin.com/in/ristes/" target="_blank" rel="noopener">${name}</a>`;
 const K = (...keys: string[]) => keys.map((k) => `<kbd>${k}</kbd>`).join(' ');
 
@@ -123,7 +125,7 @@ export const STR = {
     's.intro': 'The look is inspired by hand-drawn isometric maps: warm cream façades, terracotta roofs, lavender shadows and dense, rounded treetops. Everything is drawn in real time:',
     's.list': '<li>ink outlines tinted by the surface beneath, thicker along silhouettes;</li><li>soft shadows and darkening in corners (ambient occlusion);</li><li>windows, balconies, shutters, awnings and roof tiles painted in a shader;</li><li>two-tone shading of the trees — warm in the sun, cool in the shade;</li><li>when the camera is still, the image sharpens by accumulating many slightly shifted renders (supersampling).</li>',
     's.heights': 'Building heights missing from OpenStreetMap are estimated from the footprint and the neighbourhood — houses on the outskirts, high-rises in Karpoš and Aerodrom, low houses in the Old Bazaar.',
-    'help.foot': `Data © ${OSM} contributors (ODbL) · Terrain: ${TILES} (AWS Open Data) · Made with three.js by ${ME('Bojan Božinovski')} and ${RISTE('Riste Samardžiev')} (Kavadarci)`,
+    'help.foot': `Data © ${OSM} contributors (ODbL) · Terrain: ${TILES} (AWS Open Data) · Made with three.js by ${ME('Bojan Božinovski')}${SOON(` and ${RISTE('Riste Samardžiev')} (Kavadarci)`)}`,
     'me': 'Bojan Božinovski',
     'me.more': 'Developers',
     'me.riste': 'Riste Samardžiev',
@@ -243,7 +245,7 @@ export const STR = {
     's.intro': 'Изглед је инспирисан ручно цртаним изометријским мапама: топле кремасте фасаде, кровови од теракоте, сенке боје лаванде и густе заобљене крошње. Све се црта у реалном времену:',
     's.list': '<li>контуре мастилом у боји подлоге, дебље дуж силуета;</li><li>меке сенке и затамњење у угловима (амбијентална оклузија);</li><li>прозори, балкони, капци, тенде и црепови исцртани у шејдеру;</li><li>двотонско сенчење дрвећа — топло на сунцу, хладно у сенци;</li><li>када камера мирује, слика се изоштрава сабирањем више мало померених рендера (суперсемплинг).</li>',
     's.heights': 'Висине зграда којих нема у OpenStreetMap-у процењују се према облику и насељу — куће на периферији, солитери у Карпошу и Аеродрому, ниске куће у Чаршији.',
-    'help.foot': `Подаци © сарадници пројекта ${OSM} (ODbL) · Рељеф: ${TILES} (AWS Open Data) · Израдили ${ME('Бојан Божиновски')} и ${RISTE('Ристе Самарџиев')} (Кавадарци) у three.js-у`,
+    'help.foot': `Подаци © сарадници пројекта ${OSM} (ODbL) · Рељеф: ${TILES} (AWS Open Data) · Израдио ${ME('Бојан Божиновски')}${SOON(` и ${RISTE('Ристе Самарџиев')} (Кавадарци)`)} у three.js-у`,
     'me': 'Бојан Божиновски',
     'me.more': 'Програмери',
     'me.riste': 'Ристе Самарџиев',
@@ -363,7 +365,7 @@ export const STR = {
     's.intro': 'Izgled je inspiriran ručno crtanim izometrijskim kartama: tople krem fasade, krovovi od terakote, sjene boje lavande i guste zaobljene krošnje. Sve se crta u stvarnom vremenu:',
     's.list': '<li>konture tintom u boji podloge, deblje uz siluete;</li><li>meke sjene i zatamnjenje u kutovima (ambijentalna okluzija);</li><li>prozori, balkoni, kapci, tende i crijep iscrtani u shaderu;</li><li>dvotonsko sjenčanje stabala — toplo na suncu, hladno u sjeni;</li><li>kad kamera miruje, slika se izoštrava zbrajanjem više malo pomaknutih renderiranja (supersampling).</li>',
     's.heights': 'Visine zgrada kojih nema u OpenStreetMapu procjenjuju se prema obliku i naselju — kuće na periferiji, neboderi u Karpošu i Aerodromu, niske kuće u Čaršiji.',
-    'help.foot': `Podaci © suradnici projekta ${OSM} (ODbL) · Reljef: ${TILES} (AWS Open Data) · Izradili ${ME('Bojan Božinovski')} i ${RISTE('Riste Samardžiev')} (Kavadarci) u three.js-u`,
+    'help.foot': `Podaci © suradnici projekta ${OSM} (ODbL) · Reljef: ${TILES} (AWS Open Data) · Izradio ${ME('Bojan Božinovski')}${SOON(` i ${RISTE('Riste Samardžiev')} (Kavadarci)`)} u three.js-u`,
     'me': 'Bojan Božinovski',
     'me.more': 'Programeri',
     'me.riste': 'Riste Samardžiev',
@@ -483,7 +485,7 @@ export const STR = {
     's.intro': 'Videz je navdihnjen z ročno risanimi izometričnimi zemljevidi: tople kremne fasade, strehe iz terakote, sence v barvi sivke in goste zaobljene krošnje. Vse se riše v realnem času:',
     's.list': '<li>obrobe s črnilom v barvi podlage, debelejše ob silhuetah;</li><li>mehke sence in zatemnitev v kotih (ambientna okluzija);</li><li>okna, balkoni, polkna, tende in strešniki, izrisani v senčilniku;</li><li>dvobarvno senčenje dreves — toplo na soncu, hladno v senci;</li><li>ko kamera miruje, se slika izostri s seštevanjem več rahlo zamaknjenih upodobitev (supersampling).</li>',
     's.heights': 'Višine stavb, ki jih v OpenStreetMap ni, so ocenjene glede na obliko in sosesko — hiše na obrobju, stolpnice v Karpošu in Aerodromu, nizke hiše v Čaršiji.',
-    'help.foot': `Podatki © sodelavci projekta ${OSM} (ODbL) · Relief: ${TILES} (AWS Open Data) · Izdelala ${ME('Bojan Božinovski')} in ${RISTE('Riste Samardžiev')} (Kavadarci) s three.js`,
+    'help.foot': `Podatki © sodelavci projekta ${OSM} (ODbL) · Relief: ${TILES} (AWS Open Data) · Izdelal ${ME('Bojan Božinovski')}${SOON(` in ${RISTE('Riste Samardžiev')} (Kavadarci)`)} s three.js`,
     'me': 'Bojan Božinovski',
     'me.more': 'Razvijalci',
     'me.riste': 'Riste Samardžiev',
@@ -603,7 +605,7 @@ export const STR = {
     's.intro': 'Pamja është frymëzuar nga hartat izometrike të vizatuara me dorë: fasada të ngrohta në ngjyrë kremi, çati prej terrakote, hije në ngjyrë livande dhe kurora pemësh të dendura e të rrumbullakëta. Gjithçka vizatohet në kohë reale:',
     's.list': '<li>kontura me bojë në ngjyrën e sfondit, më të trasha përgjatë siluetave;</li><li>hije të buta dhe errësim në qoshe (okluzion ambiental);</li><li>dritare, ballkone, grila, tenda dhe tjegulla të vizatuara në shader;</li><li>hijezim dyngjyrësh i pemëve — i ngrohtë në diell, i ftohtë në hije;</li><li>kur kamera qëndron e palëvizur, imazhi mprehet duke mbledhur shumë renderime pak të zhvendosura (supersampling).</li>',
     's.heights': 'Lartësitë e ndërtesave që mungojnë në OpenStreetMap vlerësohen sipas formës dhe lagjes — shtëpi në periferi, pallate të larta në Karposh dhe Aerodrom, shtëpi të ulëta në Çarshi.',
-    'help.foot': `Të dhënat © kontribuuesit e ${OSM} (ODbL) · Relievi: ${TILES} (AWS Open Data) · Punuar me three.js nga ${ME('Bojan Božinovski')} dhe ${RISTE('Riste Samardžiev')} (Kavadarci)`,
+    'help.foot': `Të dhënat © kontribuuesit e ${OSM} (ODbL) · Relievi: ${TILES} (AWS Open Data) · Punuar me three.js nga ${ME('Bojan Božinovski')}${SOON(` dhe ${RISTE('Riste Samardžiev')} (Kavadarci)`)}`,
     'me': 'Bojan Božinovski',
     'me.more': 'Zhvilluesit',
     'me.riste': 'Riste Samardžiev',
