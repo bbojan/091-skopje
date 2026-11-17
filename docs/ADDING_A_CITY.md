@@ -14,6 +14,7 @@ servers), tuning building heights, and the monuments.
 | Map extent, tiles, file names | `CITIES` in `scripts/config.ts` | yes |
 | How OSM is read (square, old town, landmarks, places, height zones) | `PREP` in `scripts/prepare.ts` | yes |
 | Raw OSM download | `data/<id>_raw.json` | no (`.gitignore`) |
+| Extra building outlines (optional) | `data/<id>_overture.json` (`files.overture`) | no (`.gitignore`) |
 | Prepared scene | `public/<id>.json` | yes |
 | Heightfield | `public/<id>-terrain.bin` + `.json` | yes |
 | Views, labels, race, walking spots, labels for snow / refill | `CITIES` in `src/cities.ts` | yes |
@@ -33,8 +34,9 @@ curl -s -A 'illustrated-map-research/0.1' --data-urlencode 'data=[out:json][time
 ```
 
 Decide:
-- **The box.** The town plus a margin: neighbourhoods, a hill, a river. Kavadarci is
-  41.380–41.462 N, 21.958–22.062 E (≈ 8.7 × 9.1 km); Skopje is ≈ 16 × 11 km. Memory, download
+- **The box.** The town plus a margin: neighbourhoods, a hill, a river. Kavadarci began as
+  41.380–41.462 N, 21.958–22.062 E (≈ 8.7 × 9.1 km) and grew to 41.25–41.462 N, 21.85–22.062 E
+  (≈ 17.7 × 23.6 km, the whole Тиквешко Езеро); Skopje is ≈ 16 × 11 km. Memory, download
   and load time grow with the content, not only the area (NOTES.md, "A larger map").
 - **Water for firefighting.** The Air Tractor refills by skimming a `water` area. A narrow river
   drawn only as a line is not an area. Check the areas' sizes after step 4: Kavadarci's "lake"
@@ -81,14 +83,24 @@ python3 -c "import json,collections; d=json.load(open('data/ohrid_raw.json')); p
   Kavadarci: 804 of 804 buildings and 967 of 979 roads. The small gap comes from mirrors with
   different snapshot dates; a large one means a tile came back partial, so download again.
 - **A thinly mapped town.** OSM coverage varies. Kavadarci has 804 buildings and almost none with a
-  height, which is real, not a broken download.
+  height, which is real, not a broken download. If the streets are mapped but the blocks between
+  them are empty, add `overture: 'data/<id>_overture.json'` to the city's `files` and run
+  `npm run overture -- <id>` (about 10 s): it fetches Overture Maps' building outlines (mostly
+  Microsoft's machine-learned footprints, ODbL) for the box, and `npm run data` then adds the ones
+  that do not overlap an OSM building, a hand-built landmark (keep-out pads in `prepare.ts`), water
+  or a road. They carry no tags: heights are the plain house guesses (1–5 storeys, height zones
+  ignored), because the blocks of flats are usually in OSM already. Kavadarci: 7,802 added to
+  804. Credit them in the app (`data-city` span in `.attr`, the help footer) and in the help intro.
 
 `terrain` prints the elevation range. Note it: the snow line of the "snow on the hills" weather is
 300 m above the map's lowest point.
 
 Shape the terrain with the city's `terrain` settings in `scripts/config.ts` (needs the raw download):
 `smooth` (box passes; 1 for EU-DEM areas, Skopje keeps 3), `flatWater` (one level per lake),
-`flatSquares` (OSM names), `rivers` (waterway tag → [half width, depth]; never under roads) and
+`flatSquares` (OSM names), `rivers` (waterway tag → [half width, depth]; never under roads), `riversKeep` (stretches of a
+waterway left uncut, where a hand-built channel is set in at street level: Kavadarci's Луда Мара,
+`src/river.ts`), `dams`
+(an embankment dam raised along its crest line: [way id, crest height, half width, face slope]) and
 `points` (known heights [lat, lon, metres, radius]). In `src/cities.ts`, `terrainExag: 1` draws
 true heights. Check the result against an independent DEM before trusting your eyes, e.g. 100 points
 from `https://api.opentopodata.org/v1/eudem25m?locations=lat,lon|…` (1 request a second).
@@ -108,6 +120,10 @@ Add an entry (the `CityPrep` type documents every field):
 - `landmarks`: OSM ids of the outlines or nodes that `landmarks.ts` replaces with a model. A building
   replaced by a model goes into `SKIP_BUILDINGS`. `landmarkLL` holds positions of monuments that are
   not in OSM.
+- `dropBuildings` / `extraBuildings`: OSM outlines that do not match the place (checked against an
+  aerial image) are left out; buildings OSM lacks are added as lat/lon outlines with OSM-style tags.
+  Append new `extraBuildings` (their ids, 9e11 + index, seed the facade and roof). `buildingTags` adds
+  tags to OSM buildings by way id, e.g. `building:levels` / `roof:shape` where the guess is wrong.
 - `tall` / `mid`: lat/lon boxes where untagged blocks of flats become towers. `squareBonus` adds
   storeys near the square (a capital's centre); `maxLevels` caps guessed storeys.
 
@@ -143,6 +159,8 @@ Add the id to `CITY_IDS` and an entry to `CITIES` (`CitySpec` documents the fiel
   last = finish), `spots` (walking info cards: key → i18n `info.<key>`).
 - `gliders`: paragliders, only where there is a Millennium Cross (Skopje). `snowLabel` /
   `refillLabel`: i18n keys for the "snow up high" weather button and the empty-tank hint.
+- `sparseFar`: for a map that is mostly bare hills, chunks with fewer draped-ground vertices than this
+  get far textures at half size (Kavadarci: 1500).
 - `bestRaceKey`: a storage key of its own (`skopje.bestRace.ohrid`); add it to the Settings table
   in NOTES.md.
 

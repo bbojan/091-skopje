@@ -6,6 +6,7 @@
   "scripts": {
     "download": "node scripts/download.ts",
     "terrain": "node scripts/terrain.ts",
+    "overture": "node scripts/overture.ts",
     "data": "node scripts/prepare.ts",
     "strings": "node scripts/strings.ts",
     "dev": "vite --port 5173",
@@ -19,6 +20,8 @@
   "devDependencies": {
     "@types/node": "^24.19.2",
     "@types/three": "^0.170.0",
+    "hyparquet": "^1.33.1",
+    "hyparquet-compressors": "^1.1.3",
     "typescript": "^7.0.2",
     "vite": "^6.0.7"
   },

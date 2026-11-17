@@ -1,8 +1,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { toPts, obb, pip } from './geo.ts';
-import { SHARED, MODELLED_BUILDINGS, HEROES_TURN, areaLift, roadLift } from './city.ts';
+import { SHARED, MODELLED_BUILDINGS, HEROES_TURN, areaLift, roadLift, isPaintedArea } from './city.ts';
 import type { Terrain } from './terrain.ts';
+import { squareLayout, createSquare, squareFootprints, squareGround, townhallPlan } from './square.ts';
+import { canalLayout, createCanal, canalWalkGround, canalFootprints } from './river.ts';
+import { marketFrame, createMarket, marketFootprints, marketGround } from './market.ts';
 import type { BuildingData, CityData, Flat, Pt, Vec3 } from './types.ts';
 
 // Hand-built models for landmarks that OSM can only describe as outlines.
@@ -53,6 +56,24 @@ function lattice(out: THREE.BufferGeometry[], { origin, axis, side, w, len, seg,
 }
 
 const flatten = (gs: THREE.BufferGeometry[]) => gs.map((g) => (g.index ? g.toNonIndexed() : g));
+
+/** Kavadarci, Спомен-парк Ваташа (Moklište): the busts of the 12 youths shot on 16 June 1943, unveiled on
+ *  16 June 2023 (sculptors Kiril Mukaetov and Dimitar Samardžiev). They stand on white pedestals in an arc
+ *  round the lawn in front of the memorial, about 2.3 m apart: read off an aerial image (Esri World
+ *  Imagery), lat/lon west to east; they face the lawn's middle. */
+const VATASA_BUSTS: [lat: number, lon: number][] = [
+  [41.401607, 22.028342], [41.401609, 22.028369], [41.401611, 22.028397], [41.401613, 22.028424],
+  [41.401611, 22.028451], [41.401606, 22.028478], [41.401597, 22.028502], [41.401588, 22.028526],
+  [41.401577, 22.028550], [41.401566, 22.028572], [41.401553, 22.028594], [41.401538, 22.028613],
+];
+const VATASA_LAWN: [lat: number, lon: number] = [41.4015, 22.028447];
+/** the busts' positions and turns (local +z toward the lawn), when the city has the Vataša memorial */
+function vatasaBusts(data: CityData): { x: number; z: number; rot: number }[] {
+  if (!data.landmarks?.vatasa) return [];
+  const m = data.meta, P = ([lat, lon]: [number, number]): Pt => [(lon - m.lon0) * m.kx, -(lat - m.lat0) * m.ky];
+  const [lx, lz] = P(VATASA_LAWN);
+  return VATASA_BUSTS.map(P).map(([x, z]) => ({ x, z, rot: Math.atan2(lx - x, lz - z) }));
+}
 
 // ---------------- Kavadarci, the memorial to Kiro Krstev and Dimče Mirčev: the layout shared by
 // the model, walking collision and the walking ground. Local frame: origin at the OSM node, +z
@@ -110,10 +131,15 @@ function stadiumFrame(data: CityData) {
 
 /** Raised ground of modelled monuments for walking (absolute height, −∞ off them), or null. */
 export function landmarkGround(data: CityData, terrain: Terrain): ((x: number, z: number) => number) | null {
+  const sl = squareLayout(data, terrain), square = sl ? squareGround(sl) : null; // Kavadarci: the town hall's terrace
+  const mf = marketFrame(data, terrain), deck = mf ? marketGround(mf) : null; // the market's deck
+  const terrace0 = square && deck ? (x: number, z: number) => Math.max(square(x, z), deck(x, z)) : square || deck;
+  const cl = canalLayout(data, terrain), canal = cl ? canalWalkGround(cl, terrain) : null; // the Луда Мара's promenades, footbridges
+  const terrace = terrace0 && canal ? (x: number, z: number) => Math.max(terrace0(x, z), canal(x, z)) : terrace0 || canal;
   const f = heroesFrame(data, terrain);
-  if (!f) return null;
+  if (!f) return terrace;
   const { H, bank, under, top: [x0, x1, z0, z1], stairs: st, ramp } = HZ;
-  return (x, z) => {
+  const heroes = (x: number, z: number) => {
     const [lx, lz] = f.local(x, z);
     if (Math.abs(lx) > 25 || Math.abs(lz) > 25) return -Infinity;
     let h = -Infinity;
@@ -123,17 +149,15 @@ export function landmarkGround(data: CityData, terrain: Terrain): ((x: number, z
     if (Math.abs(lx - ramp.cx) < ramp.w / 2 && lz <= z0 && lz >= z0 - ramp.len) h = Math.max(h, H - ((z0 - lz) / ramp.len) * (H - f.rb));
     return f.y0 + h;
   };
+  return terrace ? (x, z) => Math.max(heroes(x, z), terrace(x, z)) : heroes;
 }
 
 /** Outlines of modelled buildings that are not (or no longer) OSM buildings, so walking collides with them. */
 export function landmarkFootprints(data: CityData, terrain: Terrain): BuildingData[] {
   const L = data.landmarks || {}, out: BuildingData[] = [];
   const add = (r: Flat, h: number) => out.push({ id: -1 - out.length, r: [r], h, mh: 0, lv: 2, old: 0, t: 'yes', rs: null, w: null, c: null });
-  const hall = L.townhall ? obb(toPts(L.townhall)) : null;
-  if (hall) { // the model fills the outline's oriented box, so collide with that box
-    const { c, a, b, L: hl, W: hw } = hall;
-    add([[-1, -1], [1, -1], [1, 1], [-1, 1]].flatMap(([u, v]) => [c[0] + a[0] * hl * u + b[0] * hw * v, c[1] + a[1] * hl * u + b[1] * hw * v]), 12.6);
-  }
+  const hall = townhallPlan(data);
+  if (hall) add(hall.ring.flatMap(([x, z]) => [x, z]), 12.6); // the model follows this outline
   if (L.culture) {
     const [x, z, rot] = L.culture, c = Math.cos(rot), s = Math.sin(rot);
     const rect = (x0: number, x1: number, z0: number, z1: number): Flat =>
@@ -150,6 +174,16 @@ export function landmarkFootprints(data: CityData, terrain: Terrain): BuildingDa
     for (const sd of [-1, 1]) { const wx = st.cx + sd * (st.w / 2 + 0.25); parts.push([wx - 0.25, wx + 0.25, z1 - 0.6, z1 + hf.run + 0.3]); }
     for (const [x0, x1, z0, z1] of parts) add([[x0, z0], [x1, z0], [x1, z1], [x0, z1]].flatMap(([lx, lz]) => hf.world(lx, lz)), 3);
   }
+  for (const { x, z, rot } of vatasaBusts(data)) { // the pedestals of the 12 busts at Vataša
+    const c = Math.cos(rot), s = Math.sin(rot);
+    add([[-0.43, -0.43], [0.43, -0.43], [0.43, 0.43], [-0.43, 0.43]].flatMap(([u, v]) => [x + u * c + v * s, z - u * s + v * c]), 2.1);
+  }
+  const sl = squareLayout(data, terrain); // Kavadarci: the square's fountains and planters
+  if (sl) for (const [r, h] of squareFootprints(sl)) add(r, h);
+  const mf = marketFrame(data, terrain); // the market's shops and stairs block (they stand on the deck)
+  if (mf) for (const [r, h] of marketFootprints(mf)) add(r, mf.y - terrain.at(r[0], r[1]) + h);
+  const cl = canalLayout(data, terrain); // the Луда Мара's channel, open at the bridges
+  if (cl) for (const b of canalFootprints(cl)) out.push({ ...b, id: -1 - out.length });
   return out;
 }
 
@@ -616,6 +650,40 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
     place(D, darkConcrete, x, y, z, 0);
   }
 
+  // ---------------- 12-те ваташки деца: twelve white marble busts on tall white pedestals, each on a
+  // square base slab, in an arc round the lawn in front of the memorial; tall cypresses behind the
+  // western half of the arc (aerial image, photo of 2023)
+  {
+    const busts = vatasaBusts(data);
+    const marble: THREE.BufferGeometry[] = [], cypress: THREE.BufferGeometry[] = [];
+    // the lawn's height: a large park is painted into the terrain, a small one draped above it
+    const park = busts.length ? data.areas.find((a) => pip(busts[0].x, busts[0].z, toPts(a.r[0]))) : undefined;
+    const lift = park && !isPaintedArea(park.k, park.a) ? areaLift(park.z) : 0;
+    busts.forEach(({ x, z, rot }, i) => {
+      const y = T(x, z) + lift;
+      const parts = [
+        box(0.85, 0.5, 0.85, 0, -0.35, 0), // base slab, 0.15 m above the grass
+        box(0.5, 1.15, 0.5, 0, 0.15, 0), // pedestal
+        box(0.6, 0.06, 0.6, 0, 1.3, 0), // its cap
+        new THREE.CylinderGeometry(0.25, 0.19, 0.3, 16).scale(1, 1, 0.55).translate(0, 1.51, 0), // chest, cut flat below
+        new THREE.SphereGeometry(1, 16, 8).scale(0.26, 0.09, 0.14).translate(0, 1.66, 0), // the shoulders' round
+        new THREE.CylinderGeometry(0.06, 0.07, 0.16, 10).translate(0, 1.76, 0), // neck
+        new THREE.SphereGeometry(0.125, 16, 12).scale(0.95, 1.22, 1.08).translate(0, 1.95, 0.015), // head
+        new THREE.SphereGeometry(0.06, 10, 8).scale(1.1, 0.8, 1).translate(0, 1.86, 0.08), // chin and jaw
+      ];
+      for (const g of parts) marble.push(g.rotateY(rot).translate(x, y, z));
+      // cypresses behind the first seven, between the busts
+      if (i < 7) {
+        const nx = busts[i + 1].x, nz = busts[i + 1].z, mx = (x + nx) / 2, mz = (z + nz) / 2;
+        const ox = -Math.sin(rot) * 2.6, oz = -Math.cos(rot) * 2.6; // away from the lawn
+        const cy = T(mx + ox, mz + oz) + lift;
+        cypress.push(new THREE.ConeGeometry(0.6, 5.4 + (i % 3) * 0.5, 10).translate(mx + ox, cy + 2.6 + (i % 3) * 0.25, mz + oz));
+      }
+    });
+    place(marble, M('#f3f0ea'), 0, 0, 0, 0);
+    place(cypress, M('#3a6337'), 0, 0, 0, 0);
+  }
+
   // ---------------- Плоштад Маршал Тито: the Monument to the Revolution, the town hall with its
   // fountains, flags and conifers, round granite planters, ball bollards and curved paving bands.
   // After photos of 12 Dec 2020 (Commons) and 1 June 2025 (US Army, public domain); the planters'
@@ -694,47 +762,79 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
     group.add(plate);
   }
 
-  // ---------------- Општина Кавадарци (town hall): three storeys faced with salmon and cream stone
-  // panels, a projecting entrance bay with the lettering, tall white-framed windows, a flat roof;
-  // in front: steps, trimmed conifers, flagpoles and a round fountain on each side
-  if (L.townhall) {
-    const ob = obb(toPts(L.townhall));
-    if (ob) {
-      // the front is the long side that faces the square
-      const sq = data.places?.square ?? data.meta.square;
-      const toSq = [sq[0] - ob.c[0], sq[1] - ob.c[1]];
-      const nrm: Pt = toSq[0] * ob.b[0] + toSq[1] * ob.b[1] >= 0 ? ob.b : [-ob.b[0], -ob.b[1]];
-      const rot = Math.atan2(nrm[0], nrm[1]); // local +z = the front
-      const len = ob.L * 2, dep = ob.W * 2, H = 12.6, fz = dep / 2;
-      const [cx, cz] = ob.c, y = T(cx, cz) + sqLift - 0.3;
+  // ---------------- Општина Кавадарци (town hall): three storeys faced with sand-coloured stone panels
+  // mottled salmon, cream bands and pilasters, a projecting entrance bay with the lettering in the middle
+  // of the front, tall white-framed windows, a flat white roof with a row of skylights (aerial image,
+  // Street View 2025). It follows OSM's outline (townhallPlan, square.ts), kept off the streets; in
+  // front: trimmed conifers and flagpoles on the terrace (the steps and fountains are in square.ts)
+  const plan = townhallPlan(data);
+  if (plan) {
+    {
+      const { ring, a, b, nrm } = plan;
+      const rot = Math.atan2(nrm[0], nrm[1]); // local +z = out of the front
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]), H = 12.6, fz = 0; // local origin: the front's middle
+      const cx = (a[0] + b[0]) / 2, cz = (a[1] + b[1]) / 2, y = T(cx, cz) + sqLift - 0.3;
+      const base = Math.min(...ring.map(([x, z]) => T(x, z))) + sqLift - 0.9;
       const salmon: THREE.BufferGeometry[] = [], cream: THREE.BufferGeometry[] = [], win: THREE.BufferGeometry[] = [], frame: THREE.BufferGeometry[] = [];
-      salmon.push(box(len, H, dep, 0, -0.6, 0));
-      cream.push(box(len + 0.5, 0.55, dep + 0.5, 0, H - 0.6, 0)); // cornice
-      for (const fy of [3.7, 7.7]) cream.push(box(len + 0.1, 0.3, dep + 0.1, 0, fy, 0)); // floor bands
-      for (let u = -len / 2; u <= len / 2 + 0.01; u += len / 12) cream.push(box(0.5, H - 0.6, 0.12, u, -0.6, fz + 0.04)); // pilaster strips
-      // windows: three rows on the front and the back, two-light, white frames
-      const bay = 11;
-      for (const sd of [1, -1]) for (const wy of [1.0, 4.6, 8.6]) for (let u = -len / 2 + 2.4; u < len / 2 - 1.5; u += len / 12) {
-        if (sd === 1 && Math.abs(u + len / 24) < bay / 2 + 0.5) continue; // the bay has its own glazing
-        const wx = u + len / 24;
-        frame.push(box(2.1, 2.5, 0.12, wx, wy - 0.1, sd * (fz + 0.06)));
-        win.push(box(1.8, 2.2, 0.14, wx, wy + 0.05, sd * (fz + 0.08)));
+      // in world coordinates: the walls on the outline, cornice and floor bands along every side,
+      // windows on the sides and the back
+      const W: THREE.BufferGeometry[] = [], Wc: THREE.BufferGeometry[] = [], Wwin: THREE.BufferGeometry[] = [], Wframe: THREE.BufferGeometry[] = [], roof: THREE.BufferGeometry[] = [];
+      const shape = new THREE.Shape(ring.map(([x, z]) => new THREE.Vector2(x, -z)));
+      W.push(new THREE.ExtrudeGeometry(shape, { depth: y + H - 0.6 - base, bevelEnabled: false }).rotateX(-Math.PI / 2).translate(0, base, 0));
+      roof.push(new THREE.ExtrudeGeometry(shape, { depth: 0.12, bevelEnabled: false }).rotateX(-Math.PI / 2).translate(0, y + H - 0.6, 0));
+      let area2 = 0;
+      for (let i = 0; i < ring.length; i++) { const p = ring[i], q = ring[(i + 1) % ring.length]; area2 += p[0] * q[1] - q[0] * p[1]; }
+      /** a box along the edge p→q: u along it from p, `off` outward, y up from the front's level */
+      const edgeBox = (p: Pt, q: Pt, w: number, h: number, d: number, u: number, yy: number, off: number) => {
+        const dx = q[0] - p[0], dz = q[1] - p[1], l = Math.hypot(dx, dz), ux = dx / l, uz = dz / l;
+        const ox = area2 > 0 ? uz : -uz, oz = area2 > 0 ? -ux : ux; // outward
+        return new THREE.BoxGeometry(w, h, d).rotateY(Math.atan2(-uz, ux)).translate(p[0] + ux * u + ox * off, y + yy + h / 2, p[1] + uz * u + oz * off);
+      };
+      for (let i = 0; i < ring.length; i++) {
+        const p = ring[i], q = ring[(i + 1) % ring.length], l = Math.hypot(q[0] - p[0], q[1] - p[1]);
+        if (l < 0.5) continue;
+        Wc.push(edgeBox(p, q, l + 0.5, 0.55, 0.5, l / 2, H - 0.6, 0)); // cornice
+        for (const fy of [3.7, 7.7]) Wc.push(edgeBox(p, q, l + 0.1, 0.3, 0.2, l / 2, fy, 0.02)); // floor bands
+        if (p === a) continue; // the front is laid out below
+        const n = Math.floor((l - 1.2) / 2.9);
+        for (let k = 0; k < n; k++) {
+          const u = l / 2 + (k - (n - 1) / 2) * 2.9;
+          Wc.push(edgeBox(p, q, 0.45, H - 0.6, 0.12, u - 1.45, -0.6, 0.04)); // pilaster strips
+          for (const wy of [1.0, 4.6, 8.6]) {
+            Wframe.push(edgeBox(p, q, 2.0, 2.5, 0.12, u, wy - 0.1, 0.06));
+            Wwin.push(edgeBox(p, q, 1.7, 2.2, 0.14, u, wy + 0.05, 0.08));
+          }
+        }
       }
+      // the front: pilaster strips and windows in bays, the entrance bay in the middle
+      const bays = Math.max(6, Math.round(len / 2.8)), bw = len / bays, bay = 7.6;
+      for (let k = 0; k <= bays; k++) cream.push(box(0.5, H - 0.6, 0.12, -len / 2 + k * bw, -0.6, fz + 0.04));
+      for (const wy of [1.0, 4.6, 8.6]) for (let k = 0; k < bays; k++) {
+        const wx = -len / 2 + (k + 0.5) * bw;
+        if (Math.abs(wx) < bay / 2 + 0.6) continue; // the bay has its own glazing
+        frame.push(box(Math.min(2.1, bw - 0.6), 2.5, 0.12, wx, wy - 0.1, fz + 0.06));
+        win.push(box(Math.min(1.8, bw - 0.9), 2.2, 0.14, wx, wy + 0.05, fz + 0.08));
+      }
+      // skylights: a row along the middle of the roof
+      const sky: THREE.BufferGeometry[] = [box(len * 0.55, 0.45, 2.4, 0, H - 0.5, -Math.min(plan.depth, 15) * 0.45)];
       // the entrance bay: projecting, cream frame, glazed ground floor, big windows above
       cream.push(box(bay, H + 0.4, 1.4, 0, -0.6, fz + 0.7));
       salmon.push(box(bay - 1.2, H - 1.2, 0.2, 0, 0.0, fz + 1.45));
-      frame.push(box(7.2, 3.4, 0.12, 0, 0.0, fz + 1.58), box(7.2, 2.8, 0.12, 0, 6.0, fz + 1.58), box(7.2, 2.4, 0.12, 0, 9.2, fz + 1.58));
-      win.push(box(6.8, 3.0, 0.14, 0, 0.1, fz + 1.6), box(6.8, 2.4, 0.14, 0, 6.2, fz + 1.6), box(6.8, 2.0, 0.14, 0, 9.4, fz + 1.6));
-      // steps up to the entrance
-      const steps: THREE.BufferGeometry[] = [];
-      for (let k = 0; k < 4; k++) steps.push(box(15 - k * 0.8, 0.18 * (k + 1) + 0.3, 0.42, 0, -0.3, fz + 1.4 + (4 - k) * 0.42));
-      place(salmon, M('#dcb4a0'), cx, y, cz, rot);
-      place(cream, M('#efe3d3'), cx, y, cz, rot);
-      place(frame, M('#f7f5f0'), cx, y, cz, rot);
+      frame.push(box(6.2, 3.4, 0.12, 0, 0.0, fz + 1.58), box(6.2, 2.8, 0.12, 0, 6.0, fz + 1.58), box(6.2, 2.4, 0.12, 0, 9.2, fz + 1.58));
+      win.push(box(5.8, 3.0, 0.14, 0, 0.1, fz + 1.6), box(5.8, 2.4, 0.14, 0, 6.2, fz + 1.6), box(5.8, 2.0, 0.14, 0, 9.4, fz + 1.6));
+      const stone = M('#dbbfa3'), creamMat = M('#efe3d3'), frameMat = M('#f7f5f0');
       const glassMat = M('#4a5866', { emissive: '#ffd590', emissiveIntensity: 0 });
       nightGlass.push(glassMat);
+      place(W, stone, 0, 0, 0, 0);
+      place(Wc, creamMat, 0, 0, 0, 0);
+      place(Wframe, frameMat, 0, 0, 0, 0);
+      place(Wwin, glassMat, 0, 0, 0, 0);
+      place(roof, M('#e7e5e0'), 0, 0, 0, 0);
+      place(sky, M('#3e4652'), cx, y, cz, rot);
+      place(salmon, stone, cx, y, cz, rot);
+      place(cream, creamMat, cx, y, cz, rot);
+      place(frame, frameMat, cx, y, cz, rot);
       place(win, glassMat, cx, y, cz, rot);
-      place(steps, M('#c9c4bb'), cx, y, cz, rot);
       // lettering above the entrance
       const letters = canvasTex(1024, 128, (g2) => {
         g2.fillStyle = '#e9ddcc'; g2.fillRect(0, 0, 1024, 128);
@@ -786,81 +886,19 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
       };
       flagAt(-6.2, mk); flagAt(-4.9, mk); flagAt(5.4, eu);
       place(poles, M('#d9d9d9'), cx, y, cz, rot);
-      // a round fountain on each side: dark granite basin, a ring of jets round a tall one
-      const basin: THREE.BufferGeometry[] = [], water: THREE.BufferGeometry[] = [], jets: THREE.BufferGeometry[] = [];
-      for (const sd of [-1, 1]) {
-        const fx = sd * len * 0.3, fzz = fz + 7.5;
-        basin.push(new THREE.CylinderGeometry(2.9, 3.0, 0.65, 32).translate(fx, 0.02, fzz));
-        water.push(new THREE.CylinderGeometry(2.55, 2.55, 0.1, 32).translate(fx, 0.62, fzz));
-        jets.push(new THREE.ConeGeometry(0.16, 2.6, 8).translate(fx, 1.95, fzz));
-        for (let i = 0; i < 8; i++) {
-          const a = (i / 8) * Math.PI * 2;
-          jets.push(new THREE.ConeGeometry(0.1, 1.3, 6).translate(fx + Math.cos(a) * 1.5, 1.3, fzz + Math.sin(a) * 1.5));
-        }
-      }
-      place(basin, M('#4e4e50'), cx, y + 0.3, cz, rot);
-      place(water, M('#8cc7e2'), cx, y + 0.3, cz, rot);
-      place(jets, M('#e6f5fb'), cx, y + 0.3, cz, rot);
     }
   }
 
-  // ---------------- the square's furniture: round raised planters of dark granite (flowers, two
-  // with curved wooden seats), black granite ball bollards along the street, curved paving bands
-  const sqPt = data.places?.square;
-  const plaza = sqPt ? data.areas.find((a) => a.k === 'plaza' && pip(sqPt[0], sqPt[1], toPts(a.r[0]))) : undefined;
-  if (plaza && L.revolution) {
-    const ring = toPts(plaza.r[0]);
-    const [mx, mz] = L.revolution, sq = data.places!.square;
-    // paving: two bands round the middle of the square
-    const band = M('#8f8c87');
-    drapedRing(sq[0], sq[1], 7, 0.8, sqLift + 0.03, band);
-    drapedRing(sq[0], sq[1], 15, 0.9, sqLift + 0.03, band);
-    // bollards along the edges that face a street to the west or east (outside the town hall's front)
-    const balls: THREE.BufferGeometry[] = [];
-    let ccx = 0, ccz = 0;
-    for (const [px, pz] of ring) { ccx += px; ccz += pz; }
-    ccx /= ring.length; ccz /= ring.length;
-    for (let i = 0; i < ring.length; i++) {
-      const p0 = ring[i], p1 = ring[(i + 1) % ring.length];
-      const dx = p1[0] - p0[0], dz = p1[1] - p0[1], l = Math.hypot(dx, dz);
-      if (l < 4) continue;
-      let nx = dz / l, nz = -dx / l;
-      if ((p0[0] + dx / 2 - ccx) * nx + (p0[1] + dz / 2 - ccz) * nz < 0) { nx = -nx; nz = -nz; }
-      if (Math.abs(nx) < 0.75) continue;
-      for (let t = 1.5; t < l - 1; t += 3.2) {
-        const bx = p0[0] + (dx * t) / l - nx * 1.1, bz = p0[1] + (dz * t) / l - nz * 1.1;
-        balls.push(new THREE.SphereGeometry(0.32, 12, 9).translate(bx, T(bx, bz) + sqLift + 0.3, bz));
-      }
-    }
-    place(balls, M('#3a3a3c'), 0, 0, 0, 0);
-    // planters: a row along the east side, from the monument northward
-    const rim: THREE.BufferGeometry[] = [], soil: THREE.BufferGeometry[] = [], green: THREE.BufferGeometry[] = [], flowers: THREE.BufferGeometry[] = [], wood: THREE.BufferGeometry[] = [];
-    const ex = (sq[0] - mx), ez = (sq[1] - mz), el = Math.hypot(ex, ez) || 1; // toward the square's middle
-    const ax = ez / el, az = -ex / el; // across the square
-    for (let k = 0; k < 4; k++) {
-      const off = 10 + k * 9, side = 11;
-      const px = mx + (ex / el) * off + ax * side, pz = mz + (ez / el) * off + az * side;
-      const py = T(px, pz) + sqLift;
-      rim.push(new THREE.CylinderGeometry(2.1, 2.2, 0.6, 28).translate(px, py + 0.3, pz));
-      soil.push(new THREE.CylinderGeometry(1.85, 1.85, 0.06, 28).translate(px, py + 0.58, pz));
-      green.push(new THREE.SphereGeometry(0.9, 10, 8).scale(1, 0.55, 1).translate(px, py + 0.75, pz));
-      for (let i = 0; i < 10; i++) {
-        const a = (i / 10) * Math.PI * 2;
-        flowers.push(new THREE.SphereGeometry(0.17, 6, 5).translate(px + Math.cos(a) * 1.45, py + 0.7, pz + Math.sin(a) * 1.45));
-      }
-      if (k % 2 === 0) { // a curved wooden seat round half of it
-        for (let i = 0; i < 10; i++) {
-          const a0 = Math.PI * (0.1 + i * 0.08);
-          wood.push(new THREE.BoxGeometry(0.55, 0.08, 0.5).rotateY(-a0).translate(px + Math.cos(a0) * 2.45, py + 0.48, pz + Math.sin(a0) * 2.45));
-        }
-      }
-    }
-    place(rim, M('#58585a'), 0, 0, 0, 0);
-    place(soil, M('#5e4330'), 0, 0, 0, 0);
-    place(green, M('#5f8d43'), 0, 0, 0, 0);
-    place(flowers, M('#8e1d2e'), 0, 0, 0, 0);
-    place(wood, M('#8a5a35'), 0, 0, 0, 0);
-  }
+  // ---------------- the square: the town hall's terrace with curved steps and two fountains, ball
+  // bollards, planters, the lawn strip, the clock, the paving's bands (square.ts)
+  const sqLayout = squareLayout(data, terrain);
+  const square = sqLayout ? createSquare(sqLayout, terrain, clippingPlanes) : null;
+  if (square) group.add(square.group);
+
+  // ---------------- Градски зелен пазар (2022): the market on its parking deck (market.ts)
+  const mFrame = marketFrame(data, terrain);
+  const market = mFrame ? createMarket(mFrame, clippingPlanes) : null;
+  if (market) group.add(market.group);
 
   // ---------------- Дом на културата „Иван Мазов-Климе“ (not in OSM). Its plan from the site and
   // floor plans of the 2023 fire-safety report: 41.4 m along Илинденска, ground floor + one storey;
@@ -1039,15 +1077,200 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
     pl(yellow, M('#e8c23a'));
   }
 
+  // ---------------- Брана Тиквеш (1968) and ХЕЦ Тиквеш at the north end of Тиквешко Езеро. A rockfill
+  // dam with a clay core, 113.5 m from its foundation, crest 338 m (Wikipedia, ЕСМ). The dam body is
+  // raised in the terrain (`dams`, scripts/config.ts); here: the rock face downstream with its berms,
+  // the riprap running into the lake, the crest's parapets and lamps, the spillway's intake on the
+  // east bank, the power house at the foot (113 MW, four units) and its switchyard. The outlines are
+  // OSM's; heights and details are read off overview photos, not surveyed.
+  if (L.damCrest && L.dam) {
+    const crest = toPts(L.damCrest), face = toPts(L.dam);
+    const segs = crest.slice(1).map((b, i) => [crest[i], b] as const);
+    const segD = (x: number, z: number) => {
+      let d = Infinity;
+      for (const [a, b] of segs) {
+        const dx = b[0] - a[0], dz = b[1] - a[1], t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1)));
+        d = Math.min(d, Math.hypot(x - a[0] - t * dx, z - a[1] - t * dz));
+      }
+      return d;
+    };
+    // downstream: the side that is lower 100 m out (the lake side stops at the water level)
+    const downN = ([a, b]: readonly [Pt, Pt]): Pt => {
+      const dx = b[0] - a[0], dz = b[1] - a[1], len = Math.hypot(dx, dz) || 1, mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2;
+      const n: Pt = [-dz / len, dx / len];
+      return T(mx + n[0] * 100, mz + n[1] * 100) < T(mx - n[0] * 100, mz - n[1] * 100) ? n : [-n[0], -n[1]];
+    };
+    const top = Math.max(...crest.map(Tp)), HALF = 8; // the crest (half its width): as raised in the terrain
+    // the downstream face: rock, a little rough, with a berm every 20 m of height (the access road)
+    {
+      // the OSM outline triangulated, split until every edge is under 3 m so it follows the ground
+      const pos: number[] = [], col: number[] = [];
+      const rock = new THREE.Color('#b5ad9e'), berm = new THREE.Color('#d6cdb9'), riprap = new THREE.Color('#9d9688'), c = new THREE.Color();
+      // the lake side of the crest: the nearest crest segment's downstream normal points away
+      const upstream = (x: number, z: number) => {
+        let best = Infinity, side = false;
+        for (const sg of segs) {
+          const [p, q] = sg, dx = q[0] - p[0], dz = q[1] - p[1], t = Math.max(0, Math.min(1, ((x - p[0]) * dx + (z - p[1]) * dz) / (dx * dx + dz * dz || 1)));
+          const ex = x - p[0] - t * dx, ez = z - p[1] - t * dz, dd = Math.hypot(ex, ez);
+          if (dd < best) { const n = downN(sg); best = dd; side = ex * n[0] + ez * n[1] < 0; }
+        }
+        return side;
+      };
+      const hash = (x: number, z: number) => { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); };
+      const tri = (a: Pt, b: Pt, d: Pt): void => {
+        const ab = Math.hypot(b[0] - a[0], b[1] - a[1]), bd = Math.hypot(d[0] - b[0], d[1] - b[1]), da = Math.hypot(a[0] - d[0], a[1] - d[1]);
+        const m = Math.max(ab, bd, da);
+        // finer along the crest, so the edge there is hidden by the parapet
+        if (m > 3 || (m > 0.8 && segD((a[0] + b[0] + d[0]) / 3, (a[1] + b[1] + d[1]) / 3) < HALF + 3)) {
+          const mid = (p: Pt, q: Pt): Pt => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+          if (m === ab) { const n = mid(a, b); tri(a, n, d); tri(n, b, d); }
+          else if (m === bd) { const n = mid(b, d); tri(a, b, n); tri(a, n, d); }
+          else { const n = mid(d, a); tri(a, b, n); tri(n, b, d); }
+          return;
+        }
+        const cx = (a[0] + b[0] + d[0]) / 3, cz = (a[1] + b[1] + d[1]) / 3;
+        if (segD(cx, cz) < HALF - 0.5) return; // the crest (its road and parapets)
+        const drop = top - T(cx, cz), up = upstream(cx, cz), onBerm = !up && drop > 6 && drop % 20 < 2.4;
+        c.copy(up ? riprap : onBerm ? berm : rock).multiplyScalar(0.92 + 0.14 * hash(Math.round(cx / 2), Math.round(cz / 2)));
+        for (const p of [a, b, d]) { pos.push(p[0], T(p[0], p[1]) + 0.3, p[1]); col.push(c.r, c.g, c.b); }
+      };
+      const v2 = face.map(([x, z]) => new THREE.Vector2(x, z));
+      for (const [i, j, k] of THREE.ShapeUtils.triangulateShape(v2, [])) tri(face[i], face[j], face[k]);
+      // keep the triangles facing up
+      for (let k = 0; k < pos.length; k += 9) {
+        const ux = pos[k + 3] - pos[k], uz = pos[k + 5] - pos[k + 2], vx = pos[k + 6] - pos[k], vz = pos[k + 8] - pos[k + 2];
+        if (ux * vz - uz * vx > 0) for (let q = 0; q < 3; q++) { const t = pos[k + 3 + q]; pos[k + 3 + q] = pos[k + 6 + q]; pos[k + 6 + q] = t; }
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      g.computeVertexNormals();
+      add(g, M('#ffffff', { vertexColors: true }));
+    }
+    // the crest: the road on it, HALF either side as raised in the terrain; parapets on both edges,
+    // lamps along the downstream one. The rock mesh covers both faces (riprap on the lake side).
+    const parapet: THREE.BufferGeometry[] = [], posts: THREE.BufferGeometry[] = [], lampHeads: THREE.BufferGeometry[] = [];
+    let along = 0;
+    for (const sg of segs) {
+      const [a, b] = sg, n = downN(sg), len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (len < 0.5) continue;
+      const rot = Math.atan2(b[0] - a[0], b[1] - a[1]), mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2;
+      for (const off of [-(HALF - 0.6), HALF - 0.6])
+        parapet.push(new THREE.BoxGeometry(0.45, 1.1, len + 0.45).rotateY(rot).translate(mx + n[0] * off, top + 0.55, mz + n[1] * off));
+      for (let s = (30 - (along % 30)) % 30; s < len; s += 30) {
+        const t = s / len, px = a[0] + (b[0] - a[0]) * t + n[0] * (HALF - 0.6), pz = a[1] + (b[1] - a[1]) * t + n[1] * (HALF - 0.6);
+        posts.push(new THREE.CylinderGeometry(0.09, 0.12, 7, 6).translate(px, top + 3.5, pz), box(1.2, 0.12, 0.25, px - n[0] * 0.5, top + 6.9, pz - n[1] * 0.5));
+        lampHeads.push(box(0.5, 0.18, 0.3, px - n[0] * 1.0, top + 6.8, pz - n[1] * 1.0));
+      }
+      along += len;
+    }
+    place(parapet, concrete, 0, 0, 0, 0);
+    place(posts, M('#5d6064'), 0, 0, 0, 0);
+    if (lampHeads.length) {
+      const lampMat = M('#f2ead2', { emissive: '#ffd890', emissiveIntensity: 0 });
+      nightGlass.push(lampMat);
+      place(lampHeads, lampMat, 0, 0, 0, 0);
+    }
+  }
+  // the spillway: a round bell-mouth intake in the lake off the east end of the crest (OSM: a round
+  // water area ~40 m across, a culvert from it under the bank to the chute below the dam). A concrete
+  // lip a few metres under the crest, piers round it against vortices, a dark funnel inside
+  if (L.spillway) {
+    const ring = toPts(L.spillway);
+    const c = ring.reduce((s, p) => [s[0] + p[0] / ring.length, s[1] + p[1] / ring.length], [0, 0]);
+    const R = ring.reduce((s, p) => s + Math.hypot(p[0] - c[0], p[1] - c[1]), 0) / ring.length;
+    const crestTop = L.damCrest ? Math.max(...toPts(L.damCrest).map(Tp)) : Tp(c as Pt) + 10;
+    const lip = crestTop - 3, base = Tp(c as Pt) - 6;
+    const parts: THREE.BufferGeometry[] = [new THREE.CylinderGeometry(R, R + 2.5, lip - base, 40, 1, true).translate(0, (lip + base) / 2, 0),
+      new THREE.TorusGeometry(R - 0.6, 0.8, 6, 40).rotateX(Math.PI / 2).translate(0, lip, 0)];
+    for (let k = 0; k < 8; k++) { // the piers point to the centre
+      const a = (k / 8) * Math.PI * 2;
+      parts.push(new THREE.BoxGeometry(3, 2.2, 1.2).rotateY(-a).translate(Math.cos(a) * (R - 1.4), lip + 1.1, Math.sin(a) * (R - 1.4)));
+    }
+    place(parts, M('#d9d2c3', { side: THREE.DoubleSide }), c[0], 0, c[1], 0);
+    place([new THREE.CylinderGeometry(R - 1.2, 3.5, 14, 40, 1, true).translate(0, lip - 7, 0), new THREE.CircleGeometry(3.6, 20).rotateX(-Math.PI / 2).translate(0, lip - 14, 0)],
+      M('#3d4448', { side: THREE.DoubleSide }), c[0], 0, c[1], 0);
+  }
+  // ХЕЦ Тиквеш: the machine hall at the foot of the dam, tall window bands on the long sides, a
+  // lower control block at the end, transformers by the wall; the tailrace opens into the river
+  if (L.hpp) {
+    const o = obb(toPts(L.hpp));
+    if (o) {
+      const rot = Math.atan2(o.a[0], o.a[1]), hl = o.L, hw = o.W;
+      const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]): Pt => [o.c[0] + o.a[0] * hl * u + o.b[0] * hw * v, o.c[1] + o.a[1] * hl * u + o.b[1] * hw * v]);
+      const y = Math.min(...corners.map(Tp)) - 0.5, H = 17;
+      const hall: THREE.BufferGeometry[] = [], glass: THREE.BufferGeometry[] = [], dark: THREE.BufferGeometry[] = [], roof: THREE.BufferGeometry[] = [];
+      const cl = hl * 0.28; // the control block's share of the length
+      // local frame: z along the long axis (rot), x across
+      hall.push(box(hw * 2, H, (hl - cl) * 2, 0, 0, cl));
+      hall.push(box(hw * 2 - 1, 9, cl * 2, 0, 0, -hl + cl));
+      roof.push(box(hw * 2 + 0.6, 0.6, (hl - cl) * 2 + 0.6, 0, H, cl), box(hw * 2 - 0.4, 0.5, cl * 2 + 0.4, 0, 9, -hl + cl));
+      dark.push(box(hw * 2 + 0.3, 1.2, hl * 2 + 0.3, 0, 0, 0)); // plinth
+      const z0 = -hl + cl * 2 + 2.5, z1 = hl - 2.5, n = Math.max(3, Math.floor((z1 - z0) / 4.5));
+      for (let k = 0; k <= n; k++) {
+        const z = z0 + ((z1 - z0) * k) / n;
+        for (const sd of [-1, 1]) glass.push(box(0.15, H - 5, 2.4, sd * (hw + 0.05), 2.8, z));
+      }
+      for (let k = 0; k < 3; k++) for (const sd of [-1, 1]) glass.push(box(0.15, 1.4, cl * 2 - 3, sd * (hw - 0.45), 1.8 + k * 2.6, -hl + cl));
+      // the tailrace: four outlets under the downstream long side
+      for (let k = 0; k < 4; k++) dark.push(box(0.4, 3.2, 4, hw + 0.2, -2, cl - (hl - cl) * 0.75 + ((hl - cl) * 1.5 * k) / 3));
+      place(hall, M('#e2dccd'), o.c[0], y, o.c[1], rot);
+      place(roof, M('#8f8a80'), o.c[0], y, o.c[1], rot);
+      place(dark, M('#6d6b65'), o.c[0], y, o.c[1], rot);
+      const g = M('#4d5866', { emissive: '#ffd27a', emissiveIntensity: 0 });
+      nightGlass.push(g);
+      place(glass, g, o.c[0], y, o.c[1], rot);
+    }
+  }
+  // the switchyard: a gravel pad, steel gantries carrying the 110 kV lines, transformers
+  if (L.switchyard) {
+    const o = obb(toPts(L.switchyard));
+    if (o) {
+      const rot = Math.atan2(o.a[0], o.a[1]), hl = o.L, hw = o.W;
+      const y = Tp(o.c);
+      const steel: THREE.BufferGeometry[] = [], tr: THREE.BufferGeometry[] = [], pad: THREE.BufferGeometry[] = [], ins: THREE.BufferGeometry[] = [];
+      pad.push(box(hw * 2, 1.4, hl * 2, 0, -1.2, 0));
+      const rows = Math.max(2, Math.floor((hl * 2 - 6) / 9));
+      for (let r = 0; r <= rows; r++) {
+        const z = -hl + 3 + ((hl * 2 - 6) * r) / rows;
+        for (const sd of [-1, 1]) steel.push(box(0.5, 11, 0.5, sd * (hw - 2), 0, z));
+        steel.push(box(hw * 2 - 3.5, 0.6, 0.6, 0, 10.6, z));
+        for (let k = -1; k <= 1; k++) ins.push(new THREE.CylinderGeometry(0.18, 0.18, 1.4, 6).translate(k * (hw - 3) * 0.6, 9.6, z));
+      }
+      for (let k = 0; k < 3; k++) {
+        const z = -hl * 0.55 + (hl * 1.1 * k) / 2;
+        tr.push(box(3.2, 3.4, 4.2, -hw * 0.25, 0, z), box(0.4, 2.6, 3.8, -hw * 0.25 + 1.9, 0.5, z), box(0.4, 2.6, 3.8, -hw * 0.25 - 1.9, 0.5, z));
+        ins.push(new THREE.CylinderGeometry(0.15, 0.15, 1.6, 6).translate(-hw * 0.25, 4.2, z - 1), new THREE.CylinderGeometry(0.15, 0.15, 1.6, 6).translate(-hw * 0.25, 4.2, z + 1));
+      }
+      place(pad, M('#bdb6a8'), o.c[0], y, o.c[1], rot);
+      place(steel, M('#9ea3a6'), o.c[0], y, o.c[1], rot);
+      place(tr, M('#5f6a63'), o.c[0], y, o.c[1], rot);
+      place(ins, M('#d8d2c4'), o.c[0], y, o.c[1], rot);
+    }
+  }
+
+  // ---------------- Kavadarci, the Луда Мара: copings, railings, footbridges, bridge parapets, steps,
+  // benches, lamps (river.ts; the water, banks and promenades are draped ground, city.ts)
+  const cl = canalLayout(data, terrain);
+  if (cl) {
+    const cn = createCanal(cl, terrain, M);
+    group.add(cn.group);
+    nightGlass.push(...cn.glass);
+  }
+
   return {
     group,
     gondola,
+    /** see-through parts that draw no ink lines (InkRenderer.skipNormal) */
+    noInk: square?.noInk ?? [],
     update(dt: number): void {
       for (const f of animated) f(dt);
+      square?.update(dt);
       if (crossMat) crossMat.emissiveIntensity = SHARED.uNight.value * 0.9;
       if (stationGlass) stationGlass.emissiveIntensity = SHARED.uNight.value * 0.55;
       for (const m of nightGlass) m.emissiveIntensity = SHARED.uNight.value * 0.6;
       if (cultureGlass) cultureGlass.emissiveIntensity = SHARED.uNight.value * 0.6;
+      for (const m of market?.nightLit ?? []) m.emissiveIntensity = SHARED.uNight.value * 0.6;
     },
   };
 }

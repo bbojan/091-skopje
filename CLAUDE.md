@@ -15,6 +15,8 @@ npm run typecheck    # tsc (TypeScript 7, strict): src/ and scripts/ — CI runs
 npm run build        # static site → dist/ (relative paths, Pages-ready)
 npm run download     # OSM via Overpass → data/skopje_raw.json (not in git, ~25 MB)
 npm run terrain      # AWS Terrarium elevation tiles → public/terrain.bin/.json
+npm run overture -- kavadarci   # Overture Maps building outlines OSM lacks → data/kavadarci_overture.json
+                     # (not in git; only cities with `files.overture`; `data` needs it for those)
 npm run data         # data/skopje_raw.json (+ data/aerialway.json) → public/skopje.json
 npm run download -- kavadarci   # the same three for another city (first argument; default skopje)
                                 # → data/kavadarci_raw.json, public/kavadarci.json, public/kavadarci-terrain.*
@@ -52,7 +54,10 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | `game.ts` | Optional ring race over landmarks, 091 balloons, best time |
 | `fire.ts` | Optional firefighting game: at most two fires (forest patch, building roof, ЈСП bus), spawning from a land-cover grid, flames / smoke / glow as GPU-animated quads, water hits, best count |
 | `water.ts` | The Air Tractor's water: tank, falling curtain, a little spilled in a roll or loop, splash and steam, spray while scooping, landing ring; closed-form paths shared by the shader and the hit test |
-| `landmarks.ts` | Hand-built models: Millennium Cross lattice, Warrior on a Horse, Stone Bridge, Porta Macedonia, Vodno gondola; Kavadarci (after photos): Memorial Ossuary, People's Heroes, Vataša memorial, Monument to the Revolution |
+| `landmarks.ts` | Hand-built models: Millennium Cross lattice, Warrior on a Horse, Stone Bridge, Porta Macedonia, Vodno gondola; Kavadarci (after photos): Memorial Ossuary, People's Heroes, Vataša memorial and the 12 busts of the Vataša youths (2023), Monument to the Revolution |
+| `square.ts` | Kavadarci, Плоштад Маршал Тито (after an aerial image and photos): the town hall's terrace with curved steps and two fountains, ball bollards, S-shaped and oval planters, lawn strip, clock, the darker bands in the grey paving; its layout also gives walking collision and the terrace height. The grey paving and the forecourt are `plazaColour` / `extraPlazas` in `PREP` |
+| `market.ts` | Kavadarci, Градски зелен пазар (2022, after the opening's press photos and an aerial image of 2025): the deck over two parking levels, the white steel roof (two pitched bays, glazed lanterns, space frame) on round columns, green-framed stalls, glazed shops, flower stalls, railings; also walking height and collision. Its position is `landmarkLL.market` in `PREP`; next to it OSM's wrong outline is left out and two low buildings added (`dropBuildings` / `extraBuildings`) |
+| `river.ts` | Kavadarci, the Луда Мара (after photos): the stone-lined channel through the town between two promenades, cut exactly out of the terrain and draped ground (`cut`), its water, banks and promenades emitted into the draped ground; copings, railing, arched footbridges, road-bridge parapets, cascades, steps, benches, lamps, promenade trees; walking height and collision |
 | `sound.ts` | Sound, on by default (a switch turns it off): Web Audio synthesis only (engine, wind, rain, water, fire, birds, crickets, short signals), fed a `SoundScene` once per frame from `main.ts` |
 | `labels.ts` | HTML Cyrillic labels (districts far, landmarks near), positions from `data.places` |
 | `input.ts` | Keyboard map navigation, camera height (C / V, horizontal wheel, LB / RB) + gamepad reading (browser "standard" mapping only; unmapped pads are ignored) |

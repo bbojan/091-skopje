@@ -273,7 +273,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   if (MOBILE || lowTier) city.setLODScale((MOBILE ? 0.65 : 1) * (lowTier ? 0.6 : 1));
   showProgress('assemble', 1);
   await nextFrame();
-  city.bakeGround(renderer, MOBILE ? 256 : 512);
+  city.bakeGround(renderer, MOBILE ? 256 : 512, spec.sparseFar ?? 0);
   const platform = landmarkGround(data, terrain); // raised monument terraces: people walk on top
   const traffic = createTraffic(city, terrain, { clippingPlanes: planes, buses: spec.buses, platform, ...(MOBILE ? { cars: 2500, people: 5000 } : {}) });
   traffic.setLight(lightTraffic);
@@ -296,6 +296,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   try { labels.enabled = localStorage.getItem('skopje.labels') !== '0'; } catch { /* storage unavailable */ }
   setOn(namesBtn, labels.enabled);
   scene.add(landmarks.group);
+  ink.skipNormal.push(...landmarks.noInk); // the fountains' jets
   try { await document.fonts.load("46px 'Rubik Mono One'"); await document.fonts.load("700 140px 'Lora'", BANNER_TEXT + ROLL_BANNER_TEXT); } catch { /* font optional */ }
   const game = createGame({ city: spec, terrain, meta, crosses: data.crosses || [], places: data.places || {}, clippingPlanes: planes });
   scene.add(game.group);

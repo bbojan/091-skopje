@@ -80,7 +80,9 @@ export class Terrain {
   }
 
   // Indexed terrain mesh for a block of cells
-  chunkGeometry(i0: number, j0: number, i1: number, j1: number, colorFn: TerrainColorFn): THREE.BufferGeometry {
+  // `hole`: cells (j * nx + i) where `cut` may remove parts of the two triangles (Kavadarci: the Луда
+  // Мара's channel, river.ts); the pieces left get their own vertices, interpolated in the triangle
+  chunkGeometry(i0: number, j0: number, i1: number, j1: number, colorFn: TerrainColorFn, hole?: { cells: Set<number>; cut: (p: Pt[]) => Pt[][] | null }): THREE.BufferGeometry {
     const w = i1 - i0 + 1, d = j1 - j0 + 1;
     const pos = new Float32Array(w * d * 3), nor = new Float32Array(w * d * 3), col = new Float32Array(w * d * 3);
     const c = new THREE.Color();
@@ -95,15 +97,46 @@ export class Terrain {
         col[k] = c.r; col[k + 1] = c.g; col[k + 2] = c.b;
       }
     const idx: number[] = [];
+    const ex: number[] = []; // extra vertices: x y z, nx ny nz, r g b
     for (let j = 0; j < d - 1; j++)
       for (let i = 0; i < w - 1; i++) {
         const a = j * w + i, b = a + 1, cc = a + w, dd = cc + 1;
+        if (hole && hole.cells.has((j0 + j) * this.nx + i0 + i)) {
+          for (const t of [[a, cc, b], [b, cc, dd]]) {
+            const P: Pt[] = t.map((v): Pt => [pos[v * 3], pos[v * 3 + 2]]);
+            const pieces = hole.cut(P);
+            if (!pieces) { idx.push(...t); continue; }
+            const [A, B, C] = P, den = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
+            for (const piece of pieces) {
+              const base = w * d + ex.length / 9;
+              for (const [x, z] of piece) {
+                const l0 = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (z - C[1])) / den;
+                const l1 = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (z - C[1])) / den, l2 = 1 - l0 - l1;
+                for (const arr of [pos, nor, col])
+                  for (let q = 0; q < 3; q++) ex.push(arr[t[0] * 3 + q] * l0 + arr[t[1] * 3 + q] * l1 + arr[t[2] * 3 + q] * l2);
+              }
+              for (let q = 1; q + 1 < piece.length; q++) idx.push(base, base + q, base + q + 1);
+            }
+          }
+          continue;
+        }
         idx.push(a, cc, b, b, cc, dd);
       }
     const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
-    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    if (ex.length) {
+      const n0 = w * d, n1 = n0 + ex.length / 9;
+      const P2 = new Float32Array(n1 * 3), N2 = new Float32Array(n1 * 3), C2 = new Float32Array(n1 * 3);
+      P2.set(pos); N2.set(nor); C2.set(col);
+      for (let v = 0; v < n1 - n0; v++)
+        for (let q = 0; q < 3; q++) { P2[(n0 + v) * 3 + q] = ex[v * 9 + q]; N2[(n0 + v) * 3 + q] = ex[v * 9 + 3 + q]; C2[(n0 + v) * 3 + q] = ex[v * 9 + 6 + q]; }
+      g.setAttribute('position', new THREE.BufferAttribute(P2, 3));
+      g.setAttribute('normal', new THREE.BufferAttribute(N2, 3));
+      g.setAttribute('color', new THREE.BufferAttribute(C2, 3));
+    } else {
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    }
     g.setIndex(idx);
     g.computeBoundingSphere();
     return g;

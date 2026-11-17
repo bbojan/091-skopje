@@ -195,9 +195,50 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    `points` ([lat, lon, metres, radius]); none yet. Still 0.67 m RMS from EU-DEM. Skopje's
    terrain and pixels are unchanged (pixel check: 0 except the gondola cabin).
    Their outlines are kept free of trees, sheds and parked cars (`blockGrid` in `city.ts`).
-   The firefighting plane refills from Тиквешко Езеро (its northern arm is in the map's south-west
-   corner); Катунишко Езеро is only a ~100 m pond.
+   The firefighting plane refills from Тиквешко Езеро; Катунишко Езеро is only a ~100 m pond.
    No paragliders in Kavadarci. Best race time is kept per city (`skopje.bestRace.kavadarci`).
+   **The whole Тиквешко Езеро (Nov 2026).** The box grew from 8.7 × 9.1 km to 17.7 × 23.6 km
+   (41.25–41.462 N, 21.85–22.062 E): the lake (11 km², 41.26–41.40 N), the Црна Река from where it
+   comes in at the west edge to where it leaves past Возарци at the north edge, 13 villages as far
+   labels, a „Брана Тиквеш“ view in 📍 Места, an 11th race ring by the dam and a walking info card on its crest.
+   The whole Црна (207 km, from Demir Hisar through Pelagonia and Mariovo) would be ~30× Skopje's
+   area: out of reach for this engine. Брана Тиквеш (rockfill, 113.5 m, crest 338 m): the terrain
+   raises the dam body along the crest road (`dams` in the terrain spec; OSM's dam line is the
+   upstream edge at the full lake, ~25 m out, so the road is the crest), the lake stays flat against
+   it; `landmarks.ts` lays a rock mesh over the OSM outline (berms every 20 m of height, riprap on the
+   lake side), parapets and lamps on the crest, the round bell-mouth spillway in the lake (OSM: a
+   round water area and a culvert to the chute), ХЕЦ Тиквеш (113 MW) at the foot and its switchyard.
+   Heights and details are guessed from the shapes, not from photos. Cost: 432 chunks instead of 90,
+   the heightfield 1.6 → 8.4 MB, the scene 2.4 MB; most chunks are bare hills, so their far textures
+   are baked at half size (`sparseFar` in `src/cities.ts`: under 1500 draped-ground vertices, ~380
+   of 432 chunks), ~600 → ~200 MB of far textures on desktop. Skopje pixel-identical (check: 0 on
+   centre/Kale, 13–17 px on the overviews = the gondola cabins). The overview looks west from the
+   east: the map is longer north–south than the 28° lens shows from the south at 25 km.
+   **The block by Дом на културата (Nov 2026):** between Илинденска, ул. 7 Септември and the market lane OSM
+   has only the post office, the T-Mobile shop and a few others; 14 buildings were traced off an aerial
+   image (Google, 2026) into `extraBuildings` (appended, so the earlier ids and seeds stay): the house with
+   the red hipped roof among the trees, the flat-roofed shops north of Sweet Art, „Кино Бавча“, the white
+   hall east of the culture house, the shops east of the lane. Traced by drawing the map's outlines and
+   streets over the image (georeferenced on Илинденска, 7 Септември and the market's roof). OSM's
+   7 Септември runs ~5 m north of the kerb there, so that hall's south side is kept off the street. The post
+   office, the T-Mobile shop and the shop row south of the market had no levels and were guessed at 6, 9
+   and 4 storeys; `buildingTags` in `PREP` (tags added by way id) makes them low with flat roofs.
+   **The Луда Мара through the town (Nov 2026)**, `src/river.ts`, after photos: a stone-lined channel
+   ~8.6 m wide at the top between the bridges of Киро Крстев and Северен (1.9 km), shallow water ~5 m
+   wide, both banks pitched with light stones (greener at the waterline), white concrete copings, a
+   railing on the east one, a promenade on each side (concrete slabs; a red-brick walk on the west),
+   benches, lamps, plane trees, steps down to the water, arched steel footbridges at OSM's footway
+   bridges, parapets on the road bridges, and a cascade every ~70 m where the steps are worth showing
+   (the town falls ~31 m along it). The centre line is set halfway between the two promenade footways
+   where OSM has both (the river line is up to 3 m off), smoothed, every 2 m (`canal` in `PREP`).
+   A 10 m heightfield cannot hold an 8 m channel, so the terrain is left at street level there
+   (`riversKeep` in the terrain spec) and the corridor is cut exactly out of the terrain mesh, the
+   draped areas and the paths (`cut`: the polygon minus the corridor's triangles; streets crossing it
+   are kept, their draped strip is the bridge deck); the water, banks and promenades are emitted into
+   the draped ground, so the far-ground bake and the water glints include them. Outside the town the
+   river and the stream above it are a narrow strip of water in the cut channel. Walking: the
+   promenades' and footbridges' height, the channel blocks the way except at the bridges. A „Луда
+   Мара“ view in 📍 Места. Skopje pixel-identical (check: 0 over 2/255 on all 9 renders).
 
 ## Key decisions (and why)
 
@@ -349,6 +390,10 @@ always opens the city it was copied in.
   desktop-sized viewport at module load; iPadOS reports itself as a Mac with touch.
 - **The canvas has no `preserveDrawingBuffer`**: to save an image, render and call
   `toDataURL()` in the same task (see the Save PNG handler).
+- **Overpass at capacity for hours** (Nov 2026: 502/504 from overpass-api.de and maps.mail.ru,
+  timeouts on the others). `download.ts` keeps each finished tile in `data/tiles/` until the whole
+  download is written, so a run that gives up resumes; just run it again. For a grown box, fetching
+  only the new strips with the same query and merging them into the old raw file is far quicker.
 - **Overpass sometimes returns partial results without an error** — compare building
   counts in an overlapping area after `npm run download`.
 - **OSM names vary** ("Национална арена Тодор Проески", not "Тоше Проески"); look up
@@ -384,6 +429,11 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 - **Map data © OpenStreetMap contributors, ODbL.** `public/skopje.json` is a derived
   database: keep the attribution visible in the app (also on mobile) and, if the data
   is redistributed, it stays under ODbL (share-alike).
+- **Kavadarci's extra buildings: Overture Maps Foundation** (buildings theme, ODbL; the outlines
+  are Microsoft's ML building footprints). `scripts/overture.ts` reads the GeoParquet file(s) that
+  cover the box over HTTP ranges (STAC catalog → file, row-group bbox statistics → parts), AWS
+  first, then the Azure mirror. Credited next to OSM at the bottom right and in the help footer,
+  only in Kavadarci (`data-city`).
 - **Elevation: Terrain Tiles on AWS Open Data** (Mapzen Terrarium format; sources
   include SRTM and other public datasets) — credited in the help dialog and README.
 - Fonts (Lora, Rubik Mono One) load from Google Fonts under the SIL Open Font License.

@@ -4,5 +4,6 @@ dist/
 # raw downloads – regenerate with `npm run download`, `npm run terrain`
 data/*.json
 data/terrarium/
+data/tiles/
 data/*.log
 !data/aerialway.json

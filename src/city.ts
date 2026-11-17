@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32, toPts, ringArea, obb, pipPoly, PolyGrid, SegGrid, PointHash, rowCrossings, bbox, type Box, type OBB } from './geo.ts';
 import type { Terrain, TerrainColorFn } from './terrain.ts';
+import { canalLayout, canalChunks, canalGround, canalPieces, canalTrees } from './river.ts';
 import type { CityData, Poly, Pt, Ring, Vec3 } from './types.ts';
 
 const C = (h: THREE.ColorRepresentation) => new THREE.Color(h);
@@ -579,6 +580,8 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   const halfW = W / 2, halfH = H / 2;
   const inside = (x: number, z: number, m = 0) => Math.abs(x) < halfW - m && Math.abs(z) < halfH - m;
   const T = (x: number, z: number) => terrain.at(x, z);
+  // Kavadarci: the Луда Мара's channel is cut out of the terrain and the draped ground (river.ts)
+  const canal = canalLayout(data, terrain), cut = canal?.cut;
 
   // chunks
   const CX = Math.ceil(W / chunkSize), CZ = Math.ceil(H / chunkSize);
@@ -610,6 +613,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   for (const b of buildings) bGrid.add(b.poly, b);
   const areas = data.areas.map((a) => ({ ...a, poly: a.r.map(toPts), painted: false }));
   for (const a of areas) if (['water', 'pool', 'pitch', 'clay', 'court', 'parking', 'plaza'].includes(a.k)) blockGrid.add(a.poly, a);
+  if (canal) for (const r of canalPieces(canal)) blockGrid.add([r], null);
   // clearings for the hand-modelled monuments (landmarks.ts; Kavadarci): no trees, sheds or cars on them
   const LM = data.landmarks || {};
   const around = (c: Pt, ax: Pt, hl: number, hw: number): Poly => {
@@ -620,7 +624,11 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     const c = Math.cos(HEROES_TURN), s = Math.sin(HEROES_TURN), [hx, hz] = LM.heroes;
     blockGrid.add(around([hx + c - 2 * s, hz - s - 2 * c], [c, -s], 10, 12), null);
   }
-  if (LM.vatasa) blockGrid.add(around(LM.vatasa, [1, 0], 10, 10), null);
+  if (LM.vatasa) {
+    blockGrid.add(around(LM.vatasa, [1, 0], 10, 10), null);
+    // the lawn in front of it, the arc of the 12 busts ~20 m north and the cypresses behind (landmarks.ts)
+    blockGrid.add(around([LM.vatasa[0] + 1.4, LM.vatasa[1] - 10], [1, 0], 16, 16), null);
+  }
   if (LM.revolution) blockGrid.add(around(LM.revolution, [1, 0], 5, 5), null);
   const ossOb = LM.ossuary ? obb(toPts(LM.ossuary)) : null;
   if (ossOb) blockGrid.add(around(ossOb.c, ossOb.a, 17, 17), null); // the courtyard is ~21 m square
@@ -628,10 +636,30 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   if (stadOb) blockGrid.add(around([stadOb.c[0] - stadOb.a[0] * 4 * Math.sign(stadOb.a[0]), stadOb.c[1] - stadOb.a[1] * 4 * Math.sign(stadOb.a[0])], stadOb.a, stadOb.L + 24, stadOb.W + 14), null);
   const hallOb = LM.townhall ? obb(toPts(LM.townhall)) : null;
   if (hallOb) blockGrid.add(around(hallOb.c, hallOb.a, hallOb.L + 2, hallOb.W + 2), null);
+  // Брана Тиквеш: its rock face, the crest (the OSM line ±10 m), the power house and the switchyard
+  if (LM.dam) blockGrid.add([toPts(LM.dam)], null);
+  if (LM.damCrest) {
+    const cr = toPts(LM.damCrest);
+    for (let i = 0; i + 1 < cr.length; i++) {
+      const [a, b] = [cr[i], cr[i + 1]], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (len > 0.5) blockGrid.add(around([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], [(b[0] - a[0]) / len, (b[1] - a[1]) / len], len / 2 + 2, 10), null);
+    }
+  }
+  for (const r of [LM.hpp, LM.switchyard]) {
+    const o = r ? obb(toPts(r)) : null;
+    if (o) blockGrid.add(around(o.c, o.a, o.L + 4, o.W + 4), null);
+  }
   if (LM.culture) { // Дом на културата: 41.4 m along its heading, wings to the east, vestibule to the west
     const [cx, cz, h] = LM.culture;
     const ax: Pt = [Math.sin(h), Math.cos(h)], ex = Math.cos(h), ez = -Math.sin(h);
     blockGrid.add(around([cx + ex * 2.4, cz + ez * 2.4], ax, 23, 15), null);
+  }
+  if (LM.market) { // the market's deck (market.ts): the main part and the west wing, in its frame
+    const [cx, cz, h] = LM.market;
+    const ax: Pt = [Math.sin(h), Math.cos(h)], ex = Math.cos(h), ez = -Math.sin(h);
+    const at = (u: number, v: number): Pt => [cx + ex * u + ax[0] * v, cz + ez * u + ax[1] * v];
+    blockGrid.add(around(at(0, -2.95), ax, 28.6, 16.4), null);
+    blockGrid.add(around(at(-19.45, -17.5), ax, 14, 5), null);
   }
 
   // ---------------- terrain chunks + skirt
@@ -676,7 +704,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   };
   const terrainHi = (k: number): GeoData => {
     const [i0, j0, i1, j1] = terrainChunks.get(k)!.verts;
-    return dataFromGeo(terrain.chunkGeometry(i0, j0, i1, j1, terrainColor));
+    return dataFromGeo(terrain.chunkGeometry(i0, j0, i1, j1, terrainColor, canal ? { cells: canal.cells(terrain), cut: canal.cut } : undefined));
   };
   // terrain cells whose centre falls in chunk k (where its draped pieces go)
   const chunkCells = (k: number): [number, number, number, number] => {
@@ -729,7 +757,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     const all = [contour, ...holes].flat();
     const tris = new Float64Array(faces.length * 6);
     faces.forEach(([i, j, k], t) => tris.set([all[i].x, all[i].y, all[j].x, all[j].y, all[k].x, all[k].y], t * 6));
-    const ai = areaTris.push({ col: C(PAL.area[a.k] || PAL.ground), yo: areaLift(a.z), tris }) - 1;
+    const ai = areaTris.push({ col: C(a.c || PAL.area[a.k] || PAL.ground), yo: areaLift(a.z), tris }) - 1;
     for (let t = 0; t < faces.length; t++) {
       const o = t * 6, xs = [tris[o], tris[o + 2], tris[o + 4]], zs = [tris[o + 1], tris[o + 3], tris[o + 5]];
       const ci0 = Math.max(0, Math.floor((Math.min(...xs) - terrain.x0) / terrain.cell)), ci1 = Math.min(terrain.nx - 2, Math.floor((Math.max(...xs) - terrain.x0) / terrain.cell));
@@ -752,10 +780,11 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   // draped strips (road casings, roads, rails): segments go to the chunk of their midpoint,
   // round caps to the chunk of their point; built per chunk by buildGround
   const STEP = terrain.cell * 0.5;
-  const strips: { pts: Ring; hw: number; yo: number; col: THREE.Color }[] = [];
+  const strips: { pts: Ring; hw: number; yo: number; col: THREE.Color; keep: boolean }[] = [];
   const chunkStrips = new Map<number, [number, number[], number[]][]>(); // chunk → [strip, segments, caps]
-  const strip = (pts: Ring, hw: number, yo: number, col: THREE.Color) => {
-    const si = strips.push({ pts, hw, yo, col }) - 1;
+  // keep: not cut by the Луда Мара's channel (streets crossing it: the draped strip is the bridge's deck)
+  const strip = (pts: Ring, hw: number, yo: number, col: THREE.Color, keep = false) => {
+    const si = strips.push({ pts, hw, yo, col, keep }) - 1;
     for (let i = 0; i < pts.length - 1; i++) {
       const [ax, az] = pts[i], [bx, bz] = pts[i + 1];
       if (Math.hypot(bx - ax, bz - az) < 0.01) continue;
@@ -770,14 +799,25 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
       const { col, yo, tris } = areaTris[ai];
       for (const t of ts) {
         const o = t * 6;
-        terrain.clipTriangle([[tris[o], tris[o + 1]], [tris[o + 2], tris[o + 3]], [tris[o + 4], tris[o + 5]]], (piece) => {
+        const fan = (piece: Pt[]) => {
           const P = piece.map(([x, z]): Vec3 => [x, T(x, z) + yo, z]);
           for (let q = 1; q < P.length - 1; q++) B.tri(P[0], P[q], P[q + 1], col, UP);
+        };
+        terrain.clipTriangle([[tris[o], tris[o + 1]], [tris[o + 2], tris[o + 3]], [tris[o + 4], tris[o + 5]]], (piece) => {
+          if (!cut) return fan(piece);
+          const r = cut(piece);
+          if (r) r.forEach(fan);
+          else fan(piece);
         }, cells);
       }
     }
     for (const [si, segs, caps] of chunkStrips.get(k) ?? []) {
-      const { pts, hw, yo, col } = strips[si];
+      const { pts, hw, yo, col, keep } = strips[si];
+      const cutS = keep ? undefined : cut;
+      const fan = (piece: Pt[]) => {
+        const P = piece.map(([x, z]): Vec3 => [x, T(x, z) + yo, z]);
+        for (let q = 1; q < P.length - 1; q++) B.tri(P[0], P[q], P[q + 1], col, UP);
+      };
       for (const i of segs) {
         const [ax, az] = pts[i], [bx, bz] = pts[i + 1];
         const dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz);
@@ -787,6 +827,10 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
           const t0 = s / n, t1 = (s + 1) / n;
           const x0 = ax + dx * t0, z0 = az + dz * t0, x1 = ax + dx * t1, z1 = az + dz * t1;
           const p = (x: number, z: number): Vec3 => [x, T(x, z) + yo, z];
+          if (cutS) {
+            const r = cutS([[x0 + nx, z0 + nz], [x1 + nx, z1 + nz], [x1 - nx, z1 - nz], [x0 - nx, z0 - nz]]);
+            if (r) { r.forEach(fan); continue; }
+          }
           B.quad(p(x0 + nx, z0 + nz), p(x1 + nx, z1 + nz), p(x1 - nx, z1 - nz), p(x0 - nx, z0 - nz), col, UP);
         }
       }
@@ -797,20 +841,28 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
         for (let s = 0; s < seg; s++) {
           const a0 = (s / seg) * Math.PI * 2, a1 = ((s + 1) / seg) * Math.PI * 2;
           const x0 = x + Math.cos(a0) * hw, z0 = z + Math.sin(a0) * hw, x1 = x + Math.cos(a1) * hw, z1 = z + Math.sin(a1) * hw;
+          if (cutS) {
+            const r = cutS([[x, z], [x0, z0], [x1, z1]]);
+            if (r) { r.forEach(fan); continue; }
+          }
           B.tri([x, yc, z], [x0, T(x0, z0) + yo, z0], [x1, T(x1, z1) + yo, z1], col, UP);
         }
       }
     }
+    if (canal) { const ks = canalByChunk!.get(k); if (ks) canalGround(canal, terrain, ks, B, C(PAL.area.water)); }
     return B.empty ? null : B.build();
   };
+  const canalByChunk = canal ? canalChunks(canal, chunkKey) : null;
   const roadList = data.roads.map((r) => ({ ...r, pts: toPts(r.p), kind: roadKind(r.k) }));
   type Building = (typeof buildings)[number];
-  for (const r of roadList) if (r.kind === 'major' || r.kind === 'minor') strip(r.pts, r.w / 2 + CASING_EXTRA, CASING_LIFT, C(PAL.road.casing));
+  for (const r of roadList) if (r.kind === 'major' || r.kind === 'minor') strip(r.pts, r.w / 2 + CASING_EXTRA, CASING_LIFT, C(PAL.road.casing), true);
   for (const r of roadList) {
     const hw = r.w / 2;
-    strip(r.pts, hw, roadLift(r.kind, r.b), C(PAL.road[r.kind]));
+    strip(r.pts, hw, roadLift(r.kind, r.b), C(PAL.road[r.kind]), r.kind === 'major' || r.kind === 'minor' || r.kind === 'service');
     for (let i = 0; i < r.pts.length - 1; i++) roadGrid.add(r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1], hw + (r.kind === 'major' || r.kind === 'minor' ? 1.0 : 0.3));
   }
+  // Kavadarci: the Луда Мара outside the town, a narrow stream in the channel cut into the terrain
+  for (const f of data.landmarks?.streams ?? []) strip(toPts(f), 2.0, areaLift(7), C(PAL.area.water), true);
   for (const rl of data.rails) {
     const pts = toPts(rl.p);
     strip(pts, RAIL_HALF_WIDTH, RAIL_LIFT, C(PAL.road.rail));
@@ -1105,6 +1157,8 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     const x = data.trees[i], z = data.trees[i + 1];
     if (inside(x, z, 3) && !bGrid.hit(x, z) && occupied.tryAdd(x, z, 3)) addTree('trees', x, z, 2.6 + rndT() * 1.6, rndT());
   }
+  // Kavadarci: plane trees along the Луда Мара's promenades
+  if (canal) for (const [x, z] of canalTrees(canal)) if (placeOk(x, z, 4)) addTree('trees', x, z, 2.6 + rndT() * 1.2, rndT());
   // [spacing, probability, cypress share, radius min, radius span]
   const DENS: Record<string, [step: number, prob: number, cypress: number, rMin: number, rSpan: number]> = {
     park: [6.5, 0.86, 0.1, 2.8, 2.2], wood: [9.5, 0.92, 0.04, 4.2, 2.6], scrub: [12, 0.45, 0, 1.8, 1.6],
@@ -1369,17 +1423,23 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THRE
   }
   // Bake each chunk's draped ground (land use + roads) into a texture for the
   // coarse far-away terrain, so distant chunks cost a few thousand triangles.
-  function bakeGround(renderer: THREE.WebGLRenderer, res = 512): void {
+  // `sparseVerts` > 0: chunks whose draped ground has fewer vertices than that (bare hills: land cover
+  // only, no streets) get a texture of half the size, a quarter of the memory
+  function bakeGround(renderer: THREE.WebGLRenderer, res = 512, sparseVerts = 0): void {
     const bakeScene = new THREE.Scene();
     bakeScene.overrideMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
     const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 6000);
     cam.up.set(0, 0, -1);
     const prevTarget = renderer.getRenderTarget();
-    // one shared multisampled 2x target, box-downsampled into each chunk texture
-    const big = new THREE.WebGLRenderTarget(res * 2, res * 2, { samples: 4 });
-    big.texture.colorSpace = THREE.SRGBColorSpace;
+    // one shared multisampled 2x target per size, box-downsampled into each chunk texture
+    const bigs = new Map<number, THREE.WebGLRenderTarget>();
+    const bigFor = (r: number) => {
+      let b = bigs.get(r);
+      if (!b) { b = new THREE.WebGLRenderTarget(r * 2, r * 2, { samples: 4 }); b.texture.colorSpace = THREE.SRGBColorSpace; bigs.set(r, b); }
+      return b;
+    };
     const copyMat = new THREE.ShaderMaterial({
-      uniforms: { t: { value: big.texture } },
+      uniforms: { t: { value: null as THREE.Texture | null } },
       vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: 'uniform sampler2D t; varying vec2 vUv; void main() { gl_FragColor = texture2D(t, vUv);\n#include <colorspace_fragment>\n}',
       depthTest: false, depthWrite: false,
@@ -1394,7 +1454,10 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THRE
       const temp = !L.terrainHi; // streaming: build it just for the bake
       if (temp) buildHi(L);
       const hiMesh = L.terrainHi!;
-      const rt = new THREE.WebGLRenderTarget(res, res, { depthBuffer: false });
+      const sparse = sparseVerts > 0 && (L.ground?.geometry.attributes.position?.count ?? 0) < sparseVerts;
+      const r = sparse ? res / 2 : res, big = bigFor(r);
+      copyMat.uniforms.t.value = big.texture;
+      const rt = new THREE.WebGLRenderTarget(r, r, { depthBuffer: false });
       rt.texture.colorSpace = THREE.SRGBColorSpace;
       rt.texture.generateMipmaps = true;
       rt.texture.minFilter = THREE.LinearMipmapLinearFilter;
@@ -1426,7 +1489,7 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THRE
       far.customProgramCacheKey = () => 'ground-far-v2';
       L.terrainLo.material = far;
     }
-    big.dispose();
+    for (const b of bigs.values()) b.dispose();
     copyMat.dispose();
     renderer.setRenderTarget(prevTarget);
     renderer.setClearColor(0x000000, 0);

@@ -13,6 +13,7 @@
   way["place"~"square"];
   way["area:highway"];
   way["man_made"~"bridge|pier"];
+  way["power"~"switchgear|substation"];
   way["historic"]; 
   way["barrier"~"city_wall|wall"];
   node["natural"="tree"];

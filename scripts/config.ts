@@ -12,6 +12,8 @@ export interface CityFiles {
   /** heightfield: Uint16 decimetres above the minimum + its JSON header */
   terrainBin: string;
   terrainJson: string;
+  /** building outlines OSM lacks, from Overture Maps (scripts/overture.ts; not in git) */
+  overture?: string;
 }
 
 /** How scripts/terrain.ts shapes a city's heightfield. Everything except `smooth` reads the raw OSM download. */
@@ -27,6 +29,12 @@ export interface TerrainSpec {
   flatWays?: [id: number, level?: number, pad?: number][];
   /** river channels cut along waterways: tag → [half width, depth] in metres; not under roads (bridges, culverts) */
   rivers?: Record<string, [halfWidth: number, depth: number]>;
+  /** stretches of a waterway left uncut, between two latitudes: a channel modelled by hand (src/river.ts)
+   *  is set into the ground at street level there */
+  riversKeep?: [id: number, south: number, north: number][];
+  /** embankment dams: OSM crest line (way id), crest height (metres above sea), half the crest width (m),
+   *  face slope (vertical / horizontal); the ground is raised to the dam body, water is left flat */
+  dams?: [id: number, crest: number, halfWidth: number, slope: number][];
   /** known heights the ground is bent to: [lat, lon, metres above sea, radius m (default 150)] */
   points?: [lat: number, lon: number, metres: number, radius?: number][];
 }
@@ -38,11 +46,13 @@ export const CITIES = {
     files: { raw: 'data/skopje_raw.json', scene: 'public/skopje.json', terrainBin: 'public/terrain.bin', terrainJson: 'public/terrain.json' },
     terrain: { smooth: 3 } as TerrainSpec, // unchanged since v1 (the reference images depend on it)
   },
-  // Кавадарци: the town, Ваташа and Глишиќ, the Луда Мара and Катунишко Езеро to the south-east
+  // Кавадарци: the town, Ваташа and Глишиќ, the Луда Мара and Катунишко Езеро to the south-east, and to the
+  // south-west the whole of Тиквешко Езеро (41.259–41.404 N, 21.860–21.990 E) with the Тиквеш dam and power
+  // plant at its north end and the Црна Река below it
   kavadarci: {
-    bbox: { s: 41.38, w: 21.958, n: 41.462, e: 22.062 },
-    tiles: [2, 2] as [number, number],
-    files: { raw: 'data/kavadarci_raw.json', scene: 'public/kavadarci.json', terrainBin: 'public/kavadarci-terrain.bin', terrainJson: 'public/kavadarci-terrain.json' },
+    bbox: { s: 41.25, w: 21.85, n: 41.462, e: 22.062 },
+    tiles: [4, 5] as [number, number],
+    files: { raw: 'data/kavadarci_raw.json', scene: 'public/kavadarci.json', terrainBin: 'public/kavadarci-terrain.bin', terrainJson: 'public/kavadarci-terrain.json', overture: 'data/kavadarci_overture.json' },
     // EU-DEM 25 m underneath (checked: 0.6 m RMS at 100 points): little smoothing, flat water and
     // square, the Луда Мара's regulated channel cut in; add known heights to `points`
     terrain: {
@@ -53,6 +63,14 @@ export const CITIES = {
       // on the south side (photos); the 25 m data runs ~6 m up across it
       flatWays: [[1276210010, 282.3, 12]],
       rivers: { river: [6, 2.5], stream: [3, 1.5], canal: [2, 1] },
+      // the Луда Мара's stone-lined channel through the town, between the bridges of Киро Крстев and
+      // Северен (src/river.ts; the town lies at street level on both sides)
+      riversKeep: [[33071714, 41.42747, 41.44336]],
+      // Брана Тиквеш (1968): rockfill, 113.5 m from its foundation, crest 338 m long. The 25 m data
+      // rounds the crest down to 252–262 m. The crest follows the road on it (OSM's dam line is the
+      // upstream edge at the full lake, ~25 m out), 10 m above the flattened lake (250 m); both
+      // faces at ~1 : 1.8, so the upstream one meets the water near that line
+      dams: [[713475142, 260, 8, 0.55]],
       points: [],
     } as TerrainSpec,
   },

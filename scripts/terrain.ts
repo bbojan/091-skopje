@@ -139,7 +139,7 @@ const segDist = (px: number, pz: number, a: Pt, b: Pt) => {
   const t = l2 ? Math.min(1, Math.max(0, ((px - a[0]) * dx + (pz - a[1]) * dz) / l2)) : 0;
   return Math.hypot(px - a[0] - t * dx, pz - a[1] - t * dz);
 };
-const fixes = SPEC.flatWater || SPEC.flatSquares?.length || SPEC.flatWays?.length || SPEC.rivers || SPEC.points?.length;
+const fixes = SPEC.flatWater || SPEC.flatSquares?.length || SPEC.flatWays?.length || SPEC.rivers || SPEC.dams?.length || SPEC.points?.length;
 if (fixes) {
   if (!fs.existsSync(FILES.raw)) { console.error(`${FILES.raw} is missing: run \`npm run download -- ${CITY}\` first`); process.exit(1); }
   const raw = JSON.parse(fs.readFileSync(FILES.raw, 'utf8')) as OsmJson;
@@ -174,9 +174,11 @@ if (fixes) {
       const t = el.tags ?? {}, spec = t.waterway ? SPEC.rivers[t.waterway] : undefined;
       if (el.type !== 'way' || !spec || t.tunnel === 'yes' || t.tunnel === 'culvert') continue;
       const [hw, depth] = spec, reach = hw + FEATHER, pts = wayPts(el.geometry || []);
+      const keep = (SPEC.riversKeep ?? []).filter(([id]) => id === el.id).map(([, s, n]): [number, number] => [proj(n, 0)[1], proj(s, 0)[1]]);
       channels++;
       for (let k = 0; k + 1 < pts.length; k++) {
         const a = pts[k], b = pts[k + 1];
+        if (keep.some(([z0, z1]) => a[1] >= z0 && a[1] <= z1 && b[1] >= z0 && b[1] <= z1)) continue;
         const i0 = Math.max(0, Math.floor((Math.min(a[0], b[0]) - reach + W / 2) / CELL)), i1 = Math.min(nx - 1, Math.ceil((Math.max(a[0], b[0]) + reach + W / 2) / CELL));
         const j0 = Math.max(0, Math.floor((Math.min(a[1], b[1]) - reach + H / 2) / CELL)), j1 = Math.min(nz - 1, Math.ceil((Math.max(a[1], b[1]) + reach + H / 2) / CELL));
         for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
@@ -209,6 +211,34 @@ if (fixes) {
       }
     }
     console.log(`flat water: ${lakes} lakes`);
+  }
+
+  // embankment dams: a crest along the OSM line at the given height, faces falling away at the given
+  // slope until they meet the ground; never raised inside water (the lake stays flat against it)
+  if (SPEC.dams?.length) {
+    const wet = new Uint8Array(g.length);
+    for (const el of raw.elements) if (isWater(el.tags ?? {})) for (const poly of polygonsOf(el)) for (const k of cellsIn(poly)) wet[k] = 1;
+    for (const [id, crest, halfW, slope] of SPEC.dams) {
+      const el = raw.elements.find((e) => e.type === 'way' && e.id === id);
+      if (!el) { console.log(`dam ${id}: not in the download`); continue; }
+      const pts = wayPts(el.geometry || []), reach = halfW + 150 / slope; // no dam here is higher than 150 m
+      let raised = 0, top = 0;
+      for (let k = 0; k + 1 < pts.length; k++) {
+        const a = pts[k], b = pts[k + 1];
+        const i0 = Math.max(0, Math.floor((Math.min(a[0], b[0]) - reach + W / 2) / CELL)), i1 = Math.min(nx - 1, Math.ceil((Math.max(a[0], b[0]) + reach + W / 2) / CELL));
+        const j0 = Math.max(0, Math.floor((Math.min(a[1], b[1]) - reach + H / 2) / CELL)), j1 = Math.min(nz - 1, Math.ceil((Math.max(a[1], b[1]) + reach + H / 2) / CELL));
+        for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+          const c = j * nx + i;
+          if (wet[c]) continue;
+          // the distance to the whole crest line, so the faces meet cleanly at its bends
+          let d = Infinity;
+          for (let m = 0; m + 1 < pts.length; m++) d = Math.min(d, segDist(cellX(i), cellZ(j), pts[m], pts[m + 1]));
+          const v = crest - Math.max(0, d - halfW) * slope;
+          if (v > g[c]) { top = Math.max(top, v - g[c]); g[c] = v; raised++; }
+        }
+      }
+      console.log(`dam ${id}: crest ${crest} m, ${raised} cells raised (up to ${top.toFixed(1)} m)`);
+    }
   }
 
   // squares and listed ways: flat at their median (or given) height, blended back into the ground

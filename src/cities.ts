@@ -40,6 +40,9 @@ export interface CitySpec {
   buses: boolean;
   /** heights are drawn this many times taller than real (1 = true heights) */
   terrainExag: number;
+  /** far-ground textures at half size for chunks whose draped ground has fewer vertices than this
+   *  (bare hills); 0 / unset: every chunk at full size (Skopje) */
+  sparseFar?: number;
   /** how the walking person looks: Итар Пејо in folk costume, or a man in a dark suit (Kavadarci) */
   walker: 'pejo' | 'suit';
   /** weather preset 'vodno' is called by the local mountain; the firefighting water source */
@@ -111,22 +114,33 @@ export const CITIES: Record<CityId, CitySpec> = {
   kavadarci: {
     id: 'kavadarci', name: 'Кавадарци', code: '043',
     files: { scene: './kavadarci.json', terrainBin: './kavadarci-terrain.bin', terrainJson: './kavadarci-terrain.json' },
-    sceneBytes: 1.5e6,
+    sceneBytes: 2.4e6,
     views: {
       center: { place: 'square', ll: [41.43344, 22.01227], d: 560, polar: 0.74, az: 0.08 },
       ossuary: { place: 'ossuary', ll: [41.43261, 22.02287], d: 520, polar: 0.8, az: 0.6 },
       vatasa: { place: 'vatasa', ll: [41.40188, 22.02834], d: 700, polar: 0.78, az: -0.3 },
-      lake: { ll: [41.3952, 21.9690], d: 1500, polar: 1.0, az: 2.4 }, // the arm of Тиквешко Езеро in the map's south-west corner
-      overview: { xyz: [0, 60, 300], d: 11500, polar: 0.7, az: 0 },
+      lake: { ll: [41.3380, 21.9620], d: 19500, polar: 0.73, az: 1.66 }, // the whole of Тиквешко Езеро from the east: the dam on the right
+      dam: { place: 'dam', ll: [41.4031, 21.9378], d: 650, polar: 1.05, az: 2.3 }, // Брана Тиквеш from downstream, the lake behind
+      ludamara: { ll: [41.43900, 22.01585], d: 120, polar: 1.0, az: -0.3 }, // the Луда Мара's channel from upstream, a bridge and a cascade
+      // the map is 17.7 × 23.6 km, longer north–south than the narrow lens (28°) shows from the south:
+      // seen from the east, the length runs across the screen
+      overview: { ll: [41.3620, 21.9700], d: 25000, polar: 0.6, az: Math.PI / 2 },
     },
     districts: [
       ['Кавадарци', 41.4380, 22.0090], ['Ваташа', 41.4164, 22.0191], ['Глишиќ', 41.4528, 22.0247],
-      ['Тиквешко Езеро', 41.3952, 21.9690],
+      ['Тиквешко Езеро', 41.3093, 21.9728], // its widest part, half way along
+      // villages round the lake and along the Црна Река (OSM place nodes)
+      ['Возарци', 41.4286, 21.9242], ['Шивец', 41.4480, 21.9309], ['Дреново', 41.4191, 21.8897],
+      ['Брушани', 41.4007, 21.9544], ['Ресава', 41.3883, 21.9776], ['Драдња', 41.3958, 21.9062],
+      ['Добротино', 41.3742, 21.9345], ['Шешково', 41.3698, 21.9095], ['Праведник', 41.3422, 21.9337],
+      ['Галиште', 41.3201, 21.8645], ['Бегниште', 41.3678, 21.9975], ['Кошани', 41.3562, 22.0149],
+      ['Драгожел', 41.3227, 22.0174],
     ],
     labels: [
       ['Плоштад Маршал Тито', 41.43344, 22.01227, 24, 'square'],
       ['Споменик на револуцијата', 41.43322, 22.01231, 9, 'revolution'],
       ['Дом на културата', 41.434017, 22.012032, 16, 'culture'],
+      ['Зелен пазар', 41.434509, 22.012778, 14, 'market'],
       ['Општина Кавадарци', 41.43287, 22.01222, 18, 'townhall'],
       ['Споменик Киро Крстев и Димче Мирчев', 41.43364, 22.01948, 13, 'heroes'],
       ['Спомен-костурница', 41.43261, 22.02287, 28, 'ossuary'],
@@ -136,6 +150,10 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['Спомен-парк Ваташа', 41.40188, 22.02834, 24, 'vatasa'],
       ['Катунишко Езеро', 41.39186, 22.03766, 12, 'katunisko'],
       ['Луда Мара', 41.43333, 22.01575, 6, undefined, 'river'],
+      ['Брана Тиквеш', 41.40300, 21.93780, 22, 'dam'],
+      ['Црна Река', 41.4336, 21.9204, 6, undefined, 'river'], // below the dam, past Возарци
+      ['Црна Река', 41.2824, 21.8929, 6, undefined, 'river'], // where it flows into the lake
+      ['ХЕЦ Тиквеш', 41.40473, 21.93636, 24, 'hpp'],
     ],
     route: [
       ['Плоштад Маршал Тито', 41.43344, 22.01227, 70, 'square'],
@@ -146,6 +164,7 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['Ваташа', 41.4164, 22.0191, 90],
       ['Спомен-парк Ваташа', 41.40188, 22.02834, 85, 'vatasa'],
       ['Тиквешко Езеро', 41.3952, 21.9690, 55],
+      ['Брана Тиквеш', 41.4012, 21.9372, 45], // over the water just in front of the crest
       ['Музеј Галерија', 41.43437, 22.01652, 70, 'museum'],
       ['Плоштад', 41.43344, 22.01227, 65, 'square'],
     ],
@@ -154,16 +173,19 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['k.revolution', 'Споменик на револуцијата', 41.43322, 22.01231, 18, 'revolution'],
       ['k.townhall', 'Општина Кавадарци', 41.43287, 22.01222, 34, 'townhall'],
       ['k.culture', 'Дом на културата „Иван Мазов-Климе“', 41.434017, 22.012032, 30, 'culture'],
+      ['k.market', 'Градски зелен пазар', 41.434509, 22.012778, 32, 'market'],
       ['k.heroes', 'Споменик Киро Крстев и Димче Мирчев', 41.43364, 22.01948, 30, 'heroes'],
       ['k.stadium', 'Градски стадион', 41.43511, 22.02336, 75, 'stadium'],
       ['k.ossuary', 'Спомен-костурница', 41.43261, 22.02287, 60, 'ossuary'],
       ['k.museum', 'Музеј Галерија Кавадарци', 41.43437, 22.01652, 35, 'museum'],
       ['k.vatasa', 'Спомен-парк Ваташа', 41.40188, 22.02834, 70, 'vatasa'],
       ['k.lake', 'Катунишко Езеро', 41.39186, 22.03766, 90, 'katunisko'],
+      ['k.dam', 'Брана Тиквеш', 41.40300, 21.93780, 90, 'dam'],
     ],
     gliders: false,
     buses: false, // Kavadarci has no red ЈСП buses
     terrainExag: 1, // true heights
+    sparseFar: 1500, // most of the 432 chunks are bare hills round the lake: their far textures at half size
     walker: 'suit',
     snowLabel: 'weather.hills',
     refillLabel: 'fire.refill.lake',
