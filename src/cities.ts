@@ -3,6 +3,7 @@
 // The city comes from the address (`?city=kavadarci`); without it the map opens on Skopje.
 import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
+import type { TreeThin } from './city.ts';
 
 export const CITY_IDS = ['skopje', 'kavadarci'] as const;
 export type CityId = (typeof CITY_IDS)[number];
@@ -43,6 +44,8 @@ export interface CitySpec {
   /** far-ground textures at half size for chunks whose draped ground has fewer vertices than this
    *  (bare hills); 0 / unset: every chunk at full size (Skopje) */
   sparseFar?: number;
+  /** fewer, larger trees in green areas far from the town (loading time and memory); unset: everywhere alike (Skopje) */
+  treeThin?: TreeThin;
   /** how the walking person looks: Итар Пејо in folk costume, or a man in a dark suit (Kavadarci) */
   walker: 'pejo' | 'suit';
   /** weather preset 'vodno' is called by the local mountain; the firefighting water source */
@@ -185,6 +188,9 @@ export const CITIES: Record<CityId, CitySpec> = {
     gliders: false,
     buses: false, // Kavadarci has no red ЈСП buses
     terrainExag: 1, // true heights
+    // ~1.1 million forest trees on the hills round Тиквешко Езеро took most of the loading time:
+    // full density round the town, a tenth (drawn larger) from ~9 km out
+    treeThin: { ll: [41.43344, 22.01227], near: 3500, far: 9000, min: 0.1, grow: 1.7 },
     sparseFar: 1500, // most of the 432 chunks are bare hills round the lake: their far textures at half size
     walker: 'suit',
     snowLabel: 'weather.hills',

@@ -529,7 +529,12 @@ export interface CityOptions {
   clippingPlanes?: THREE.Plane[];
   /** memory saver: draped ground and detailed terrain are built per chunk on demand */
   stream?: boolean;
+  /** fewer, larger trees in green areas far from the town (CitySpec.treeThin) */
+  treeThin?: TreeThin;
 }
+/** Trees in green areas (forest above all) at full density within `near` m of `ll`, thinning out
+ *  smoothly to the share `min` at `far` m and beyond, drawn up to `grow` times larger there. */
+export interface TreeThin { ll: [lat: number, lon: number]; near: number; far: number; min: number; grow: number }
 export type RoadKind = 'major' | 'minor' | 'service' | 'ped' | 'path';
 export interface RoadInfo { k: string; w: number; b: number; kind: RoadKind; pts: Ring }
 /** Build stage names yielded by computeCitySteps (progress labels: i18n `stage.<name>`). */
@@ -1152,6 +1157,23 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   const placeOk = (x: number, z: number, d: number) =>
     inside(x, z, 4) && !bGrid.hit(x, z, 1.2) && !blockGrid.hit(x, z) && !roadGrid.near(x, z, 0.4) && occupied.tryAdd(x, z, d);
 
+  // fewer, larger trees in green areas far from the town (Kavadarci: the forests round the lake)
+  const thin = opts.treeThin ? {
+    ...opts.treeThin,
+    cx: (opts.treeThin.ll[1] - data.meta.lon0) * data.meta.kx, cz: -(opts.treeThin.ll[0] - data.meta.lat0) * data.meta.ky,
+  } : null;
+  const thinKeep = (th: NonNullable<typeof thin>, x: number, z: number) => {
+    const d = Math.hypot(x - th.cx, z - th.cz);
+    if (d <= th.near) return 1;
+    const t = Math.min(1, (d - th.near) / (th.far - th.near));
+    return 1 + (th.min - 1) * t * t * (3 - 2 * t);
+  };
+  // a fixed number per position (leaves the random sequences, and so the trees near the town, as they were)
+  const hash01 = (x: number, z: number) => {
+    let h = Math.imul(Math.round(x * 8) | 0, 0x27d4eb2d) ^ Math.imul(Math.round(z * 8) | 0, 0x165667b1);
+    h = Math.imul(h ^ (h >>> 15), 0x85ebca6b); h ^= h >>> 13;
+    return (h >>> 0) / 4294967296;
+  };
   const rndT = mulberry32(12345);
   for (let i = 0; i < data.trees.length; i += 2) {
     const x = data.trees[i], z = data.trees[i + 1];
@@ -1187,7 +1209,14 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
           const px = Math.min(Math.max(x + (rr() - 0.5) * step * 0.9, cross[k] + 0.6), cross[k + 1] - 0.6);
           const pz = z + (rr() - 0.5) * step * 0.6;
           const isC = rr() < cypressP;
-          const rad = isC ? 1.1 + rr() * 0.7 : rMin + rr() * rSpan;
+          let rad = isC ? 1.1 + rr() * 0.7 : rMin + rr() * rSpan;
+          if (thin) { // far from the town: thinned out before the (costly) placement tests
+            const keep = thinKeep(thin, px, pz);
+            if (keep < 1) {
+              if (hash01(px, pz) > keep) continue;
+              rad *= Math.min(thin.grow, keep ** -0.25);
+            }
+          }
           if (!placeOk(px, pz, isC ? 2.2 : rad * (forest ? 1.25 : 1.15))) continue;
           addTree(isC ? 'cyp' : 'trees', px, pz, rad, forest ? -rr() - 0.001 : rr());
         }
@@ -1224,8 +1253,9 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     for (let z = -halfH + 6; z < halfH - 6; z += 7) {
       if (ri() > 0.3 * density) continue;
       const px = x + (ri() - 0.5) * 6, pz = z + (ri() - 0.5) * 6;
-      if (paintedAt(px, pz) || greenGrid.hit(px, pz) || bGrid.hit(px, pz, 2.2) || blockGrid.hit(px, pz) || roadGrid.near(px, pz, 2.2)) continue;
-      if (!bGrid.hit(px, pz, 14)) continue;
+      // only next to buildings: tested first, so open country (forest, the lake) skips the costly polygon tests
+      if (paintedAt(px, pz) || !bGrid.hit(px, pz, 14)) continue;
+      if (greenGrid.hit(px, pz) || bGrid.hit(px, pz, 2.2) || blockGrid.hit(px, pz) || roadGrid.near(px, pz, 2.2)) continue;
       const isC = ri() < 0.06;
       const rad = isC ? 1.1 + ri() * 0.5 : 2.3 + ri() * 1.8;
       if (occupied.tryAdd(px, pz, rad * 1.3)) addTree(isC ? 'cyp' : 'trees', px, pz, rad, ri());
