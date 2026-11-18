@@ -8,7 +8,7 @@ import { createTraffic } from './traffic.ts';
 import { Terrain } from './terrain.ts';
 import { InkRenderer } from './post.ts';
 import { createClouds, createBirds, createParagliders } from './atmos.ts';
-import { createFlight, BANNER_TEXT, ROLL_BANNER_TEXT, type Flight } from './flight.ts';
+import { createFlight, type Flight } from './flight.ts';
 import { createDrive, type Drive } from './drive.ts';
 import { createWalk, type Walk, type WalkAction } from './walk.ts';
 import { createGame, fmtTime, type Game } from './game.ts';
@@ -303,12 +303,12 @@ async function loadCity(spec: CitySpec): Promise<void> {
   setOn(namesBtn, labels.enabled);
   scene.add(landmarks.group);
   ink.skipNormal.push(...landmarks.noInk); // the fountains' jets
-  try { await document.fonts.load("46px 'Rubik Mono One'"); await document.fonts.load("700 140px 'Lora'", BANNER_TEXT + ROLL_BANNER_TEXT); } catch { /* font optional */ }
+  try { await document.fonts.load("46px 'Rubik Mono One'"); await document.fonts.load("700 140px 'Lora'", spec.banners.fire + spec.banners.roll); } catch { /* font optional */ }
   const game = createGame({ city: spec, terrain, meta, crosses: data.crosses || [], places: data.places || {}, clippingPlanes: planes });
   scene.add(game.group);
   ink.skipNormal.push(game.beam);
   const abort = new AbortController();
-  const flight = createFlight({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, signal: abort.signal });
+  const flight = createFlight({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, signal: abort.signal, banner: { ...spec.banners, code: spec.code } });
   flight.setInvertY(invertPlane);
   // firefighting: fires, smoke and water are see-through (no ink lines)
   const fire = createFireMode({

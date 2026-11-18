@@ -57,6 +57,8 @@ export interface CitySpec {
   refillLabel: Key;
   /** the record time is kept per race route */
   bestRaceKey: string;
+  /** the firefighting tow banner (map data, not translated): after a fire is out; after a roll or a loop */
+  banners: { fire: string; roll: string };
 }
 
 export const CITIES: Record<CityId, CitySpec> = {
@@ -117,6 +119,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     snowLabel: 'weather.vodno',
     refillLabel: 'fire.refill',
     bestRaceKey: 'skopje.bestRace',
+    banners: { fire: 'Стојанче го спаси градот', roll: 'Село гори, баба се чешла' },
   },
   kavadarci: {
     id: 'kavadarci', name: 'Кавадарци', code: '043', icon: './favicon-kavadarci.svg',
@@ -202,6 +205,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     snowLabel: 'weather.hills',
     refillLabel: 'fire.refill.lake',
     bestRaceKey: 'skopje.bestRace.kavadarci',
+    banners: { fire: 'Митко го спаси градот!', roll: 'Шо ги ебам нека му а мислат' },
   },
 };
 
