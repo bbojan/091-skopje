@@ -52,6 +52,8 @@ export interface AreaData {
   /** area, m² */
   a: number;
   r: Flat[];
+  /** colour instead of the kind's palette colour (Kavadarci's grey squares) */
+  c?: string;
 }
 
 export interface RoadData {
@@ -75,9 +77,38 @@ export interface LandmarkData {
   stoneBridge?: Flat;
   gondola?: Flat;
   pylons?: Flat;
+  /** Kavadarci: the memorial ossuary's outline, the People's Heroes monument, the Vataša memorial,
+   *  the Monument to the Revolution on the square */
+  ossuary?: Flat;
+  heroes?: Pt;
+  vatasa?: Pt;
+  revolution?: Pt;
+  /** Kavadarci: the town hall's outline; Дом на културата as [x, z, heading of its long axis] */
+  townhall?: Flat;
+  culture?: Flat;
+  /** Kavadarci: the city green market (src/market.ts) as [x, z, heading of its long axis] */
+  market?: Flat;
+  /** Kavadarci: the outlines of the churches Св. Петка and Св. Димитриј (src/churches.ts) and
+   *  Св. Петка's free-standing bell tower */
+  petka?: Flat;
+  dimitrij?: Flat;
+  petkaTower?: Pt;
+  /** Kavadarci: the city stadium's pitch outline (the stands are modelled round it) */
+  stadium?: Flat;
+  /** Kavadarci, Тиквеш: the dam's crest line (along the lake), the outline of its downstream face, the
+   *  power house, the switchyard and the spillway's intake */
+  damCrest?: Flat;
+  dam?: Flat;
+  hpp?: Flat;
+  switchyard?: Flat;
+  spillway?: Flat;
+  /** Kavadarci, Луда Мара: the regulated channel's centre line through the town (south → north, every
+   *  2 m; src/river.ts), and the rest of the river as lines (a narrow stream) */
+  canal?: Flat;
+  streams?: Flat[];
 }
 
-/** Exact positions of named places, by key (square, porta, park, zoo, arena, bazaar). */
+/** Exact positions of named places, by key (Skopje: square, porta, park, zoo, arena, bazaar…; Kavadarci: square, ossuary, heroes, vatasa, lake…). */
 export type Places = Record<string, Pt>;
 
 export interface CityData {

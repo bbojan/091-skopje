@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mulberry32, type Rng } from './geo.ts';
-import { carGeometry, CAR_COLORS, type City } from './city.ts';
+import { carGeometry, CAR_COLORS, roadLift, type City } from './city.ts';
 import { glowTexture } from './sky.ts';
 import type { Terrain } from './terrain.ts';
 import type { Ring } from './types.ts';
@@ -134,11 +134,16 @@ export interface TrafficOptions {
   clippingPlanes?: THREE.Plane[];
   cars?: number;
   people?: number;
+  /** red ЈСП city buses on the main roads (Skopje); false leaves only cars */
+  buses?: boolean;
+  /** raised ground of modelled monuments for the people (absolute height, −∞ off them) */
+  platform?: ((x: number, z: number) => number) | null;
 }
 
 export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions = {}) {
   const rnd = mulberry32(2024);
   const group = new THREE.Group();
+  const plat = opts.platform, PATH_LIFT = roadLift('path', 0);
 
   // ---------------- cars
   const roads = new Paths();
@@ -153,7 +158,7 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
   const carGeo = carGeometry();
   const carMat = new THREE.MeshLambertMaterial({ clippingPlanes: opts.clippingPlanes });
   const carCols = CAR_COLORS;
-  const buses = cars.filter((c) => c.p.weight === 1 && rnd() < 0.12); // ~140 ЈСП buses on the main roads
+  const buses = opts.buses === false ? [] : cars.filter((c) => c.p.weight === 1 && rnd() < 0.12); // ~140 ЈСП buses on the main roads
   const busSet = new Set(buses);
   const autos = cars.filter((c) => !busSet.has(c));
   const carMesh = new THREE.InstancedMesh(carGeo, carMat, autos.length);
@@ -273,7 +278,7 @@ export function createTraffic(city: City, terrain: Terrain, opts: TrafficOptions
         bob = Math.abs(Math.sin(time * 7 + k)) * 0.3;
       }
       personAt[i * 2] = x; personAt[i * 2 + 1] = z;
-      const y = terrain.at(x, z) + 1.0 + bob;
+      const y = (plat ? Math.max(terrain.at(x, z), plat(x, z) - PATH_LIFT) : terrain.at(x, z)) + 1.0 + bob; // on a terrace: as on a path
       // slightly oversized so they read as lively dots from above
       write(ta, i, x, y, z, tx, tz, pplS);
       write(ha, i, x, y, z, tx, tz, pplS);

@@ -1,30 +1,16 @@
 // Converts raw Overpass JSON (out geom) into a compact, projected scene description.
-// Usage: node scripts/prepare.mjs data/skopje_raw.json public/skopje.json
+// Usage: node scripts/prepare.ts [city]   (FILES.raw → FILES.scene; default skopje)
 import fs from 'node:fs';
 
-import { lat0, lon0, kx, ky, proj, W, H } from './config.ts';
+import { CITY, FILES, lat0, lon0, kx, ky, proj, W, H, type CityName } from './config.ts';
 import { obb, PolyGrid } from '../src/geo.ts';
-import type { CityData, Poly, Pt, Ring } from '../src/types.ts';
+import { MARKET_OUTLINE } from '../src/market.ts';
+import { wayPts, isClosed, area, centroid, pip, dropLast, polygonsOf, isWater, type OsmElement, type OsmJson, type Tags } from './osm.ts';
+import type { CityData, Flat, Poly, Pt, Ring } from '../src/types.ts';
 
-// Overpass JSON ("out geom"): ways and relation members carry their node coordinates
-interface LatLon { lat: number; lon: number }
-type Tags = Record<string, string | undefined>;
-interface OsmMember { type: string; role: string; geometry?: (LatLon | null)[] }
-interface OsmElement {
-  type: 'node' | 'way' | 'relation';
-  id: number;
-  /** nodes only */
-  lat?: number;
-  lon?: number;
-  tags?: Tags;
-  geometry?: (LatLon | null)[];
-  members?: OsmMember[];
-}
-interface OsmJson { elements: OsmElement[] }
-
-const [, , inFile, outFile] = process.argv;
-if (!inFile || !outFile) {
-  console.error('usage: node scripts/prepare.ts <raw overpass json> <out scene json>');
+const inFile = FILES.raw, outFile = FILES.scene;
+if (!fs.existsSync(inFile)) {
+  console.error(`${inFile} is missing: run \`npm run download -- ${CITY}\` first`);
   process.exit(1);
 }
 const raw = JSON.parse(fs.readFileSync(inFile, 'utf8')) as OsmJson;
@@ -32,82 +18,6 @@ const raw = JSON.parse(fs.readFileSync(inFile, 'utf8')) as OsmJson;
 const r1 = (v: number) => Math.round(v * 10) / 10;
 const r1p = (p: Pt): Pt => [r1(p[0]), r1(p[1])];
 const flat = (pts: Ring) => pts.flatMap(([x, z]) => [r1(x), r1(z)]);
-
-function wayPts(geom: (LatLon | null)[]): Ring {
-  return geom.filter((g): g is LatLon => !!g).map((g) => proj(g.lat, g.lon));
-}
-function isClosed(pts: Ring): boolean {
-  if (pts.length < 4) return false;
-  const a = pts[0], b = pts[pts.length - 1];
-  return Math.abs(a[0] - b[0]) < 0.01 && Math.abs(a[1] - b[1]) < 0.01;
-}
-function area(pts: Ring): number {
-  let s = 0;
-  for (let i = 0, n = pts.length; i < n; i++) {
-    const [x1, z1] = pts[i], [x2, z2] = pts[(i + 1) % n];
-    s += x1 * z2 - x2 * z1;
-  }
-  return s / 2;
-}
-function centroid(pts: Ring): Pt {
-  let x = 0, z = 0;
-  for (const p of pts) { x += p[0]; z += p[1]; }
-  return [x / pts.length, z / pts.length];
-}
-function pip(pt: Pt, ring: Ring): boolean {
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, zi] = ring[i], [xj, zj] = ring[j];
-    if ((zi > pt[1]) !== (zj > pt[1]) && pt[0] < ((xj - xi) * (pt[1] - zi)) / (zj - zi) + xi) inside = !inside;
-  }
-  return inside;
-}
-const dropLast = (pts: Ring): Ring => (isClosed(pts) ? pts.slice(0, -1) : pts);
-
-// Join member ways into closed rings
-function assembleRings(ways: Ring[]): Ring[] {
-  const segs = ways.map((w) => w.slice());
-  const rings: Ring[] = [];
-  const key = (p: Pt) => `${p[0].toFixed(2)},${p[1].toFixed(2)}`;
-  while (segs.length) {
-    let ring = segs.shift()!;
-    let guard = 0;
-    while (!isClosed(ring) && guard++ < 1000) {
-      const endK = key(ring[ring.length - 1]);
-      let found = false;
-      for (let i = 0; i < segs.length; i++) {
-        const s = segs[i];
-        if (key(s[0]) === endK) { ring = ring.concat(s.slice(1)); segs.splice(i, 1); found = true; break; }
-        if (key(s[s.length - 1]) === endK) { ring = ring.concat(s.slice().reverse().slice(1)); segs.splice(i, 1); found = true; break; }
-      }
-      if (!found) break;
-    }
-    if (isClosed(ring)) rings.push(dropLast(ring));
-  }
-  return rings;
-}
-
-// Returns array of polygons: [outerRing, ...holeRings]
-function polygonsOf(el: OsmElement): Poly[] {
-  if (el.type === 'way') {
-    const pts = wayPts(el.geometry || []);
-    if (!isClosed(pts)) return [];
-    return [[dropLast(pts)]];
-  }
-  if (el.type === 'relation') {
-    const members = el.members ?? [];
-    const outers = assembleRings(members.filter((m) => m.type === 'way' && m.role !== 'inner' && m.geometry).map((m) => wayPts(m.geometry ?? [])));
-    const inners = assembleRings(members.filter((m) => m.type === 'way' && m.role === 'inner' && m.geometry).map((m) => wayPts(m.geometry ?? [])));
-    const polys: Poly[] = outers.map((o) => [o]);
-    for (const inn of inners) {
-      const c = inn[0];
-      const host = polys.find((p) => pip(c, p[0]));
-      if (host) host.push(inn);
-    }
-    return polys;
-  }
-  return [];
-}
 
 // Deterministic hash → [0,1)
 function rnd(id: number, salt = 0): number {
@@ -124,9 +34,191 @@ const parseNum = (v: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-// Old Bazaar (Čaršija) – low, tiled, dense
-const OLD = { s: 41.9995, n: 42.0048, w: 21.4342, e: 21.4425 };
-const SQUARE = proj(41.9961, 21.4316); // Macedonia Square
+// What differs per city: the old town box (low, tiled, dense), the main square, hand-modelled
+// landmarks, named places for labels and rings, and district boxes for height guesses.
+type Zone = [s: number, n: number, w: number, e: number];
+interface CityPrep {
+  old: { s: number; n: number; w: number; e: number } | null;
+  square: [lat: number, lon: number];
+  /** OSM ids of the outlines of hand-modelled landmarks (src/landmarks.ts) */
+  landmarks: {
+    stoneBridge?: number; fountain?: number; porta?: number; ossuary?: number; heroes?: number; vatasa?: number; townhall?: number; stadium?: number;
+    /** Kavadarci, Тиквеш: the dam's crest line, the outline of its downstream face, the power house (a building
+     *  replaced by the model), the switchyard, the spillway's intake */
+    damCrest?: number; dam?: number; hpp?: number; switchyard?: number; spillway?: number;
+    /** Kavadarci: the churches Св. Петка and Св. Димитриј (src/churches.ts), modelled on their outlines */
+    petka?: number; dimitrij?: number;
+  };
+  /** Kavadarci, Луда Мара: the river's ways (drawn as a narrow stream where not regulated) and its
+   *  regulated channel through the town (src/river.ts), from the bridge `from` to the bridge `to`,
+   *  centred between the promenade footways `banks` where OSM has both */
+  canal?: { river: number[]; from: number; to: number; banks: number[] };
+  /** names of the places (largest matching shape wins) */
+  placeNames: Record<string, string>;
+  /** places matched by OSM way id */
+  placeIds: Record<string, number>;
+  /** places at OSM nodes */
+  placeNodes: Record<string, number>;
+  /** coordinates of those nodes as OSM has them, used when the download did not include the node */
+  nodeLL: Record<number, [lat: number, lon: number]>;
+  /** hand-modelled landmarks that are not in OSM, by position */
+  landmarkLL?: {
+    revolution?: [lat: number, lon: number];
+    /** a building OSM lacks: centre and heading (radians, of its long axis from south toward east) */
+    culture?: [lat: number, lon: number, heading: number];
+    /** the covered city market on its parking deck: centre of the roof and heading, like `culture` */
+    market?: [lat: number, lon: number, heading: number];
+    /** the free-standing bell tower of Св. Петка (not in OSM) */
+    petkaTower?: [lat: number, lon: number];
+  };
+  tall: Zone[];
+  mid: Zone[];
+  /** a few extra storeys for blocks close to the main square (a capital's centre) */
+  squareBonus: boolean;
+  /** highest guessed storey count (tagged buildings keep their tags) */
+  maxLevels: number;
+  /** colour of the squares' paving (`c` on plaza areas) instead of the shared cream */
+  plazaColour?: string;
+  /** paved areas OSM lacks, drawn as squares: outlines as [lat, lon] lists */
+  extraPlazas?: [lat: number, lon: number][][];
+  /** OSM building outlines that do not match the place (left out) */
+  dropBuildings?: number[];
+  /** buildings OSM lacks: outline as [lat, lon] and tags read like OSM's (they get ids from 9e11 up) */
+  extraBuildings?: { tags: Tags; r: [lat: number, lon: number][] }[];
+  /** tags added to OSM buildings by way id (e.g. `building:levels` where the guess is wrong) */
+  buildingTags?: Record<number, Tags>;
+  /** the Vodno gondola (separate small download) */
+  aerialway?: string;
+}
+const PREP: Record<CityName, CityPrep> = {
+  skopje: {
+    old: { s: 41.9995, n: 42.0048, w: 21.4342, e: 21.4425 }, // Old Bazaar (Čaršija)
+    square: [41.9961, 21.4316], // Macedonia Square
+    landmarks: { stoneBridge: 411079115, fountain: 176160189, porta: 239422349 },
+    placeNames: {
+      square: 'Плоштад Македонија', porta: 'Порта Македонија', park: 'Градски парк', zoo: 'Зоолошка градина Скопје',
+      arena: 'Национална арена Тодор Проески', bazaar: 'Стара скопска чаршија', kale: 'Скопско кале',
+    },
+    // ambiguous or long names (there are two „Св. Спас“)
+    placeIds: {
+      telecom: 32490009, // Пошта на Македонија — Telecommunications Centre (Janko Konstantinov)
+      hamam: 172171547, // Даут пашин амам — National Gallery
+      spas: 1137300477, // Св. Спас in the old town
+      mall: 189429723, // Skopje City Mall
+      station: 144759771, // Железничка станица Скопје
+    },
+    placeNodes: {},
+    nodeLL: {},
+    tall: [
+      [42.000, 42.013, 21.372, 21.407], // Karpoš 3/4, Taftalidže
+      [41.978, 41.996, 21.452, 21.502], // Aerodrom, Novo Lisiče
+      [41.984, 41.993, 21.438, 21.455], // Kisela Voda blocks
+    ],
+    mid: [
+      [41.988, 42.001, 21.405, 21.445], // Centar, Kapištec, Debar Maalo
+      [42.000, 42.020, 21.428, 21.452], // Čair
+      [42.003, 42.016, 21.350, 21.372], // Gjorče Petrov centre
+      [41.973, 41.988, 21.425, 21.450], // Kisela Voda
+      [42.005, 42.020, 21.452, 21.480], // Gazi Baba centre
+    ],
+    squareBonus: true,
+    maxLevels: Infinity,
+    aerialway: 'data/aerialway.json',
+  },
+  kavadarci: {
+    old: null,
+    square: [41.43344, 22.01227], // Плоштад Маршал Тито
+    landmarks: {
+      ossuary: 1275768512, // Спомен-костурница on the hill east of the centre
+      heroes: 11845001868, // monument to the People's Heroes Kiro Atanasovski-Nalbatot and Dimče Mirčev (node)
+      vatasa: 7626158238, // memorial to the Vataša massacre, in its memorial park (node)
+      townhall: 790445885, // Општина Кавадарци, modelled after photos (2020, 2025)
+      stadium: 1276210010, // the city stadium's pitch (grass, lit); the stands round it are modelled
+      // Брана Тиквеш and ХЕЦ Тиквеш at the north end of Тиквешко Езеро
+      damCrest: 713475142, // the road along the crest (OSM's waterway=dam line is the upstream edge at the full lake)
+      dam: 1382014927, // Брана Тиквеш: the downstream face (closed waterway=dam way, material=rock)
+      hpp: 693424139, // ХЕЦ Тиквеш, the power house at the foot of the dam
+      switchyard: 1423984646, // power=switchgear next to it
+      spillway: 168761245, // the spillway's intake on the east bank (water, usage=spillway)
+      // the two town churches, modelled after photos (src/churches.ts)
+      petka: 1104457234, // Св. Петка, the new cross-in-square church north of the centre
+      dimitrij: 1111874740, // Св. Димитриј (renovated: stone walls, white dome and bell tower)
+    },
+    // Луда Мара: the river and the stream above it; the stone-lined channel with its promenades runs
+    // from the bridge of Киро Крстев (south) to the bridge of Северен (north)
+    canal: { river: [33071714, 1303056267], from: 41452333, to: 33469859, banks: [1517675194, 1517675198, 1517695636, 1517695638] },
+    placeNames: { square: 'Плоштад Маршал Тито', vatasa: 'Спомен парк Ваташа', katunisko: 'Катунишко Езеро' },
+    placeIds: {
+      ossuary: 1275768512,
+      dimitrij: 1111874740, // Св. Димитриј
+      petka: 1104457234, // Св. Петка
+      townhall: 790445885, // Општина Кавадарци
+      stadium: 1276210010, // Градски стадион
+      dam: 1382014927, // Брана Тиквеш
+      hpp: 693424139, // ХЕЦ Тиквеш
+    },
+    placeNodes: { heroes: 11845001868, museum: 529811458 }, // culture: the building centre (landmarkLL), not the OSM point
+    // copied from OSM (Nov 2026); data/query.overpassql fetches these node types from now on
+    nodeLL: {
+      11845001868: [41.43364, 22.01948], // historic=memorial, the People's Heroes
+      7626158238: [41.40143, 22.02843], // historic=memorial, Масакр во Ваташа
+      529811458: [41.43437, 22.01652], // tourism=museum, Музеј Галерија Кавадарци
+      373135640: [41.43396, 22.0122], // amenity=theatre, Дом на културата
+    },
+    // not in OSM: Monument to the Revolution (Petar Palavičini, 1958): at the south end of the lawn strip on
+    // the square's west side, a little in front of the town hall's steps (aerial image, photo of 2019)
+    // Дом на културата „Иван Мазов-Климе“ is not in OSM: placed from the site and floor plans of the
+    // fire-safety report (АРХИКОНС, Dec 2023): 41.4 m long, parallel to Илинденска (≈ 14° east of north),
+    // its foyer facing ул. 7 Септември at the corner of the two streets
+    // Градски зелен пазар (opened 8 April 2022) is not in OSM as a building: the roof's centre and
+    // heading read off an aerial image of June 2025 (Esri World Imagery), parallel to Илинденска
+    // Св. Петка's bell tower stands apart, ~34 m south-east of the church (its red cap on an aerial image,
+    // Esri World Imagery; Street View 2025 and a drone photo show it beside the parking)
+    landmarkLL: { revolution: [41.433206, 22.012113], culture: [41.434017, 22.012032, 0.241], market: [41.434509, 22.012778, 0.241], petkaTower: [41.442901, 22.008609] },
+    // a small town: blocks of flats around the square, lower everywhere else
+    tall: [],
+    mid: [[41.4285, 41.4385, 22.003, 22.0225]], // the centre around Плоштад Маршал Тито
+    squareBonus: false,
+    maxLevels: 9,
+    // the squares are paved in light grey stone (photos of Плоштад Маршал Тито)
+    plazaColour: '#d9d6d0',
+    // the town hall's forecourt (steps, two fountains) between the square's outline and the building
+    extraPlazas: [[[41.433091, 22.012057], [41.433125, 22.012391], [41.433069, 22.012412], [41.432976, 22.012384], [41.432910, 22.011996], [41.432952, 22.012004], [41.433015, 22.012034]]],
+    // west of the green market (aerial image of June 2025): OSM's 66 m strip there runs over the footpath,
+    // the market's deck, a low shop row and a small house; the shop row and the house in its place
+    dropBuildings: [1070244790],
+    extraBuildings: [
+      { tags: { building: 'retail', 'building:levels': '1', 'roof:shape': 'hipped' }, r: [[41.434477, 22.012481], [41.434497, 22.012587], [41.434276, 22.01266], [41.434257, 22.012553]] },
+      { tags: { building: 'house', 'building:levels': '2', 'roof:shape': 'hipped' }, r: [[41.434808, 22.012341], [41.434824, 22.012429], [41.434737, 22.012457], [41.434721, 22.01237]] },
+      // the block between Илинденска, ул. 7 Септември and the market lane, OSM has few of its buildings
+      // (traced off an aerial image, Google 2026; heights guessed: one or two storeys, like the photos round it)
+      { tags: { building: 'house', 'building:levels': '2', 'roof:shape': 'hipped' }, r: [[41.434409, 22.012237], [41.434418, 22.012366], [41.434331, 22.012395], [41.434311, 22.012265]] }, // the house with the red hipped roof among the trees by the lane
+      { tags: { building: 'retail', 'building:levels': '1', 'roof:shape': 'flat' }, r: [[41.434287, 22.011839], [41.434293, 22.011921], [41.434237, 22.011931], [41.434232, 22.011849]] }, // a shop north of Sweet Art
+      { tags: { building: 'retail', 'building:levels': '2', 'roof:shape': 'flat' }, r: [[41.4343, 22.011923], [41.434302, 22.011987], [41.434214, 22.012002], [41.434212, 22.011941]] }, // a shop north of Sweet Art
+      { tags: { building: 'retail', 'building:levels': '2', 'roof:shape': 'flat' }, r: [[41.434282, 22.01201], [41.434307, 22.012187], [41.434239, 22.012201], [41.434209, 22.012028]] }, // the flat-roofed block behind them (north part; the south part is under the culture house model)
+      { tags: { building: 'yes', 'building:levels': '2', 'roof:shape': 'flat' }, r: [[41.434172, 22.012183], [41.434184, 22.01225], [41.43408, 22.01227], [41.434075, 22.012204]] }, // a white building against the culture house
+      { tags: { building: 'yes', 'building:levels': '1', 'roof:shape': 'flat' }, r: [[41.434235, 22.012364], [41.434237, 22.012413], [41.434191, 22.01242], [41.434189, 22.012369]] }, // a shed by the lane
+      { tags: { building: 'retail', 'building:levels': '1', 'roof:shape': 'flat' }, r: [[41.434175, 22.012257], [41.434193, 22.012451], [41.434081, 22.012469], [41.43406, 22.012286]] }, // a flat-roofed shop block
+      { tags: { building: 'retail', 'building:levels': '1', 'roof:shape': 'flat' }, r: [[41.43406, 22.012286], [41.434085, 22.012507], [41.434047, 22.012513], [41.434018, 22.012293]] }, // a low white roof
+      { tags: { building: 'retail', 'building:levels': '1', 'roof:shape': 'flat' }, r: [[41.434018, 22.012293], [41.434047, 22.012513], [41.43397, 22.012533], [41.43394, 22.012257]] }, // „Кино Бавча“ (restaurant)
+      { tags: { building: 'yes', 'building:levels': '2', 'roof:shape': 'flat' }, r: [[41.433936, 22.012245], [41.433979, 22.012552], [41.43391, 22.012578], [41.433856, 22.012266]] }, // the white hall east of the culture house (its south side kept off ул. 7 Септември: OSM has the street ~5 m north of the kerb here)
+      { tags: { building: 'retail', 'building:levels': '1', 'roof:shape': 'flat' }, r: [[41.434101, 22.012617], [41.434106, 22.012714], [41.433969, 22.012734], [41.433965, 22.012642]] }, // shops east of the lane, south of the market
+      { tags: { building: 'retail', 'building:levels': '1', 'roof:shape': 'flat' }, r: [[41.434106, 22.012714], [41.434113, 22.01281], [41.433966, 22.012822], [41.43396, 22.012735]] }, // shops east of the lane, south of the market
+      { tags: { building: 'yes', 'building:levels': '2', 'roof:shape': 'flat' }, r: [[41.434764, 22.012148], [41.434769, 22.012242], [41.434728, 22.012255], [41.434721, 22.01216]] }, // a building west of the lane, north end
+      { tags: { building: 'yes', 'building:levels': '1', 'roof:shape': 'hipped' }, r: [[41.434561, 22.012287], [41.434563, 22.012313], [41.434494, 22.012327], [41.434491, 22.012301]] }, // a small brown-roofed building by the lane
+    ],
+    // OSM buildings without levels whose guess (centre zone, by footprint) is far too tall here: the post
+    // office, the T-Mobile shop and the shop row south of the market are low, with flat roofs (aerial image, 2026)
+    buildingTags: {
+      1070244772: { 'building:levels': '2', 'roof:shape': 'flat' }, // Македонска пошта
+      1070244773: { 'building:levels': '3', 'roof:shape': 'flat' }, // Оператор „Т-Мобиле“
+      1070244789: { 'building:levels': '1', 'roof:shape': 'flat' }, // the shop row south of the green market
+    },
+  },
+};
+const CFG = PREP[CITY];
+const OLD = CFG.old;
+const SQUARE = proj(...CFG.square);
 
 const out: CityData = {
   meta: { w: r1(W), h: r1(H), lat0, lon0, kx, ky, square: SQUARE.map(r1), attribution: '© OpenStreetMap contributors' },
@@ -142,28 +234,145 @@ const out: CityData = {
   places: {},
 };
 // hand-modelled landmarks (rendered by src/landmarks.ts instead of generic geometry)
-const LANDMARK_IDS = { stoneBridge: 411079115, fountain: 176160189, porta: 239422349 };
-const SKIP_BUILDINGS = new Set<number>([LANDMARK_IDS.porta]);
+const LANDMARK_IDS = CFG.landmarks;
+// outlines replaced by a model
+const SKIP_BUILDINGS = new Set<number>([LANDMARK_IDS.porta, LANDMARK_IDS.ossuary, LANDMARK_IDS.townhall, LANDMARK_IDS.hpp, LANDMARK_IDS.petka, LANDMARK_IDS.dimitrij, ...(CFG.dropBuildings ?? [])].filter((id): id is number => id != null));
+// buildings OSM lacks join the download as closed ways, so they are read like any other
+for (const el of raw.elements) { const t = CFG.buildingTags?.[el.id]; if (t && el.type === 'way') el.tags = { ...el.tags, ...t }; }
+(CFG.extraBuildings ?? []).forEach(({ tags, r }, i) => {
+  raw.elements.push({ type: 'way', id: 9e11 + i, tags, geometry: [...r, r[0]].map(([lat, lon]) => ({ lat, lon })) });
+});
+/** an OSM node's position: from the download, else from `nodeLL` */
+const nodeAt = (id: number): Pt | null => {
+  const el = raw.elements.find((e) => e.type === 'node' && e.id === id);
+  if (el) return proj(el.lat!, el.lon!);
+  const ll = CFG.nodeLL[id];
+  return ll ? proj(...ll) : null;
+};
+for (const [key, id] of [['heroes', LANDMARK_IDS.heroes], ['vatasa', LANDMARK_IDS.vatasa]] as const) {
+  const p = id != null ? nodeAt(id) : null;
+  if (p) out.landmarks[key] = r1p(p);
+}
+if (CFG.landmarkLL?.revolution) {
+  out.landmarks.revolution = r1p(proj(...CFG.landmarkLL.revolution));
+  out.places.revolution = out.landmarks.revolution;
+}
+if (CFG.landmarkLL?.culture) {
+  const [lat, lon, heading] = CFG.landmarkLL.culture;
+  const c = r1p(proj(lat, lon));
+  out.landmarks.culture = [c[0], c[1], heading];
+  out.places.culture = c;
+}
+if (CFG.landmarkLL?.petkaTower) out.landmarks.petkaTower = r1p(proj(...CFG.landmarkLL.petkaTower));
+if (CFG.landmarkLL?.market) {
+  const [lat, lon, heading] = CFG.landmarkLL.market;
+  const c = r1p(proj(lat, lon));
+  out.landmarks.market = [c[0], c[1], heading];
+  out.places.market = c;
+}
 for (const el of raw.elements) {
   if (el.type !== 'way') continue;
   const pts = wayPts(el.geometry || []);
   if (el.id === LANDMARK_IDS.stoneBridge) out.landmarks.stoneBridge = flat(pts);
   if (el.id === LANDMARK_IDS.fountain) { const r = dropLast(pts); out.landmarks.warrior = r1p(centroid(r)); }
   if (el.id === LANDMARK_IDS.porta) out.landmarks.porta = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.ossuary) out.landmarks.ossuary = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.townhall) out.landmarks.townhall = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.stadium) out.landmarks.stadium = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.petka) out.landmarks.petka = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.dimitrij) out.landmarks.dimitrij = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.damCrest) out.landmarks.damCrest = flat(pts);
+  if (el.id === LANDMARK_IDS.dam) out.landmarks.dam = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.hpp) out.landmarks.hpp = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.switchyard) out.landmarks.switchyard = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.spillway) out.landmarks.spillway = flat(dropLast(pts));
+}
+// Kavadarci, Луда Мара: the regulated channel's centre line (south → north, every 2 m), centred between
+// the two promenade footways where OSM has both (the river line is up to 3 m off), smoothed; the rest
+// of the river as lines (a narrow stream of water in the channel cut by scripts/terrain.ts)
+if (CFG.canal) {
+  const C = CFG.canal, ways = new Map<number, Ring>();
+  for (const el of raw.elements) if (el.type === 'way' && ([...C.river, C.from, C.to, ...C.banks] as number[]).includes(el.id)) ways.set(el.id, wayPts(el.geometry || []));
+  const main = ways.get(C.river[0]), fromW = ways.get(C.from), toW = ways.get(C.to);
+  if (main && fromW && toW) {
+    // arc length along the river of the point nearest to p
+    const cum = [0];
+    for (let i = 1; i < main.length; i++) cum.push(cum[i - 1] + Math.hypot(main[i][0] - main[i - 1][0], main[i][1] - main[i - 1][1]));
+    const nearest = (p: Pt, line: Ring): { s: number; q: Pt; d: number } => {
+      let best = { s: 0, q: line[0], d: Infinity };
+      for (let i = 0; i + 1 < line.length; i++) {
+        const [ax, az] = line[i], [bx, bz] = line[i + 1], dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz;
+        const t = L2 ? Math.max(0, Math.min(1, ((p[0] - ax) * dx + (p[1] - az) * dz) / L2)) : 0;
+        const q: Pt = [ax + dx * t, az + dz * t], d = Math.hypot(p[0] - q[0], p[1] - q[1]);
+        if (d < best.d) best = { s: line === main ? cum[i] + Math.sqrt(L2) * t : 0, q, d };
+      }
+      return best;
+    };
+    const mid = (r: Ring): Pt => { const a = r[0], b = r[r.length - 1]; return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; };
+    let s0 = nearest(mid(fromW), main).s, s1 = nearest(mid(toW), main).s;
+    if (s0 > s1) [s0, s1] = [s1, s0];
+    const at = (s: number): [Pt, Pt] => { // point and unit tangent at arc length s
+      let i = 0;
+      while (i < cum.length - 2 && cum[i + 1] < s) i++;
+      const L = cum[i + 1] - cum[i] || 1, t = (s - cum[i]) / L, a = main[i], b = main[i + 1];
+      return [[a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t], [(b[0] - a[0]) / L, (b[1] - a[1]) / L]];
+    };
+    const banks = C.banks.map((id) => ways.get(id)).filter((r): r is Ring => !!r);
+    const n = Math.floor((s1 - s0) / 2), offs: (Pt | null)[] = [];
+    const base: Pt[] = [];
+    for (let k = 0; k <= n; k++) {
+      const [p, tg] = at(s0 + ((s1 - s0) * k) / n), nrm: Pt = [-tg[1], tg[0]];
+      base.push(p);
+      // the nearest footway on each side, within 12 m
+      let l: Pt | null = null, r: Pt | null = null, dl = 12, dr = 12;
+      for (const b of banks) {
+        const { q, d } = nearest(p, b), side = (q[0] - p[0]) * nrm[0] + (q[1] - p[1]) * nrm[1];
+        if (side > 0 && d < dl) { dl = d; l = q; }
+        if (side < 0 && d < dr) { dr = d; r = q; }
+      }
+      offs.push(l && r ? [(l[0] + r[0]) / 2 - p[0], (l[1] + r[1]) / 2 - p[1]] : null);
+    }
+    // fill the gaps by interpolating the known offsets (zero at the ends of the section)
+    if (!offs[0]) offs[0] = [0, 0];
+    if (!offs[n]) offs[n] = [0, 0];
+    for (let k = 0; k <= n; k++) if (!offs[k]) {
+      let a = k - 1, b = k + 1;
+      while (!offs[b]) b++;
+      const A = offs[a]!, B = offs[b]!, t = (k - a) / (b - a);
+      offs[k] = [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t];
+    }
+    const raw2 = base.map((p, k): Pt => [p[0] + offs[k]![0], p[1] + offs[k]![1]]);
+    // smooth twice over ±12 m (keeping the ends, which sit under the bridges)
+    let line = raw2;
+    for (let pass = 0; pass < 2; pass++)
+      line = line.map((p, k) => {
+        const w = Math.min(6, k, n - k);
+        let x = 0, z = 0;
+        for (let q = k - w; q <= k + w; q++) { x += line[q][0]; z += line[q][1]; }
+        return [x / (2 * w + 1), z / (2 * w + 1)];
+      });
+    out.landmarks.canal = flat(line);
+    // the river outside the section, and the stream above it, as lines inside the map
+    const inMap = (p: Pt) => Math.abs(p[0]) < W / 2 - 20 && Math.abs(p[1]) < H / 2 - 20;
+    const streams: Flat[] = [];
+    const runs = (pts: Ring) => {
+      let run: Ring = [];
+      for (const p of pts) {
+        if (inMap(p)) run.push(p);
+        else { if (run.length > 1) streams.push(flat(run)); run = []; }
+      }
+      if (run.length > 1) streams.push(flat(run));
+    };
+    runs(main.filter((_, i) => cum[i] <= s0 + 1));
+    runs(main.filter((_, i) => cum[i] >= s1 - 1));
+    for (const id of C.river.slice(1)) { const r = ways.get(id); if (r) runs(r); }
+    out.landmarks.streams = streams;
+    console.log(`Луда Мара: channel ${Math.round(s1 - s0)} m (${offs.filter((o) => o![0] || o![1]).length} of ${n + 1} points recentred), ${streams.length} stream lines`);
+  }
 }
 // exact positions of named places (area-weighted centroid of the largest matching shape)
-const PLACE_NAMES: Record<string, string> = {
-  square: 'Плоштад Македонија', porta: 'Порта Македонија', park: 'Градски парк', zoo: 'Зоолошка градина Скопје',
-  arena: 'Национална арена Тодор Проески', bazaar: 'Стара скопска чаршија', kale: 'Скопско кале',
-};
-// places matched by OSM way id (names that are ambiguous or long: there are two „Св. Спас“)
-const PLACE_IDS: Record<string, number> = {
-  telecom: 32490009, // Пошта на Македонија — Telecommunications Centre (Janko Konstantinov)
-  hamam: 172171547, // Даут пашин амам — National Gallery
-  spas: 1137300477, // Св. Спас in the old town
-  mall: 189429723, // Skopje City Mall
-  station: 144759771, // Железничка станица Скопје
-};
+const PLACE_NAMES = CFG.placeNames;
+const PLACE_IDS = CFG.placeIds;
 const areaCentroid = (r: Ring): Pt => {
   let a = 0, cx = 0, cz = 0;
   for (let i = 0, n = r.length; i < n; i++) {
@@ -188,9 +397,13 @@ for (const [key, id] of Object.entries(PLACE_IDS)) {
   const poly = el ? polygonsOf(el)[0] : undefined;
   if (poly) out.places[key] = r1p(areaCentroid(poly[0]));
 }
+for (const [key, id] of Object.entries(CFG.placeNodes)) {
+  const p = nodeAt(id);
+  if (p) out.places[key] = r1p(p);
+}
 // Vodno gondola (separate small download: data/aerialway.json)
-if (fs.existsSync('data/aerialway.json')) {
-  const aw = JSON.parse(fs.readFileSync('data/aerialway.json', 'utf8')) as OsmJson;
+if (CFG.aerialway && fs.existsSync(CFG.aerialway)) {
+  const aw = JSON.parse(fs.readFileSync(CFG.aerialway, 'utf8')) as OsmJson;
   for (const el of aw.elements) {
     if (el.type === 'way' && el.tags?.aerialway === 'gondola') out.landmarks.gondola = flat(wayPts(el.geometry || []));
   }
@@ -205,7 +418,7 @@ const ROAD_W: Record<string, number> = {
 };
 
 function areaKind(t: Tags): string | null {
-  if (t.natural === 'water' || t.waterway === 'riverbank' || t.landuse === 'reservoir' || t.landuse === 'basin') return 'water';
+  if (isWater(t)) return 'water';
   if (t.leisure === 'swimming_pool') return 'pool';
   if (t.leisure === 'pitch' || t.leisure === 'track') {
     const s = t.surface || '';
@@ -231,19 +444,9 @@ function areaKind(t: Tags): string | null {
 const AREA_Z: Record<string, number> = { campus: 0, fortress: 1, dirt: 1, cemetery: 2, grass: 3, scrub: 3, park: 3, wood: 4, play: 5, parking: 5, plaza: 5, pitch: 6, clay: 6, court: 6, water: 7, pool: 8 };
 
 // Known districts (lat/lon boxes) that shape height guesses where OSM has no tags
-const inZone = (lat: number, lon: number, z: number[]) => lat > z[0] && lat < z[1] && lon > z[2] && lon < z[3];
-const ZONES_TALL = [
-  [42.000, 42.013, 21.372, 21.407], // Karpoš 3/4, Taftalidže
-  [41.978, 41.996, 21.452, 21.502], // Aerodrom, Novo Lisiče
-  [41.984, 41.993, 21.438, 21.455], // Kisela Voda blocks
-];
-const ZONES_MID = [
-  [41.988, 42.001, 21.405, 21.445], // Centar, Kapištec, Debar Maalo
-  [42.000, 42.020, 21.428, 21.452], // Čair
-  [42.003, 42.016, 21.350, 21.372], // Gjorče Petrov centre
-  [41.973, 41.988, 21.425, 21.450], // Kisela Voda
-  [42.005, 42.020, 21.452, 21.480], // Gazi Baba centre
-];
+const inZone = (lat: number, lon: number, z: Zone) => lat > z[0] && lat < z[1] && lon > z[2] && lon < z[3];
+const ZONES_TALL = CFG.tall;
+const ZONES_MID = CFG.mid;
 const HOUSE = ['house', 'detached', 'semidetached_house', 'terrace', 'bungalow', 'farm', 'cabin', 'hut', 'garage', 'garages', 'shed', 'kiosk', 'service', 'toilets'];
 const INDUSTRIAL = ['industrial', 'warehouse', 'factory', 'manufacture', 'hangar', 'storage_tank', 'transportation'];
 const PUBLIC = ['school', 'university', 'college', 'hospital', 'public', 'civic', 'government', 'office', 'kindergarten', 'train_station'];
@@ -268,13 +471,14 @@ for (const el of raw.elements) {
 }
 
 interface BuildingInfo { h: number; mh: number; lv: number; old: boolean; a: number; kind: 'ind' | 'fortress' | null }
-function buildingInfo(el: OsmElement, poly: Poly): BuildingInfo {
+/** `zones` false: ignore the tall / mid districts (outlines without any tags, mostly houses) */
+function buildingInfo(el: OsmElement, poly: Poly, zones = true): BuildingInfo {
   const t = el.tags ?? {};
   const outer = poly[0];
   const a = Math.abs(area(outer));
   const [cx, cz] = centroid(outer);
   const lat = lat0 - cz / ky, lon = lon0 + cx / kx;
-  const old = lat > OLD.s && lat < OLD.n && lon > OLD.w && lon < OLD.e;
+  const old = !!OLD && lat > OLD.s && lat < OLD.n && lon > OLD.w && lon < OLD.e;
   const dSq = Math.hypot(cx - SQUARE[0], cz - SQUARE[1]);
   const type = t.building ?? 'yes';
   let levels = parseNum(t['building:levels']);
@@ -291,8 +495,8 @@ function buildingInfo(el: OsmElement, poly: Poly): BuildingInfo {
   if (h == null && levels == null) {
     const ob = obb(outer);
     const aspect = ob ? ob.L / Math.max(ob.W, 0.5) : 1, wid = ob ? ob.W * 2 : 10;
-    const tall = ZONES_TALL.some((z) => inZone(lat, lon, z));
-    const mid = !tall && ZONES_MID.some((z) => inZone(lat, lon, z));
+    const tall = zones && ZONES_TALL.some((z) => inZone(lat, lon, z));
+    const mid = zones && !tall && ZONES_MID.some((z) => inZone(lat, lon, z));
     const ind = INDUSTRIAL.includes(type) || (a > 400 && ['yes', 'commercial', 'retail'].includes(type) && industrialGrid.hit(cx, cz));
     const between = (lo: number, span: number) => lo + Math.floor(rv * (span + 1));
     if (HOUSE.includes(type)) levels = between(1, 1);
@@ -312,8 +516,9 @@ function buildingInfo(el: OsmElement, poly: Poly): BuildingInfo {
       else if (a < 420) levels = tall || mid ? between(3, 3) : between(2, 2);
       else levels = tall || mid ? between(4, 4) : between(2, 3);
       if (apt) levels = Math.max(levels, rv2 < 0.5 ? 3 : 4);
-      if (!old && dSq < 900 && a > 150) levels += Math.floor(rv2 * 3);
+      if (CFG.squareBonus && !old && dSq < 900 && a > 150) levels += Math.floor(rv2 * 3);
     }
+    levels = Math.min(levels, CFG.maxLevels);
     if (inCastle) levels = Math.min(levels, 2);
   }
   // levels is set whenever h is missing (the block above)
@@ -398,7 +603,7 @@ for (const el of raw.elements) {
   if (ak && (el.type === 'relation' || isClosed(wayPts(el.geometry || [])))) {
     for (const poly of polygonsOf(el)) {
       if (!anyInBox(poly[0])) continue;
-      out.areas.push({ k: ak, z: AREA_Z[ak], a: r1(Math.abs(area(poly[0]))), r: poly.map(flat) });
+      out.areas.push({ k: ak, z: AREA_Z[ak], a: r1(Math.abs(area(poly[0]))), r: poly.map(flat), ...(ak === 'plaza' && CFG.plazaColour ? { c: CFG.plazaColour } : {}) });
     }
     if (!(t.highway && t.area !== 'yes')) continue;
   }
@@ -421,6 +626,116 @@ for (const el of raw.elements) {
     const pts = wayPts(el.geometry || []);
     if (anyInBox(pts)) out.rails.push({ b: t.bridge ? 1 : 0, p: flat(pts) });
   }
+}
+
+// Buildings OSM lacks, from Overture Maps (scripts/overture.ts): machine-learned outlines traced from
+// aerial images. Kept only where nothing else is: not over an OSM building, a hand-modelled landmark,
+// water or a road. No tags, so their heights are guessed like untagged OSM buildings.
+if (FILES.overture) {
+  if (!fs.existsSync(FILES.overture)) {
+    console.error(`${FILES.overture} is missing: run \`npm run overture -- ${CITY}\` first`);
+    process.exit(1);
+  }
+  const ov = JSON.parse(fs.readFileSync(FILES.overture, 'utf8')) as { attribution: string; buildings: { id: string; r: number[][] }[] };
+  out.meta.attribution += `, ${ov.attribution}`;
+  const toPoly = (r: number[]): Ring => { const pts: Ring = []; for (let i = 0; i < r.length; i += 2) pts.push([r[i], r[i + 1]]); return pts; };
+  const osmGrid = new PolyGrid<{ a: number }>(40);
+  for (const b of out.buildings) osmGrid.add(b.r.map(toPoly), { a: Math.abs(area(toPoly(b.r[0]))) });
+  const blockGrid = new PolyGrid<null>(40); // water, pools
+  for (const a of out.areas) if (a.k === 'water' || a.k === 'pool') blockGrid.add(a.r.map(toPoly), null);
+  // hand-modelled landmarks: their outlines (padded) and points with a radius (metres)
+  const keepOut: [poly: Ring | null, x: number, z: number, pad: number][] = [];
+  const L = out.landmarks;
+  // (the ossuary: its OSM outline is only the house on the shaft, the modelled courtyard round it is ~21 m square)
+  for (const [ring, pad] of [[L.townhall, 3], [L.ossuary, 11], [L.stadium, 30], [L.porta, 3], [L.dam, 5], [L.hpp, 4], [L.switchyard, 3], [L.petka, 3], [L.dimitrij, 3]] as const) if (ring) keepOut.push([toPoly(ring), 0, 0, pad]);
+  // the market's deck (in its frame: x across, z along the roof, south +)
+  let marketRing: Ring | null = null;
+  if (L.market) {
+    const [mx, mz, rot] = L.market, c = Math.cos(rot), sn = Math.sin(rot);
+    marketRing = MARKET_OUTLINE.map(([u, v]): Pt => [mx + u * c + v * sn, mz - u * sn + v * c]);
+    keepOut.push([marketRing, 0, 0, 1]);
+  }
+  for (const [p, pad] of [[L.culture, 26], [L.revolution, 12], [L.heroes, 16], [L.vatasa, 14], [L.warrior, 15], [L.petkaTower, 6]] as const) if (p) keepOut.push([null, p[0], p[1], pad]);
+  const nearLandmark = (x: number, z: number) => keepOut.some(([ring, lx, lz, pad]) => {
+    if (!ring) return Math.hypot(x - lx, z - lz) < pad;
+    if (pip([x, z], ring)) return true;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [ax, az] = ring[j], dx = ring[i][0] - ax, dz = ring[i][1] - az, L2 = dx * dx + dz * dz || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2));
+      if (Math.hypot(x - ax - t * dx, z - az - t * dz) < pad) return true;
+    }
+    return false;
+  });
+  // road centrelines every 1.5 m (not paths: they cross yards loosely drawn)
+  const roadPts = new Map<number, Pt[]>();
+  const RC = 20, rk = (i: number, j: number) => i * 100003 + j;
+  for (const rd of out.roads) {
+    if (['footway', 'path', 'steps', 'cycleway', 'track', 'bridleway'].includes(rd.k)) continue;
+    for (let i = 0; i + 3 < rd.p.length; i += 2) {
+      const x1 = rd.p[i], z1 = rd.p[i + 1], x2 = rd.p[i + 2], z2 = rd.p[i + 3], n = Math.ceil(Math.hypot(x2 - x1, z2 - z1) / 1.5);
+      for (let s = 0; s <= n; s++) {
+        const x = x1 + ((x2 - x1) * s) / n, z = z1 + ((z2 - z1) * s) / n, k = rk(Math.floor(x / RC), Math.floor(z / RC));
+        let arr = roadPts.get(k);
+        if (!arr) roadPts.set(k, (arr = []));
+        arr.push([x, z]);
+      }
+    }
+  }
+  const usedIds = new Set(out.buildings.map((b) => b.id));
+  const dropped = { osm: 0, landmark: 0, water: 0, road: 0, small: 0, outside: 0 };
+  let added = 0;
+  for (const ob of ov.buildings) {
+    const poly: Poly = ob.r.map((ring) => dropLast(toPoly(ring).map(([lon, lat]) => proj(lat, lon))));
+    const outer = poly[0];
+    if (outer.length < 3 || !inBox(outer, 2)) { dropped.outside++; continue; }
+    const a = Math.abs(area(outer));
+    if (a < 6) { dropped.small++; continue; }
+    const [cx, cz] = areaCentroid(outer);
+    // (the market's deck: not even a corner on it, its roof's edge reads as small buildings)
+    if (nearLandmark(cx, cz) || (marketRing && outer.some((p) => pip(p, marketRing)))) { dropped.landmark++; continue; }
+    if (blockGrid.hit(cx, cz)) { dropped.water++; continue; }
+    // overlap with OSM buildings and water: sample the outline on a 1 m grid
+    let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+    for (const [x, z] of outer) { x0 = Math.min(x0, x); z0 = Math.min(z0, z); x1 = Math.max(x1, x); z1 = Math.max(z1, z); }
+    const hitArea = new Map<object, number>();
+    let inside = 0, wet = 0;
+    for (let x = Math.floor(x0) + 0.5; x < x1; x++)
+      for (let z = Math.floor(z0) + 0.5; z < z1; z++) {
+        if (!pip([x, z], outer)) continue;
+        inside++;
+        const h = osmGrid.hit(x, z);
+        if (h) hitArea.set(h, (hitArea.get(h) ?? 0) + 1);
+        if (blockGrid.hit(x, z)) wet++;
+      }
+    const n = Math.max(inside, 1);
+    let overOsm = false;
+    for (const [h, k] of hitArea) if (k > 0.2 * n || k > 0.2 * (h as { data: { a: number } }).data.a) overOsm = true;
+    if (overOsm) { dropped.osm++; continue; }
+    if (wet > 0.2 * n) { dropped.water++; continue; }
+    // a road running through it (more than a corner)
+    let onRoad = 0;
+    for (let i = Math.floor(x0 / RC); i <= Math.floor(x1 / RC); i++)
+      for (let j = Math.floor(z0 / RC); j <= Math.floor(z1 / RC); j++)
+        for (const p of roadPts.get(rk(i, j)) ?? []) if (pip(p, outer)) onRoad++;
+    if (onRoad >= 2) { dropped.road++; continue; }
+    // a numeric id from the Overture id (seeds the facade colours, roof and windows)
+    let h = 2166136261;
+    for (let i = 0; i < ob.id.length; i++) h = Math.imul(h ^ ob.id.charCodeAt(i), 16777619);
+    let id = 1e12 + (h >>> 0);
+    while (usedIds.has(id)) id++;
+    usedIds.add(id);
+    const el: OsmElement = { type: 'way', id, tags: { building: 'yes' } };
+    // most blocks of flats are in OSM already (with tags): these are mostly family houses
+    const info = buildingInfo(el, poly, false);
+    out.buildings.push({ id, r: poly.map(flat), h: r1(info.h), mh: r1(info.mh), lv: info.lv, old: info.old ? 1 : 0, t: info.kind === 'ind' ? 'industrial' : 'yes', rs: null, w: null, c: null });
+    added++;
+  }
+  console.log(`Overture: ${added} buildings added of ${ov.buildings.length}; left out:`, dropped);
+}
+
+for (const ll of CFG.extraPlazas ?? []) {
+  const r = ll.map(([lat, lon]) => proj(lat, lon));
+  out.areas.push({ k: 'plaza', z: AREA_Z.plaza, a: r1(Math.abs(area(r))), r: [flat(r)], ...(CFG.plazaColour ? { c: CFG.plazaColour } : {}) });
 }
 
 // River polygon fallback ordering

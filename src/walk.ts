@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { pip, pipPoly, toPts } from './geo.ts';
 import { isPaintedArea, areaLift, roadLift, CASING_LIFT, CASING_EXTRA, type RoadInfo } from './city.ts';
 import type { Terrain } from './terrain.ts';
+import type { CitySpec } from './cities.ts';
 import type { AreaData, Bounds, BuildingData, CrossData, MapMeta, Places, Poly, Ring } from './types.ts';
 
 // Walk the city as Итар Пејо (folk trickster) or a Шарпланинец (Šar Mountain dog), in first
@@ -17,18 +18,8 @@ const SPEC = {
   dog: { walk: 4, run: 12, eye: 0.8 * SCALE, head: 0.9 * SCALE, dist: 5 },
 } as const;
 
-/** Places with an info card (names are map data, Macedonian; texts: i18n `info.<key>`). */
-const SPOTS: [key: string, name: string, lat: number, lon: number, radius: number, place?: string][] = [
-  ['square', 'Плоштад Македонија', 41.9955, 21.4319, 60, 'square'],
-  ['bridge', 'Камен мост', 41.9970, 21.4331, 35],
-  ['kale', 'Кале', 42.0008, 21.4335, 110, 'kale'],
-  ['bazaar', 'Стара чаршија', 42.0018, 21.4378, 90, 'bazaar'],
-  ['hamam', 'Даут-пашин амам', 41.99872, 21.43572, 40, 'hamam'],
-  ['spas', 'Св. Спас', 42.00082, 21.43572, 35, 'spas'],
-  ['porta', 'Порта Македонија', 41.99445, 21.43242, 40, 'porta'],
-  ['station', 'Железничка станица', 41.99096, 21.44589, 80, 'station'],
-  ['telecom', 'Телекомуникациски центар', 41.99834, 21.42988, 60, 'telecom'],
-];
+// Places with an info card: `spots` per city in cities.ts (names are map data, Macedonian;
+// texts: i18n `info.<key>`).
 
 // ---------------------------------------------------------------- models (front along +x)
 const lambert = (color: THREE.ColorRepresentation) => new THREE.MeshLambertMaterial({ color });
@@ -77,6 +68,62 @@ function buildPejo(): Rig {
   add(new THREE.BoxGeometry(0.035, 0.035, 0.17), dark, 0.12, 1.615, 0); // moustache
   for (const z of [-0.045, 0.045]) add(new THREE.SphereGeometry(0.016, 6, 4), dark, 0.118, 1.69, z);
   add(new THREE.CylinderGeometry(0.115, 0.13, 0.16, 16), hat, 0, 1.8, 0); // šubara
+  g.scale.setScalar(SCALE);
+  return { group: g, legs, arms, head };
+}
+
+/** Kavadarci's walker (after photos): a stocky man in a dark navy suit, white shirt, red tie,
+ *  black shoes; short dark hair swept back with faded sides, light stubble. Same rig as Пејо. */
+function buildSuit(): Rig {
+  const g = new THREE.Group();
+  const suit = lambert('#23293a'), shirt = lambert('#f4f2ee'), tie = lambert('#b3262a'), skin = lambert('#dba985');
+  const hair = lambert('#1e1916'), fade = lambert('#5a4a40'), stubble = lambert('#c39a7d'), shoe = lambert('#141416'), dark = lambert('#2a1d16');
+  const add = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) => {
+    const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; g.add(m); return m;
+  };
+  const legs = [-1, 1].map((s) => {
+    const l = limb(capsule(0.09, 0.62), suit, [0, 0.9, s * 0.1], 0.42);
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.08, 0.11), shoe);
+    foot.position.set(0.06, -0.86, 0);
+    l.add(foot);
+    g.add(l);
+    return l;
+  });
+  add(capsule(0.21, 0.4), suit, 0, 1.22, 0).scale.set(1, 1, 1.12); // buttoned jacket, broad
+  // open V of the jacket: a flat inverted wedge of white shirt, the red tie on it
+  const vee = (top: number, bottom: number, h: number, mat: THREE.Material, x: number, y: number) => {
+    const m = add(new THREE.CylinderGeometry(top, bottom, h, 4).rotateY(Math.PI / 4), mat, x, y, 0);
+    m.scale.set(0.12, 1, 1);
+    return m;
+  };
+  vee(0.11, 0.01, 0.28, shirt, 0.19, 1.47);
+  vee(0.02, 0.036, 0.24, tie, 0.207, 1.44);
+  add(new THREE.SphereGeometry(0.022, 8, 6), tie, 0.192, 1.575, 0).scale.set(0.8, 0.9, 1); // knot
+  add(new THREE.CylinderGeometry(0.07, 0.09, 0.08, 14), shirt, 0, 1.6, 0); // collar
+  const arms = [-1, 1].map((s) => {
+    const a = limb(capsule(0.068, 0.48), suit, [0, 1.46, s * 0.3], 0.3);
+    const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.058, 0.058, 0.04, 10), shirt);
+    cuff.position.y = -0.56;
+    a.add(cuff);
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.065, 10, 8), skin);
+    hand.position.y = -0.63;
+    a.add(hand);
+    g.add(a);
+    return a;
+  });
+  const head = add(new THREE.SphereGeometry(0.13, 16, 12), skin, 0, 1.72, 0);
+  head.scale.set(1, 1.02, 1.04);
+  // light stubble round the jaw and chin (front half of the lower head)
+  add(new THREE.SphereGeometry(0.133, 16, 8, Math.PI / 2 + 0.35, Math.PI - 0.7, 1.85, 0.85), stubble, 0, 1.72, 0).scale.set(1, 1.02, 1.04);
+  // faded short sides, then the darker top swept back (cap tilted back to show the forehead)
+  add(new THREE.SphereGeometry(0.136, 16, 8, 0, Math.PI * 2, 0, 1.3), fade, -0.008, 1.73, 0).rotation.z = 0.42;
+  add(new THREE.SphereGeometry(0.1, 14, 8), hair, -0.01, 1.815, 0).scale.set(1.25, 0.5, 1.05);
+  for (const z of [-1, 1]) add(new THREE.SphereGeometry(0.03, 8, 6), skin, -0.005, 1.71, z * 0.135).scale.set(0.7, 1.2, 0.5); // ears
+  for (const z of [-0.045, 0.045]) {
+    add(new THREE.SphereGeometry(0.016, 6, 4), dark, 0.118, 1.74, z); // eyes
+    add(new THREE.BoxGeometry(0.02, 0.014, 0.05), hair, 0.122, 1.768, z * 1.1); // eyebrows
+  }
+  add(new THREE.SphereGeometry(0.022, 8, 6), skin, 0.13, 1.705, 0); // nose
   g.scale.setScalar(SCALE);
   return { group: g, legs, arms, head };
 }
@@ -222,6 +269,7 @@ export interface WalkHooks {
 }
 
 export interface WalkOptions {
+  city: CitySpec;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   terrain: Terrain;
@@ -237,6 +285,10 @@ export interface WalkOptions {
   /** where the plane is parked while walking, and its heading */
   planeSpot: { x: number; z: number; yaw: number };
   hooks: WalkHooks;
+  /** ends the window key listeners when the city is unloaded */
+  signal?: AbortSignal;
+  /** raised ground of modelled monuments (absolute height, −∞ off them) */
+  platform?: ((x: number, z: number) => number) | null;
 }
 
 /** What the action button does right now. */
@@ -244,16 +296,17 @@ export type WalkAction = 'bus' | 'plane' | 'gondolaUp' | 'gondolaDown' | 'oro' |
 
 export function createWalk(o: WalkOptions) {
   const { scene, camera, terrain, bounds, hooks, planeSpot, gondola } = o;
-  const rigs = { pejo: buildPejo(), dog: buildDog() };
+  const rigs = { pejo: o.city.walker === 'suit' ? buildSuit() : buildPejo(), dog: buildDog() };
   for (const r of Object.values(rigs)) { r.group.visible = false; scene.add(r.group); }
   const walls = obstacles(o.buildings);
   const lift = surface(o.roads, o.areas);
-  const ground = (x: number, z: number) => terrain.at(x, z) + lift(x, z) + 0.02;
+  const plat = o.platform;
+  const ground = (x: number, z: number) => Math.max(terrain.at(x, z) + lift(x, z), plat ? plat(x, z) : -Infinity) + 0.02;
   o.buildings = []; o.areas = []; // copied into the grids; don't keep the parsed map data alive
 
   // info spots in scene coordinates (exact OSM places when known); the Millennium Cross from the data
   const P = (lat: number, lon: number): [number, number] => [(lon - o.meta.lon0) * o.meta.kx, -(lat - o.meta.lat0) * o.meta.ky];
-  const spots = SPOTS.map(([key, name, lat, lon, radius, place]) => {
+  const spots = o.city.spots.map(([key, name, lat, lon, radius, place]) => {
     const [x, z] = (place && o.places[place]) || P(lat, lon);
     return { key, name, x, z, radius };
   });
@@ -286,13 +339,13 @@ export function createWalk(o: WalkOptions) {
     const k = keys[e.code];
     if (k) { e.preventDefault(); (input as Record<string, number | boolean>)[k] = 1; }
     if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') input.run = true;
-  });
+  }, { signal: o.signal });
   addEventListener('keyup', (e) => {
     const k = keys[e.code];
     if (k) (input as Record<string, number | boolean>)[k] = 0;
     if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') input.run = false;
-  });
-  addEventListener('blur', () => Object.assign(input, { fwd: 0, back: 0, left: 0, right: 0, run: false }));
+  }, { signal: o.signal });
+  addEventListener('blur', () => Object.assign(input, { fwd: 0, back: 0, left: 0, right: 0, run: false }), { signal: o.signal });
 
   const free = (x: number, z: number) => !walls.blocked(x, z);
   function start(at: THREE.Vector3, camYaw: number): void {
@@ -476,6 +529,8 @@ export function createWalk(o: WalkOptions) {
     get pos(): THREE.Vector3 { return st.pos; },
     get yaw(): number { return st.yaw; },
     get character(): CharName { return st.char; },
+    /** i18n key of the current character's name (the person looks different per city) */
+    get label(): 'char.pejo' | 'char.suit' | 'char.dog' { return st.char === 'dog' ? 'char.dog' : o.city.walker === 'suit' ? 'char.suit' : 'char.pejo'; },
     get view(): ViewName { return st.view; },
     get riding(): boolean { return !!st.ride; },
     get barking(): boolean { return st.bark > 0; },

@@ -13,6 +13,7 @@
   way["place"~"square"];
   way["area:highway"];
   way["man_made"~"bridge|pier"];
+  way["power"~"switchgear|substation"];
   way["historic"]; 
   way["barrier"~"city_wall|wall"];
   node["natural"="tree"];
@@ -20,5 +21,8 @@
   way["man_made"~"cross"];
   node["summit:cross"];
   node["natural"="peak"];
+  node["historic"~"memorial|monument"];
+  node["tourism"="museum"];
+  node["amenity"~"theatre|townhall"];
 );
 out geom;

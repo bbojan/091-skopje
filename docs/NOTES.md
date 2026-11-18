@@ -1,7 +1,8 @@
 # 091 Скопје — project notes
 
 Context for continuing the work (on any machine, in any Claude Code session).
-For commands, architecture and conventions see [../CLAUDE.md](../CLAUDE.md).
+For commands, architecture and conventions see [../CLAUDE.md](../CLAUDE.md); for adding a city,
+[ADDING_A_CITY.md](ADDING_A_CITY.md).
 
 ## Goal
 
@@ -122,6 +123,162 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    short way round. The help ? is a round button right after the title badge. The LinkedIn
    button can list the developers (▼), hidden for now with Riste's credit in the help footer
    (`hidden` on `#me-more` and the `.soon` spans; shown on the Kavadarci branch).
+24. **After v2.8.0** (Nov 2026, the `kavadarci` branch): a second city, **043 Кавадарци**
+   (`?city=kavadarci`, BBOX 41.380–41.462 N,
+   21.958–22.062 E ≈ 8.7 × 9.1 km: the town, Ваташа, Глишиќ, the Луда Мара and Катунишко Езеро). The
+   badge at the top left is the city picker (a menu in the Вез style; the round `?` right after it keeps the
+   help). The city lives in the address; without `?city=` the map opens on Skopje; switching pushes a
+   history entry, so back / forward switch the city too. The previous city is unloaded completely before
+   the next one builds behind the loading card (`unloadWorld()` in `main.ts`).
+   Everything that differs per city is in `src/cities.ts` (views, labels, race route, walking info
+   spots, paragliders, labels for snow on the hills and the refill) and `PREP` in `scripts/prepare.ts`;
+   the data scripts take the city as their first argument. Kavadarci has its own places menu (Плоштад,
+   Спомен-костурница, Ваташа, Тиквешко Езеро, Преглед), a 10-ring race, seven info cards and four
+   hand-built monuments (`landmarks.ts`), modelled after photos on Wikimedia Commons and the
+   descriptions on mk.wikipedia and spomenikdatabase.org/kavadarci (proportions read off photos):
+   - Спомен-костурница (Petar Muličkovski, 1976; replaces the OSM building): a stylised old
+     Macedonian house on a fluted concrete shaft, ~13 m: a first storey and a wider open top storey
+     with raised ends, both on radial brackets with a band of diamond reliefs; a ~21 m courtyard ringed
+     by fluted wall blocks of different heights, steps down (amphitheatre) to the shaft, iron
+     grape-vine gates on the north and south sides.
+   - Споменик Киро Крстев и Димче Мирчев, where the two People's Heroes died on 7 April 1944
+     (north-west corner of the town park; Tome Andreevski, 1959). Rebuilt after two Commons photos of
+     June 2019 („Kiro Krstev i Dimce Mircev - spomenik Kavadarci“): a ~7 m concrete slab, its top
+     rising to the right and its ends cut on a slant, the names on the left and a dark relief of
+     charging fighters on the right, on two piers of white stone blocks (the park path passes between
+     them, a low wall runs on to the pillar); a tall pale concrete pillar (~8 m) at the top of the
+     steps; 13 steps between rubble-stone walls. Layout from OSM: the steps (way 1275768508) arrive at
+     the footway ring round the node and the path into the park leaves behind; the relief faces down
+     the steps (`HEROES_TURN`). The elevation data is flat there, so the model raises its own terrace
+     ~2 m above the paths (grass bank, a ramp down into the park behind); walking and the city's
+     pedestrians stand on it (`landmarkGround()` in `landmarks.ts`). From the description only: the
+     marble pylon behind (spomenikdatabase.org), the ramp. The Commons photo GPS is ~150 m off;
+     OSM and spomenikdatabase agree within 4 m. OSM names him „Киро Атанасовски-Налбатот“,
+     Commons „Киро Крстев“: the same person.
+   - Градски стадион (ГФК Тиквеш; first match 19 March 1950), round the OSM pitch (way 1276210010,
+     lit grass, no stands in OSM; en.wikipedia's coordinates fall on it). After Commons photos of 2010,
+     2013 and Nov 2020, the municipality's photos of the works (16 Oct 2020) and a GFK Tikveš match
+     photo of Sept 2024 (stativa.mk): the old covered north stand (10 concrete rows, a dark red roof
+     falling toward the pitch on red steel columns, a white block wall behind, yellow huts by its
+     west end), the east stand rebuilt in 2020 (9 rows curving round the north-east corner, a brick
+     wall behind), the roofed south stand finished in 2023 (8 rows under a white steel canopy), a white
+     two-storey clubhouse with a tiled roof behind the west goal and a long low building north of it,
+     a 105 × 68 m marked field, goals, a white fence. The 25 m terrain ran ~6 m up across the pitch:
+     `flatWays` in scripts/config.ts flattens the pitch and a 12 m pad round it at 282.3 m (the low,
+     street side), so the north stand is dug into the hill as in the photos. Not from photos: the stand
+     lengths and the south stand's row count (from „1000 covered seats“), the clubhouse sizes, no
+     floodlights (OSM says lit, no photo shows masts), seat colours (left as concrete). Capacity is
+     given as 4,000 to 9,000 by different sources, so the info card leaves it out.
+   - Vataša memorial at Moklište (Jordan Grabul, 1963; 12 youths shot on 16 June 1943): two curved
+     white walls on the grass south of the lawn, the paved path between them (`VATASA_WALLS` in
+     `landmarks.ts`, from an Esri aerial image and the owner's photos, Nov 2026): the north one ~15 m long,
+     3.4–4.4 m high, with the long black inscription facing the lawn and the busts; the south one ~11 m,
+     3 m, with the black plaque of names, a round dark emblem and the dark granite altar in front; two small
+     thujas on the lawn. Walking collides with both walls.
+   - Monument to the Revolution on the square (Petar Palavičini, 1958; not in OSM, position from
+     spomenikdatabase.org), after a photo of Dec 2020: a young man, a woman raising one arm, a youth
+     sinking forward under her hand, on a tall speckled granite plinth „За слободата на народот свој“,
+     facing the square with the town hall behind it.
+   - Плоштад Маршал Тито after photos of Dec 2020 and 1 June 2025 (US Army, public domain; an
+     „Immediate Response 2025“ open day on the square): Општина Кавадарци (replaces the OSM building;
+     three storeys of salmon and cream stone panels, a projecting entrance bay with the lettering,
+     steps, trimmed conifers, two Macedonian flags and the EU flag), a round dark-granite fountain on
+     each side of the entrance, round granite planters with flowers and curved wooden seats, black
+     granite ball bollards along the streets, curved paving bands. The planters' positions are
+     approximate; the 2018 layout (boat-shaped planters, a water channel, an amphitheatre) is gone.
+   - Дом на културата „Иван Мазов-Климе“: not in OSM at all (only a point). Placed and shaped from
+     the site and ground-floor plans of a fire-safety report on the municipality's site (АРХИКОНС,
+     Dec 2023): 41.4 m along Илинденска, ground floor + one storey, stage block at the north, the
+     260-seat hall, the foyer and main entrance toward ул. 7 Септември, wings to the east, a vestibule
+     to the west. No photo of its outside was found: plain rendered walls and window bands.
+   Walking collides with both buildings (`landmarkFootprints()` in `landmarks.ts`).
+   No red ЈСП buses in Kavadarci (`buses: false` in `src/cities.ts`): none in the traffic, the 🚌
+   button is hidden and driving does not start; boarding a bus, the bus pointer and bus fires
+   disappear with them. Skopje's traffic is unchanged (same random sequence).
+   Terrain (Nov 2026): the Kavadarci heightfield matched EU-DEM 25 m within 0.6 m RMS at 100 points
+   (SRTM 30 m differs by 5 m RMS), so the source was right; what looked wrong came from the
+   processing. Now per city (`terrain` in `scripts/config.ts`, `terrainExag` in `src/cities.ts`):
+   Kavadarci is drawn at true heights (Skopje keeps its 12 % stretch), smoothed once instead of
+   three times, its lakes have one water level (Tikveš Lake's surface wandered over 249–266 m, now
+   250.0; the shore is at 250.2), Плоштад Маршал Тито is flat (1.4 m → 0.3 m, blended over 15 m)
+   and the Луда Мара, its stream and the canal are cut in as channels (the ground 30 m beside the
+   river was 0.2 m above the bed, now 2.2 m), not under roads. Known heights can be added as
+   `points` ([lat, lon, metres, radius]); none yet. Still 0.67 m RMS from EU-DEM. Skopje's
+   terrain and pixels are unchanged (pixel check: 0 except the gondola cabin).
+   Their outlines are kept free of trees, sheds and parked cars (`blockGrid` in `city.ts`).
+   The firefighting plane refills from Тиквешко Езеро; Катунишко Езеро is only a ~100 m pond.
+   No paragliders in Kavadarci. Best race time is kept per city (`skopje.bestRace.kavadarci`).
+   **The whole Тиквешко Езеро (Nov 2026).** The box grew from 8.7 × 9.1 km to 17.7 × 23.6 km
+   (41.25–41.462 N, 21.85–22.062 E): the lake (11 km², 41.26–41.40 N), the Црна Река from where it
+   comes in at the west edge to where it leaves past Возарци at the north edge, 13 villages as far
+   labels, a „Брана Тиквеш“ view in 📍 Места, an 11th race ring by the dam and a walking info card on its crest.
+   The whole Црна (207 km, from Demir Hisar through Pelagonia and Mariovo) would be ~30× Skopje's
+   area: out of reach for this engine. Брана Тиквеш (rockfill, 113.5 m, crest 338 m): the terrain
+   raises the dam body along the crest road (`dams` in the terrain spec; OSM's dam line is the
+   upstream edge at the full lake, ~25 m out, so the road is the crest), the lake stays flat against
+   it; `landmarks.ts` lays a rock mesh over the OSM outline (berms every 20 m of height, riprap on the
+   lake side), parapets and lamps on the crest, the round bell-mouth spillway in the lake (OSM: a
+   round water area and a culvert to the chute), ХЕЦ Тиквеш (113 MW) at the foot and its switchyard.
+   Heights and details are guessed from the shapes, not from photos. Cost: 432 chunks instead of 90,
+   the heightfield 1.6 → 8.4 MB, the scene 2.4 MB; most chunks are bare hills, so their far textures
+   are baked at half size (`sparseFar` in `src/cities.ts`: under 1500 draped-ground vertices, ~380
+   of 432 chunks), ~600 → ~200 MB of far textures on desktop. Skopje pixel-identical (check: 0 on
+   centre/Kale, 13–17 px on the overviews = the gondola cabins). The overview looks west from the
+   east: the map is longer north–south than the 28° lens shows from the south at 25 km.
+   **The block by Дом на културата (Nov 2026):** between Илинденска, ул. 7 Септември and the market lane OSM
+   has only the post office, the T-Mobile shop and a few others; 14 buildings were traced off an aerial
+   image (Google, 2026) into `extraBuildings` (appended, so the earlier ids and seeds stay): the house with
+   the red hipped roof among the trees, the flat-roofed shops north of Sweet Art, „Кино Бавча“, the white
+   hall east of the culture house, the shops east of the lane. Traced by drawing the map's outlines and
+   streets over the image (georeferenced on Илинденска, 7 Септември and the market's roof). OSM's
+   7 Септември runs ~5 m north of the kerb there, so that hall's south side is kept off the street. The post
+   office, the T-Mobile shop and the shop row south of the market had no levels and were guessed at 6, 9
+   and 4 storeys; `buildingTags` in `PREP` (tags added by way id) makes them low with flat roofs.
+   **The Луда Мара through the town (Nov 2026)**, `src/river.ts`, after photos: a stone-lined channel
+   ~8.6 m wide at the top between the bridges of Киро Крстев and Северен (1.9 km), shallow water ~5 m
+   wide, both banks pitched with light stones (greener at the waterline), white concrete copings, a
+   railing on the east one, a promenade on each side (concrete slabs; a red-brick walk on the west),
+   benches, lamps, plane trees, steps down to the water, arched steel footbridges at OSM's footway
+   bridges, parapets on the road bridges, and a cascade every ~70 m where the steps are worth showing
+   (the town falls ~31 m along it). The centre line is set halfway between the two promenade footways
+   where OSM has both (the river line is up to 3 m off), smoothed, every 2 m (`canal` in `PREP`).
+   A 10 m heightfield cannot hold an 8 m channel, so the terrain is left at street level there
+   (`riversKeep` in the terrain spec) and the corridor is cut exactly out of the terrain mesh, the
+   draped areas and the paths (`cut`: the polygon minus the corridor's triangles; streets crossing it
+   are kept, their draped strip is the bridge deck); the water, banks and promenades are emitted into
+   the draped ground, so the far-ground bake and the water glints include them. Outside the town the
+   river and the stream above it are a narrow strip of water in the cut channel. Walking: the
+   promenades' and footbridges' height, the channel blocks the way except at the bridges. A „Луда
+   Мара“ view in 📍 Места. Skopje pixel-identical (check: 0 over 2/255 on all 9 renders).
+
+   **The town churches and the vineyards (Nov 2026).** Св. Петка and Св. Димитриј are modelled after the
+   owner's photos (`src/churches.ts`) on their OSM outlines (the generic domed boxes are left out): Св.
+   Димитриј as renovated, grey-brown rubble stone with brick courses and brick arches round the windows, a
+   cream cornice and tiled lean-to roofs, above them a white nave and transept with gable roofs, a white
+   octagonal drum over the crossing, the bell tower in the middle of the west front (stone, then two white
+   stages with arched openings and oculi); Св. Петка in pale ashlar banded with brick: the 33 m wide west
+   front (tall middle bay with the big porch arch, side bays with doors, domes and rounded ends), the
+   cross-in-square naos with crossing gables, the main drum, two small drums and the apse, and its bell tower
+   standing apart ~34 m south-east (its red cap on an Esri aerial image; Street View and a drone photo show it
+   by the parking). Heights read off the photos, not measured. A „Св. Петка“ label joins „Св. Димитриј“.
+   Vineyards: OSM has one vineyard and 46 farmland polygons round the town, the aerial image shows vines
+   and fields almost everywhere. `farmMask()` in `city.ts` marks farmland on the terrain's 10 m vertices
+   (`vineyards: 520` in `src/cities.ts`: below ~520 m ± 60, slope under ~17°, not painted land cover, not
+   within ~15 m of a building or in built-up ground, wild patches from noise) with one marker colour,
+   `FARM_MARK` (a little yellower than the bare hills, so the edge barely shows; ≥ 0.075 linear RGB from
+   every other ground colour). The ground shader (`VINE_GROUND`, near and baked-far materials alike) paints
+   the plots there from the world position: blocks of ~240 m (wobbled Voronoi cells, each with its own
+   direction and a dirt track round it) cut into strips and plots with grass verges, about half vineyards
+   (rows every 2.5 m, faded to their mean colour once a row is smaller than a pixel), the rest stubble,
+   ploughed earth, green crops or fallow. Vines turn yellow or red in autumn, bare in winter. The far bake
+   keeps the marker, so near and far agree. Skopje's materials keep their old programs (`vine` is off):
+   pixel check 0 except the gondola cabins (5 px on the overviews). GPU: 6–8 ms for a 1800×1345 view over
+   the farmland (full tier, M-series). Not done: 3D vine rows close up (they are flat stripes).
+   Also: the 12 busts at Vataša a little larger (the shoulders wider than the pedestal, as in the photos),
+   the name in black on each pedestal, a tall thuja right behind each bust (was seven between the first
+   eight), a golden and two red shrubs on the lawn. An Overture house that stood half inside the ossuary's
+   courtyard is gone: Overture buildings are kept 11 m off the ossuary's outline (was 5 m; the OSM outline
+   is only the house on the shaft, the modelled courtyard is ~21 m square).
 
 ## Key decisions (and why)
 
@@ -177,7 +334,12 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 | Building height heuristics, district zones | `buildingInfo()`, `ZONES_TALL`, `ZONES_MID` in `scripts/prepare.ts` |
 | Road widths, area kinds and draw order | `ROAD_W`, `areaKind()`, `AREA_Z` in `scripts/prepare.ts` |
 | Exact named places (labels, rings) | `PLACE_NAMES` in `scripts/prepare.ts` |
-| Map extent | `BBOX` in `scripts/config.ts` (+ `data/query.overpassql`) |
+| Map extents per city | `CITIES` in `scripts/config.ts` (+ layers in `data/query.overpassql`) |
+| Per-city OSM interpretation (square, old town, landmark ids, places, height zones) | `PREP` in `scripts/prepare.ts` |
+| Per-city views, labels, race route, info spots | `CITIES` in `src/cities.ts` |
+| Kavadarci monuments | `createLandmarks()` in `src/landmarks.ts` (after the Skopje ones) |
+| Kavadarci churches | `createChurches()` in `src/churches.ts` |
+| Vineyards and fields: where (height, slope, distance from buildings) / how they look | `farmMask()` and `vineyards` in `CITIES` (`src/cities.ts`) / `VINE_GROUND` in `src/city.ts` |
 
 ## Settings: what is saved, what resets, what the code decides
 
@@ -204,9 +366,12 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Invert Y in flight (climb / dive and the F / R loops; ⚙ → 🎮 Управување) | `skopje.invertYPlane` | on |
 | Best race time | `skopje.bestRace` | none |
 | Most fires put out in one flight | `skopje.bestFire` | 0 |
+| Best race time in Kavadarci | `skopje.bestRace.kavadarci` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
+The city is not in storage either: it is `?city=` in the address (no parameter = Skopje), so a link
+always opens the city it was copied in.
 
 **Not saved — back to the default on every load**
 
@@ -267,6 +432,10 @@ a view name), so a reload or a shared link restores it; without a hash the map o
   desktop-sized viewport at module load; iPadOS reports itself as a Mac with touch.
 - **The canvas has no `preserveDrawingBuffer`**: to save an image, render and call
   `toDataURL()` in the same task (see the Save PNG handler).
+- **Overpass at capacity for hours** (Nov 2026: 502/504 from overpass-api.de and maps.mail.ru,
+  timeouts on the others). `download.ts` keeps each finished tile in `data/tiles/` until the whole
+  download is written, so a run that gives up resumes; just run it again. For a grown box, fetching
+  only the new strips with the same query and merging them into the old raw file is far quicker.
 - **Overpass sometimes returns partial results without an error** — compare building
   counts in an overlapping area after `npm run download`.
 - **OSM names vary** ("Национална арена Тодор Проески", not "Тоше Проески"); look up
@@ -302,6 +471,11 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 - **Map data © OpenStreetMap contributors, ODbL.** `public/skopje.json` is a derived
   database: keep the attribution visible in the app (also on mobile) and, if the data
   is redistributed, it stays under ODbL (share-alike).
+- **Kavadarci's extra buildings: Overture Maps Foundation** (buildings theme, ODbL; the outlines
+  are Microsoft's ML building footprints). `scripts/overture.ts` reads the GeoParquet file(s) that
+  cover the box over HTTP ranges (STAC catalog → file, row-group bbox statistics → parts), AWS
+  first, then the Azure mirror. Credited next to OSM at the bottom right and in the help footer,
+  only in Kavadarci (`data-city`).
 - **Elevation: Terrain Tiles on AWS Open Data** (Mapzen Terrarium format; sources
   include SRTM and other public datasets) — credited in the help dialog and README.
 - Fonts (Lora, Rubik Mono One) load from Google Fonts under the SIL Open Font License.

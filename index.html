@@ -12,12 +12,32 @@
       #app { position: fixed; inset: 0; }
       canvas { display: block; }
       .title { position: fixed; left: 22px; top: 18px; font: inherit; color: inherit; text-align: left; z-index: 6; }
-      /* the round ? right after the badge opens the help */
+      .title:hover { background: #fff; }
+      /* the badge is the city picker; the round ? right after it opens the help (the same for every city) */
+      .city-btn { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; display: block; }
+      .city-btn:focus-visible, .title .hint:focus-visible { outline: 2.5px solid #d8643c; outline-offset: 3px; }
+      .city-btn .caret { font-size: 0.5em; opacity: 0.7; margin-left: -4px; transition: transform 0.15s; }
+      .city-btn[aria-expanded="true"] .caret { transform: rotate(180deg); }
       .title .hint { position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%); width: 34px; height: 34px; padding: 0; border-radius: 50%;
                      background: var(--ink); color: #fff8ec; cursor: pointer; font: inherit; font-size: 17px; font-weight: 700; display: grid; place-items: center;
                      border: 2px solid #fff8ec; box-shadow: 0 0 0 1.5px var(--ink), 2px 3px 0 rgba(43, 29, 22, 0.4); }
       .title .hint:hover { background: var(--wine); }
-      .title .hint:focus-visible { outline: 2.5px solid #d8643c; outline-offset: 3px; }
+      .city-menu { position: absolute; left: -1.5px; top: calc(100% + 8px); display: flex; flex-direction: column; gap: 6px; min-width: calc(100% + 3px); box-sizing: border-box;
+                   padding: 18px 10px; background: var(--linen); border: 1.5px solid var(--indigo); border-radius: 12px; box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); }
+      .city-menu[hidden] { display: none; }
+      .city-menu::before, .city-menu::after { content: ''; position: absolute; left: 6px; right: 6px; height: 10px; background: var(--stitch) repeat-x center; pointer-events: none; }
+      .city-menu::before { top: 3px; }
+      .city-menu::after { bottom: 3px; }
+      .city-menu button { display: flex; align-items: center; gap: 10px; font: inherit; font-size: 16px; font-weight: 700; color: var(--indigo); background: var(--linen-hi); white-space: nowrap;
+                          border: 1.5px solid var(--indigo); border-radius: 6px; padding: 7px 14px 7px 10px; cursor: pointer; text-align: left; }
+      .city-menu button:hover { background: #fff; }
+      .city-menu button:focus-visible { outline: 2px solid var(--wine); outline-offset: 2px; }
+      .city-menu button[aria-checked="true"] { background: var(--indigo); color: var(--linen-hi); }
+      .city-menu button[aria-checked="true"]::after { content: '✓'; margin-left: auto; padding-left: 10px; }
+      .city-menu .code { font-size: 12px; padding: 4px 5px 3px; border-radius: 6px; box-shadow: 1.5px 1.5px 0 var(--ink); }
+      /* menu items and help paragraphs that belong to one city only */
+      body:not(.city-skopje) [data-city="skopje"], body:not(.city-kavadarci) [data-city="kavadarci"] { display: none !important; }
+      body.no-buses #bus { display: none !important; } /* no red ЈСП buses in this city */
       .title .h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.15; display: flex; align-items: center; gap: 12px; }
       .code { display: inline-block; font-family: 'Rubik Mono One', 'Lora', sans-serif; font-weight: 400; font-size: 19px; letter-spacing: 0.04em; line-height: 1;
               color: #fff8ec; background: #d8643c; padding: 6px 8px 5px; border-radius: 8px; border: 2px solid var(--ink);
@@ -59,8 +79,6 @@
       .me-main { display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px 9px 15px; color: inherit; text-decoration: none; border-radius: 999px 0 0 999px; }
       .me-more { font: inherit; font-size: 11px; color: inherit; background: transparent; border: 0; border-left: 1px solid rgba(255, 248, 236, 0.35);
                  padding: 0 12px 0 9px; cursor: pointer; border-radius: 0 999px 999px 0; }
-      .me-more[hidden] { display: none; }
-      .me:not(:has(.me-more:not([hidden]))) .me-main { border-radius: 999px; padding-right: 15px; }
       .me-main:hover, .me-more:hover, .me-more[aria-expanded="true"] { background: #0a66c2; }
       .me-main:focus-visible, .me-more:focus-visible { outline: 2px solid #fff8ec; outline-offset: -4px; }
       .me svg { width: 17px; height: 17px; fill: currentColor; }
@@ -88,6 +106,7 @@
 
       /* loading card */
       #loader { position: fixed; inset: 0; display: grid; place-items: center; background: var(--paper); z-index: 20; transition: opacity 0.6s ease; }
+      #loader[hidden] { display: none; }
       #loader.done { opacity: 0; pointer-events: none; }
       #loader .card { width: min(360px, calc(100vw - 48px)); text-align: center; }
       #loader .h1 { display: inline-flex; align-items: center; gap: 12px; font-size: 34px; font-weight: 700; }
@@ -255,16 +274,18 @@
   <body>
     <div id="app"></div>
     <div id="labels" aria-hidden="true"></div>
-    <div class="title">
-      <span class="h1"><span class="code">091</span>Скопје</span>
+    <div class="title" id="city-box">
+      <button class="city-btn" id="city-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="city-menu" title="Избери град" data-i18n-title="city.pick"><span class="h1"><span class="code city-code">091</span><span class="city-name">Скопје</span><span class="caret" aria-hidden="true">▼</span></span></button>
       <button class="hint" id="logo" type="button" aria-haspopup="dialog" aria-controls="help" title="За апликацијата и контроли" data-i18n-title="logo.title" aria-label="За апликацијата и контроли" data-i18n-aria="logo.title">?</button>
+      <div class="city-menu" id="city-menu" role="menu" aria-label="Град" data-i18n-aria="city.menu" hidden></div>
     </div>
     <dialog class="help" id="help" aria-labelledby="help-title">
       <div class="inner">
         <button class="close" id="help-close" aria-label="Затвори" data-i18n-aria="close">✕</button>
-        <h2 id="help-title"><span class="code">091</span>Скопје</h2>
+        <h2 id="help-title"><span class="code city-code">091</span><span class="city-name">Скопје</span></h2>
         <p class="tagline" data-i18n="help.tagline">Го добивме 091 Скопје пред GTA 6!</p>
-        <p class="lead" data-i18n="help.lead">Илустрирана, жива 3Д мапа на Скопје — од Ѓорче Петров до Гази Баба и од Бутел до врвот на Водно. Сите згради, улици, паркови и дрвја се нацртани од отворените податоци на OpenStreetMap и поставени на вистинскиот релјеф.</p>
+        <p class="lead" data-city="kavadarci" data-i18n="help.lead.kavadarci">Илустрирана, жива 3Д мапа на Кавадарци — градот на тиквешкото вино, од Глишиќ и Ваташа до целото Тиквешко Езеро и браната на Црна Река. Сите згради, улици, паркови и дрвја се нацртани од отворените податоци на OpenStreetMap и Overture Maps и поставени на вистинскиот релјеф.</p>
+        <p class="lead" data-city="skopje" data-i18n="help.lead">Илустрирана, жива 3Д мапа на Скопје — од Ѓорче Петров до Гази Баба и од Бутел до врвот на Водно. Сите згради, улици, паркови и дрвја се нацртани од отворените податоци на OpenStreetMap и поставени на вистинскиот релјеф.</p>
 
         <h3 data-i18n="h.controls">Контроли</h3>
         <table>
@@ -316,6 +337,7 @@
           <tr><td data-i18n="b.season">🌳 Лето · 🍂 Есен · ☃ Зима · 🌸 Пролет</td><td data-i18n="b.seasonD">Смени го годишното време: цут и свежо зеленило напролет, есенски бои или голи дрвја во зима; зимзелените дрвја остануваат зелени</td></tr>
           <tr><td data-i18n="bar.live">Живо</td><td data-i18n="b.liveD">Вклучи/исклучи ги автомобилите, автобусите и пешаците</td></tr>
           <tr><td data-i18n="bar.names">Имиња</td><td data-i18n="b.namesD">Прикажи ги имињата на населбите и знаменитостите</td></tr>
+          <tr><td data-i18n="b.city">Значка на градот (горе лево)</td><td data-i18n="b.cityD">Избери друг град: Скопје или Кавадарци. Линкот го памти градот, па можеш да го испратиш некому.</td></tr>
           <tr><td data-i18n="b.menus">📍 Места · ⚙ Опции</td><td data-i18n="b.menusD">Мени со местата и мени со опциите; на телефон во нив се и Преглед, времето, годишното време и јазикот</td></tr>
           <tr><td data-i18n="bar.ink">Контури</td><td data-i18n="b.inkD">Вклучи/исклучи ги цртаните линии</td></tr>
           <tr><td data-i18n="bar.shot">Зачувај слика</td><td data-i18n="b.shotD">Преземи PNG од тековниот поглед</td></tr>
@@ -338,8 +360,10 @@
           <tr><td data-i18n="f.esc"><kbd>Esc</kbd> или „Излез“</td><td data-i18n="f.escD">Назад на мапата</td></tr>
         </table>
         <p data-i18n="f.invert"><b>Инвертирај горе/долу</b> — во ⚙ Опции → 🎮 Управување има два прекинувачи: за мапата и пешачењето (F / R, десниот стик, погледот; стандардно исклучено) и посебен за летот (стандардно вклучено, како вистински пилот: ↑ го спушта носот, ↓ го крева; важи и за лупингот со F / R).</p>
-        <p data-i18n="f.race"><b>Трка (опционално):</b> во летот притисни „🏁 Трка“ и пролетај низ 12-те прстени по ред — од Плоштадот, преку Кале, Градскиот парк и Водно, до финишот. Стрелката горе покажува кон следниот прстен, а светлиот столб го означува. Пукни ги балоните „091“ по патот. Најдоброто време се памти.</p>
-        <p data-i18n="f.fire"><b>Гаснење пожари (опционално):</b> во летот притисни „🔥 Пожар“ и авионот станува жолт противпожарен „Ер трактор“. Горат најмногу два пожара одеднаш — дел од шума, зграда или автобус; чадот се гледа оддалеку, а стрелката горе покажува кон најблискиот. Прелетај над огнот и држи <kbd>Space</kbd> (или копчето 💧) за да испуштиш вода — белиот круг на земјата покажува каде ќе падне. Кога резервоарот ќе се испразни, спушти се ниско над Вардар за да го наполниш. Штом еден пожар ќе изгасне, се пали нов на друго место.</p>
+        <p data-city="skopje" data-i18n="f.race"><b>Трка (опционално):</b> во летот притисни „🏁 Трка“ и пролетај низ 12-те прстени по ред — од Плоштадот, преку Кале, Градскиот парк и Водно, до финишот. Стрелката горе покажува кон следниот прстен, а светлиот столб го означува. Пукни ги балоните „091“ по патот. Најдоброто време се памти.</p>
+        <p data-city="kavadarci" data-i18n="f.race.kavadarci"><b>Трка (опционално):</b> во летот притисни „🏁 Трка“ и пролетај низ 11-те прстени по ред — од Плоштадот, преку Глишиќ, Спомен-костурницата, Ваташа, Тиквешкото Езеро и браната, до финишот. Стрелката горе покажува кон следниот прстен, а светлиот столб го означува. Пукни ги балоните „091“ по патот. Најдоброто време се памти.</p>
+        <p data-city="skopje" data-i18n="f.fire"><b>Гаснење пожари (опционално):</b> во летот притисни „🔥 Пожар“ и авионот станува жолт противпожарен „Ер трактор“. Горат најмногу два пожара одеднаш — дел од шума, зграда или автобус; чадот се гледа оддалеку, а стрелката горе покажува кон најблискиот. Прелетај над огнот и држи <kbd>Space</kbd> (или копчето 💧) за да испуштиш вода — белиот круг на земјата покажува каде ќе падне. Кога резервоарот ќе се испразни, спушти се ниско над Вардар за да го наполниш. Штом еден пожар ќе изгасне, се пали нов на друго место.</p>
+        <p data-city="kavadarci" data-i18n="f.fire.kavadarci"><b>Гаснење пожари (опционално):</b> во летот притисни „🔥 Пожар“ и авионот станува жолт противпожарен „Ер трактор“. Горат најмногу два пожара одеднаш — дел од шума, зграда или автобус; чадот се гледа оддалеку, а стрелката горе покажува кон најблискиот. Прелетај над огнот и држи <kbd>Space</kbd> (или копчето 💧) за да испуштиш вода — белиот круг на земјата покажува каде ќе падне. Кога резервоарот ќе се испразни, спушти се ниско над Тиквешкото Езеро, југозападно од градот, за да го наполниш. Штом еден пожар ќе изгасне, се пали нов на друго место.</p>
         <p data-i18n="f.auto">Авионот секогаш лета напред, не може да удри во земја и сам се враќа кога ќе стигне до работ на мапата.</p>
 
         <h3 data-i18n="h.style">Стилот</h3>
@@ -357,8 +381,9 @@
           Податоци © соработниците на <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> (ODbL) ·
           Релјеф: <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Terrain Tiles</a> (AWS Open Data) ·
           Изработено со three.js од <a href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">Бојан Божиновски</a>
-          <span class="soon" hidden>и <a href="https://www.linkedin.com/in/ristes/" target="_blank" rel="noopener">Ристе Самарџиев</a> (Кавадарци)</span>
+          и <a href="https://www.linkedin.com/in/ristes/" target="_blank" rel="noopener">Ристе Самарџиев</a> (Кавадарци)
         </p>
+        <p class="foot" data-city="kavadarci"><a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps Foundation</a> · Microsoft Building Footprints (ODbL)</p>
         <p class="version" id="app-version"></p>
       </div>
     </dialog>
@@ -367,7 +392,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
         <span class="me-name" data-i18n="me">Бојан Божиновски</span>
       </a>
-      <button class="me-more" id="me-more" type="button" hidden aria-haspopup="menu" aria-expanded="false" aria-controls="me-menu" aria-label="Програмери" title="Програмери" data-i18n-aria="me.more" data-i18n-title="me.more">▼</button>
+      <button class="me-more" id="me-more" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="me-menu" aria-label="Програмери" title="Програмери" data-i18n-aria="me.more" data-i18n-title="me.more">▼</button>
       <div class="city-menu me-menu" id="me-menu" role="menu" aria-label="Програмери" data-i18n-aria="me.more" hidden>
         <a role="menuitem" href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener"><span class="code">091</span><span data-i18n="me">Бојан Божиновски</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg></a>
         <a role="menuitem" href="https://www.linkedin.com/in/ristes/" target="_blank" rel="noopener"><span class="code">043</span><span data-i18n="me.riste">Ристе Самарџиев</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg></a>
@@ -377,9 +402,14 @@
       <button class="pop-toggle" id="places-toggle" aria-expanded="false" aria-controls="places" data-i18n="bar.places">📍 Места</button>
       <div class="places" id="places">
         <button data-view="center" data-i18n="v.center">Плоштад</button>
-        <button data-view="kale" data-i18n="v.kale">Кале и Чаршија</button>
-        <button data-view="park" data-i18n="v.park">Градски парк</button>
-        <button data-view="vodno" data-i18n="v.vodno">Водно</button>
+        <button data-view="kale" data-city="skopje" data-i18n="v.kale">Кале и Чаршија</button>
+        <button data-view="park" data-city="skopje" data-i18n="v.park">Градски парк</button>
+        <button data-view="vodno" data-city="skopje" data-i18n="v.vodno">Водно</button>
+        <button data-view="ossuary" data-city="kavadarci" data-i18n="v.ossuary">Спомен-костурница</button>
+        <button data-view="vatasa" data-city="kavadarci" data-i18n="v.vatasa">Ваташа</button>
+        <button data-view="lake" data-city="kavadarci" data-i18n="v.lake">Тиквешко Езеро</button>
+        <button data-view="dam" data-city="kavadarci" data-i18n="v.dam">Брана Тиквеш</button>
+        <button data-view="ludamara" data-city="kavadarci" data-i18n="v.ludamara">Луда Мара</button>
         <button data-view="overview" data-i18n="v.overview">Преглед</button>
       </div>
       <button id="fly" data-i18n="bar.fly">✈ Авион</button>
@@ -464,12 +494,12 @@
     <div id="status"></div>
     <div id="loader" role="status" aria-live="polite">
       <div class="card">
-        <span class="h1"><span class="code">091</span>Скопје</span>
+        <span class="h1"><span class="code city-code">091</span><span class="city-name">Скопје</span></span>
         <div class="track"><div id="load-bar"></div></div>
         <p id="load-text" data-i18n="loading">Се вчитува…</p>
       </div>
     </div>
-    <div class="attr" data-i18n="attr">Податоци © соработниците на <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
+    <div class="attr"><span data-i18n="attr">Податоци © соработниците на <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span> <span data-city="kavadarci">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
