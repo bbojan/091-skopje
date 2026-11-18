@@ -715,9 +715,10 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     blockGrid.add(around([hx + c - 2 * s, hz - s - 2 * c], [c, -s], 10, 12), null);
   }
   if (LM.vatasa) {
-    blockGrid.add(around(LM.vatasa, [1, 0], 10, 10), null);
-    // the lawn in front of it, the arc of the 12 busts ~20 m north and the cypresses behind (landmarks.ts)
-    blockGrid.add(around([LM.vatasa[0] + 1.4, LM.vatasa[1] - 10], [1, 0], 16, 16), null);
+    // the two walls and the path between them (−13…17 m east), the lawn north of them, the arc of the
+    // 12 busts ~20 m north and the thujas behind (landmarks.ts)
+    blockGrid.add(around([LM.vatasa[0] + 2, LM.vatasa[1]], [1, 0], 16, 6), null);
+    blockGrid.add(around([LM.vatasa[0] + 2, LM.vatasa[1] - 12], [1, 0], 18, 17), null);
   }
   if (LM.revolution) blockGrid.add(around(LM.revolution, [1, 0], 5, 5), null);
   const ossOb = LM.ossuary ? obb(toPts(LM.ossuary)) : null;

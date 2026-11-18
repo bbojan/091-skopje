@@ -162,8 +162,11 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
      floodlights (OSM says lit, no photo shows masts), seat colours (left as concrete). Capacity is
      given as 4,000 to 9,000 by different sources, so the info card leaves it out.
    - Vataša memorial at Moklište (Jordan Grabul, 1963; 12 youths shot on 16 June 1943): two curved
-     ~5 m concrete walls round a small altar, the inscription on the south one. No photo was found:
-     modelled from the description only.
+     white walls on the grass south of the lawn, the paved path between them (`VATASA_WALLS` in
+     `landmarks.ts`, from an Esri aerial image and the owner's photos, Nov 2026): the north one ~15 m long,
+     3.4–4.4 m high, with the long black inscription facing the lawn and the busts; the south one ~11 m,
+     3 m, with the black plaque of names, a round dark emblem and the dark granite altar in front; two small
+     thujas on the lawn. Walking collides with both walls.
    - Monument to the Revolution on the square (Petar Palavičini, 1958; not in OSM, position from
      spomenikdatabase.org), after a photo of Dec 2020: a young man, a woman raising one arm, a youth
      sinking forward under her hand, on a tall speckled granite plinth „За слободата на народот свој“,
@@ -263,6 +266,11 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    keeps the marker, so near and far agree. Skopje's materials keep their old programs (`vine` is off):
    pixel check 0 except the gondola cabins (5 px on the overviews). GPU: 6–8 ms for a 1800×1345 view over
    the farmland (full tier, M-series). Not done: 3D vine rows close up (they are flat stripes).
+   Also: the 12 busts at Vataša a little larger (the shoulders wider than the pedestal, as in the photos),
+   the name in black on each pedestal, a tall thuja right behind each bust (was seven between the first
+   eight), a golden and two red shrubs on the lawn. An Overture house that stood half inside the ossuary's
+   courtyard is gone: Overture buildings are kept 11 m off the ossuary's outline (was 5 m; the OSM outline
+   is only the house on the shaft, the modelled courtyard is ~21 m square).
 
 ## Key decisions (and why)
 

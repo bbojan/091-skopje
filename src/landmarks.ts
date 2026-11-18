@@ -76,6 +76,29 @@ function vatasaBusts(data: CityData): { x: number; z: number; rot: number }[] {
   return VATASA_BUSTS.map(P).map(([x, z]) => ({ x, z, rot: Math.atan2(lx - x, lz - z) }));
 }
 
+/** The two white walls of the Vataša memorial (aerial image, photos of 2023): quadratic curves (start,
+ *  control, end) in metres east / north of the OSM node, and the height at each end. The north one faces
+ *  the lawn and the busts, the paved path runs between them. */
+const VATASA_WALLS: { p: [Pt, Pt, Pt]; h: [number, number] }[] = [
+  { p: [[-1.0, 2.3], [4.75, -0.95], [13.5, 1.2]], h: [3.4, 4.4] }, // north: the inscription
+  { p: [[-6.0, -3.4], [-0.25, -1.45], [4.5, -1.7]], h: [3.0, 3.0] }, // south: the names, the emblem, the altar
+];
+const VATASA_WALL_T = 0.45;
+/** wall `w`'s centreline in world x, z: n + 1 points with the unit normal toward its north side and the height */
+function vatasaWall(data: CityData, w: number, n = 24): { x: number; z: number; nx: number; nz: number; h: number }[] {
+  const v = data.landmarks?.vatasa;
+  if (!v) return [];
+  const { p: [a, c, b], h: [h0, h1] } = VATASA_WALLS[w];
+  const out = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, u = 1 - t;
+    const e = u * u * a[0] + 2 * u * t * c[0] + t * t * b[0], nn = u * u * a[1] + 2 * u * t * c[1] + t * t * b[1];
+    const de = 2 * u * (c[0] - a[0]) + 2 * t * (b[0] - c[0]), dn = 2 * u * (c[1] - a[1]) + 2 * t * (b[1] - c[1]), L = Math.hypot(de, dn);
+    out.push({ x: v[0] + e, z: v[1] - nn, nx: -dn / L, nz: -de / L, h: h0 + (h1 - h0) * t }); // (−dn, de) north, z = −north
+  }
+  return out;
+}
+
 // ---------------- Kavadarci, the memorial to Kiro Krstev and Dimče Mirčev: the layout shared by
 // the model, walking collision and the walking ground. Local frame: origin at the OSM node, +z
 // down the steps (HEROES_TURN), heights from the bare terrain at the node. The elevation data is
@@ -177,7 +200,11 @@ export function landmarkFootprints(data: CityData, terrain: Terrain): BuildingDa
   }
   for (const { x, z, rot } of vatasaBusts(data)) { // the pedestals of the 12 busts at Vataša
     const c = Math.cos(rot), s = Math.sin(rot);
-    add([[-0.43, -0.43], [0.43, -0.43], [0.43, 0.43], [-0.43, 0.43]].flatMap(([u, v]) => [x + u * c + v * s, z - u * s + v * c]), 2.1);
+    add([[-0.48, -0.48], [0.48, -0.48], [0.48, 0.48], [-0.48, 0.48]].flatMap(([u, v]) => [x + u * c + v * s, z - u * s + v * c]), 2.6);
+  }
+  for (const w of [0, 1]) { // the two walls of the Vataša memorial
+    const c = vatasaWall(data, w, 12), d = VATASA_WALL_T / 2;
+    if (c.length) add([...c.map((p) => [p.x + p.nx * d, p.z + p.nz * d]), ...c.reverse().map((p) => [p.x - p.nx * d, p.z - p.nz * d])].flat(), 4.4);
   }
   const sl = squareLayout(data, terrain); // Kavadarci: the square's fountains and planters
   if (sl) for (const [r, h] of squareFootprints(sl)) add(r, h);
@@ -631,59 +658,147 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
     place(Sh, M('#5f8c3e'), hx, y0, hz, rot);
   }
 
-  // ---------------- Vataša memorial at Moklište (Jordan Grabul, 1963), for the 12 youths shot
-  // here on 16 June 1943: two curved ~5 m concrete walls (the inscription on the south one)
-  // round a small altar
+  // ---------------- Vataša memorial at Moklište (Jordan Grabul, 1963), for the 12 youths shot here on
+  // 16 June 1943: two curved white walls on the grass with the paved path between them (`VATASA_WALLS`);
+  // a long black inscription on the north one (it faces the lawn and the busts), the black plaque with
+  // the names, a round dark emblem and the dark granite altar at the south one; small thujas on the lawn
+  // (aerial image, photos of 2023)
+  // the lawn's height: a large park is painted into the terrain, a small one draped above it
+  const lawnLift = (x: number, z: number) => {
+    const park = data.areas.find((a) => pip(x, z, toPts(a.r[0])));
+    return park && !isPaintedArea(park.k, park.a) ? areaLift(park.z) : 0;
+  };
+  /** a surface between two rows of points (indexed, smooth along the rows), facing `out` */
+  const sheet = (a: Vec3[], b: Vec3[], out: Vec3) => {
+    const g = new THREE.BufferGeometry(), idx: number[] = [];
+    g.setAttribute('position', new THREE.Float32BufferAttribute([...a, ...b].flat(), 3));
+    const n = a.length;
+    for (let i = 0; i + 1 < n; i++) idx.push(i, i + 1, n + i, n + i, i + 1, n + i + 1);
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    const nr = g.getAttribute('normal');
+    if (nr.getX(0) * out[0] + nr.getY(0) * out[1] + nr.getZ(0) * out[2] < 0) {
+      for (let i = 0; i < idx.length; i += 3) [idx[i + 1], idx[i + 2]] = [idx[i + 2], idx[i + 1]];
+      g.setIndex(idx);
+      g.computeVertexNormals();
+    }
+    return g;
+  };
+  /** a thuja: a narrow column with a rounded top, h tall and r wide, standing at the origin */
+  const thuja = (h: number, r: number) =>
+    new THREE.LatheGeometry([[0, 0], [r * 0.75, 0.06 * h], [r, 0.28 * h], [r * 0.96, 0.6 * h], [r * 0.72, 0.82 * h], [r * 0.36, 0.95 * h], [0, h]].map(([u, v]) => new THREE.Vector2(u, v)), 10);
   if (L.vatasa) {
-    const [x, z] = L.vatasa;
-    const y = T(x, z);
-    const arc = (rOut: number, rIn: number, mid: number, span: number, h: number, yb: number) => {
-      const sh = new THREE.Shape();
-      sh.absarc(0, 0, rOut, mid - span / 2, mid + span / 2, false);
-      sh.absarc(0, 0, rIn, mid + span / 2, mid - span / 2, true);
-      sh.closePath();
-      return new THREE.ExtrudeGeometry(sh, { depth: h, bevelEnabled: false, curveSegments: 28 }).rotateX(-Math.PI / 2).translate(0, yb, 0);
+    const white: THREE.BufferGeometry[] = [], black: THREE.BufferGeometry[] = [], granite: THREE.BufferGeometry[] = [];
+    const paving: THREE.BufferGeometry[] = [], green: THREE.BufferGeometry[] = [];
+    const d = VATASA_WALL_T / 2;
+    const walls = [0, 1].map((w) => vatasaWall(data, w));
+    const refs = walls.map((c) => T(c[c.length >> 1].x, c[c.length >> 1].z)); // the tops run level
+    walls.forEach((c, w) => {
+      const side = (s: number, top: boolean): Vec3[] => c.map((p) => [p.x + p.nx * d * s, top ? refs[w] + p.h : T(p.x, p.z) - 0.6, p.z + p.nz * d * s]);
+      const nN = side(1, false), tN = side(1, true), nS = side(-1, false), tS = side(-1, true);
+      white.push(sheet(nN, tN, [c[0].nx, 0, c[0].nz]), sheet(nS, tS, [-c[0].nx, 0, -c[0].nz]), sheet(tN, tS, [0, 1, 0]));
+      for (const [i, s] of [[0, -1], [c.length - 1, 1]] as const) { // the ends
+        const p = c[i];
+        white.push(sheet([nN[i], tN[i]], [nS[i], tS[i]], [-p.nz * s, 0, p.nx * s]));
+      }
+    });
+    /** boxes along wall `w` from t0 to t1 (of its length), y0–y1 above its foot, on its north (s = 1) or south face */
+    const onWall = (out: THREE.BufferGeometry[], w: number, t0: number, t1: number, y0: number, y1: number, s: number, dep = 0.05) => {
+      const c = walls[w], n = c.length - 1;
+      for (let i = Math.round(t0 * n); i < Math.round(t1 * n); i++) {
+        const a = c[i], b = c[i + 1], len = Math.hypot(b.x - a.x, b.z - a.z);
+        const nx = (a.nx + b.nx) / 2, nz = (a.nz + b.nz) / 2, o = s * (d + dep / 2 - 0.01);
+        out.push(new THREE.BoxGeometry(len + 0.02, y1 - y0, dep).rotateY(Math.atan2(-(b.z - a.z), b.x - a.x))
+          .translate((a.x + b.x) / 2 + nx * o, refs[w] + (y0 + y1) / 2, (a.z + b.z) / 2 + nz * o));
+      }
     };
-    // shape angle −π/2 is south (+z) once laid flat, +π/2 north
-    const C = [arc(5.6, 5.0, -Math.PI / 2, 2.1, 5.0, 0.5), arc(5.6, 5.0, Math.PI / 2, 2.1, 4.5, 0.5), box(1.6, 0.9, 1.0, 0, 0.5, 0)];
-    const D = [arc(4.99, 4.93, -Math.PI / 2, 1.2, 0.9, 2.4)]; // the inscription
-    place([new THREE.CylinderGeometry(8.5, 8.8, 2.5, 32).translate(0, -0.75, 0)], M('#c9c1b2'), x, y, z, 0);
-    place(C, concrete, x, y, z, 0);
-    place(D, darkConcrete, x, y, z, 0);
+    onWall(black, 0, 0.42, 0.74, 2.25, 2.6, 1); // the inscription, facing the lawn
+    onWall(black, 1, 0.12, 0.27, 0.7, 2.4, 1); // the names
+    { // the emblem: a dark round relief on the south wall
+      const p = walls[1][Math.round(walls[1].length * 0.66)];
+      black.push(new THREE.CylinderGeometry(0.75, 0.75, 0.1, 28).rotateX(Math.PI / 2).rotateY(Math.atan2(p.nx, p.nz))
+        .translate(p.x + p.nx * (d + 0.04), refs[1] + 1.9, p.z + p.nz * (d + 0.04)));
+    }
+    { // the altar: a dark granite slab on a lower block, in front of the names
+      const p = walls[1][Math.round(walls[1].length * 0.1)], ax = p.x + p.nx * 2.1, az = p.z + p.nz * 2.1, ay = T(ax, az) + lawnLift(ax, az);
+      const r = Math.atan2(p.nx, p.nz);
+      granite.push(box(2.3, 0.6, 0.95, 0, -0.3, 0).rotateY(r).translate(ax, ay, az), box(2.7, 0.28, 1.3, 0, 0.3, 0).rotateY(r).translate(ax, ay, az));
+    }
+    // the paved path between the walls: east / north of the node, 1.9 m wide
+    {
+      const [x, z] = L.vatasa, line: Pt[] = [[-13, 0.2], [-1, 0], [2, -0.3], [5.5, -0.9], [10, -0.95], [17, -0.4]];
+      const pts: Pt[] = [];
+      for (let i = 0; i + 1 < line.length; i++) {
+        const [a, b] = [line[i], line[i + 1]], k = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 0.6);
+        for (let j = 0; j < k; j++) pts.push([a[0] + ((b[0] - a[0]) * j) / k, a[1] + ((b[1] - a[1]) * j) / k]);
+      }
+      pts.push(line[line.length - 1]);
+      const l: Vec3[] = [], r: Vec3[] = [];
+      pts.forEach(([e, n], i) => {
+        const [pe, pn] = pts[Math.max(0, i - 1)], [ne, nn] = pts[Math.min(pts.length - 1, i + 1)], L2 = Math.hypot(ne - pe, nn - pn);
+        const oe = (-(nn - pn) / L2) * 0.95, on = ((ne - pe) / L2) * 0.95;
+        for (const [arr, s] of [[l, 1], [r, -1]] as const) {
+          const px = x + e + oe * s, pz = z - (n + on * s);
+          arr.push([px, T(px, pz) + lawnLift(px, pz) + 0.05, pz]);
+        }
+      });
+      paving.push(sheet(l, r, [0, 1, 0]));
+    }
+    // two small thujas on the lawn in front of the north wall
+    for (const t of [0.3, 0.6]) {
+      const p = walls[0][Math.round(walls[0].length * t)], tx = p.x + p.nx * 3.6, tz = p.z + p.nz * 3.6;
+      green.push(thuja(1.5, 0.42).translate(tx, T(tx, tz) + lawnLift(tx, tz) - 0.05, tz));
+    }
+    place(white, M('#f4f2ec'), 0, 0, 0, 0);
+    place(black, M('#242427'), 0, 0, 0, 0);
+    place(granite, M('#4a4a4e'), 0, 0, 0, 0);
+    place(paving, M('#d8d2c6'), 0, 0, 0, 0);
+    place(green, M('#3f6b38'), 0, 0, 0, 0);
   }
 
   // ---------------- 12-те ваташки деца: twelve white marble busts on tall white pedestals, each on a
-  // square base slab, in an arc round the lawn in front of the memorial; tall cypresses behind the
-  // western half of the arc (aerial image, photo of 2023)
+  // square base slab, the name in black letters on the front; in an arc round the lawn in front of the
+  // memorial, a tall thuja behind each; a golden and two red shrubs on the lawn (aerial image, photos of 2023)
   {
     const busts = vatasaBusts(data);
-    const marble: THREE.BufferGeometry[] = [], cypress: THREE.BufferGeometry[] = [];
-    // the lawn's height: a large park is painted into the terrain, a small one draped above it
-    const park = busts.length ? data.areas.find((a) => pip(busts[0].x, busts[0].z, toPts(a.r[0]))) : undefined;
-    const lift = park && !isPaintedArea(park.k, park.a) ? areaLift(park.z) : 0;
+    const marble: THREE.BufferGeometry[] = [], letters: THREE.BufferGeometry[] = [], cypress: THREE.BufferGeometry[] = [];
+    const gold: THREE.BufferGeometry[] = [], red: THREE.BufferGeometry[] = [];
     busts.forEach(({ x, z, rot }, i) => {
-      const y = T(x, z) + lift;
+      const y = T(x, z) + lawnLift(x, z);
       const parts = [
-        box(0.85, 0.5, 0.85, 0, -0.35, 0), // base slab, 0.15 m above the grass
-        box(0.5, 1.15, 0.5, 0, 0.15, 0), // pedestal
-        box(0.6, 0.06, 0.6, 0, 1.3, 0), // its cap
-        new THREE.CylinderGeometry(0.25, 0.19, 0.3, 16).scale(1, 1, 0.55).translate(0, 1.51, 0), // chest, cut flat below
-        new THREE.SphereGeometry(1, 16, 8).scale(0.26, 0.09, 0.14).translate(0, 1.66, 0), // the shoulders' round
-        new THREE.CylinderGeometry(0.06, 0.07, 0.16, 10).translate(0, 1.76, 0), // neck
-        new THREE.SphereGeometry(0.125, 16, 12).scale(0.95, 1.22, 1.08).translate(0, 1.95, 0.015), // head
-        new THREE.SphereGeometry(0.06, 10, 8).scale(1.1, 0.8, 1).translate(0, 1.86, 0.08), // chin and jaw
+        box(0.95, 0.55, 0.95, 0, -0.35, 0), // base slab, 0.2 m above the grass
+        box(0.52, 1.3, 0.52, 0, 0.2, 0), // pedestal
+        box(0.6, 0.07, 0.6, 0, 1.5, 0), // its cap
+        new THREE.CylinderGeometry(0.28, 0.23, 0.34, 16).scale(1, 1, 0.55).translate(0, 1.74, 0), // chest, cut flat below
+        new THREE.SphereGeometry(1, 16, 8).scale(0.3, 0.1, 0.165).translate(0, 1.9, 0), // the shoulders' round
+        new THREE.CylinderGeometry(0.065, 0.075, 0.16, 10).translate(0, 1.98, 0), // neck
+        new THREE.SphereGeometry(0.13, 16, 12).scale(0.93, 1.2, 1.08).translate(0, 2.17, 0.015), // head
+        new THREE.SphereGeometry(0.062, 10, 8).scale(1.1, 0.8, 1).translate(0, 2.07, 0.085), // chin and jaw
       ];
+      // the bust (from the chest up) 1.3 × the size above: its shoulders wider than the pedestal
+      parts.slice(3).forEach((g) => g.translate(0, -1.57, 0).scale(1.3, 1.3, 1.3).translate(0, 1.57, 0));
       for (const g of parts) marble.push(g.rotateY(rot).translate(x, y, z));
-      // cypresses behind the first seven, between the busts
-      if (i < 7) {
-        const nx = busts[i + 1].x, nz = busts[i + 1].z, mx = (x + nx) / 2, mz = (z + nz) / 2;
-        const ox = -Math.sin(rot) * 2.6, oz = -Math.cos(rot) * 2.6; // away from the lawn
-        const cy = T(mx + ox, mz + oz) + lift;
-        cypress.push(new THREE.ConeGeometry(0.6, 5.4 + (i % 3) * 0.5, 10).translate(mx + ox, cy + 2.6 + (i % 3) * 0.25, mz + oz));
-      }
+      for (const [k, w] of [[0, 0.3], [1, 0.36], [2, 0.26]] as const) // the name and the years, toward the lawn
+        letters.push(box(w, 0.045, 0.012, 0, 1.2 - k * 0.1, 0.262).rotateY(rot).translate(x, y, z));
+      // a thuja right behind each, away from the lawn
+      const cx = x - Math.sin(rot) * 1.5, cz = z - Math.cos(rot) * 1.5;
+      cypress.push(thuja(4.3 + ((i * 7) % 5) * 0.25, 0.62).translate(cx, T(cx, cz) + lawnLift(cx, cz) - 0.1, cz));
     });
+    if (busts.length === 12) { // the shrubs: on the lawn side of the 6th / 7th, the 3rd and the 10th
+      const shrub = (out: THREE.BufferGeometry[], b: { x: number; z: number; rot: number }, dist: number, sx: number, sy: number) => {
+        const px = b.x + Math.sin(b.rot) * dist, pz = b.z + Math.cos(b.rot) * dist;
+        out.push(new THREE.SphereGeometry(1, 14, 9).scale(sx, sy, sx).translate(px, T(px, pz) + lawnLift(px, pz) + sy * 0.8, pz));
+      };
+      const mid = { x: (busts[5].x + busts[6].x) / 2, z: (busts[5].z + busts[6].z) / 2, rot: (busts[5].rot + busts[6].rot) / 2 };
+      shrub(gold, mid, 3.2, 1.1, 0.75);
+      shrub(red, busts[2], 2.2, 0.5, 0.4);
+      shrub(red, busts[9], 2.2, 0.5, 0.4);
+    }
     place(marble, M('#f3f0ea'), 0, 0, 0, 0);
-    place(cypress, M('#3a6337'), 0, 0, 0, 0);
+    place(letters, M('#242427'), 0, 0, 0, 0);
+    place(cypress, M('#3f6b38'), 0, 0, 0, 0);
+    place(gold, M('#c3c35a'), 0, 0, 0, 0);
+    place(red, M('#8c4a3a'), 0, 0, 0, 0);
   }
 
   // ---------------- Плоштад Маршал Тито: the Monument to the Revolution, the town hall with its

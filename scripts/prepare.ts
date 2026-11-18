@@ -646,7 +646,8 @@ if (FILES.overture) {
   // hand-modelled landmarks: their outlines (padded) and points with a radius (metres)
   const keepOut: [poly: Ring | null, x: number, z: number, pad: number][] = [];
   const L = out.landmarks;
-  for (const [ring, pad] of [[L.townhall, 3], [L.ossuary, 5], [L.stadium, 30], [L.porta, 3], [L.dam, 5], [L.hpp, 4], [L.switchyard, 3], [L.petka, 3], [L.dimitrij, 3]] as const) if (ring) keepOut.push([toPoly(ring), 0, 0, pad]);
+  // (the ossuary: its OSM outline is only the house on the shaft, the modelled courtyard round it is ~21 m square)
+  for (const [ring, pad] of [[L.townhall, 3], [L.ossuary, 11], [L.stadium, 30], [L.porta, 3], [L.dam, 5], [L.hpp, 4], [L.switchyard, 3], [L.petka, 3], [L.dimitrij, 3]] as const) if (ring) keepOut.push([toPoly(ring), 0, 0, pad]);
   // the market's deck (in its frame: x across, z along the roof, south +)
   let marketRing: Ring | null = null;
   if (L.market) {
