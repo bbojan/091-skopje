@@ -67,6 +67,12 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.shadowMap.autoUpdate = false;
 app.appendChild(renderer.domElement);
+// phones / tablets get two joysticks in every mode (index.html: `body.mobile .stick`); also when a touch
+// screen appears later (the browser's device emulation switched on without a reload)
+const coarse = matchMedia('(pointer: coarse)');
+const markMobile = () => document.body.classList.toggle('mobile', MOBILE || coarse.matches);
+markMobile();
+coarse.addEventListener('change', markMobile);
 
 const scene = new THREE.Scene();
 const sceneBg = new THREE.Color(PAL.paper);
@@ -372,6 +378,7 @@ function hideLoader(): void {
 /** Badge, title, help and the city's own menu items (`data-city` in index.html). */
 function applyCityChrome(spec: CitySpec): void {
   document.title = `${spec.code} ${spec.name}`;
+  $<HTMLLinkElement>('favicon').href = spec.icon;
   for (const id of CITY_IDS) document.body.classList.toggle(`city-${id}`, id === spec.id);
   document.body.classList.toggle('no-buses', !spec.buses); // hides 🚌 (the drivable ЈСП bus)
   document.querySelectorAll<HTMLElement>('.city-code').forEach((el) => (el.textContent = spec.code));
@@ -919,6 +926,7 @@ function startFlight(at?: THREE.Vector3, yaw?: number): void {
     world.flight.start(at ?? controls.target, yaw ?? -az);
   }
   document.body.classList.add('flying');
+  resetSticks();
   flyHud.hidden = false;
   flyResult.hidden = true;
   applyRace();
@@ -953,6 +961,7 @@ function startDrive(at?: THREE.Vector3, yaw?: number): boolean {
   closePopups();
   controls.enabled = false;
   document.body.classList.add('flying', 'driving');
+  resetSticks();
   flyHud.hidden = false;
   flyResult.hidden = true;
   world.game.group.visible = false;
@@ -1001,6 +1010,7 @@ function startWalk(at?: THREE.Vector3): void {
   closePopups();
   controls.enabled = false;
   document.body.classList.add('walking');
+  resetSticks();
   walkHud.hidden = false;
   const f = new THREE.Vector3().subVectors(controls.target, camera.position);
   world.walk.start(at ?? controls.target, Math.atan2(f.x, -f.z));
@@ -1070,22 +1080,51 @@ addEventListener('pointermove', (e) => {
   dragX = e.clientX; dragY = e.clientY;
 });
 addEventListener('pointerup', (e) => { if (e.pointerId === dragId) dragId = -1; });
-// touch joystick (bottom left)
-const stickEl = $('walk-stick'), knob = stickEl.querySelector<HTMLElement>('.knob')!;
-let stickId = -1;
-const stickMove = (e: PointerEvent) => {
-  if (!world) return;
-  const r = stickEl.getBoundingClientRect(), R = r.width / 2;
-  let dx = (e.clientX - r.left - R) / R, dy = (e.clientY - r.top - R) / R;
-  const l = Math.hypot(dx, dy); if (l > 1) { dx /= l; dy /= l; }
-  world.walk.stick.x = dx; world.walk.stick.y = -dy;
-  knob.style.transform = `translate(${dx * R * 0.6}px, ${dy * R * 0.6}px)`;
-};
-stickEl.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); stickId = e.pointerId; stickEl.setPointerCapture(e.pointerId); stickMove(e); });
-stickEl.addEventListener('pointermove', (e) => { if (e.pointerId === stickId) stickMove(e); });
-for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) stickEl.addEventListener(ev, () => {
-  stickId = -1; knob.style.transform = '';
+// ---------------- touch joysticks: walking always has the left one (moving); phones and tablets held
+// sideways get a right one in every mode too (index.html: `body.mobile .stick`), and the flight / bus a left one
+/** x right, y down, −1…1; 0, 0 on release */
+function touchStick(el: HTMLElement, onMove: (x: number, y: number) => void): void {
+  const knob = el.querySelector<HTMLElement>('.knob')!;
+  let id = -1;
+  const move = (e: PointerEvent) => {
+    const r = el.getBoundingClientRect(), R = r.width / 2;
+    let dx = (e.clientX - r.left - R) / R, dy = (e.clientY - r.top - R) / R;
+    const l = Math.hypot(dx, dy); if (l > 1) { dx /= l; dy /= l; }
+    knob.style.transform = `translate(${dx * R * 0.6}px, ${dy * R * 0.6}px)`;
+    onMove(dx, dy);
+  };
+  el.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); id = e.pointerId; el.setPointerCapture(e.pointerId); move(e); });
+  el.addEventListener('pointermove', (e) => { if (e.pointerId === id) move(e); });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) el.addEventListener(ev, (e) => {
+    if (e.pointerId !== id) return;
+    id = -1; knob.style.transform = '';
+    onMove(0, 0);
+  });
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+/** the sticks' current values, read every frame (flight / bus steering, looking around on foot) */
+const touch = { lx: 0, ly: 0, rx: 0, ry: 0 };
+/** a mode starts with the sticks centred (a stick held while its HUD hid may never have seen its release) */
+function resetSticks(): void {
+  Object.assign(touch, { lx: 0, ly: 0, rx: 0, ry: 0 });
+  document.querySelectorAll<HTMLElement>('.stick .knob, .walk-stick .knob').forEach((k) => (k.style.transform = ''));
   if (world) world.walk.stick.x = world.walk.stick.y = 0;
+}
+touchStick($('walk-stick'), (x, y) => { if (world) { world.walk.stick.x = x; world.walk.stick.y = -y; } });
+touchStick($('walk-look'), (x, y) => { touch.rx = x; touch.ry = y; });
+touchStick($('fly-lstick'), (x, y) => { touch.lx = x; touch.ly = y; });
+touchStick($('drive-gas'), (_x, y) => { touch.ry = y; });
+// the stunt stick works like a gamepad's right stick: a flick to the side rolls that way, forward / back
+// loops (forward: nose down and under with "invert up/down in flight" on, the default, like the pad)
+let stuntFlick = false;
+touchStick($('fly-stunts'), (x, y) => {
+  const far = Math.max(Math.abs(x), Math.abs(y));
+  if (far < 0.4) stuntFlick = false;
+  else if (far > 0.75 && !stuntFlick && world?.flight.active) {
+    stuntFlick = true;
+    if (Math.abs(x) >= Math.abs(y)) world.flight.stunt('roll', x > 0 ? 1 : -1);
+    else world.flight.stunt('loop', (y > 0) === invertPlane ? 1 : -1);
+  }
 });
 // HUD texts (only touched when they change)
 const hudCache = new Map<string, string>();
@@ -1248,6 +1287,10 @@ renderer.setAnimationLoop(() => {
     if (!padHintShown) { padHintShown = true; document.body.classList.add('has-pad'); }
   } else if (flight.active) Object.assign(flight.pad, { turn: 0, climb: 0, boost: false, drop: false });
   else if (drive.active) Object.assign(drive.pad, { turn: 0, throttle: 0 });
+  // touch joysticks add to the pad (both are set afresh above every frame)
+  if (flight.active) { flight.pad.turn += touch.lx; flight.pad.climb -= touch.ly; }
+  else if (drive.active) { drive.pad.turn += touch.lx; drive.pad.throttle -= touch.ry; }
+  else if (walk.active) { walk.look.x += touch.rx * 900 * dt; walk.look.y += touch.ry * 650 * dt; }
   // ---- keyboard / pad map navigation; keep the orbit target on the ground
   if (mapInput.update(dt, pad)) {
     hashMoved = true;

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Kavadarci flag: white | red, a bunch of seven grapes in the counter-colours -->
+  <defs>
+    <clipPath id="l"><rect width="50" height="100"/></clipPath>
+    <clipPath id="r"><rect x="50" width="50" height="100"/></clipPath>
+    <g id="g">
+      <circle cx="19" cy="22" r="14.5"/><circle cx="50" cy="22" r="14.5"/><circle cx="81" cy="22" r="14.5"/>
+      <circle cx="34.5" cy="50" r="14.5"/><circle cx="65.5" cy="50" r="14.5"/>
+      <circle cx="50" cy="78" r="14.5"/>
+    </g>
+  </defs>
+  <rect width="50" height="100" fill="#fff"/>
+  <rect x="50" width="50" height="100" fill="#b9352e"/>
+  <use href="#g" fill="#b9352e" clip-path="url(#l)"/>
+  <use href="#g" fill="#fff" clip-path="url(#r)"/>
+</svg>

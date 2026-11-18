@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>091 Скопје</title>
+    <link rel="icon" id="favicon" type="image/svg+xml" href="./favicon-skopje.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Rubik+Mono+One&display=swap" rel="stylesheet" />
     <style>
@@ -72,7 +73,8 @@
       .bar .lang select { font: inherit; color: inherit; background: transparent; border: 0; outline: 0; padding: 6px 12px 6px 4px; cursor: pointer; appearance: none; -webkit-appearance: none; }
       #status { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; font-size: 18px; }
       .title { background: rgba(251, 246, 238, 0.88); border: 1.5px solid var(--ink); border-radius: 14px; padding: 8px 14px 9px; box-shadow: 3px 3px 0 rgba(75, 52, 40, 0.35); }
-      /* LinkedIn split button: the name opens Bojan's profile, the ▾ the other developers */
+      /* LinkedIn split button: the name opens the city's developer (Skopje: Bojan, Kavadarci: Riste), the ▾ both;
+         only on the map itself: hidden while flying, driving or walking */
       .me { position: fixed; right: 18px; top: 18px; display: inline-flex; align-items: stretch; border-radius: 999px;
             background: #2b1d16; color: #fff8ec; font-size: 14px; font-weight: 700; letter-spacing: 0.01em;
             border: 2px solid #fff8ec; box-shadow: 0 0 0 1.5px #2b1d16, 3px 4px 0 rgba(43, 29, 22, 0.45); z-index: 10; }
@@ -82,6 +84,7 @@
       .me-main:hover, .me-more:hover, .me-more[aria-expanded="true"] { background: #0a66c2; }
       .me-main:focus-visible, .me-more:focus-visible { outline: 2px solid #fff8ec; outline-offset: -4px; }
       .me svg { width: 17px; height: 17px; fill: currentColor; }
+      body.flying .me, body.walking .me { display: none; }
       .city-menu.me-menu { left: auto; right: -2px; min-width: 0; letter-spacing: 0; }
       .city-menu.me-menu a { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; color: var(--indigo); background: var(--linen-hi); white-space: nowrap;
                              border: 1.5px solid var(--indigo); border-radius: 6px; padding: 7px 14px 7px 10px; text-decoration: none; }
@@ -184,14 +187,71 @@
       .walk-info p { margin: 6px 0 0; font-size: 13.5px; line-height: 1.45; }
       .walk-flash { position: absolute; left: 50%; top: 36%; transform: translateX(-50%); font-size: 28px; font-weight: 700; color: #fff8ec;
                     text-shadow: 2px 2px 0 #4b3428, -1px -1px 0 #4b3428, 1px -1px 0 #4b3428, -1px 1px 0 #4b3428; }
-      .walk-stick { position: absolute; left: 26px; bottom: 30px; width: 130px; height: 130px; border-radius: 50%; pointer-events: auto; touch-action: none;
+      .walk-stick, .stick { position: absolute; left: 26px; bottom: 30px; width: 130px; height: 130px; border-radius: 50%; pointer-events: auto; touch-action: none;
                     background: rgba(251, 246, 238, 0.35); border: 2px solid rgba(75, 52, 40, 0.5); display: none; place-items: center; }
-      .walk-stick .knob { width: 52px; height: 52px; border-radius: 50%; background: rgba(251, 246, 238, 0.92); border: 2px solid var(--ink); }
+      .walk-stick .knob, .stick .knob { width: 52px; height: 52px; border-radius: 50%; background: rgba(251, 246, 238, 0.92); border: 2px solid var(--ink); }
       .walk-btns { position: absolute; right: 22px; bottom: 26px; display: flex; gap: 10px; align-items: flex-end; }
       .walk-btns .fly-btn { font-size: 22px; }
       .walk-btns .walk-act { width: 92px; height: 92px; border-radius: 50%; font-size: 34px; background: #f2c84b; }
       .walk-touch { display: none !important; }
       @media (pointer: coarse) { .walk-stick { display: grid; } .walk-touch { display: grid !important; } #walkhud .fly-keys { display: none; } }
+
+      /* phones and tablets (body.mobile from main.ts), upright or sideways: two joysticks in every mode.
+         Flight: left steers and climbs, right flicks the stunts (like a gamepad's right stick);
+         bus: left steers, right is the throttle; walking: left moves, right looks around */
+      .stick .knob { pointer-events: none; }
+      .stick.r { left: auto; right: 26px; }
+      .stick, body.mobile .walk-stick { background: rgba(251, 246, 238, 0.5); border: 2px solid rgba(75, 52, 40, 0.75); box-shadow: 2px 3px 0 rgba(75, 52, 40, 0.25); }
+      .stick .tip { position: absolute; font-size: 22px; line-height: 1; font-weight: 700; color: var(--ink); pointer-events: none; text-shadow: 0 0 4px #fbf6ee, 0 0 2px #fbf6ee; }
+      .stick .tip.n { top: 5px; left: 50%; transform: translateX(-50%); }
+      .stick .tip.s { bottom: 5px; left: 50%; transform: translateX(-50%); }
+      .stick .tip.w { left: 7px; top: 50%; transform: translateY(-50%); }
+      .stick .tip.e { right: 7px; top: 50%; transform: translateY(-50%); }
+      .stick .cap { position: absolute; top: -26px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 12px; padding: 2px 9px; }
+      body.mobile .stick, body.mobile .walk-stick { display: grid; }
+      body.mobile #flyhud .pad, body.mobile .fly-keys { display: none !important; }
+      body.mobile #fly-boost, body.mobile #fly-water { width: 82px; height: 82px; }
+      body.mobile .walk-btns .fly-btn:not(.walk-act) { width: 58px; height: 58px; }
+      body.mobile .walk-btns .walk-act { width: 82px; height: 82px; }
+      /* the right stick takes the bottom right corner: the attribution sits at the bottom left, under the left stick */
+      body.mobile.flying .attr, body.mobile.walking .attr { left: 12px; right: auto; bottom: 6px; font-size: 10px; }
+      /* the info pills go to the very top (the title and the LinkedIn button are hidden in these modes) */
+      body.mobile .fly-top { top: 10px; }
+      body.mobile .fly-nav { top: 62px; }
+      body.mobile .walk-info { top: 58px; }
+      /* sideways: the buttons sit left of the right stick */
+      @media (orientation: landscape) {
+        body.mobile #fly-boost, body.mobile .walk-btns { right: 172px; bottom: 30px; }
+        body.mobile #fly-water { right: 172px; bottom: 124px; }
+      }
+      /* upright: the buttons sit above the right stick (clear of its caption) */
+      @media (orientation: portrait) {
+        body.mobile #fly-boost { right: 50px; bottom: 192px; }
+        body.mobile #fly-water { right: 50px; bottom: 286px; }
+        body.mobile .walk-btns { right: 26px; bottom: 176px; }
+      }
+      /* phones: smaller sticks closer to the edges, smaller buttons */
+      @media (max-height: 500px), (max-width: 560px) {
+        body.mobile .stick, body.mobile .walk-stick { width: 116px; height: 116px; bottom: 30px; }
+        body.mobile .stick.l, body.mobile .walk-stick { left: 18px; }
+        body.mobile .stick.r { right: 18px; }
+        body.mobile #fly-boost, body.mobile #fly-water { width: 72px; height: 72px; font-size: 14px; }
+        body.mobile #fly-water { font-size: 30px; }
+        body.mobile .walk-btns .fly-btn:not(.walk-act) { width: 50px; height: 50px; font-size: 19px; }
+        body.mobile .walk-btns .walk-act { width: 72px; height: 72px; }
+      }
+      @media (orientation: landscape) and (max-height: 500px) {
+        body.mobile #fly-boost, body.mobile .walk-btns { right: 150px; bottom: 30px; }
+        body.mobile #fly-water { right: 150px; bottom: 114px; }
+      }
+      @media (orientation: portrait) and (max-width: 560px) {
+        body.mobile #fly-boost { right: 40px; bottom: 176px; }
+        body.mobile #fly-water { right: 40px; bottom: 258px; }
+        body.mobile .walk-btns { right: 18px; bottom: 162px; }
+        /* upright phones wrap the pills into two rows */
+        body.mobile .fly-nav { top: 104px; }
+        body.mobile .walk-info { top: 100px; }
+      }
 
       /* narrow screens: keep the top corners from colliding */
       @media (max-width: 560px) {
@@ -294,6 +354,7 @@
           <tr><td data-i18n="c.wheel"><kbd>Тркалце</kbd></td><td data-i18n="c.zoomCursor">Зумирање кон курсорот</td></tr>
           <tr><td data-i18n="c.one">Еден прст</td><td data-i18n="c.oneD">Поместување (на допирен екран)</td></tr>
           <tr><td data-i18n="c.two">Два прста</td><td data-i18n="c.twoD">Зумирање и вртење</td></tr>
+          <tr><td data-i18n="c.sticks">Два џојстика</td><td data-i18n="c.sticksD">На телефон или таблет, во лет, автобус и пешачење: левиот за движење, десниот за акробации, гас или гледање</td></tr>
           <tr><td><kbd>Esc</kbd></td><td data-i18n="c.esc">Затвори го овој прозорец</td></tr>
         </table>
 
@@ -388,9 +449,13 @@
       </div>
     </dialog>
     <div class="me">
-      <a class="me-main" href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">
+      <a class="me-main" data-city="skopje" href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
         <span class="me-name" data-i18n="me">Бојан Божиновски</span>
+      </a>
+      <a class="me-main" data-city="kavadarci" href="https://www.linkedin.com/in/ristes/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+        <span class="me-name" data-i18n="me.riste">Ристе Самарџиев</span>
       </a>
       <button class="me-more" id="me-more" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="me-menu" aria-label="Програмери" title="Програмери" data-i18n-aria="me.more" data-i18n-title="me.more">▼</button>
       <div class="city-menu me-menu" id="me-menu" role="menu" aria-label="Програмери" data-i18n-aria="me.more" hidden>
@@ -464,6 +529,14 @@
       </div>
       <div class="pad l"><button class="fly-btn" data-k="left" aria-label="Лево" data-i18n-aria="a.left">◀</button><button class="fly-btn" data-k="right" aria-label="Десно" data-i18n-aria="a.right">▶</button></div>
       <div class="pad r"><button class="fly-btn" data-k="up" aria-label="Нагоре" data-i18n-aria="a.up">▲</button><button class="fly-btn" data-k="down" aria-label="Надолу" data-i18n-aria="a.down">▼</button></div>
+      <div class="stick l" id="fly-lstick"><div class="knob"></div></div>
+      <div class="stick r fly-only" id="fly-stunts" aria-label="Акробации" data-i18n-aria="a.stunts">
+        <span class="chip cap" data-i18n="a.stunts">Акробации</span>
+        <span class="tip n">⟲</span><span class="tip s">⟳</span><span class="tip w">↶</span><span class="tip e">↷</span><div class="knob"></div>
+      </div>
+      <div class="stick r drive-only" id="drive-gas" aria-label="Гас" data-i18n-aria="a.gas">
+        <span class="tip n">▲</span><span class="tip s">▼</span><div class="knob"></div>
+      </div>
       <button class="fly-btn fly-only" id="fly-boost" data-k="boost" data-i18n="fly.boost">БРЗО</button>
       <button class="fly-btn fly-only fire-only" id="fly-water" data-k="drop" aria-label="Вода" data-i18n-aria="a.water">💧</button>
       <div class="fly-keys chip drive-only" data-i18n="drive.keys">← → волан · ↑ гас · ↓ сопирачка/назад · Esc излез</div>
@@ -483,6 +556,7 @@
       <div class="walk-info" id="walk-info" hidden><b id="walk-info-name"></b><p id="walk-info-text"></p></div>
       <div class="walk-flash" id="walk-flash"></div>
       <div class="walk-stick" id="walk-stick"><div class="knob"></div></div>
+      <div class="stick r" id="walk-look" aria-label="Гледање" data-i18n-aria="a.look"><span class="tip n">👁</span><div class="knob"></div></div>
       <div class="walk-btns">
         <button class="fly-btn" id="walk-view" aria-label="1/3"></button>
         <button class="fly-btn" id="walk-char" aria-label="⇄"></button>
