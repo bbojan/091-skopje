@@ -25,6 +25,8 @@ export interface CitySpec {
   /** the town's name (map data) and its old telephone code, shown on the badge */
   name: string;
   code: string;
+  /** the browser tab's icon (public/): Skopje's coat of arms, Kavadarci's flag */
+  icon: string;
   files: { scene: string; terrainBin: string; terrainJson: string };
   /** expected scene JSON size, for the progress bar when the server sends no length */
   sceneBytes: number;
@@ -55,11 +57,13 @@ export interface CitySpec {
   refillLabel: Key;
   /** the record time is kept per race route */
   bestRaceKey: string;
+  /** the firefighting tow banner (map data, not translated): after a fire is out; after a roll or a loop */
+  banners: { fire: string; roll: string };
 }
 
 export const CITIES: Record<CityId, CitySpec> = {
   skopje: {
-    id: 'skopje', name: 'Скопје', code: '091',
+    id: 'skopje', name: 'Скопје', code: '091', icon: './favicon-skopje.svg',
     files: { scene: './skopje.json', terrainBin: './terrain.bin', terrainJson: './terrain.json' },
     sceneBytes: 7e6,
     views: {
@@ -115,9 +119,10 @@ export const CITIES: Record<CityId, CitySpec> = {
     snowLabel: 'weather.vodno',
     refillLabel: 'fire.refill',
     bestRaceKey: 'skopje.bestRace',
+    banners: { fire: 'Стојанче го спаси градот', roll: 'Село гори, баба се чешла' },
   },
   kavadarci: {
-    id: 'kavadarci', name: 'Кавадарци', code: '043',
+    id: 'kavadarci', name: 'Кавадарци', code: '043', icon: './favicon-kavadarci.svg',
     files: { scene: './kavadarci.json', terrainBin: './kavadarci-terrain.bin', terrainJson: './kavadarci-terrain.json' },
     sceneBytes: 2.4e6,
     views: {
@@ -200,6 +205,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     snowLabel: 'weather.hills',
     refillLabel: 'fire.refill.lake',
     bestRaceKey: 'skopje.bestRace.kavadarci',
+    banners: { fire: 'Митко го спаси градот!', roll: 'Шо ги ебам нека му а мислат' },
   },
 };
 

@@ -148,7 +148,8 @@ that reproduces the old behaviour for Skopje.
 
 Add the id to `CITY_IDS` and an entry to `CITIES` (`CitySpec` documents the fields):
 
-- `name` (Macedonian, map data) and `code` (the badge).
+- `name` (Macedonian, map data) and `code` (the badge); `icon`: the browser tab's icon, an SVG in
+  `public/` (`./favicon-<id>.svg`: the town's coat of arms or flag), switched with the city.
 - `files`: paths relative to the page (`./ohrid.json`…); `sceneBytes`: the scene file's size, for
   the progress bar.
 - `views`: `center` is the default view, `overview` the whole map. Each view is a lat/lon (`ll`), an
@@ -256,7 +257,9 @@ mem(); await __dbg.switchCity('skopje'); /* wait for the loader */ await __dbg.s
 - [ ] `npm run terrain -- <id>`
 - [ ] `scripts/prepare.ts`: `PREP.<id>`; `npm run data -- <id>`; heights tuned by histogram and eye
 - [ ] `src/cities.ts`: `CITY_IDS`, `CITIES.<id>`
-- [ ] `index.html`: places buttons, help paragraphs, the `body:not(.city-<id>)` CSS rule
+- [ ] `index.html`: places buttons, help paragraphs, the `body:not(.city-<id>)` CSS rule, a
+      `.me-main` LinkedIn link with `data-city="<id>"` (the developer shown for the city)
+- [ ] `public/favicon-<id>.svg` and `icon` in `CITIES.<id>`
 - [ ] `src/i18n.ts`: new keys in 6 languages; `npm run strings`
 - [ ] Monuments: references, models, `blockGrid` clearings, `LandmarkData`, labels and info cards
 - [ ] Typecheck, build, browser walk-through, switching memory test, Skopje pixel check

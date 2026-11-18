@@ -107,6 +107,8 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    the camera back. After a roll or a loop in the firefighting mode the tow banner flies for 6 s with
    „Село гори, баба се чешла“, the camera out to the side for 3 s as for a fire put out
    (a second text on the same cloth; the fire-out banner wins if it is flying).
+   Banner texts and the badge are per city (`banners` in `src/cities.ts`, badge = the city's code):
+   Kavadarci tows „Митко го спаси градот!“ and „Шо ги ебам нека му а мислат“ with 043.
    🔊 Sound is on by default now (it was off since v2.6.0); switching it off is remembered.
    Checked with synthetic key, wheel and gamepad events and by stepping the flight with
    `fire-harness.js`, not with a real mouse or pad. Seen while testing, not looked into:

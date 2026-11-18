@@ -75,7 +75,10 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
 
 ## Cities
 
-- The badge at the top left (`091 Скопје ▾`) is the city picker; the round `?` right after it opens the help
+- The badge at the top left (`091 Скопје ▾`) is the city picker (the tab icon follows: `icon` in `CITIES`,
+  `public/favicon-<id>.svg`). The LinkedIn button at the top right names the city's developer (one `.me-main`
+  per city, `data-city`) and shows only on the map itself, not while flying, driving or walking.
+  The round `?` right after the badge opens the help
   (shared by every city; per-city paragraphs carry `data-city="…"`, hidden by the `city-<id>` body class).
 - The city is in the address: `?city=kavadarci`; no parameter = Skopje. Switching pushes a history entry
   (back / forward switch too) and drops the camera hash. Per-city menu items in `index.html` use `data-city`.
@@ -164,7 +167,11 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   walk, bus and copy link first (`placeBarItems()` in `main.ts`). The graphics options (contours,
   quality, smooth edges, memory saver, less traffic) sit in a submenu: ⚙ → 🎨 Графика › opens `#gfx` in
   place of ⚙, ‹ Назад returns; 🎮 Управување (`#ctl`) the same way holds the two invert up/down switches
-  (map and walking, off by default; flight, on by default). `MOBILE` profile halves trees/parked cars, 2048 shadow
+  (map and walking, off by default; flight, on by default). Phones and tablets (`body.mobile`, upright or
+  sideways) get two joysticks in every mode (`touchStick()` in `main.ts`, values added to the gamepad's
+  `flight.pad` / `drive.pad` each frame): flight — left steers and climbs, right flicks the stunts like
+  a pad's right stick; bus — left steers, right is the throttle; walking — left moves, right looks.
+  The buttons sit beside the right stick when sideways, above it when upright. `MOBILE` profile halves trees/parked cars, 2048 shadow
   map, 256 px far textures, fewer agents (iOS Safari memory limits).
 - OSM attribution must stay visible (ODbL), also on mobile.
 - **Ask the owner before every `git push`** (it deploys the live site). Commits end with

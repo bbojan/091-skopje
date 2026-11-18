@@ -269,14 +269,14 @@ function buildAirTractor(): { group: THREE.Group; prop: THREE.Group } {
 // ---------------------------------------------------------------- tow banner
 // A linen banner towed behind the plane after a fire is out. The cloth is a chain of
 // points dragged behind the tail and moved on the CPU: a shader-only wave would not be
-// seen by the ink normal pass. The text reads correctly from both sides.
-export const BANNER_TEXT = 'Стојанче го спаси градот';
-/** towed after a roll or a loop while firefighting: showing off while the town burns (the proverb) */
-export const ROLL_BANNER_TEXT = 'Село гори, баба се чешла';
+// seen by the ink normal pass. The text reads correctly from both sides. The texts and the
+// badge at the far end (the town's old telephone code) differ per city: `banners` in src/cities.ts.
+/** fire: towed after a fire is out; roll: after a roll or a loop while firefighting (showing off while the town burns) */
+export interface BannerTexts { fire: string; roll: string; code: string }
 const ROLL_BANNER_TIME = 6, ROLL_SWING = 3; // seconds the stunt banner flies; seconds the camera stays out to the side
 const BANNER_LEN = 46, BANNER_H = 6.2, BANNER_SEGS = 30, TOW = 11;
 
-function bannerTexture(text: string): THREE.CanvasTexture {
+function bannerTexture(text: string, code: string): THREE.CanvasTexture {
   const W = 2048, H = 276;
   const c = document.createElement('canvas');
   c.width = W; c.height = H;
@@ -295,14 +295,14 @@ function bannerTexture(text: string): THREE.CanvasTexture {
       g.stroke();
     }
   }
-  // 091 badge at the far end, the text in indigo
+  // the city's code (091, 043) as a badge at the far end, the text in indigo
   g.fillStyle = '#7a1f1a';
   g.fillRect(W - 250, 70, 200, H - 140);
   g.fillStyle = '#f4ede0';
   g.textAlign = 'center';
   g.textBaseline = 'middle';
   g.font = "76px 'Rubik Mono One', 'Arial Black', sans-serif";
-  g.fillText('091', W - 150, H / 2 + 6);
+  g.fillText(code, W - 150, H / 2 + 6);
   g.fillStyle = '#1f2a44';
   let size = 150;
   do { g.font = `700 ${size}px 'Lora', Georgia, serif`; size -= 4; } while (g.measureText(text).width > W - 360 && size > 60);
@@ -313,7 +313,7 @@ function bannerTexture(text: string): THREE.CanvasTexture {
   return t;
 }
 
-function createBanner(scene: THREE.Scene) {
+function createBanner(scene: THREE.Scene, texts: BannerTexts) {
   const n = BANNER_SEGS + 1;
   const pos = new Float32Array(n * 2 * 3), nrm = new Float32Array(n * 2 * 3), uv = new Float32Array(n * 2 * 2);
   const index: number[] = [];
@@ -330,8 +330,8 @@ function createBanner(scene: THREE.Scene) {
   geo.setIndex(index);
   // one cloth, two texts: [front, back] textures for each. The other face shows the same
   // texture mirrored, so the words read from both sides.
-  const faces = [BANNER_TEXT, ROLL_BANNER_TEXT].map((text) => {
-    const tex = bannerTexture(text), back = tex.clone();
+  const faces = [texts.fire, texts.roll].map((text) => {
+    const tex = bannerTexture(text, texts.code), back = tex.clone();
     back.wrapS = THREE.RepeatWrapping;
     back.repeat.x = -1;
     back.needsUpdate = true;
@@ -426,11 +426,13 @@ export interface FlightOptions {
   bounds: Bounds;
   /** ends the window key listeners when the city is unloaded */
   signal?: AbortSignal;
+  /** the tow banner's texts and badge, per city */
+  banner: BannerTexts;
 }
 
 type FlightKey = 'left' | 'right' | 'up' | 'down' | 'boost' | 'drop';
 
-export function createFlight({ scene, camera, terrain, bounds, signal }: FlightOptions) {
+export function createFlight({ scene, camera, terrain, bounds, signal, banner: bannerTexts }: FlightOptions) {
   // one group holds both aircraft; the firefighting mode shows the Air Tractor
   const plane = new THREE.Group();
   const cessna = buildPlane(), tractor = buildAirTractor();
@@ -438,7 +440,7 @@ export function createFlight({ scene, camera, terrain, bounds, signal }: FlightO
   plane.add(cessna.group, tractor.group);
   plane.visible = false;
   scene.add(plane);
-  const banner = createBanner(scene);
+  const banner = createBanner(scene, bannerTexts);
 
   let invertY = false;
   let fire = false;          // firefighting: the Air Tractor, Space drops water
