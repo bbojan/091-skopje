@@ -46,6 +46,8 @@ interface CityPrep {
     /** Kavadarci, Тиквеш: the dam's crest line, the outline of its downstream face, the power house (a building
      *  replaced by the model), the switchyard, the spillway's intake */
     damCrest?: number; dam?: number; hpp?: number; switchyard?: number; spillway?: number;
+    /** Kavadarci: the churches Св. Петка and Св. Димитриј (src/churches.ts), modelled on their outlines */
+    petka?: number; dimitrij?: number;
   };
   /** Kavadarci, Луда Мара: the river's ways (drawn as a narrow stream where not regulated) and its
    *  regulated channel through the town (src/river.ts), from the bridge `from` to the bridge `to`,
@@ -66,6 +68,8 @@ interface CityPrep {
     culture?: [lat: number, lon: number, heading: number];
     /** the covered city market on its parking deck: centre of the roof and heading, like `culture` */
     market?: [lat: number, lon: number, heading: number];
+    /** the free-standing bell tower of Св. Петка (not in OSM) */
+    petkaTower?: [lat: number, lon: number];
   };
   tall: Zone[];
   mid: Zone[];
@@ -136,6 +140,9 @@ const PREP: Record<CityName, CityPrep> = {
       hpp: 693424139, // ХЕЦ Тиквеш, the power house at the foot of the dam
       switchyard: 1423984646, // power=switchgear next to it
       spillway: 168761245, // the spillway's intake on the east bank (water, usage=spillway)
+      // the two town churches, modelled after photos (src/churches.ts)
+      petka: 1104457234, // Св. Петка, the new cross-in-square church north of the centre
+      dimitrij: 1111874740, // Св. Димитриј (renovated: stone walls, white dome and bell tower)
     },
     // Луда Мара: the river and the stream above it; the stone-lined channel with its promenades runs
     // from the bridge of Киро Крстев (south) to the bridge of Северен (north)
@@ -144,6 +151,7 @@ const PREP: Record<CityName, CityPrep> = {
     placeIds: {
       ossuary: 1275768512,
       dimitrij: 1111874740, // Св. Димитриј
+      petka: 1104457234, // Св. Петка
       townhall: 790445885, // Општина Кавадарци
       stadium: 1276210010, // Градски стадион
       dam: 1382014927, // Брана Тиквеш
@@ -164,7 +172,9 @@ const PREP: Record<CityName, CityPrep> = {
     // its foyer facing ул. 7 Септември at the corner of the two streets
     // Градски зелен пазар (opened 8 April 2022) is not in OSM as a building: the roof's centre and
     // heading read off an aerial image of June 2025 (Esri World Imagery), parallel to Илинденска
-    landmarkLL: { revolution: [41.433206, 22.012113], culture: [41.434017, 22.012032, 0.241], market: [41.434509, 22.012778, 0.241] },
+    // Св. Петка's bell tower stands apart, ~34 m south-east of the church (its red cap on an aerial image,
+    // Esri World Imagery; Street View 2025 and a drone photo show it beside the parking)
+    landmarkLL: { revolution: [41.433206, 22.012113], culture: [41.434017, 22.012032, 0.241], market: [41.434509, 22.012778, 0.241], petkaTower: [41.442901, 22.008609] },
     // a small town: blocks of flats around the square, lower everywhere else
     tall: [],
     mid: [[41.4285, 41.4385, 22.003, 22.0225]], // the centre around Плоштад Маршал Тито
@@ -226,7 +236,7 @@ const out: CityData = {
 // hand-modelled landmarks (rendered by src/landmarks.ts instead of generic geometry)
 const LANDMARK_IDS = CFG.landmarks;
 // outlines replaced by a model
-const SKIP_BUILDINGS = new Set<number>([LANDMARK_IDS.porta, LANDMARK_IDS.ossuary, LANDMARK_IDS.townhall, LANDMARK_IDS.hpp, ...(CFG.dropBuildings ?? [])].filter((id): id is number => id != null));
+const SKIP_BUILDINGS = new Set<number>([LANDMARK_IDS.porta, LANDMARK_IDS.ossuary, LANDMARK_IDS.townhall, LANDMARK_IDS.hpp, LANDMARK_IDS.petka, LANDMARK_IDS.dimitrij, ...(CFG.dropBuildings ?? [])].filter((id): id is number => id != null));
 // buildings OSM lacks join the download as closed ways, so they are read like any other
 for (const el of raw.elements) { const t = CFG.buildingTags?.[el.id]; if (t && el.type === 'way') el.tags = { ...el.tags, ...t }; }
 (CFG.extraBuildings ?? []).forEach(({ tags, r }, i) => {
@@ -253,6 +263,7 @@ if (CFG.landmarkLL?.culture) {
   out.landmarks.culture = [c[0], c[1], heading];
   out.places.culture = c;
 }
+if (CFG.landmarkLL?.petkaTower) out.landmarks.petkaTower = r1p(proj(...CFG.landmarkLL.petkaTower));
 if (CFG.landmarkLL?.market) {
   const [lat, lon, heading] = CFG.landmarkLL.market;
   const c = r1p(proj(lat, lon));
@@ -268,6 +279,8 @@ for (const el of raw.elements) {
   if (el.id === LANDMARK_IDS.ossuary) out.landmarks.ossuary = flat(dropLast(pts));
   if (el.id === LANDMARK_IDS.townhall) out.landmarks.townhall = flat(dropLast(pts));
   if (el.id === LANDMARK_IDS.stadium) out.landmarks.stadium = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.petka) out.landmarks.petka = flat(dropLast(pts));
+  if (el.id === LANDMARK_IDS.dimitrij) out.landmarks.dimitrij = flat(dropLast(pts));
   if (el.id === LANDMARK_IDS.damCrest) out.landmarks.damCrest = flat(pts);
   if (el.id === LANDMARK_IDS.dam) out.landmarks.dam = flat(dropLast(pts));
   if (el.id === LANDMARK_IDS.hpp) out.landmarks.hpp = flat(dropLast(pts));
@@ -633,7 +646,7 @@ if (FILES.overture) {
   // hand-modelled landmarks: their outlines (padded) and points with a radius (metres)
   const keepOut: [poly: Ring | null, x: number, z: number, pad: number][] = [];
   const L = out.landmarks;
-  for (const [ring, pad] of [[L.townhall, 3], [L.ossuary, 5], [L.stadium, 30], [L.porta, 3], [L.dam, 5], [L.hpp, 4], [L.switchyard, 3]] as const) if (ring) keepOut.push([toPoly(ring), 0, 0, pad]);
+  for (const [ring, pad] of [[L.townhall, 3], [L.ossuary, 5], [L.stadium, 30], [L.porta, 3], [L.dam, 5], [L.hpp, 4], [L.switchyard, 3], [L.petka, 3], [L.dimitrij, 3]] as const) if (ring) keepOut.push([toPoly(ring), 0, 0, pad]);
   // the market's deck (in its frame: x across, z along the roof, south +)
   let marketRing: Ring | null = null;
   if (L.market) {
@@ -641,7 +654,7 @@ if (FILES.overture) {
     marketRing = MARKET_OUTLINE.map(([u, v]): Pt => [mx + u * c + v * sn, mz - u * sn + v * c]);
     keepOut.push([marketRing, 0, 0, 1]);
   }
-  for (const [p, pad] of [[L.culture, 26], [L.revolution, 12], [L.heroes, 16], [L.vatasa, 14], [L.warrior, 15]] as const) if (p) keepOut.push([null, p[0], p[1], pad]);
+  for (const [p, pad] of [[L.culture, 26], [L.revolution, 12], [L.heroes, 16], [L.vatasa, 14], [L.warrior, 15], [L.petkaTower, 6]] as const) if (p) keepOut.push([null, p[0], p[1], pad]);
   const nearLandmark = (x: number, z: number) => keepOut.some(([ring, lx, lz, pad]) => {
     if (!ring) return Math.hypot(x - lx, z - lz) < pad;
     if (pip([x, z], ring)) return true;

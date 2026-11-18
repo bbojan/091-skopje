@@ -46,6 +46,8 @@ export interface CitySpec {
   sparseFar?: number;
   /** fewer, larger trees in green areas far from the town (loading time and memory); unset: everywhere alike (Skopje) */
   treeThin?: TreeThin;
+  /** vineyards and fields on open, gentle land up to this height (m); unset: none (Skopje) */
+  vineyards?: number;
   /** how the walking person looks: Итар Пејо in folk costume, or a man in a dark suit (Kavadarci) */
   walker: 'pejo' | 'suit';
   /** weather preset 'vodno' is called by the local mountain; the firefighting water source */
@@ -150,6 +152,7 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['Музеј Галерија', 41.43437, 22.01652, 16, 'museum'],
       ['Градски стадион', 41.43511, 22.02336, 14, 'stadium'],
       ['Св. Димитриј', 41.43459, 22.00856, 20, 'dimitrij'],
+      ['Св. Петка', 41.44312, 22.00832, 25, 'petka'],
       ['Спомен-парк Ваташа', 41.40188, 22.02834, 24, 'vatasa'],
       ['Катунишко Езеро', 41.39186, 22.03766, 12, 'katunisko'],
       ['Луда Мара', 41.43333, 22.01575, 6, undefined, 'river'],
@@ -192,6 +195,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     // full density round the town, a tenth (drawn larger) from ~9 km out
     treeThin: { ll: [41.43344, 22.01227], near: 3500, far: 9000, min: 0.1, grow: 1.7 },
     sparseFar: 1500, // most of the 432 chunks are bare hills round the lake: their far textures at half size
+    vineyards: 520, // Тиквеш: vineyards and fields on the gentle hills round the town (aerial image)
     walker: 'suit',
     snowLabel: 'weather.hills',
     refillLabel: 'fire.refill.lake',

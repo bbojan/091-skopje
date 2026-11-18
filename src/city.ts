@@ -318,8 +318,87 @@ const WATER_GLINT = /* glsl */ `
     diffuseColor.rgb *= 1.0 - wm * 0.06 * w2;
   }`;
 
-/** Ground materials: weather (wet, puddles, snow) and, for the near ground, water glints. */
-function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boolean): void {
+// ---------------------------------------------------------------- vineyards and fields (Kavadarci)
+// The terrain under farmland carries one marker colour (FARM_MARK: a little yellower than the bare hills,
+// so the 10 m blend at its edge barely shows, and ≥ 0.075 (linear RGB) from every other ground colour);
+// the ground shader paints the plots there from the world position, so the near ground and the baked
+// far ground (which keeps the marker) agree. Plots: blocks of ~240 m (Voronoi cells, edges wobbled, each
+// with its own direction and a dirt track round it) cut into strips 16–50 m wide and 45–165 m long, with
+// a grass verge round each; about half are vineyards (rows every 2.5 m along the strip, fading to their
+// average colour when a row is smaller than a pixel), the rest stubble, ploughed earth, green crops or
+// fallow. The vines change with the seasons: yellow or red in autumn (red: Vranec), bare in winter.
+/** the terrain colour that marks farmland (linear: three.js colours) */
+export const FARM_MARK = '#dbd291';
+const glc = (h: string) => { const c = C(h); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; };
+const VINE_GROUND = /* glsl */ `
+  // a crisp edge where the terrain colour turns from the marker to its neighbour (no tan halo)
+  float fd = distance(raw, uFarm), farm = 1.0 - smoothstep(0.045, 0.045 + max(fwidth(fd), 0.004), fd);
+  if (farm > 0.0) {
+    vec2 wp = vWPos.xz + (vec2(wxNoise(vWPos.xz * 0.004), wxNoise(vWPos.xz * 0.004 + 7.3)) - 0.5) * 90.0;
+    vec2 g = floor(wp / 240.0);
+    float d1 = 1e9, d2 = 1e9;
+    vec2 s1 = vec2(0.0), s2 = vec2(0.0), c1 = vec2(0.0);
+    for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) {
+      vec2 c = g + vec2(float(i), float(j));
+      vec2 s = (c + 0.15 + 0.7 * fHash2(c)) * 240.0;
+      float d = distance(wp, s);
+      if (d < d1) { d2 = d1; s2 = s1; d1 = d; s1 = s; c1 = c; } else if (d < d2) { d2 = d; s2 = s; }
+    }
+    float edgeB = dot(wp - (s1 + s2) * 0.5, normalize(s1 - s2)); // to the block's border
+    vec4 h = fHash4(c1);
+    float ang = h.x * 3.14159;
+    vec2 dir = vec2(cos(ang), sin(ang));
+    vec2 q = vec2(dot(wp - s1, dir), dot(wp - s1, vec2(-dir.y, dir.x)));
+    float sw = 16.0 + 34.0 * h.y;
+    float si = floor(q.y / sw);
+    float sl = 45.0 + 120.0 * fHash1(c1 + si * 0.37);
+    float off = fHash1(c1 * 1.7 + si) * sl;
+    float tu = (q.x + off) / sl;
+    vec2 plot = vec2(si, floor(tu));
+    float r = fHash1(c1 * 13.1 + plot * 0.71), r2 = fHash1(c1 * 5.3 + plot * 1.93);
+    float fy = fract(q.y / sw), fx = fract(tu);
+    float edge = min(min(fy, 1.0 - fy) * sw, min(fx, 1.0 - fx) * sl);
+    vec3 col;
+    if (r < 0.52) {
+      // vines in rows along the strip
+      float rc = q.y / 2.5, fw = fwidth(rc);
+      float cover = mix(mix(0.44, 0.3, uSpring), 0.16, uWinter);
+      float v = 1.0 - smoothstep(cover - fw, cover + fw, abs(fract(rc) - 0.5) * 2.0);
+      v = mix(v, cover, smoothstep(0.3, 0.8, fw));
+      vec3 leaf = mix(${glc('#79a548')}, ${glc('#88ad4c')}, r2);
+      leaf = mix(leaf, mix(${glc('#d9b447')}, ${glc('#b4503a')}, step(0.62, r2)), uAutumn);
+      leaf = mix(leaf, ${glc('#a9cd5e')}, uSpring);
+      leaf = mix(leaf, ${glc('#866550')}, uWinter);
+      vec3 soil = mix(${glc('#dcc39a')}, ${glc('#cfb38a')}, wxNoise(vWPos.xz * 0.3));
+      col = mix(soil, leaf, v);
+    } else if (r < 0.70) {
+      col = mix(${glc('#ead596')}, ${glc('#d2b68d')}, max(uWinter, uAutumn * 0.5));
+      col = mix(col, ${glc('#bcd27c')}, uSpring);
+    } else if (r < 0.84) {
+      float fr = q.y / 1.1, fw = fwidth(fr);
+      float furrow = mix(abs(fract(fr) - 0.5) * 2.0, 0.5, smoothstep(0.3, 0.8, fw));
+      col = mix(${glc('#c7a27c')}, ${glc('#d5b48d')}, furrow);
+    } else if (r < 0.94) {
+      col = mix(${glc('#b7cf78')}, ${glc('#cbc58c')}, uAutumn);
+      col = mix(col, ${glc('#a9cc6c')}, uSpring);
+    } else {
+      col = mix(${glc('#d2d29a')}, ${glc('#bfc98a')}, wxNoise(vWPos.xz * 0.08));
+    }
+    col *= 0.94 + 0.12 * r2;
+    // grass verges round the plots and dirt tracks round the blocks; far away (a pixel wider than they
+    // are) they fade to their share of the pixel instead of widening
+    float ew = fwidth(edge) + 0.001, bw = fwidth(edgeB) + 0.001;
+    col = mix(col, ${glc('#c6cf8e')}, (1.0 - smoothstep(0.8 - ew * 0.5, 0.8 + ew * 0.5, edge)) * min(1.0, 1.2 / ew));
+    col = mix(col, ${glc('#e5d4ae')}, (1.0 - smoothstep(2.2 - bw * 0.5, 2.2 + bw * 0.5, edgeB)) * min(1.0, 3.0 / bw));
+    diffuseColor.rgb = mix(diffuseColor.rgb, col, farm);
+  }`;
+const FARM_HASH = /* glsl */ `
+  float fHash1(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+  vec2 fHash2(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973)); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.xx + p3.yz) * p3.zy); }
+  vec4 fHash4(vec2 p) { vec4 p4 = fract(vec4(p.xyxy) * vec4(0.1031, 0.1030, 0.0973, 0.1099)); p4 += dot(p4, p4.wzxy + 33.33); return fract((p4.xxyz + p4.yzzw) * p4.zywx); }`;
+
+/** Ground materials: weather (wet, puddles, snow) and, for the near ground, water glints; `vine`: vineyards and fields on the farmland marker. */
+function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boolean, vine = false): void {
   sh.uniforms.uTime = SHARED.uTime;
   sh.uniforms.uWet = SHARED.uWet;
   sh.uniforms.uSnow = SHARED.uSnow;
@@ -334,6 +413,7 @@ function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boole
   const waterLin = C(PAL.area.water), poolLin = C(PAL.area.pool);
   sh.uniforms.uWater = { value: new THREE.Vector3(waterLin.r, waterLin.g, waterLin.b) };
   sh.uniforms.uPool = { value: new THREE.Vector3(poolLin.r, poolLin.g, poolLin.b) };
+  if (vine) { const f = C(FARM_MARK); sh.uniforms.uFarm = { value: new THREE.Vector3(f.r, f.g, f.b) }; }
   sh.vertexShader = sh.vertexShader
     .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;\nvarying float vNy;')
     .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWPos = position;\nvNy = normal.y;');
@@ -346,10 +426,11 @@ function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boole
       uniform vec3 uRoad[${ROAD_LIN.length}];
       uniform vec4 uBurn[6];
       uniform float uBurnOn;
-      ${WX_NOISE}`)
+      ${WX_NOISE}${vine ? `\n      uniform vec3 uFarm;${FARM_HASH}` : ''}`)
     .replace('#include <color_fragment>', `#include <color_fragment>
       vec3 raw = diffuseColor.rgb;
       float wm = ${water ? '1.0 - smoothstep(0.012, 0.045, min(distance(raw, uWater), distance(raw, uPool)))' : '0.0'};
+      ${vine ? VINE_GROUND : ''}
       ${SEASON_GROUND}
       if (uBurnOn > 0.0) {
         // ash and soot where a fire burned, with a ragged edge
@@ -531,6 +612,8 @@ export interface CityOptions {
   stream?: boolean;
   /** fewer, larger trees in green areas far from the town (CitySpec.treeThin) */
   treeThin?: TreeThin;
+  /** vineyards and fields on open, gentle land up to this height (m, CitySpec.vineyards) */
+  vineyards?: number;
 }
 /** Trees in green areas (forest above all) at full density within `near` m of `ll`, thinning out
  *  smoothly to the share `min` at `far` m and beyond, drawn up to `grow` times larger there. */
@@ -562,6 +645,8 @@ export interface CityDesc {
   roadList: RoadInfo[];
   stats: { buildings: number; trees: number; parked: number; roads: number; chunks: number };
   meta?: CityData['meta'];
+  /** the terrain marks farmland (vineyards and fields are painted by the ground shader) */
+  vine: boolean;
   /** build one chunk's detailed terrain / draped ground (streaming builds them on demand) */
   lazy: { terrainHi: (k: number) => GeoData; ground: (k: number) => GeoData | null };
 }
@@ -639,6 +724,11 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   if (ossOb) blockGrid.add(around(ossOb.c, ossOb.a, 17, 17), null); // the courtyard is ~21 m square
   const stadOb = LM.stadium ? obb(toPts(LM.stadium)) : null; // the stands and the clubhouse round the pitch (landmarks.ts)
   if (stadOb) blockGrid.add(around([stadOb.c[0] - stadOb.a[0] * 4 * Math.sign(stadOb.a[0]), stadOb.c[1] - stadOb.a[1] * 4 * Math.sign(stadOb.a[0])], stadOb.a, stadOb.L + 24, stadOb.W + 14), null);
+  for (const r of [LM.petka, LM.dimitrij]) { // the churches (churches.ts)
+    const o = r ? obb(toPts(r)) : null;
+    if (o) blockGrid.add(around(o.c, o.a, o.L + 1.5, o.W + 1.5), null);
+  }
+  if (LM.petkaTower) blockGrid.add(around(LM.petkaTower, [1, 0], 4, 4), null);
   const hallOb = LM.townhall ? obb(toPts(LM.townhall)) : null;
   if (hallOb) blockGrid.add(around(hallOb.c, hallOb.a, hallOb.L + 2, hallOb.W + 2), null);
   // Брана Тиквеш: its rock face, the crest (the OSM line ±10 m), the power house and the switchyard
@@ -690,6 +780,11 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
       }
     }
   }
+  // Kavadarci: farmland (vineyards and fields) on open, gentle land below `vineyards` m: not in the
+  // painted land cover, away from built-up ground (more than ~600 m² of buildings within ~55 m) and
+  // ~15 m from any building; patches of land are left wild (noise)
+  const farm = opts.vineyards != null ? farmMask(terrain, paint, buildings, opts.vineyards) : null;
+  const cFarm = C(FARM_MARK);
   // per chunk: terrain vertex range, rectangle and coarse mesh; the detailed mesh is built by terrainHi(k)
   const terrainChunks = new Map<number, { verts: [number, number, number, number]; lo: GeoData; rect: Box }>(); // by chunk index
   for (let j = 0; j < CZ; j++)
@@ -703,6 +798,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     }
   const terrainColor: TerrainColorFn = (c, y, ny, gi, gj) => {
     const k = paint[gj * terrain.nx + gi];
+    if (farm && farm[gj * terrain.nx + gi]) { c.copy(cFarm); return; } // exact: the shader looks for it
     if (k) c.copy(kindCol[k - 1]);
     else c.copy(cG).lerp(cH, THREE.MathUtils.smoothstep(y, 70, 220) * 0.85);
     c.multiplyScalar(0.94 + 0.06 * ny);
@@ -1321,7 +1417,57 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     roadList: roadList.map((r) => ({ k: r.k, w: r.w, b: r.b, kind: r.kind, pts: r.pts })),
     stats: { buildings: buildings.length, trees: treeCount, parked: carCount, roads: roadList.length, chunks: terrainChunks.size },
     lazy: { terrainHi, ground: buildGround },
+    vine: !!farm,
   };
+}
+
+/** Farmland raster (1 = farmland) on the terrain's vertices; see computeCitySteps. */
+function farmMask(terrain: Terrain, paint: Uint8Array, buildings: { poly: Poly }[], top: number): Uint8Array {
+  const { nx, nz, cell } = terrain;
+  // buildings' bounding boxes on the grid, then a summed-area table for counts in a window
+  const b = new Uint8Array(nx * nz);
+  for (const bd of buildings) {
+    const [x0, z0, x1, z1] = bbox(bd.poly[0]);
+    const i0 = Math.max(0, Math.round((x0 - terrain.x0) / cell)), i1 = Math.min(nx - 1, Math.round((x1 - terrain.x0) / cell));
+    const j0 = Math.max(0, Math.round((z0 - terrain.z0) / cell)), j1 = Math.min(nz - 1, Math.round((z1 - terrain.z0) / cell));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) b[j * nx + i] = 1;
+  }
+  const W = nx + 1, sat = new Int32Array(W * (nz + 1));
+  for (let j = 0; j < nz; j++) {
+    let row = 0;
+    for (let i = 0; i < nx; i++) { row += b[j * nx + i]; sat[(j + 1) * W + i + 1] = sat[j * W + i + 1] + row; }
+  }
+  const count = (i: number, j: number, r: number) => {
+    const a0 = Math.max(0, i - r), a1 = Math.min(nx, i + r + 1), b0 = Math.max(0, j - r), b1 = Math.min(nz, j + r + 1);
+    return sat[b1 * W + a1] - sat[b0 * W + a1] - sat[b1 * W + a0] + sat[b0 * W + a0];
+  };
+  // smooth value noise (a cell of ~600 m) to leave some land wild and vary the upper limit
+  const hash = (i: number, j: number) => {
+    let h = Math.imul(i | 0, 0x27d4eb2d) ^ Math.imul(j | 0, 0x165667b1);
+    h = Math.imul(h ^ (h >>> 15), 0x85ebca6b); h ^= h >>> 13;
+    return (h >>> 0) / 4294967296;
+  };
+  const noise = (x: number, z: number) => {
+    const i = Math.floor(x), j = Math.floor(z), fx = x - i, fz = z - j, sx = fx * fx * (3 - 2 * fx), sz = fz * fz * (3 - 2 * fz);
+    const a = hash(i, j), bb = hash(i + 1, j), c = hash(i, j + 1), d = hash(i + 1, j + 1);
+    return a + (bb - a) * sx + (c - a) * sz + (a - bb - c + d) * sx * sz;
+  };
+  const out = new Uint8Array(nx * nz);
+  for (let j = 1; j < nz - 1; j++)
+    for (let i = 1; i < nx - 1; i++) {
+      const k = j * nx + i;
+      if (paint[k]) continue;
+      const y = terrain.h[k];
+      const n = noise(i * cell / 600, j * cell / 600);
+      if (y > top + (n - 0.5) * 120) continue;
+      const dx = terrain.h[k + 1] - terrain.h[k - 1], dz = terrain.h[k + nx] - terrain.h[k - nx];
+      const ny = (2 * cell) / Math.hypot(dx, dz, 2 * cell);
+      if (ny < 0.955) continue; // steeper than ~17°: ravines and scrub
+      if (noise(i * cell / 350 + 50, j * cell / 350) < 0.2) continue; // wild patches
+      if (count(i, j, 1) || count(i, j, 5) >= 6) continue; // next to a building, or in a village / the town
+      out[k] = 1;
+    }
+  return out;
 }
 
 // Phase 2 (main thread): typed arrays → meshes, materials and LOD switching
@@ -1329,8 +1475,8 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
   const { clippingPlanes } = opts;
   const group = new THREE.Group();
   const groundMat = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes });
-  groundMat.onBeforeCompile = (sh) => groundShader(sh, true);
-  groundMat.customProgramCacheKey = () => 'ground-water-v5';
+  groundMat.onBeforeCompile = (sh) => groundShader(sh, true, desc.vine);
+  groundMat.customProgramCacheKey = () => (desc.vine ? 'ground-water-vine-v1' : 'ground-water-v5');
 
   const facadeMat = facadeMaterial(clippingPlanes);
   const treeMat = toonFoliage(clippingPlanes);
@@ -1407,7 +1553,7 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
   }
   group.add(new THREE.Mesh(geoFromData(desc.skirt), new THREE.MeshLambertMaterial({ vertexColors: true })));
 
-  const lod = makeLOD(lodChunks, group, clippingPlanes, groundMat, desc.lazy, !!opts.stream);
+  const lod = makeLOD(lodChunks, group, clippingPlanes, groundMat, desc.lazy, !!opts.stream, desc.vine);
   // Object.assign keeps lod's getters live (a spread would copy their values once)
   return Object.assign(lod, { group, roadList: desc.roadList, stats: desc.stats });
 }
@@ -1433,7 +1579,7 @@ interface LodChunk {
 
 export type City = ReturnType<typeof assembleCity>;
 
-function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THREE.Plane[] | undefined, groundMat: THREE.Material, lazy: CityDesc['lazy'], streamAtStart: boolean) {
+function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THREE.Plane[] | undefined, groundMat: THREE.Material, lazy: CityDesc['lazy'], streamAtStart: boolean, vine: boolean) {
   let stream = streamAtStart;
   // build / drop one chunk's detailed terrain and draped ground
   function buildHi(L: LodChunk): void {
@@ -1515,8 +1661,8 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THRE
       if (temp) dropHi(L);
       L.tex = rt;
       const far = new THREE.MeshLambertMaterial({ map: rt.texture, clippingPlanes });
-      far.onBeforeCompile = (sh) => groundShader(sh, false);
-      far.customProgramCacheKey = () => 'ground-far-v2';
+      far.onBeforeCompile = (sh) => groundShader(sh, false, vine);
+      far.customProgramCacheKey = () => (vine ? 'ground-far-vine-v1' : 'ground-far-v2');
       L.terrainLo.material = far;
     }
     for (const b of bigs.values()) b.dispose();

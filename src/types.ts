@@ -88,6 +88,11 @@ export interface LandmarkData {
   culture?: Flat;
   /** Kavadarci: the city green market (src/market.ts) as [x, z, heading of its long axis] */
   market?: Flat;
+  /** Kavadarci: the outlines of the churches Св. Петка and Св. Димитриј (src/churches.ts) and
+   *  Св. Петка's free-standing bell tower */
+  petka?: Flat;
+  dimitrij?: Flat;
+  petkaTower?: Pt;
   /** Kavadarci: the city stadium's pitch outline (the stands are modelled round it) */
   stadium?: Flat;
   /** Kavadarci, Тиквеш: the dam's crest line (along the lake), the outline of its downstream face, the

@@ -6,6 +6,7 @@ import type { Terrain } from './terrain.ts';
 import { squareLayout, createSquare, squareFootprints, squareGround, townhallPlan } from './square.ts';
 import { canalLayout, createCanal, canalWalkGround, canalFootprints } from './river.ts';
 import { marketFrame, createMarket, marketFootprints, marketGround } from './market.ts';
+import { createChurches, churchFootprints } from './churches.ts';
 import type { BuildingData, CityData, Flat, Pt, Vec3 } from './types.ts';
 
 // Hand-built models for landmarks that OSM can only describe as outlines.
@@ -182,6 +183,7 @@ export function landmarkFootprints(data: CityData, terrain: Terrain): BuildingDa
   if (sl) for (const [r, h] of squareFootprints(sl)) add(r, h);
   const mf = marketFrame(data, terrain); // the market's shops and stairs block (they stand on the deck)
   if (mf) for (const [r, h] of marketFootprints(mf)) add(r, mf.y - terrain.at(r[0], r[1]) + h);
+  for (const [r, h] of churchFootprints(data)) add(r, h); // Kavadarci: Св. Петка, Св. Димитриј
   const cl = canalLayout(data, terrain); // the Луда Мара's channel, open at the bridges
   if (cl) for (const b of canalFootprints(cl)) out.push({ ...b, id: -1 - out.length });
   return out;
@@ -899,6 +901,10 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
   const mFrame = marketFrame(data, terrain);
   const market = mFrame ? createMarket(mFrame, clippingPlanes) : null;
   if (market) group.add(market.group);
+
+  // ---------------- Св. Петка and Св. Димитриј, after photos (churches.ts)
+  const churches = L.petka || L.dimitrij ? createChurches(data, terrain, clippingPlanes) : null;
+  if (churches) { group.add(churches.group); nightGlass.push(...churches.nightLit); }
 
   // ---------------- Дом на културата „Иван Мазов-Климе“ (not in OSM). Its plan from the site and
   // floor plans of the 2023 fire-safety report: 41.4 m along Илинденска, ground floor + one storey;

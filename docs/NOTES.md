@@ -240,6 +240,30 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    promenades' and footbridges' height, the channel blocks the way except at the bridges. A „Луда
    Мара“ view in 📍 Места. Skopje pixel-identical (check: 0 over 2/255 on all 9 renders).
 
+   **The town churches and the vineyards (Nov 2026).** Св. Петка and Св. Димитриј are modelled after the
+   owner's photos (`src/churches.ts`) on their OSM outlines (the generic domed boxes are left out): Св.
+   Димитриј as renovated, grey-brown rubble stone with brick courses and brick arches round the windows, a
+   cream cornice and tiled lean-to roofs, above them a white nave and transept with gable roofs, a white
+   octagonal drum over the crossing, the bell tower in the middle of the west front (stone, then two white
+   stages with arched openings and oculi); Св. Петка in pale ashlar banded with brick: the 33 m wide west
+   front (tall middle bay with the big porch arch, side bays with doors, domes and rounded ends), the
+   cross-in-square naos with crossing gables, the main drum, two small drums and the apse, and its bell tower
+   standing apart ~34 m south-east (its red cap on an Esri aerial image; Street View and a drone photo show it
+   by the parking). Heights read off the photos, not measured. A „Св. Петка“ label joins „Св. Димитриј“.
+   Vineyards: OSM has one vineyard and 46 farmland polygons round the town, the aerial image shows vines
+   and fields almost everywhere. `farmMask()` in `city.ts` marks farmland on the terrain's 10 m vertices
+   (`vineyards: 520` in `src/cities.ts`: below ~520 m ± 60, slope under ~17°, not painted land cover, not
+   within ~15 m of a building or in built-up ground, wild patches from noise) with one marker colour,
+   `FARM_MARK` (a little yellower than the bare hills, so the edge barely shows; ≥ 0.075 linear RGB from
+   every other ground colour). The ground shader (`VINE_GROUND`, near and baked-far materials alike) paints
+   the plots there from the world position: blocks of ~240 m (wobbled Voronoi cells, each with its own
+   direction and a dirt track round it) cut into strips and plots with grass verges, about half vineyards
+   (rows every 2.5 m, faded to their mean colour once a row is smaller than a pixel), the rest stubble,
+   ploughed earth, green crops or fallow. Vines turn yellow or red in autumn, bare in winter. The far bake
+   keeps the marker, so near and far agree. Skopje's materials keep their old programs (`vine` is off):
+   pixel check 0 except the gondola cabins (5 px on the overviews). GPU: 6–8 ms for a 1800×1345 view over
+   the farmland (full tier, M-series). Not done: 3D vine rows close up (they are flat stripes).
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
@@ -298,6 +322,8 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 | Per-city OSM interpretation (square, old town, landmark ids, places, height zones) | `PREP` in `scripts/prepare.ts` |
 | Per-city views, labels, race route, info spots | `CITIES` in `src/cities.ts` |
 | Kavadarci monuments | `createLandmarks()` in `src/landmarks.ts` (after the Skopje ones) |
+| Kavadarci churches | `createChurches()` in `src/churches.ts` |
+| Vineyards and fields: where (height, slope, distance from buildings) / how they look | `farmMask()` and `vineyards` in `CITIES` (`src/cities.ts`) / `VINE_GROUND` in `src/city.ts` |
 
 ## Settings: what is saved, what resets, what the code decides
 
