@@ -112,6 +112,8 @@
       #loader[hidden] { display: none; }
       #loader.done { opacity: 0; pointer-events: none; }
       #loader .card { width: min(360px, calc(100vw - 48px)); text-align: center; }
+      #loader .foot { position: absolute; left: 16px; right: 16px; bottom: 14px; margin: 0; text-align: center; font-size: 12.5px; line-height: 1.5; opacity: 0.8; }
+      #loader .foot a { color: var(--wine); }
       #loader .h1 { display: inline-flex; align-items: center; gap: 12px; font-size: 34px; font-weight: 700; }
       #loader .track { margin: 22px 0 10px; height: 14px; border: 2px solid var(--ink); border-radius: 999px; background: #fbf6ee; overflow: hidden; box-shadow: 2px 2px 0 rgba(75, 52, 40, 0.35); }
       #load-bar { height: 100%; width: 0; background: repeating-linear-gradient(-45deg, #d8643c 0 10px, #e27f55 10px 20px); }
@@ -572,6 +574,12 @@
         <div class="track"><div id="load-bar"></div></div>
         <p id="load-text" data-i18n="loading">Се вчитува…</p>
       </div>
+      <p class="foot" data-i18n="help.foot">
+        Податоци © соработниците на <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> (ODbL) ·
+        Релјеф: <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Terrain Tiles</a> (AWS Open Data) ·
+        Изработено со three.js од <a href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">Бојан Божиновски</a>
+        и <a href="https://www.linkedin.com/in/ristes/" target="_blank" rel="noopener">Ристе Самарџиев</a> (Кавадарци)
+      </p>
     </div>
     <div class="attr"><span data-i18n="attr">Податоци © соработниците на <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span> <span data-city="kavadarci">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span></div>
     <script type="module" src="/src/main.ts"></script>
