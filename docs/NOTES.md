@@ -322,6 +322,9 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    jagged water edges where the flattened lake meets the steep slope; the cathedral's roof is a plain hip
    over its bounding box; phone layout not checked for Bitola.
 
+26. **v3.0.0** (Nov 2026, on `develop`): the version goes to 3 for the map of three cities (Skopje,
+   Kavadarci, Bitola); no change in the app itself since v2.10.0 besides the docs.
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
