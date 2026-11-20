@@ -7,6 +7,7 @@ import { squareLayout, createSquare, squareFootprints, squareGround, townhallPla
 import { canalLayout, createCanal, canalWalkGround, canalFootprints } from './river.ts';
 import { marketFrame, createMarket, marketFootprints, marketGround } from './market.ts';
 import { createChurches, churchFootprints } from './churches.ts';
+import { createBitola, bitolaFootprints } from './bitola.ts';
 import type { BuildingData, CityData, Flat, Pt, Vec3 } from './types.ts';
 
 // Hand-built models for landmarks that OSM can only describe as outlines.
@@ -211,6 +212,7 @@ export function landmarkFootprints(data: CityData, terrain: Terrain): BuildingDa
   const mf = marketFrame(data, terrain); // the market's shops and stairs block (they stand on the deck)
   if (mf) for (const [r, h] of marketFootprints(mf)) add(r, mf.y - terrain.at(r[0], r[1]) + h);
   for (const [r, h] of churchFootprints(data)) add(r, h); // Kavadarci: Св. Петка, Св. Димитриј
+  for (const [r, h] of bitolaFootprints(data)) add(r, h); // Bitola: the clock tower, the mosque, the bazaar, the cathedral
   const cl = canalLayout(data, terrain); // the Луда Мара's channel, open at the bridges
   if (cl) for (const b of canalFootprints(cl)) out.push({ ...b, id: -1 - out.length });
   return out;
@@ -1020,6 +1022,10 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
   // ---------------- Св. Петка and Св. Димитриј, after photos (churches.ts)
   const churches = L.petka || L.dimitrij ? createChurches(data, terrain, clippingPlanes) : null;
   if (churches) { group.add(churches.group); nightGlass.push(...churches.nightLit); }
+
+  // ---------------- Bitola: Саат-кула, Ајдар-кади џамија, Безистен, Св. Димитриј, Хераклеа (bitola.ts)
+  const bitola = L.models ? createBitola(data, terrain, clippingPlanes) : null;
+  if (bitola) { group.add(bitola.group); nightGlass.push(...bitola.nightLit); }
 
   // ---------------- Дом на културата „Иван Мазов-Климе“ (not in OSM). Its plan from the site and
   // floor plans of the 2023 fire-safety report: 41.4 m along Илинденска, ground floor + one storey;

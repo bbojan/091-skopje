@@ -74,6 +74,22 @@ export const CITIES = {
       points: [],
     } as TerrainSpec,
   },
+  // Битола: the town in the Pelagonia plain, Хераклеа Линкестис to the south, and to the west the slopes
+  // of Баба with Пелистер (2601 m) and its glacial lakes, Големо and Мало Езеро (the firefighting water)
+  bitola: {
+    bbox: { s: 40.955, w: 21.165, n: 41.085, e: 21.40 },
+    tiles: [6, 5] as [number, number],
+    files: { raw: 'data/bitola_raw.json', scene: 'public/bitola.json', terrainBin: 'public/bitola-terrain.bin', terrainJson: 'public/bitola-terrain.json', overture: 'data/bitola_overture.json' },
+    terrain: {
+      smooth: 1,
+      flatWater: true,
+      flatSquares: [],
+      // Хераклеа: the Great Basilica's excavated floor and the theatre's orchestra lie level on the sloping site
+      flatWays: [[502848605, undefined, 3], [226160304, undefined, 2]],
+      rivers: { river: [5, 2], stream: [2.5, 1.2], canal: [2, 1] },
+      points: [],
+    } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: { s: number; w: number; n: number; e: number }; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec }>;
 export type CityName = keyof typeof CITIES;
 const isCity = (s: string | undefined): s is CityName => !!s && s in CITIES;

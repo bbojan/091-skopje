@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'bitola'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -25,7 +25,7 @@ export interface CitySpec {
   /** the town's name (map data) and its old telephone code, shown on the badge */
   name: string;
   code: string;
-  /** the browser tab's icon (public/): Skopje's coat of arms, Kavadarci's flag */
+  /** the browser tab's icon (public/): Skopje's coat of arms, Kavadarci's flag, Bitola's clock tower */
   icon: string;
   files: { scene: string; terrainBin: string; terrainJson: string };
   /** expected scene JSON size, for the progress bar when the server sends no length */
@@ -50,8 +50,13 @@ export interface CitySpec {
   treeThin?: TreeThin;
   /** vineyards and fields on open, gentle land up to this height (m); unset: none (Skopje) */
   vineyards?: number;
-  /** how the walking person looks: Итар Пејо in folk costume, or a man in a dark suit (Kavadarci) */
-  walker: 'pejo' | 'suit';
+  /** the share of those plots that are vineyards, the rest fields (default 0.52, Tikveš) */
+  vineShare?: number;
+  /** how the walking person looks: Итар Пејо in folk costume, a man in a dark suit (Kavadarci), or
+   *  Милтон Манаки with his film camera (Bitola; his action films an оро instead of dancing it) */
+  walker: 'pejo' | 'suit' | 'manaki';
+  /** the companion Шарпланинец in the dark coat of the Пелистер sheepdogs (Bitola); unset: grey-sand */
+  darkDog?: boolean;
   /** weather preset 'vodno' is called by the local mountain; the firefighting water source */
   snowLabel: Key;
   refillLabel: Key;
@@ -206,6 +211,89 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.lake',
     bestRaceKey: 'skopje.bestRace.kavadarci',
     banners: { fire: 'Митко го спаси градот!', roll: 'Шо ги ебам нека му а мислат' },
+  },
+  bitola: {
+    id: 'bitola', name: 'Битола', code: '047', icon: './favicon-bitola.svg',
+    files: { scene: './bitola.json', terrainBin: './bitola-terrain.bin', terrainJson: './bitola-terrain.json' },
+    sceneBytes: 5.3e6,
+    views: {
+      center: { place: 'square', ll: [41.03019, 21.3349], d: 560, polar: 0.74, az: 0.08 },
+      shirok: { ll: [41.02700, 21.33610], d: 420, polar: 0.82, az: -0.15 }, // Широк Сокак from the south, Магнолија at its end
+      heraclea: { place: 'heraclea', ll: [41.01111, 21.3424], d: 520, polar: 0.8, az: 0.4 },
+      pelister: { place: 'pelister', ll: [41.00266, 21.18319], d: 5200, polar: 0.95, az: -Math.PI / 2 }, // the peak from the town, the plain behind the camera
+      lakes: { place: 'golemo', ll: [40.96804, 21.20457], d: 1500, polar: 0.9, az: 0.4 }, // Пелистерски очи: Големо and Мало Езеро
+      overview: { ll: [41.0200, 21.2830], d: 21000, polar: 0.62, az: 0 },
+    },
+    districts: [
+      ['Битола', 41.0340, 21.3420], ['Баир', 41.03818, 21.33388], ['Ушици', 41.04037, 21.34186], ['Боримечка', 41.02177, 21.34748],
+      ['Ново Стрежево', 41.05031, 21.33879], ['Горно Оризари', 41.05037, 21.34596], ['Пелистер', 41.00266, 21.18319, 80],
+      // villages in the plain and on the slopes of Баба (OSM place nodes)
+      ['Буково', 40.99475, 21.33244], ['Брусник', 41.02337, 21.28552], ['Лавци', 41.01445, 21.30206], ['Дихово', 41.0308, 21.26421],
+      ['Нижеполе', 41.00891, 21.24456], ['Магарево', 41.04268, 21.23827], ['Трново', 41.04284, 21.24662], ['Братин Дол', 41.05527, 21.26149],
+      ['Ротино', 41.05694, 21.2108], ['Раштани', 41.05271, 21.32543], ['Крклино', 41.07283, 21.33393], ['Кравари', 40.99576, 21.37883],
+      ['Крстоар', 40.9917, 21.34701], ['Орехово', 40.98321, 21.31125], ['Бистрица', 40.98019, 21.36771], ['Поешево', 41.01564, 21.39125],
+      ['Долно Оризари', 41.05098, 21.37793], ['Карамани', 41.06418, 21.39689],
+    ],
+    labels: [
+      ['Плоштад Магнолија', 41.03019, 21.3349, 24, 'square'],
+      ['Саат-кула', 41.03049, 21.33474, 34, 'clock'],
+      ['Широк Сокак', 41.02600, 21.33610, 14],
+      ['Безистен', 41.03280, 21.33650, 14, 'bezisten'],
+      ['Стара чаршија', 41.03350, 21.33720, 20],
+      ['Ајдар-кади џамија', 41.03497, 21.33847, 22, 'ajdar'],
+      ['Исак џамија', 41.0321, 21.33402, 22, 'isak'],
+      ['Св. Димитриј', 41.02999, 21.33392, 20, 'dimitrij'],
+      ['Дом на култура', 41.02797, 21.33473, 16, 'culture'],
+      ['Музеј на Битола', 41.0238, 21.33565, 16, 'museum'],
+      ['Градски парк', 41.0225, 21.3330, 20, 'park'],
+      ['Хераклеа Линкестис', 41.01111, 21.3424, 18, 'heraclea'],
+      ['Драгор', 41.0323, 21.32275, 6, undefined, 'river'],
+      ['Пелистер', 41.00266, 21.18319, 40, 'pelister'],
+      ['Големо Езеро', 40.96804, 21.20457, 12, 'golemo'],
+      ['Мало Езеро', 40.97743, 21.18625, 10, 'malo'],
+    ],
+    route: [
+      ['Плоштад Магнолија', 41.03019, 21.3349, 70, 'square'],
+      ['Широк Сокак', 41.02600, 21.33610, 60],
+      ['Градски парк', 41.0225, 21.3330, 75, 'park'],
+      ['Хераклеа Линкестис', 41.01111, 21.3424, 70, 'heraclea'],
+      ['Буково', 40.99475, 21.33244, 90],
+      ['Нижеполе', 41.00891, 21.24456, 110],
+      ['Големо Езеро', 40.96804, 21.20457, 80, 'golemo'],
+      ['Пелистер', 41.00266, 21.18319, 90, 'pelister'],
+      ['Магарево', 41.04268, 21.23827, 110],
+      ['Дихово', 41.0308, 21.26421, 95],
+      ['Ајдар-кади џамија', 41.03497, 21.33847, 75, 'ajdar'],
+      ['Плоштад', 41.03019, 21.3349, 65, 'square'],
+    ],
+    spots: [
+      ['b.square', 'Плоштад Магнолија', 41.03019, 21.3349, 55, 'square'],
+      ['b.clock', 'Саат-кула', 41.03049, 21.33474, 25, 'clock'],
+      ['b.shirok', 'Широк Сокак', 41.02600, 21.33610, 60],
+      ['b.bezisten', 'Безистен', 41.03280, 21.33650, 35, 'bezisten'],
+      ['b.ajdar', 'Ајдар-кади џамија', 41.03497, 21.33847, 30, 'ajdar'],
+      ['b.isak', 'Исак џамија', 41.0321, 21.33402, 30, 'isak'],
+      ['b.dimitrij', 'Св. Димитриј', 41.02999, 21.33392, 30, 'dimitrij'],
+      ['b.museum', 'Музеј на Битола', 41.0238, 21.33565, 40, 'museum'],
+      ['b.heraclea', 'Хераклеа Линкестис', 41.01111, 21.3424, 120, 'heraclea'],
+      ['b.pelister', 'Пелистер', 41.00266, 21.18319, 120, 'pelister'],
+      ['b.lakes', 'Пелистерски очи', 40.96804, 21.20457, 200, 'golemo'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses (and no drivable double-decker) in Bitola
+    terrainExag: 1, // true heights
+    // the national park's forest on Баба: full density round the town, thinner (drawn larger) up the mountain
+    treeThin: { ll: [41.03019, 21.3349], near: 4000, far: 9000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    // Пелагонија: wheat and other fields on the plain round the town, a few vineyards
+    vineyards: 700,
+    vineShare: 0.08,
+    walker: 'manaki',
+    darkDog: true,
+    snowLabel: 'weather.pelister',
+    refillLabel: 'fire.refill.pelister',
+    bestRaceKey: 'skopje.bestRace.bitola',
+    banners: { fire: 'Манаки го сними спасувањето!', roll: 'Ај на Широк Сокак!' },
   },
 };
 

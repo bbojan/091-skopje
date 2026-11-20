@@ -89,6 +89,11 @@ interface CityPrep {
   buildingTags?: Record<number, Tags>;
   /** the Vodno gondola (separate small download) */
   aerialway?: string;
+  /** outlines of buildings and sites modelled by hand for this city (Bitola: src/bitola.ts), by key → OSM
+   *  way id; the OSM building is left out, the outline goes to `landmarks.models[key]` */
+  models?: Record<string, number>;
+  /** rivers OSM draws only as lines, widened into water areas (firefighting refill): [way id, half width m] */
+  waterLines?: [id: number, halfWidth: number][];
 }
 const PREP: Record<CityName, CityPrep> = {
   skopje: {
@@ -224,6 +229,49 @@ const PREP: Record<CityName, CityPrep> = {
       1070244789: { 'building:levels': '1', 'roof:shape': 'flat' }, // the shop row south of the green market
     },
   },
+  bitola: {
+    old: { s: 41.0312, n: 41.0372, w: 21.3335, e: 21.3425 }, // Стара чаршија, north of the Драгор
+    square: [41.03019, 21.3349], // Плоштад Магнолија
+    landmarks: {},
+    // modelled by hand after photos (src/bitola.ts): Саат-кула, Ајдар-кади џамија, Безистен, the cathedral
+    // Св. Димитриј and its bell tower; Хераклеа Линкестис (the site) and its theatre (ruins, not buildings)
+    models: {
+      clock: 1335734377, ajdar: 192121734, bezisten: 1143767501, dimitrij: 38582552, dimitrijTower: 961554014,
+      heraclea: 37956139, theatre: 226160304, basilica: 502848605,
+    },
+    placeNames: { square: 'Плоштад Магнолија' },
+    placeIds: {
+      clock: 1335734377, // Саат Кула
+      ajdar: 192121734, // Џамија Ајдар Кади
+      isak: 38581757, // Исак Џамија
+      dimitrij: 38582552, // Св. Димитриј Солунски
+      bezisten: 1143767501, // Безистен
+      culture: 38065297, // Дом на Култура
+      townhall: 789965987, // ЛС Битола
+      heraclea: 37956139, // Хераклеа Линкестис
+      golemo: 56062992, // Големо Езеро
+      malo: 67325264, // Мало Езеро
+    },
+    placeNodes: { pelister: 26864198 },
+    nodeLL: { 26864198: [41.00266, 21.18319] }, // natural=peak, Пелистер (2601 m)
+    // blocks of flats in a ring round the centre; the 19th-century core (Широк Сокак, Магнолија, the
+    // чаршија) left out of the zone, so its untagged houses stay at 2–4 storeys; houses in the villages
+    tall: [],
+    mid: [
+      [41.0340, 41.0450, 21.3180, 21.3600], // north of the чаршија (Баир, Ушици)
+      [41.0180, 41.0245, 21.3180, 21.3600], // south of the park (Боримечка)
+      [41.0245, 41.0340, 21.3180, 21.3300], // west
+      [41.0245, 41.0340, 21.3400, 21.3600], // east
+    ],
+    squareBonus: false,
+    maxLevels: 10,
+    // the Драгор is an area in OSM only in two short pieces: its channel through the town as water
+    // (the firefighting refill), 5 m to each side of the line
+    waterLines: [[27925320, 5], [1119659502, 4.5], [1119659503, 4]],
+    // Плоштад Магнолија is a multipolygon relation (r20052087, three outer ways) that the query does not
+    // fetch: its outer ring, stitched (Nov 2026), drawn as a square
+    extraPlazas: [[[41.030423, 21.334784], [41.030406, 21.334932], [41.030245, 21.33492], [41.030243, 21.334962], [41.030142, 21.334953], [41.030136, 21.335068], [41.030238, 21.335078], [41.030234, 21.335166], [41.030394, 21.335179], [41.03043, 21.33518], [41.03043, 21.335235], [41.030431, 21.335283], [41.0303, 21.335283], [41.030218, 21.335243], [41.030169, 21.335255], [41.030151, 21.335271], [41.030139, 21.335314], [41.03014, 21.335415], [41.030132, 21.335416], [41.030086, 21.33543], [41.030077, 21.335394], [41.030068, 21.335386], [41.030056, 21.335342], [41.030044, 21.335295], [41.030036, 21.335265], [41.030009, 21.335158], [41.030031, 21.335147], [41.030028, 21.335135], [41.030046, 21.335125], [41.030008, 21.334993], [41.029998, 21.334998], [41.029973, 21.335009], [41.029964, 21.334979], [41.02995, 21.334938], [41.029948, 21.334919], [41.029978, 21.334896], [41.029994, 21.33488], [41.030019, 21.334831], [41.030034, 21.334841], [41.030059, 21.334776], [41.030047, 21.334769], [41.030087, 21.334661], [41.030093, 21.334665], [41.030155, 21.334499], [41.030161, 21.334503], [41.030203, 21.334393], [41.030211, 21.334369], [41.030221, 21.334378], [41.03024, 21.334394], [41.030289, 21.334437], [41.030322, 21.334492], [41.030338, 21.334521], [41.030357, 21.334574], [41.030391, 21.334683]]],
+  },
 };
 const CFG = PREP[CITY];
 const OLD = CFG.old;
@@ -245,7 +293,7 @@ const out: CityData = {
 // hand-modelled landmarks (rendered by src/landmarks.ts instead of generic geometry)
 const LANDMARK_IDS = CFG.landmarks;
 // outlines replaced by a model
-const SKIP_BUILDINGS = new Set<number>([LANDMARK_IDS.porta, LANDMARK_IDS.ossuary, LANDMARK_IDS.townhall, LANDMARK_IDS.hpp, LANDMARK_IDS.petka, LANDMARK_IDS.dimitrij, ...(CFG.dropBuildings ?? [])].filter((id): id is number => id != null));
+const SKIP_BUILDINGS = new Set<number>([LANDMARK_IDS.porta, LANDMARK_IDS.ossuary, LANDMARK_IDS.townhall, LANDMARK_IDS.hpp, LANDMARK_IDS.petka, LANDMARK_IDS.dimitrij, ...Object.values(CFG.models ?? {}), ...(CFG.dropBuildings ?? [])].filter((id): id is number => id != null));
 // buildings OSM lacks join the download as closed ways, so they are read like any other
 for (const el of raw.elements) { const t = CFG.buildingTags?.[el.id]; if (t && el.type === 'way') el.tags = { ...el.tags, ...t }; }
 (CFG.extraBuildings ?? []).forEach(({ tags, r }, i) => {
@@ -295,6 +343,7 @@ for (const el of raw.elements) {
   if (el.id === LANDMARK_IDS.hpp) out.landmarks.hpp = flat(dropLast(pts));
   if (el.id === LANDMARK_IDS.switchyard) out.landmarks.switchyard = flat(dropLast(pts));
   if (el.id === LANDMARK_IDS.spillway) out.landmarks.spillway = flat(dropLast(pts));
+  for (const [key, id] of Object.entries(CFG.models ?? {})) if (el.id === id) (out.landmarks.models ??= {})[key] = flat(dropLast(pts));
 }
 // Kavadarci, Луда Мара: the regulated channel's centre line (south → north, every 2 m), centred between
 // the two promenade footways where OSM has both (the river line is up to 3 m off), smoothed; the rest
@@ -657,6 +706,8 @@ if (FILES.overture) {
   const L = out.landmarks;
   // (the ossuary: its OSM outline is only the house on the shaft, the modelled courtyard round it is ~21 m square)
   for (const [ring, pad] of [[L.townhall, 3], [L.ossuary, 11], [L.stadium, 30], [L.porta, 3], [L.dam, 5], [L.hpp, 4], [L.switchyard, 3], [L.petka, 3], [L.dimitrij, 3]] as const) if (ring) keepOut.push([toPoly(ring), 0, 0, pad]);
+  // Bitola's monuments (src/bitola.ts); the theatre's and the basilica's ruins lie inside Хераклеа's outline
+  for (const [k, ring] of Object.entries(L.models ?? {})) keepOut.push([toPoly(ring), 0, 0, k === 'heraclea' ? 0 : 2]);
   // the market's deck (in its frame: x across, z along the roof, south +)
   let marketRing: Ring | null = null;
   if (L.market) {
@@ -745,6 +796,21 @@ if (FILES.overture) {
 for (const ll of CFG.extraPlazas ?? []) {
   const r = ll.map(([lat, lon]) => proj(lat, lon));
   out.areas.push({ k: 'plaza', z: AREA_Z.plaza, a: r1(Math.abs(area(r))), r: [flat(r)], ...(CFG.plazaColour ? { c: CFG.plazaColour } : {}) });
+}
+
+// rivers OSM has only as lines: a strip of water along the line (one polygon per way, mitred at the bends),
+// in the channel scripts/terrain.ts cuts along it
+for (const [id, hw] of CFG.waterLines ?? []) {
+  const el = raw.elements.find((e) => e.type === 'way' && e.id === id);
+  if (!el) { console.warn(`waterLines: way ${id} is not in the download`); continue; }
+  const pts = wayPts(el.geometry || []);
+  const off = (sgn: number) => pts.map((p, i): Pt => {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    const dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1;
+    return [p[0] - (dz / l) * hw * sgn, p[1] + (dx / l) * hw * sgn];
+  });
+  const r = [...off(1), ...off(-1).reverse()];
+  out.areas.push({ k: 'water', z: AREA_Z.water, a: r1(Math.abs(area(r))), r: [flat(r)] });
 }
 
 // River polygon fallback ordering

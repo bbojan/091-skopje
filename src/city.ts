@@ -359,7 +359,7 @@ const VINE_GROUND = /* glsl */ `
     float fy = fract(q.y / sw), fx = fract(tu);
     float edge = min(min(fy, 1.0 - fy) * sw, min(fx, 1.0 - fx) * sl);
     vec3 col;
-    if (r < 0.52) {
+    if (r < uVineShare) {
       // vines in rows along the strip
       float rc = q.y / 2.5, fw = fwidth(rc);
       float cover = mix(mix(0.44, 0.3, uSpring), 0.16, uWinter);
@@ -398,7 +398,7 @@ const FARM_HASH = /* glsl */ `
   vec4 fHash4(vec2 p) { vec4 p4 = fract(vec4(p.xyxy) * vec4(0.1031, 0.1030, 0.0973, 0.1099)); p4 += dot(p4, p4.wzxy + 33.33); return fract((p4.xxyz + p4.yzzw) * p4.zywx); }`;
 
 /** Ground materials: weather (wet, puddles, snow) and, for the near ground, water glints; `vine`: vineyards and fields on the farmland marker. */
-function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boolean, vine = false): void {
+function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boolean, vine = false, vineShare = 0.52): void {
   sh.uniforms.uTime = SHARED.uTime;
   sh.uniforms.uWet = SHARED.uWet;
   sh.uniforms.uSnow = SHARED.uSnow;
@@ -413,7 +413,7 @@ function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boole
   const waterLin = C(PAL.area.water), poolLin = C(PAL.area.pool);
   sh.uniforms.uWater = { value: new THREE.Vector3(waterLin.r, waterLin.g, waterLin.b) };
   sh.uniforms.uPool = { value: new THREE.Vector3(poolLin.r, poolLin.g, poolLin.b) };
-  if (vine) { const f = C(FARM_MARK); sh.uniforms.uFarm = { value: new THREE.Vector3(f.r, f.g, f.b) }; }
+  if (vine) { const f = C(FARM_MARK); sh.uniforms.uFarm = { value: new THREE.Vector3(f.r, f.g, f.b) }; sh.uniforms.uVineShare = { value: vineShare }; }
   sh.vertexShader = sh.vertexShader
     .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;\nvarying float vNy;')
     .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWPos = position;\nvNy = normal.y;');
@@ -426,7 +426,7 @@ function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boole
       uniform vec3 uRoad[${ROAD_LIN.length}];
       uniform vec4 uBurn[6];
       uniform float uBurnOn;
-      ${WX_NOISE}${vine ? `\n      uniform vec3 uFarm;${FARM_HASH}` : ''}`)
+      ${WX_NOISE}${vine ? `\n      uniform vec3 uFarm;\n      uniform float uVineShare;${FARM_HASH}` : ''}`)
     .replace('#include <color_fragment>', `#include <color_fragment>
       vec3 raw = diffuseColor.rgb;
       float wm = ${water ? '1.0 - smoothstep(0.012, 0.045, min(distance(raw, uWater), distance(raw, uPool)))' : '0.0'};
@@ -614,6 +614,8 @@ export interface CityOptions {
   treeThin?: TreeThin;
   /** vineyards and fields on open, gentle land up to this height (m, CitySpec.vineyards) */
   vineyards?: number;
+  /** the share of those plots that are vineyards, the rest fields (CitySpec.vineShare; default 0.52) */
+  vineShare?: number;
 }
 /** Trees in green areas (forest above all) at full density within `near` m of `ll`, thinning out
  *  smoothly to the share `min` at `far` m and beyond, drawn up to `grow` times larger there. */
@@ -647,6 +649,8 @@ export interface CityDesc {
   meta?: CityData['meta'];
   /** the terrain marks farmland (vineyards and fields are painted by the ground shader) */
   vine: boolean;
+  /** the share of farm plots that are vineyards */
+  vineShare: number;
   /** build one chunk's detailed terrain / draped ground (streaming builds them on demand) */
   lazy: { terrainHi: (k: number) => GeoData; ground: (k: number) => GeoData | null };
 }
@@ -721,6 +725,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     blockGrid.add(around([LM.vatasa[0] + 2, LM.vatasa[1] - 12], [1, 0], 18, 17), null);
   }
   if (LM.revolution) blockGrid.add(around(LM.revolution, [1, 0], 5, 5), null);
+  if (LM.models) for (const r of Object.values(LM.models)) blockGrid.add([toPts(r)], null); // Bitola's monuments (bitola.ts)
   const ossOb = LM.ossuary ? obb(toPts(LM.ossuary)) : null;
   if (ossOb) blockGrid.add(around(ossOb.c, ossOb.a, 17, 17), null); // the courtyard is ~21 m square
   const stadOb = LM.stadium ? obb(toPts(LM.stadium)) : null; // the stands and the clubhouse round the pitch (landmarks.ts)
@@ -1419,6 +1424,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     stats: { buildings: buildings.length, trees: treeCount, parked: carCount, roads: roadList.length, chunks: terrainChunks.size },
     lazy: { terrainHi, ground: buildGround },
     vine: !!farm,
+    vineShare: opts.vineShare ?? 0.52,
   };
 }
 
@@ -1476,7 +1482,7 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
   const { clippingPlanes } = opts;
   const group = new THREE.Group();
   const groundMat = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes });
-  groundMat.onBeforeCompile = (sh) => groundShader(sh, true, desc.vine);
+  groundMat.onBeforeCompile = (sh) => groundShader(sh, true, desc.vine, desc.vineShare);
   groundMat.customProgramCacheKey = () => (desc.vine ? 'ground-water-vine-v1' : 'ground-water-v5');
 
   const facadeMat = facadeMaterial(clippingPlanes);
@@ -1554,7 +1560,7 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
   }
   group.add(new THREE.Mesh(geoFromData(desc.skirt), new THREE.MeshLambertMaterial({ vertexColors: true })));
 
-  const lod = makeLOD(lodChunks, group, clippingPlanes, groundMat, desc.lazy, !!opts.stream, desc.vine);
+  const lod = makeLOD(lodChunks, group, clippingPlanes, groundMat, desc.lazy, !!opts.stream, desc.vine, desc.vineShare);
   // Object.assign keeps lod's getters live (a spread would copy their values once)
   return Object.assign(lod, { group, roadList: desc.roadList, stats: desc.stats });
 }
@@ -1580,7 +1586,7 @@ interface LodChunk {
 
 export type City = ReturnType<typeof assembleCity>;
 
-function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THREE.Plane[] | undefined, groundMat: THREE.Material, lazy: CityDesc['lazy'], streamAtStart: boolean, vine: boolean) {
+function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THREE.Plane[] | undefined, groundMat: THREE.Material, lazy: CityDesc['lazy'], streamAtStart: boolean, vine: boolean, vineShare: number) {
   let stream = streamAtStart;
   // build / drop one chunk's detailed terrain and draped ground
   function buildHi(L: LodChunk): void {
@@ -1662,7 +1668,7 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THRE
       if (temp) dropHi(L);
       L.tex = rt;
       const far = new THREE.MeshLambertMaterial({ map: rt.texture, clippingPlanes });
-      far.onBeforeCompile = (sh) => groundShader(sh, false, vine);
+      far.onBeforeCompile = (sh) => groundShader(sh, false, vine, vineShare);
       far.customProgramCacheKey = () => (vine ? 'ground-far-vine-v1' : 'ground-far-v2');
       L.terrainLo.material = far;
     }

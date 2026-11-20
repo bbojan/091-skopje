@@ -29,7 +29,7 @@ export interface ChurchFrame {
   ring: Pt[];
 }
 
-function churchFrame(r: Flat, terrain: Terrain): ChurchFrame {
+export function churchFrame(r: Flat, terrain: Terrain): ChurchFrame {
   const pts: Pt[] = [];
   for (let i = 0; i < r.length; i += 2) pts.push([r[i], r[i + 1]]);
   const xs = pts.map((p) => p[0]), zs = pts.map((p) => p[1]);
@@ -57,7 +57,7 @@ export function churchFootprints(data: CityData): [Flat, number][] {
 type Key = 'stone' | 'brick' | 'white' | 'cream' | 'tile' | 'glass' | 'dark' | 'door' | 'plaster' | 'gold';
 
 /** Parts of one building, by material, in its frame (x = e, z = −n). */
-function kit() {
+export function kit() {
   const parts = new Map<Key, THREE.BufferGeometry[]>();
   const add = (k: Key, g: THREE.BufferGeometry) => {
     let a = parts.get(k);
@@ -148,13 +148,13 @@ function kit() {
 type V = [number, number, number];
 
 /** only position and normal (so parts from different generators merge) */
-function strip(g: THREE.BufferGeometry): THREE.BufferGeometry {
+export function strip(g: THREE.BufferGeometry): THREE.BufferGeometry {
   for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
   return g;
 }
 
 /** a convex solid from triangles, each turned to face away from the middle */
-function solid(tris: V[][]): THREE.BufferGeometry {
+export function solid(tris: V[][]): THREE.BufferGeometry {
   const all = tris.flat(), m = [0, 1, 2].map((i) => all.reduce((s, v) => s + v[i], 0) / all.length);
   const pos: number[] = [];
   for (let [a, b, c] of tris) {

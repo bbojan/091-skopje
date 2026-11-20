@@ -281,6 +281,46 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    eight), a golden and two red shrubs on the lawn. An Overture house that stood half inside the ossuary's
    courtyard is gone: Overture buildings are kept 11 m off the ossuary's outline (was 5 m; the OSM outline
    is only the house on the shaft, the modelled courtyard is ~21 m square).
+25. **v2.10.0** (Nov 2026, the `bitola` branch): a third city, **047 Битола** (`?city=bitola`), without ЈСП
+   buses (`buses: false`: no red buses in the traffic, no drivable double-decker, no bus fires). The box
+   40.955–41.085 N, 21.165–21.40 E (≈ 19.7 × 14.5 km): the town, Хераклеа, the villages on Баба and Pelister
+   (2601 m) with Големо and Мало Езеро. Downloaded in 6 × 5 tiles (4 × 3 tiles kept timing out on the busy
+   mirrors); totals checked against a count query: 5,208 of 5,208 buildings, 3,763 of 3,763 roads. OSM
+   leaves most blocks empty, so 20,316 Overture footprints were added (25,515 buildings). Terrain 576–2590 m,
+   `terrainExag: 1`. Heights: only 58 buildings have levels in OSM; a `mid` ring of four boxes round the
+   centre leaves out the 19th-century core (Широк Сокак, Магнолија, the чаршија), which stays at 2–4 storeys;
+   `maxLevels: 10`. The Pelagonia plain uses the Tikveš farmland painter with a new per-city share of
+   vineyards (`vineShare`, uniform `uVineShare`; Kavadarci keeps 0.52, Bitola 0.08: mostly fields).
+   Firefighting water: no lake near the town, so the Драгор, which OSM has only as a line, is widened into
+   a water strip 8–10 m wide along its channel through the town (`waterLines` in `PREP`); Големо Езеро on
+   Pelister works too. Checked by stepping the fire mode: `overWater` over the strip.
+   Monuments (`src/bitola.ts`, on their OSM outlines via a generic `models` map in `PREP` →
+   `landmarks.models`; the generic buildings and Overture duplicates are left out), after Commons photos:
+   Саат-кула (OSM height 32 m: rubble shaft, cornice, clock stage with four blue faces, balcony, white
+   octagonal belfry, cross), Ајдар-кади џамија (hall, drum and lead dome, three-arched portico with three
+   small domes, minaret with one balcony; portico placed at the end facing north-west, away from the qibla),
+   Безистен (parallel lead barrel vaults with dormers, arched gates), Св. Димитриј (ashlar with brick courses,
+   arched windows, low hipped roof) and its brick bell tower, Хераклеа's theatre (stepped half bowl, stage
+   building with brick arches) and the Great Basilica: outer walls, narthex wall, two stylobates with
+   column stumps, and its mosaic floors as painted canvas textures (after Commons photos, simplified): the
+   narthex's „paradise“ (meander border, a band of medallions, fruit trees, deer, a lion, a kantharos with
+   vines in the middle), a geometric carpet down the nave (eight-pointed stars of two squares, small squares
+   with knots, crosses and vessels, a braided border, a few lost patches) and a peacock among vines inside a
+   wave border before the apse; a 4 px tesserae speckle with grout lines over all of them. The site slopes
+   ~2.4 m under the basilica and ~6.6 m under the theatre: both are levelled in the terrain (`flatWays`).
+   Плоштад Магнолија is a multipolygon relation the query does not fetch: its three outer ways stitched
+   into one ring (~2,300 m²) and drawn as a square (`extraPlazas`). Sizes read off photos, not measured.
+   Walking as **Милтон Манаки** (`walker: 'manaki'`): 1900s suit, bowler, moustache, the Bioscope camera on a
+   tripod over his shoulder; 🎥 Снимај sets it up in front of him, he turns the crank and the people round
+   a point 7 m ahead dance an оро (the traffic's оро hook); walking 3 m away ends it. The companion is the
+   Шарпланинец in a dark coat (`darkDog`). Tow banners: „Манаки го сними спасувањето!“ / „Ај на Широк
+   Сокак!“. LinkedIn: Bojan's profile. Info cards: 11 short texts in 6 languages (facts kept to the common
+   ones: dates by century where sources differ).
+   Checked: Skopje pixel check 0 on all 9 views (also after the farmland change); switching
+   Bitola → Kavadarci → Bitola: textures 309 = 309, scene children 19 = 19, geometries 621 / 623; no
+   console errors on a clean switch; typecheck and build. Not done: the north shore of Големо Езеро shows
+   jagged water edges where the flattened lake meets the steep slope; the cathedral's roof is a plain hip
+   over its bounding box; phone layout not checked for Bitola.
 
 ## Key decisions (and why)
 
@@ -369,6 +409,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time | `skopje.bestRace` | none |
 | Most fires put out in one flight | `skopje.bestFire` | 0 |
 | Best race time in Kavadarci | `skopje.bestRace.kavadarci` | none |
+| Best race time in Bitola | `skopje.bestRace.bitola` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
@@ -473,11 +514,11 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 - **Map data © OpenStreetMap contributors, ODbL.** `public/skopje.json` is a derived
   database: keep the attribution visible in the app (also on mobile) and, if the data
   is redistributed, it stays under ODbL (share-alike).
-- **Kavadarci's extra buildings: Overture Maps Foundation** (buildings theme, ODbL; the outlines
+- **Kavadarci's and Bitola's extra buildings: Overture Maps Foundation** (buildings theme, ODbL; the outlines
   are Microsoft's ML building footprints). `scripts/overture.ts` reads the GeoParquet file(s) that
   cover the box over HTTP ranges (STAC catalog → file, row-group bbox statistics → parts), AWS
   first, then the Azure mirror. Credited next to OSM at the bottom right and in the help footer,
-  only in Kavadarci (`data-city`).
+  only in Kavadarci and Bitola (`data-city`).
 - **Elevation: Terrain Tiles on AWS Open Data** (Mapzen Terrarium format; sources
   include SRTM and other public datasets) — credited in the help dialog and README.
 - Fonts (Lora, Rubik Mono One) load from Google Fonts under the SIL Open Font License.

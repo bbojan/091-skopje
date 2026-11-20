@@ -254,7 +254,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   // build on the main thread in stages, letting the progress bar repaint between them
   // (a background worker gets throttled to a fraction of this speed)
   const terrain = new Terrain(tm, new Uint16Array(tb), spec.terrainExag);
-  const steps = computeCitySteps(data, terrain, { density: MOBILE ? 0.5 : 1, stream: memorySaver, treeThin: spec.treeThin, vineyards: spec.vineyards });
+  const steps = computeCitySteps(data, terrain, { density: MOBILE ? 0.5 : 1, stream: memorySaver, treeThin: spec.treeThin, vineyards: spec.vineyards, vineShare: spec.vineShare });
   let desc: CityDesc;
   for (;;) {
     const r = steps.next();
@@ -1129,7 +1129,8 @@ touchStick($('fly-stunts'), (x, y) => {
 // HUD texts (only touched when they change)
 const hudCache = new Map<string, string>();
 const setText = (id: string, text: string) => { if (hudCache.get(id) !== text) { hudCache.set(id, text); $(id).textContent = text; } };
-const ACT_KEY: Record<WalkAction, Key | null> = { bus: 'act.bus', plane: 'act.plane', gondolaUp: 'act.gondolaUp', gondolaDown: 'act.gondolaDown', oro: 'act.oro', oroStop: 'act.oroStop', bark: 'act.bark', none: null };
+const ACT_KEY: Record<WalkAction, Key | null> = { bus: 'act.bus', plane: 'act.plane', gondolaUp: 'act.gondolaUp', gondolaDown: 'act.gondolaDown', oro: 'act.oro', oroStop: 'act.oroStop', film: 'act.film', filmStop: 'act.filmStop', bark: 'act.bark', none: null };
+const walkerKey = (w: CitySpec['walker']): Key => (w === 'suit' ? 'char.suit' : w === 'manaki' ? 'char.manaki' : 'char.pejo');
 const camDir = new THREE.Vector3();
 function updateWalkHud(): void {
   if (!world) return;
@@ -1140,7 +1141,7 @@ function updateWalkHud(): void {
   setText('walk-act', label ? label.split(' ')[0] : '·');
   setText('walk-who', t(walk.label));
   setText('walk-view', walk.view === 'third' ? '👁' : '🎥');
-  setText('walk-char', walk.character === 'pejo' ? '🐕' : t(world.spec.walker === 'suit' ? 'char.suit' : 'char.pejo').split(' ')[0]);
+  setText('walk-char', walk.character === 'pejo' ? '🐕' : t(walkerKey(world.spec.walker)).split(' ')[0]);
   // the nearest bus, with a direction arrow relative to where the camera looks
   const b = a === 'bus' ? null : traffic.nearestBus(walk.pos.x, walk.pos.z, 2500);
   const busEl = $('walk-bus');

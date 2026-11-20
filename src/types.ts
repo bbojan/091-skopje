@@ -106,6 +106,9 @@ export interface LandmarkData {
    *  2 m; src/river.ts), and the rest of the river as lines (a narrow stream) */
   canal?: Flat;
   streams?: Flat[];
+  /** outlines of a city's own hand-built models by key (Bitola, src/bitola.ts: clock, ajdar, bezisten,
+   *  dimitrij, dimitrijTower, heraclea, theatre) */
+  models?: Record<string, Flat>;
 }
 
 /** Exact positions of named places, by key (Skopje: square, porta, park, zoo, arena, bazaar…; Kavadarci: square, ossuary, heroes, vatasa, lake…). */

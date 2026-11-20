@@ -128,10 +128,80 @@ function buildSuit(): Rig {
   return { group: g, legs, arms, head };
 }
 
-/** A Шарпланинец: big grey-sand sheepdog with a darker saddle and a curled bushy tail. */
-function buildDog(): Rig {
+/** Bitola's walker: Милтон Манаки (1880–1964), who with his brother Јанаќи shot the first films in the
+ *  Balkans: a dark three-piece suit of the 1900s, white wing collar, black bow tie, a bowler hat and a
+ *  full moustache. He carries the Bioscope camera (a wooden box with a brass lens and a side crank) on its
+ *  tripod over his right shoulder; filming, it stands in front of him and he turns the crank. */
+function buildManaki(): Rig & { camera: THREE.Group; crank: THREE.Object3D; filmArm: THREE.Object3D } {
   const g = new THREE.Group();
-  const coat = lambert('#9c8d76'), saddle = lambert('#6d6152'), dark = lambert('#4c4239'), black = lambert('#1b1714');
+  const suit = lambert('#3a3430'), vest = lambert('#4a423b'), shirt = lambert('#f4f0e6'), tie = lambert('#151416'), skin = lambert('#dcae88');
+  const hat = lambert('#1c1a1a'), dark = lambert('#3b2a20'), shoe = lambert('#141416');
+  const wood = lambert('#8a5a32'), woodDark = lambert('#5e3b20'), brass = lambert('#c9a24a'), glass = lambert('#1b222b');
+  const add = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number, to: THREE.Object3D = g) => {
+    const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; to.add(m); return m;
+  };
+  const legs = [-1, 1].map((s) => {
+    const l = limb(capsule(0.085, 0.62), suit, [0, 0.9, s * 0.1], 0.42);
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.08, 0.11), shoe);
+    foot.position.set(0.05, -0.86, 0);
+    l.add(foot);
+    g.add(l);
+    return l;
+  });
+  add(capsule(0.2, 0.42), suit, 0, 1.22, 0).scale.set(1, 1, 1.05); // frock coat
+  add(capsule(0.17, 0.3), vest, 0.045, 1.3, 0).scale.set(1, 1, 0.92); // waistcoat in the open coat
+  add(new THREE.BoxGeometry(0.02, 0.12, 0.09), shirt, 0.205, 1.52, 0); // shirt front
+  add(new THREE.CylinderGeometry(0.075, 0.085, 0.09, 14), shirt, 0, 1.6, 0); // wing collar
+  for (const z of [-1, 1]) add(new THREE.ConeGeometry(0.03, 0.06, 4).rotateX(z * Math.PI / 2), tie, 0.18, 1.565, z * 0.028); // bow tie
+  add(new THREE.SphereGeometry(0.016, 6, 4), tie, 0.185, 1.565, 0);
+  const arms = [-1, 1].map((s) => {
+    const a = limb(capsule(0.065, 0.48), suit, [0, 1.46, s * 0.28], 0.3);
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.065, 10, 8), skin);
+    hand.position.y = -0.62;
+    a.add(hand);
+    g.add(a);
+    return a;
+  });
+  const head = add(new THREE.SphereGeometry(0.13, 16, 12), skin, 0, 1.71, 0);
+  add(new THREE.SphereGeometry(0.03, 8, 6), skin, 0.13, 1.695, 0); // nose
+  const tash = add(new THREE.CapsuleGeometry(0.022, 0.13, 3, 8).rotateX(Math.PI / 2), dark, 0.118, 1.655, 0); // full moustache
+  tash.scale.set(1, 0.8, 1);
+  for (const z of [-0.045, 0.045]) add(new THREE.SphereGeometry(0.016, 6, 4), dark, 0.118, 1.735, z);
+  // bowler: a brim and a rounded crown
+  add(new THREE.CylinderGeometry(0.19, 0.19, 0.02, 20), hat, 0, 1.81, 0);
+  add(new THREE.SphereGeometry(0.135, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), hat, 0, 1.81, 0).scale.set(1, 1.05, 1);
+  add(new THREE.CylinderGeometry(0.137, 0.137, 0.03, 20), tie, 0, 1.83, 0); // hat band
+
+  // the camera on its tripod (its own group: on the shoulder or standing)
+  const camera = new THREE.Group();
+  add(new THREE.BoxGeometry(0.34, 0.3, 0.2), wood, 0, 0, 0, camera); // the box
+  add(new THREE.BoxGeometry(0.36, 0.04, 0.22), woodDark, 0, 0.17, 0, camera); // lid
+  add(new THREE.CylinderGeometry(0.045, 0.05, 0.12, 14).rotateZ(Math.PI / 2), brass, 0.23, 0.02, 0, camera); // lens barrel
+  add(new THREE.CylinderGeometry(0.035, 0.035, 0.01, 14).rotateZ(Math.PI / 2), glass, 0.295, 0.02, 0, camera);
+  for (const x of [-0.06, 0.06]) add(new THREE.CylinderGeometry(0.09, 0.09, 0.04, 16).rotateX(Math.PI / 2), woodDark, x, 0.24, 0, camera).scale.set(1, 1, 1); // film magazines on top
+  const crank = new THREE.Group();
+  crank.position.set(-0.04, 0, 0.115);
+  add(new THREE.BoxGeometry(0.02, 0.12, 0.015), brass, 0, -0.05, 0.005, crank);
+  add(new THREE.CylinderGeometry(0.012, 0.012, 0.06, 6).rotateX(Math.PI / 2), woodDark, 0, -0.105, 0.03, crank); // handle
+  camera.add(crank);
+  for (let i = 0; i < 3; i++) { // tripod legs, spread when standing (scaled together on the shoulder)
+    const a = (i / 3) * Math.PI * 2 + Math.PI / 6;
+    const leg = add(new THREE.CylinderGeometry(0.018, 0.012, 1.25, 6), wood, 0, 0, 0, camera);
+    leg.position.set(Math.cos(a) * 0.17, -0.74, Math.sin(a) * 0.17);
+    leg.rotation.set(Math.sin(a) * 0.28, 0, -Math.cos(a) * 0.28);
+    leg.name = 'tripod';
+    leg.userData.spread = { p: leg.position.clone(), r: leg.rotation.clone() };
+  }
+  g.add(camera);
+  g.scale.setScalar(SCALE);
+  return { group: g, legs, arms, head, camera, crank, filmArm: arms[1] };
+}
+
+/** A Шарпланинец: big grey-sand sheepdog with a darker saddle and a curled bushy tail; `dark`: the
+ *  almost black-grey coat of the sheepdogs on Пелистер (Bitola). */
+function buildDog(darkCoat = false): Rig {
+  const g = new THREE.Group();
+  const coat = lambert(darkCoat ? '#4f4a45' : '#9c8d76'), saddle = lambert(darkCoat ? '#2f2b28' : '#6d6152'), dark = lambert(darkCoat ? '#24201d' : '#4c4239'), black = lambert('#1b1714');
   const add = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) => {
     const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; g.add(m); return m;
   };
@@ -292,11 +362,12 @@ export interface WalkOptions {
 }
 
 /** What the action button does right now. */
-export type WalkAction = 'bus' | 'plane' | 'gondolaUp' | 'gondolaDown' | 'oro' | 'oroStop' | 'bark' | 'none';
+export type WalkAction = 'bus' | 'plane' | 'gondolaUp' | 'gondolaDown' | 'oro' | 'oroStop' | 'film' | 'filmStop' | 'bark' | 'none';
 
 export function createWalk(o: WalkOptions) {
   const { scene, camera, terrain, bounds, hooks, planeSpot, gondola } = o;
-  const rigs = { pejo: o.city.walker === 'suit' ? buildSuit() : buildPejo(), dog: buildDog() };
+  const manaki = o.city.walker === 'manaki' ? buildManaki() : null;
+  const rigs = { pejo: manaki ?? (o.city.walker === 'suit' ? buildSuit() : buildPejo()), dog: buildDog(o.city.darkDog) };
   for (const r of Object.values(rigs)) { r.group.visible = false; scene.add(r.group); }
   const walls = obstacles(o.buildings);
   const lift = surface(o.roads, o.areas);
@@ -395,13 +466,18 @@ export function createWalk(o: WalkOptions) {
       if (Math.hypot(top.x - x, top.z - z) < 30) return 'gondolaDown';
     }
     if (st.char === 'dog') return 'bark';
+    // Манаки films instead of dancing: the people round him dance the оро for the camera
+    if (manaki) return st.oro ? 'filmStop' : 'film';
     return st.oro ? 'oroStop' : 'oro';
   }
   /** do the in-place actions (оро, bark, gondola); vehicles are handled by the caller */
   function act(a: WalkAction): void {
     const { x, z } = st.pos;
-    if (a === 'oro') { if (hooks.startOro(x, z)) st.oro = { x, z }; }
-    else if (a === 'oroStop') { hooks.stopOro(); st.oro = null; }
+    if (a === 'oro' || a === 'film') {
+      // the dancers gather round a point in front of the camera
+      const fx = a === 'film' ? x + Math.sin(st.yaw) * 7 : x, fz = a === 'film' ? z - Math.cos(st.yaw) * 7 : z;
+      if (hooks.startOro(fx, fz)) st.oro = { x, z };
+    } else if (a === 'oroStop' || a === 'filmStop') { hooks.stopOro(); st.oro = null; }
     else if (a === 'bark') { hooks.scatter(x, z, 30); hooks.startle(x, z); st.bark = 1.2; st.wag = 2; }
     else if (a === 'gondolaUp' || a === 'gondolaDown') {
       const up = a === 'gondolaUp';
@@ -431,6 +507,25 @@ export function createWalk(o: WalkOptions) {
     rig.arms.forEach((a, i) => (a.rotation.z = (i === 0 ? -1 : 1) * swing * 0.8));
     if (rig.tail) rig.tail.rotation.x = Math.sin(performance.now() / (st.wag > 0 ? 45 : 160)) * (st.wag > 0 ? 0.6 : 0.2);
     if (rig === rigs.dog) rig.head.rotation.z = st.bark > 0 ? Math.sin(st.bark * 18) * 0.15 : 0;
+  }
+  /** Манаки's camera: on the right shoulder while walking (tripod legs together, pointing back), standing in
+   *  front of him while filming, the right arm turning the crank */
+  function poseCamera(m: NonNullable<typeof manaki>, filming: boolean): void {
+    const c = m.camera;
+    if (filming) {
+      c.position.set(0.62, 1.32, 0.05); c.rotation.set(0, 0, 0);
+      for (const l of c.children) if (l.name === 'tripod') { l.position.copy(l.userData.spread.p); l.rotation.copy(l.userData.spread.r); }
+      const t = performance.now() / 1000;
+      m.crank.rotation.z = -t * 2 * Math.PI * 2; // two turns a second, the old 16 frames
+      m.filmArm.rotation.set(Math.cos(t * 4 * Math.PI) * 0.12, 0, 1.15 + Math.sin(t * 4 * Math.PI) * 0.12);
+      m.arms[0].rotation.z = 0.15;
+    } else {
+      c.position.set(-0.02, 1.66, 0.2); c.rotation.set(0.15, 0, 1.15);
+      for (const l of c.children) if (l.name === 'tripod') { l.position.set(l.userData.spread.p.x * 0.25, -0.74, l.userData.spread.p.z * 0.25); l.rotation.set(0, 0, 0); } // folded
+      m.crank.rotation.z = 0;
+      m.filmArm.rotation.x = 0;
+      m.filmArm.rotation.z = 2.6; // the hand up at the camera on the shoulder
+    }
   }
   const place = (rig: Rig, x: number, z: number, yaw: number, bob: number) => {
     rig.group.position.set(x, ground(x, z) + bob, z);
@@ -487,10 +582,11 @@ export function createWalk(o: WalkOptions) {
       st.pos.y = ground(st.pos.x, st.pos.z);
       st.phase += st.speed * dt * (st.char === 'dog' ? 2.6 : 2.2);
       // a dancing Пејо hops on the spot; walking away ends the оро
-      const dancing = st.oro && st.speed < 0.3;
-      if (st.oro && Math.hypot(st.oro.x - st.pos.x, st.oro.z - st.pos.z) > 14) { hooks.stopOro(); st.oro = null; }
+      const dancing = st.oro && st.speed < 0.3 && !manaki;
+      if (st.oro && Math.hypot(st.oro.x - st.pos.x, st.oro.z - st.pos.z) > (manaki ? 3 : 14)) { hooks.stopOro(); st.oro = null; }
       place(rig, st.pos.x, st.pos.z, st.yaw + (dancing ? Math.sin(performance.now() / 300) * 0.6 : 0), dancing ? Math.abs(Math.sin(performance.now() / 160)) * 0.15 : 0);
       animate(rig, dancing ? performance.now() / 120 : st.phase, dancing ? 3 : st.speed);
+      if (manaki && rig === manaki) poseCamera(manaki, !!st.oro && st.speed < 0.3);
     }
 
     // the companion follows, a couple of metres behind
@@ -530,7 +626,7 @@ export function createWalk(o: WalkOptions) {
     get yaw(): number { return st.yaw; },
     get character(): CharName { return st.char; },
     /** i18n key of the current character's name (the person looks different per city) */
-    get label(): 'char.pejo' | 'char.suit' | 'char.dog' { return st.char === 'dog' ? 'char.dog' : o.city.walker === 'suit' ? 'char.suit' : 'char.pejo'; },
+    get label(): 'char.pejo' | 'char.suit' | 'char.manaki' | 'char.dog' { return st.char === 'dog' ? 'char.dog' : o.city.walker === 'suit' ? 'char.suit' : o.city.walker === 'manaki' ? 'char.manaki' : 'char.pejo'; },
     get view(): ViewName { return st.view; },
     get riding(): boolean { return !!st.ride; },
     get barking(): boolean { return st.bark > 0; },
