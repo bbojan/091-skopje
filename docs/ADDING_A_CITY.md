@@ -1,7 +1,7 @@
 # Adding a city
 
-How a new town gets onto the map, step by step: the way Kavadarci (`?city=kavadarci`, v2.8.0) was
-added next to Skopje. Commands, conventions and the architecture are in [../CLAUDE.md](../CLAUDE.md);
+How a new town gets onto the map, step by step: the way Kavadarci (`?city=kavadarci`, v2.8.0) and
+Bitola (`?city=bitola`, v2.10.0) were added next to Skopje. Commands, conventions and the architecture are in [../CLAUDE.md](../CLAUDE.md);
 history and decisions in [NOTES.md](NOTES.md). The examples use a made-up id `ohrid`.
 
 Plan for an afternoon for a small town. Most of the time goes into the Overpass download (busy
@@ -20,7 +20,7 @@ servers), tuning building heights, and the monuments.
 | Views, labels, race, walking spots, labels for snow / refill | `CITIES` in `src/cities.ts` | yes |
 | Places menu items, help paragraphs | `data-city="<id>"` in `index.html` | yes |
 | UI texts (6 languages) | `src/i18n.ts` | yes |
-| Hand-built monuments | `createLandmarks()` in `src/landmarks.ts` | yes |
+| Hand-built monuments | `createLandmarks()` in `src/landmarks.ts`, or a file of the city's own called from it (Bitola: `src/bitola.ts`) | yes |
 
 The badge menu, `?city=` in the address, the loading card, unloading the previous city and the
 history (back / forward) work for every entry in `CITY_IDS` without further changes.
@@ -249,6 +249,33 @@ mem(); await __dbg.switchCity('skopje'); /* wait for the loader */ await __dbg.s
 - README: a line under the features, the data commands.
 - `package.json` version (minor for a new city). Commit on a branch; **ask the owner before
   `git push`**, as it deploys the live site.
+
+## What Bitola added (v2.10.0)
+
+Shortcuts and fixes that came out of the third city; reuse them before writing new code:
+
+- **Download:** 4 × 3 tiles for a 20 × 15 km box kept timing out on the busy mirrors; 6 × 5 smaller tiles
+  went through (a run that gives up resumes from `data/tiles/`, so rerun it in a loop).
+- **Monuments on OSM outlines without new data keys:** put the way ids in `models` in `PREP`
+  (`{ clock: 1335734377, … }`). The outlines arrive as `landmarks.models[key]`, the generic OSM buildings and
+  any Overture duplicates are left out, and trees are kept off them. `src/bitola.ts` builds each model in a
+  frame along the outline's long axis (`frame()`, optional axis hint toward a compass direction) with
+  `parts()` (boxes, cylinders, domes, arches, walls and bands on the outline, hipped roofs, crosses).
+- **Flat floors and textures:** a floor painted on a canvas (`mosaicTexture()`: the Heraclea mosaics) is a
+  `CanvasTexture` on a plane; unloading the city frees it. Ruins on a slope need the ground levelled under
+  them (`flatWays` in the terrain spec), or walls get buried on the high side.
+- **No lake near the town:** `waterLines` widens a river OSM has only as a line into a strip of water in
+  its cut channel; the Air Tractor refills over it like over any water area.
+- **A square OSM has as a multipolygon relation:** the query fetches no relations of that kind; stitch its
+  outer ways and add the ring to `extraPlazas`.
+- **Height zones:** with few `building:levels` in OSM, a `mid` zone over the whole centre turns a
+  19th-century core into towers. Leave the old core out (several `mid` boxes round it) and tune by eye.
+- **Farmland that is not vineyards:** `vineyards` with a low `vineShare` (Bitola 0.08) paints mostly fields.
+- **A walker of the town's own:** `walker` and its rig in `walk.ts` (Bitola: Милтон Манаки, the action
+  films an оро instead of dancing it); `darkDog` for a different coat on the dog.
+- **Checking with a hidden browser pane:** the pixel check waits for the app's frames; in a hidden pane
+  replace `requestAnimationFrame` with a timer first (`window.requestAnimationFrame = (cb) =>
+  setTimeout(() => cb(performance.now()), 4)`), then `__px.compare()` runs.
 
 ## Checklist
 

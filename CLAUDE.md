@@ -41,7 +41,7 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 |---|---|
 | `main.ts` | App shell: renderer, controls, loading (staged build + progress card), city switching (`loadCity` / `unloadWorld` / `switchCity`), views, time of day, flight/race wiring, popups, help, gamepad, adaptive quality |
 | `cities.ts` | The cities (Skopje, Kavadarci, Bitola) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
-| `city.ts` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds; Kavadarci's vineyards and fields (`farmMask`, `VINE_GROUND`: farmland marked by one terrain colour, plots painted by the ground shader) |
+| `city.ts` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds; Kavadarci's vineyards and Bitola's fields (`farmMask`, `VINE_GROUND`: farmland marked by one terrain colour, plots painted by the ground shader; `vineShare` per city: the share of plots that are vineyards) |
 | `terrain.ts` | Heightfield with exact mesh-matching interpolation; chunk/low-res meshes; triangle clipping for draping |
 | `post.ts` | `InkRenderer`: colour + normal/depth passes (one pass in the low tier or with smooth edges off: normals as a second attachment) → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
 | `sky.ts` | Day / sunset / night presets + blending, weather presets (`WEATHER`: clear, rain, snow, snow on Vodno) + blending, street lamps, glow texture |
@@ -81,6 +81,7 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   per city, `data-city`) and shows only on the map itself, not while flying, driving or walking.
   The round `?` right after the badge opens the help
   (shared by every city; per-city paragraphs carry `data-city="…"`, hidden by the `city-<id>` body class).
+- Three cities: 091 Скопје, 043 Кавадарци (`?city=kavadarci`), 047 Битола (`?city=bitola`, v2.10.0).
 - The city is in the address: `?city=kavadarci`; no parameter = Skopje. Switching pushes a history entry
   (back / forward switch too) and drops the camera hash. Per-city menu items in `index.html` use `data-city`.
 - Switching unloads the city completely (`unloadWorld()` in `main.ts`): modes stopped, everything the
@@ -90,7 +91,14 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   ink passes and the settings stay.
 - Terrain per city: `terrain` in `scripts/config.ts` (smoothing, flat water, flat squares, river
   channels, known heights; applied by `scripts/terrain.ts` from the raw OSM) and `terrainExag` in
-  `src/cities.ts` (Skopje 1.12, Kavadarci 1 = true heights). OSM reading helpers: `scripts/osm.ts`.
+  `src/cities.ts` (Skopje 1.12, Kavadarci and Bitola 1 = true heights). OSM reading helpers: `scripts/osm.ts`.
+- What else differs per city in `CITIES` (`src/cities.ts`): `buses` (red ЈСП buses and the drivable
+  double-decker: Skopje only), `walker` (`pejo`, Kavadarci's `suit`, Bitola's `manaki` whose action films an
+  оро), `darkDog` (Bitola's Пелистер coat), `vineyards` / `vineShare`, `treeThin`, `sparseFar`, `snowLabel` /
+  `refillLabel`, `banners`, `bestRaceKey`. In `PREP` (`scripts/prepare.ts`): `models` (OSM way ids of
+  outlines a city's own hand-built models replace: Bitola → `landmarks.models`, `src/bitola.ts`),
+  `waterLines` (rivers OSM has only as lines, widened into water areas for refilling: Bitola's Драгор),
+  `extraPlazas` (squares OSM has only as relations the query does not fetch: Плоштад Магнолија).
 - A new city: step by step in [docs/ADDING_A_CITY.md](docs/ADDING_A_CITY.md) (bbox in `scripts/config.ts`,
   `PREP` in `scripts/prepare.ts`, `CITIES` in `src/cities.ts`, `data-city` items and the CSS rule in
   `index.html`, strings in 6 languages, monuments from references, the checks).

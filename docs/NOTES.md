@@ -381,6 +381,9 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 | Per-city views, labels, race route, info spots | `CITIES` in `src/cities.ts` |
 | Kavadarci monuments | `createLandmarks()` in `src/landmarks.ts` (after the Skopje ones) |
 | Kavadarci churches | `createChurches()` in `src/churches.ts` |
+| Bitola monuments and Heraclea's mosaics (sizes, colours, the painted floors) | `createBitola()`, `paint*` / `mosaicTexture()` in `src/bitola.ts`; outlines: `models` in `PREP` |
+| Share of farm plots that are vineyards | `vineShare` in `CITIES` (Kavadarci 0.52, Bitola 0.08) |
+| Rivers widened into refill water (half width) | `waterLines` in `PREP` |
 | Vineyards and fields: where (height, slope, distance from buildings) / how they look | `farmMask()` and `vineyards` in `CITIES` (`src/cities.ts`) / `VINE_GROUND` in `src/city.ts` |
 
 ## Settings: what is saved, what resets, what the code decides
@@ -559,6 +562,8 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 
 ## Not verified yet
 
+- Bitola on a phone (layout, memory with 25,515 buildings) and its load time next to the other
+  cities; Манаки's walking and filming only by stepping the simulation in a hidden pane.
 - Real iPhone/iPad — only emulated. Memory limits there: see "A larger map" at the end.
 - Real gamepads — only a simulated standard-mapping pad. Pads the browser does not map
   (`mapping` not `"standard"`, e.g. some generic DirectInput pads) are ignored on purpose.
