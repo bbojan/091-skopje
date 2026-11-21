@@ -1,10 +1,9 @@
 # Towns to do
 
-**Finished: 11 maps on the site** (v11.0.0, 2026-11-21): 091 Скопје, 043 Кавадарци, 097 Битола,
+**Finished: 14 maps on the site** (v14.0.1, 2026-11-21): 091 Скопје, 043 Кавадарци, 097 Битола,
 096 Охрид (with Струга), 048 Прилеп, 098 Крушево, 042 Ростуше (with Дебар and Маврово),
-033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево). **Built, not yet on the
-site: 3 more** (v14.0.0, the `city-tetovo-brod-resen` branch): 094 Тетово (with Гостивар), 045 Македонски Брод, 047 Ресен.
-Details in the first table below.
+033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
+045 Македонски Брод, 047 Ресен. Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
@@ -22,7 +21,7 @@ Coordinates are approximate, written from memory while planning: **check every p
 drawing a bbox**. Badge codes are the owner's own choice, not always the phone code (Bitola 097,
 Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 
-## Finished (14 maps: 11 on the site, 3 on the `city-tetovo-brod-resen` branch)
+## Finished (14 maps, all on the site)
 
 | Map | Also on it | `?city=` | bbox (s, w, n, e) |
 |---|---|---|---|
@@ -49,7 +48,7 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
   (aerialways), Арабати Баба Теќе as a model, the LinkedIn developer (the default link for now).
 
 - **On it:** Тетово, Гостивар, Вруток, Шар Планина (Попова Шапка, Титов Врв).
-- **Code:** **094** (decided). `?city=tetovo`, likely v12.0.0.
+- **Code:** **094** (decided). `?city=tetovo`, released in v14.0.1.
 - **Extent:** **edge to edge with Ростуше** (decided): s = 41.725 (Rostuše's n). Draft: s 41.725,
   w ~20.72, n ~42.06, e ~21.06 (about 37 × 28 km), 20 m cells, `smooth: 1` (as Rostuše).
   Љуботен (42.19 N) is left out.
