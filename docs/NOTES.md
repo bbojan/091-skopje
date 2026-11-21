@@ -558,6 +558,12 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    phones (Тетово's 75k buildings are the real question), firefighting, the races, walking cards one by one, night
    and snow views. Not modelled: Арабати Баба Теќе, the ski lifts of Попова Шапка (aerialways are not in the
    download), Пешна's cave mouth, Св. Ахил's basilica, Kurbinovo's frescoes (labels and cards only).
+37. **v14.0.1** (Nov 2026): with 14 cities the city menu under the badge no longer fit a phone held sideways
+   (its lower half was cut off). When it is taller than the space below the badge it now wraps into columns filled
+   top to bottom (`fitCityMenu()` in `main.ts`, `.city-menu.cols`): as many as the height needs and the width allows,
+   measured, then it scrolls. 3 columns at 844 × 390, 2 scrolling at 640 × 300, desktop unchanged. The picker's order
+   follows the map: Берово, Тетово, Ресен, Брод, Каменица, Батинци. The towns map (docs/towns-map.png) is drawn by
+   `scripts/towns-map.html`.
 
 ## Key decisions (and why)
 

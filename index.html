@@ -26,6 +26,10 @@
       .city-menu { position: absolute; left: -1.5px; top: calc(100% + 8px); display: flex; flex-direction: column; gap: 6px; min-width: calc(100% + 3px); box-sizing: border-box;
                    padding: 18px 10px; background: var(--linen); border: 1.5px solid var(--indigo); border-radius: 12px; box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); }
       .city-menu[hidden] { display: none; }
+      /* too tall for the screen (phones held sideways): columns filled top to bottom (fitCityMenu() in main.ts), scrolls if still too tall */
+      .city-menu.cols { display: grid; grid-auto-flow: column; grid-template-rows: repeat(var(--rows), auto); align-content: start;
+                        width: max-content; min-width: 0;
+                        max-height: calc(100dvh - var(--top) - 8px); overflow-y: auto; }
       .city-menu::before, .city-menu::after { content: ''; position: absolute; left: 6px; right: 6px; height: 10px; background: var(--stitch) repeat-x center; pointer-events: none; }
       .city-menu::before { top: 3px; }
       .city-menu::after { bottom: 3px; }
