@@ -8,7 +8,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 
 Илустрирана, жива 3Д мапа на Скопје, нацртана од отворените податоци на OpenStreetMap.
 
-More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) and **048 Крушево** (Kruševo, the town of the Ilinden Uprising) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo
+More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) **048 Крушево** (Kruševo, the town of the Ilinden Uprising) and **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica
 
 ## Features
 
@@ -49,6 +49,11 @@ More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš 
 - The highest town in Macedonia on the slopes of Buševa Planina, its white houses with red roofs, the forests round it, on real terrain
 - Hand-built after photos: the Makedonium (Jordan and Iskra Grabul, 1974) with its stained-glass windows, the giant of Mečkin Kamen
 - Its own places, labels, race route (8 rings), walking info cards; firefighting refills from Kruševo Lake; no ЈСП buses
+
+**Makedonska Kamenica** (`?city=kamenica`)
+- The miners' town in the valley of the Kamenička Reka under Osogovo, the Sasa lead and zinc mine up the valley, Lake Kalimanci on the Bregalnica, on real terrain
+- Hand-built after photos: the church of the Dormition on the town square, the square's fountain with its statue
+- Its own places, labels, race route (12 rings), walking info cards; firefighting refills from Lake Kalimanci; no ЈСП buses
 
 **Time, weather and seasons**
 - Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, paragliders over Vodno, flowing river
@@ -106,6 +111,7 @@ npm run download -- ohrid && npm run overture -- ohrid && npm run terrain -- ohr
 npm run download -- rostuse && npm run overture -- rostuse && npm run terrain -- rostuse && npm run data -- rostuse
 npm run download -- prilep && npm run overture -- prilep && npm run terrain -- prilep && npm run data -- prilep
 npm run download -- krusevo && npm run overture -- krusevo && npm run terrain -- krusevo && npm run data -- krusevo
+npm run download -- kamenica && npm run overture -- kamenica && npm run terrain -- kamenica && npm run data -- kamenica
 ```
 
 ## Credits

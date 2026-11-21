@@ -359,6 +359,25 @@ const PREP: Record<CityName, CityPrep> = {
     squareBonus: false,
     maxLevels: 5,
   },
+  kamenica: {
+    old: null, // a miners' town built after 1960: no old core
+    square: [42.02165, 22.58816], // the town square by the church and the town hall
+    landmarks: {},
+    // modelled by hand after photos (src/kamenica.ts): the church Успение на Пресвета Богородица on its OSM outline
+    models: { uspenie: 1459871037 },
+    // the square's big fountain with the statue on top (OSM: amenity=fountain, not in the download)
+    modelRects: { kfountain: [42.02147, 22.58820, 13, 13, 0] },
+    placeNames: {},
+    placeIds: { square: 1459871035, uspenie: 1459871037, miners: 1459871036, stadium: 202649369, kalata: 1323655403, dam: 1323590645, hpp: 909636475 },
+    placeNodes: { sasa: 2021391249, mine: 466248940 },
+    nodeLL: { 2021391249: [42.09592, 22.54309], 466248940: [42.11426, 22.51931] }, // place=village Саса; landuse=quarry, the Саса mine
+    tall: [],
+    mid: [[42.0170, 42.0265, 22.5835, 22.5960]], // the blocks of flats round the square
+    squareBonus: false,
+    maxLevels: 9, // photos of 2010: a handful of towers of about ten storeys among low houses with tiled roofs
+    // OSM outlines without levels that the centre's zone would raise into towers: the Макпетрол station, the Жито shop
+    buildingTags: { 1540138912: { 'building:levels': '1' }, 1041185442: { 'building:levels': '2' } },
+  },
 };
 const CFG = PREP[CITY];
 const OLD = CFG.old;

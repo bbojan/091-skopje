@@ -122,6 +122,15 @@ export const CITIES = {
     files: { raw: 'data/krusevo_raw.json', scene: 'public/krusevo.json', terrainBin: 'public/krusevo-terrain.bin', terrainJson: 'public/krusevo-terrain.json', overture: 'data/krusevo_overture.json' },
     terrain: { smooth: 1, flatWater: true, rivers: { river: [4, 1.5], stream: [2, 1], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Македонска Каменица: the town in the valley of the Каменичка Река under Осогово, Саса and its lead and zinc mine
+  // up the valley to the north, and the whole of Езеро Калиманци on the Брегалница to the south-east (the firefighting
+  // water): the dam and its power house at the west end, the tail up the Брегалница valley to ~22.68 E at full level
+  kamenica: {
+    bbox: { s: 41.945, w: 22.495, n: 42.125, e: 22.71 },
+    tiles: [4, 4] as [number, number],
+    files: { raw: 'data/kamenica_raw.json', scene: 'public/kamenica.json', terrainBin: 'public/kamenica-terrain.bin', terrainJson: 'public/kamenica-terrain.json', overture: 'data/kamenica_overture.json' },
+    terrain: { smooth: 1, flatWater: true, rivers: { river: [4, 1.5], stream: [2, 1], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: { s: number; w: number; n: number; e: number }; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec }>;
 export type CityName = keyof typeof CITIES;
 const isCity = (s: string | undefined): s is CityName => !!s && s in CITIES;
