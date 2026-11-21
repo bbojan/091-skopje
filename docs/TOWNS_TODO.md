@@ -8,6 +8,13 @@ Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
+The map is drawn by [scripts/towns-map.html](../scripts/towns-map.html) (d3 from a CDN; the boxes are typed in
+by hand: move a town from `planned` to `existing` when it is built). With `npm run dev` running:
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
+```
+
 **To do: 11 new maps** (5 shared, 6 single) **and Скопје widened** (east, west, north, with Матка), planned with the owner on 2026-11-21
 (14 maps then; Тетово, Брод and Ресен are built). Кратово is next in the list. How to build one: [ADDING_A_CITY.md](ADDING_A_CITY.md).
 

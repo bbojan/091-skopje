@@ -1,0 +1,33 @@
+<!doctype html><html lang="mk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Town map extents</title>
+<style>:root{--text-primary:#0b0b0b;--text-secondary:#52514e}body{margin:0;padding:16px;background:#fcfcfb;font-family:system-ui,sans-serif;color:var(--text-primary)}#wrap{max-width:1600px;margin:auto}#map svg{border:1px solid #e1e0d9;border-radius:8px;background:#fff;cursor:grab;display:block}</style></head><body><div id="wrap">
+<div id="legend" style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--text-secondary);margin:0 0 8px"></div>
+<div id="map" style="width:100%"></div>
+<div style="font-size:12px;color:#898781;margin:6px 0">Scroll to zoom, drag to pan.</div><div id="ov" style="font-size:13px;color:var(--text-secondary);margin-top:8px;line-height:1.6"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+const dark=false;const EX='#1f2a44';
+const existing=[['Скопје',41.955,21.33,42.055,21.525],['Кавадарци',41.25,21.85,41.462,22.062],['Битола',40.955,21.165,41.085,21.40],['Охрид',40.885,20.615,41.205,20.845],['Прилеп',41.31,21.49,41.41,21.63],['Крушево',41.33,21.19,41.405,21.31],['Ростуше',41.39,20.49,41.725,20.815],['Каменица',41.945,22.495,42.125,22.71],['Дојран',41.15,22.66,41.27,22.82],['Батинци',41.875,21.385,41.955,21.545],['Берово',41.65,22.82,41.778,22.94],['Тетово',41.725,20.72,42.075,21.06],['Ресен',40.685,20.845,41.13,21.165],['Брод',41.45,21.12,41.926,21.42]];
+const planned=[['Кратово',41.94,22.08,42.13,22.30,'#1baf7a'],['Штип',41.60,22.12,41.94,22.56,'#eda100'],['Струмица',41.10,22.40,41.50,22.66,'#e87ba4'],['Неготино',41.36,22.062,41.60,22.32,'#008300'],['Куманово',42.08,21.50,42.25,21.78,'#6250d6']];
+const SG='#888780',sh=[0.05,0.07];
+const singles=[['Велес',41.72,21.79],['Св. Николе',41.87,21.94],['Кичево',41.51,20.96],['Демир Хисар',41.22,21.20],['Делчево',41.97,22.77],['Крива Паланка',42.20,22.33]].map(([n,la,lo])=>[n,la-sh[0],lo-sh[1],la+sh[0],lo+sh[1],SG]);
+const skopjeWide=['Скопје widened (guess)',41.926,21.25,42.10,21.65];
+const points=[['Стоби',41.55,21.97],['Вевчани',41.24,20.59],['Росоман',41.52,21.95],['Кокино',42.26,21.96],['Смолари',41.37,22.94],['Белчишта',41.30,20.83],['Матка',41.95,21.30]];
+const sw=(c,d)=>`<span style="width:10px;height:10px;border-radius:2px;background:${c};opacity:${d?0.5:0.85};display:inline-block"></span>`;
+document.getElementById('legend').innerHTML=`<b style="font-weight:600;color:#0b0b0b">Done:</b><span style="display:flex;gap:4px;align-items:center">${sw(EX)}on the site (solid, ✓)</span><b style="font-weight:600;color:#0b0b0b;margin-left:12px">To do (dashed, pale):</b>`+planned.map(p=>`<span style="display:flex;gap:4px;align-items:center">${sw(p[5])}${p[0]}</span>`).join('')+`<span style="display:flex;gap:4px;align-items:center">${sw(SG,1)}Single towns (rough)</span><span style="display:flex;gap:4px;align-items:center"><span style="width:10px;height:10px;background:repeating-linear-gradient(45deg,#d03b3b 0 2px,transparent 2px 4px);display:inline-block"></span>Overlap</span>`;
+const W=1400,H=1060;const root=d3.select('#map').append('svg').attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%');const svg=root.append('g');root.call(d3.zoom().scaleExtent([1,12]).on('zoom',e=>{svg.attr('transform',e.transform);svg.selectAll('text').attr('font-size',16/e.transform.k);svg.selectAll('circle').attr('r',4/e.transform.k);svg.selectAll('rect,path').attr('stroke-width',1.5/e.transform.k);}));
+root.append('defs').html('<pattern id="hz" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="5" fill="#d03b3b"/></pattern>');
+const ext={type:'Feature',geometry:{type:'Polygon',coordinates:[[[20.44,40.66],[20.44,42.40],[23.04,42.40],[23.04,40.66],[20.44,40.66]]]}};
+const proj=d3.geoMercator().fitExtent([[6,6],[W-6,H-6]],ext);const path=d3.geoPath(proj);const ink='#52514e',muted='#898781';
+function rect(b){const a=proj([b[2],b[3]]),c=proj([b[4],b[1]]);return{x:a[0],y:a[1],w:c[0]-a[0],h:c[1]-a[1]};}
+d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(w=>{const f=topojson.feature(w,w.objects.countries).features;svg.insert('g',':first-child').selectAll('path').data(f).join('path').attr('d',path).attr('fill',d=>d.id==='807'?'#f0efec':'none').attr('stroke',d=>d.id==='807'?ink:muted).attr('stroke-width',d=>d.id==='807'?1:0.5).attr('stroke-dasharray',d=>d.id==='807'?null:'2 3');draw();}).catch(()=>draw());
+function box(b,col,op,dash,sw){const r=rect(b);svg.append('rect').attr('x',r.x).attr('y',r.y).attr('width',r.w).attr('height',r.h).attr('fill',col).attr('fill-opacity',op).attr('stroke',col).attr('stroke-width',sw||1.5).attr('stroke-dasharray',dash||null);}
+function label(t,x,y,a,c,wt){svg.append('text').attr('x',x).attr('y',y).attr('text-anchor',a||'middle').attr('font-size',16).attr('font-weight',wt||400).attr('fill',c||'#0b0b0b').text(t);}
+function draw(){const all=[...existing.map(e=>[...e,EX,'e']),...planned.map(p=>[...p,'p']),...singles.map(s=>[...s,'s'])];
+existing.forEach(e=>box(e,EX,0.72,null,2));planned.forEach(p=>box(p,p[5],0.16,'7 4'));singles.forEach(s=>box(s,SG,0.12,'7 4'));box(skopjeWide,EX,0,'5 3');
+const ov=[];for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const A=all[i],B=all[j];if(A[6]==='e'&&B[6]==='e')continue;const s=Math.max(A[1],B[1]),n=Math.min(A[3],B[3]),wv=Math.max(A[2],B[2]),e=Math.min(A[4],B[4]);
+if(n-s>1e-4&&e-wv>1e-4){const r=rect(['',s,wv,n,e]);svg.append('rect').attr('x',r.x).attr('y',r.y).attr('width',Math.max(r.w,1.5)).attr('height',Math.max(r.h,1.5)).attr('fill','url(#hz)').attr('stroke','#d03b3b');ov.push(`${A[0]} ↔ ${B[0]}: ${((n-s)*111).toFixed(1)} × ${((e-wv)*111*Math.cos(41.5*Math.PI/180)).toFixed(1)} km`);}}
+points.forEach(([n,la,lo])=>{const[x,y]=proj([lo,la]);svg.append('circle').attr('cx',x).attr('cy',y).attr('r',4).attr('fill',ink);label(n,x+6,y-5,'start');});
+all.forEach(b=>{const r=rect(b);const done=b[6]==='e';const t=done?'✓ '+b[0]:b[0];const fits=t.length*9+10<r.w;label(t,r.x+r.w/2,fits?r.y+r.h/2+5:r.y+r.h+17,'middle',done&&fits?'#f4ede0':(done?'#1f2a44':'#0b0b0b'),done?600:400);});const r=rect(skopjeWide);label('Скопје widened?',r.x+r.w-2,r.y-3,'end');
+document.getElementById('ov').innerHTML='<b>Overlaps</b> (the widened Скопје outline is a guess and left out): '+(ov.length?ov.join(' · '):'none');}
+</script></body></html>
