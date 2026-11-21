@@ -169,11 +169,14 @@ export interface ChurchOpts {
   tower?: { h: number; s?: number; side?: 1 | -1 };
   /** rows of window arches on the long sides */
   windows?: number;
+  /** brick courses in stone or cloisonné walls (default true; Лешок's grey ashlar has none) */
+  courses?: boolean;
 }
 export function byzChurch(p: Parts, f: Frame, o: ChurchOpts = {}): void {
   const L = f.L, W = f.W, under = f.under;
   const low = o.low ?? Math.min(6.5, 2.2 + W * 0.55), high = o.high ?? low + Math.min(3.2, 1 + W * 0.3);
   const wallK: Key = o.wall === 'white' ? 'plaster' : o.wall === 'stone' ? 'stone' : 'ashlar', roof = o.roof ?? 'tile';
+  const bricks = o.wall !== 'white' && o.courses !== false;
   const rA = Math.min(W * 0.42, 3.2), nar = Math.min(o.narthex ?? 0, L * 0.6);
   const u0 = -L + nar, u1 = L - rA * 0.9, cw = Math.max(1.4, W * 0.36); // the naos and half the arms' width
   const cu = (u0 + u1) / 2 + (u1 - u0) * 0.08; // the crossing, a little east of the middle
@@ -183,7 +186,7 @@ export function byzChurch(p: Parts, f: Frame, o: ChurchOpts = {}): void {
   p.box(wallK, u0, u1, -cw, cw, low, high); // the arm along u (nave)
   p.box(wallK, cu - cw, cu + cw, -W, W, low, high); // the transept
   const courses = (u0_: number, u1_: number, v0: number, v1: number, y0: number, y1: number, step = 0.75) => {
-    if (o.wall === 'white') return;
+    if (!bricks) return;
     for (let y = y0 + step; y < y1 - 0.2; y += step) p.box('brick', u0_ - 0.03, u1_ + 0.03, v0 - 0.03, v1 + 0.03, y, y + 0.11);
   };
   courses(u0, u1, -W, W, 0.4, low);
@@ -214,7 +217,7 @@ export function byzChurch(p: Parts, f: Frame, o: ChurchOpts = {}): void {
   // the apse: a half cylinder (five sides) with a half cone, three windows
   if (rA > 0.8) {
     p.add(wallK, new THREE.CylinderGeometry(rA, rA, high - 0.4, 10, 1, false, 0, Math.PI).translate(u1, 0.4 + (high - 0.4) / 2, 0));
-    if (o.wall !== 'white') for (let y = 1.2; y < high - 0.4; y += 0.75) p.add('brick', new THREE.CylinderGeometry(rA + 0.03, rA + 0.03, 0.11, 10, 1, true, 0, Math.PI).translate(u1, y, 0));
+    if (bricks) for (let y = 1.2; y < high - 0.4; y += 0.75) p.add('brick', new THREE.CylinderGeometry(rA + 0.03, rA + 0.03, 0.11, 10, 1, true, 0, Math.PI).translate(u1, y, 0));
     p.add(roof, new THREE.ConeGeometry(rA + 0.3, rise * 0.9, 10, 1, false, 0, Math.PI).translate(u1, high + rise * 0.45, 0));
     p.add('stoneDark', new THREE.CylinderGeometry(rA + 0.05, rA + 0.05, 0.4 - under, 10, 1, false, 0, Math.PI).translate(u1, (0.4 + under) / 2, 0));
     for (const a of [-0.6, 0, 0.6]) p.put('glass', p.arch(0.55, 1.7, 0.08), u1 + Math.cos(a) * rA * 0.98, Math.sin(a) * rA * 0.98, 2.2, Math.PI / 2 + a);
@@ -229,7 +232,7 @@ export function byzChurch(p: Parts, f: Frame, o: ChurchOpts = {}): void {
   if (o.drum !== false) {
     const d = o.drum || {}, rD = d.r ?? Math.min(cw * 1.05, 3.4), hD = d.h ?? rD * 1.5, sides = d.sides ?? 8, y0 = high + rise * 0.6;
     p.cyl(wallK, cu, 0, high, y0 + hD, rD, rD, sides);
-    if (o.wall !== 'white') for (let y = y0 + 0.5; y < y0 + hD - 0.3; y += 0.7) p.cyl('brick', cu, 0, y, y + 0.1, rD + 0.03, rD + 0.03, sides);
+    if (bricks) for (let y = y0 + 0.5; y < y0 + hD - 0.3; y += 0.7) p.cyl('brick', cu, 0, y, y + 0.1, rD + 0.03, rD + 0.03, sides);
     for (let k = 0; k < sides; k++) {
       const a = (k / sides) * Math.PI * 2 + Math.PI / sides, ap = rD * Math.cos(Math.PI / sides);
       p.put('brick', p.arch(rD * 0.62, hD * 0.72, 0.05), cu + Math.sin(a) * ap, Math.cos(a) * ap, y0 + hD * 0.12, a); // the blind arcade
@@ -243,7 +246,7 @@ export function byzChurch(p: Parts, f: Frame, o: ChurchOpts = {}): void {
   for (const [mu, mv] of (o.minor === 4 ? [[u0 + 1.6, -W + 1.6], [u0 + 1.6, W - 1.6], [u1 - 1.6, -W + 1.6], [u1 - 1.6, W - 1.6]] : o.minor === 2 ? [[u0 + 1.6, -W + 1.6], [u0 + 1.6, W - 1.6]] : []) as [number, number][]) {
     const r = 1.15;
     p.cyl(wallK, mu, mv, low, high + 1.6, r, r, 8);
-    if (o.wall !== 'white') p.cyl('brick', mu, mv, high + 0.6, high + 0.72, r + 0.03, r + 0.03, 8);
+    if (bricks) p.cyl('brick', mu, mv, high + 0.6, high + 0.72, r + 0.03, r + 0.03, 8);
     p.cone(roof, mu, mv, high + 1.6, r + 0.3, 0.7, 8);
     p.cross(mu, mv, high + 2.3, 0.4);
   }

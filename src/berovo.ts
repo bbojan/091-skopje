@@ -14,7 +14,7 @@
 // photos (door ≈ 2.2 m), not measured; the bell tower's place on the konak is a guess from one photo. The dam
 // follows OSM's crest line; its height is read off a photo.
 import * as THREE from 'three';
-import { frame, parts, modelKit, gable, facing, tris, PU, MU, PV, MV, type Frame } from './models.ts';
+import { frame, parts, modelKit, gable, facing, tris, PU, MU, PV, MV, type Frame, type Parts } from './models.ts';
 import type { Terrain } from './terrain.ts';
 import type { CityData, Flat, Pt } from './types.ts';
 
@@ -124,75 +124,81 @@ export function createBerovo(data: CityData, terrain: Terrain, clippingPlanes: T
 
   // ---------------- the arch dam on OSM's crest line, convex toward the lake; the gorge on the concave side
   const df = M.bdam ? frame(M.bdam, terrain) : null;
-  if (df) {
-    const p = parts(), ring = M.bdam, P: Pt[] = [];
-    for (let i = 0; i < ring.length; i += 2) P.push(df.local(ring[i], ring[i + 1]));
-    const n = P.length, chord: Pt = [(P[0][0] + P[n - 1][0]) / 2, (P[0][1] + P[n - 1][1]) / 2];
-    // each crest point's normal toward the downstream (concave) side
-    const N: Pt[] = P.map((q, k) => {
-      const a = P[Math.max(0, k - 1)], b = P[Math.min(n - 1, k + 1)], tu = b[0] - a[0], tv = b[1] - a[1], l = Math.hypot(tu, tv) || 1;
-      let nu = -tv / l, nv = tu / l;
-      if (nu * (chord[0] - q[0]) + nv * (chord[1] - q[1]) < 0) { nu = -nu; nv = -nv; }
-      return [nu, nv];
-    });
-    const gnd = (u: number, v: number) => { const [x, z] = df.world(u, v); return terrain.at(x, z) - df.y; };
-    // the lake's flat level, read 20 m upstream of the middle of the crest; the crest 1.4 m above it
-    const mid = Math.floor(n / 2), water = gnd(P[mid][0] - N[mid][0] * 20, P[mid][1] - N[mid][1] * 20);
-    const crest = water + 1.4, wet = water - 6;
-    const T = 3.0; // crest thickness; the downstream face leans out a quarter of the height below it
-    const top: number[][] = [], foot: number[][] = [], up: number[][] = [], wetTop: number[][] = [];
-    P.forEach((q, k) => {
-      const [nu, nv] = N[k];
-      let g = crest;
-      for (const d of [T + 2, T + 5, T + 9]) g = Math.min(g, gnd(q[0] + nu * d, q[1] + nv * d));
-      const hgt = Math.max(0, crest - g), o = T + hgt * 0.25, bot = Math.min(gnd(q[0] + nu * o, q[1] + nv * o), g) - 1.5;
-      top.push([q[0] + nu * T, crest, q[1] + nv * T]);
-      foot.push([q[0] + nu * o, bot, q[1] + nv * o]);
-      up.push([q[0], crest, q[1]]);
-      wetTop.push([q[0], Math.min(wet, bot), q[1]]);
-    });
-    const strip = (A: number[][], B: number[][], toward: (k: number) => [number, number, number]) => {
-      const t: number[] = [];
-      for (let k = 0; k + 1 < n; k++) t.push(...facing([...A[k], ...A[k + 1], ...B[k + 1], ...A[k], ...B[k + 1], ...B[k]], toward(k)));
-      return tris(t);
-    };
-    p.add('concrete', strip(up, top, () => [0, 1, 0])); // the crest
-    p.add('concrete', strip(top, foot, (k) => [N[k][0], 0, N[k][1]])); // the downstream face
-    p.add('concrete', strip(up, wetTop, (k) => [-N[k][0], 0, -N[k][1]])); // the upstream face, into the water
-    // the joints dividing the downstream face into panels, a few metres apart
-    for (let k = 0; k + 1 < n; k++) {
-      const len = Math.hypot(P[k + 1][0] - P[k][0], P[k + 1][1] - P[k][1]), m = Math.max(1, Math.round(len / 9));
-      for (let j = k === 0 ? 0 : 1; j <= m; j++) {
-        const f = j / m, a = top[k].map((c, i) => c + (top[k + 1][i] - c) * f), b = foot[k].map((c, i) => c + (foot[k + 1][i] - c) * f);
-        const nu = N[k][0] + (N[k + 1][0] - N[k][0]) * f, nv = N[k][1] + (N[k + 1][1] - N[k][1]) * f, e = 0.08;
-        const du = -nv * 0.18, dv = nu * 0.18; // across the joint
-        const q = [a[0] + du + nu * e, a[1], a[2] + dv + nv * e, a[0] - du + nu * e, a[1], a[2] - dv + nv * e, b[0] - du + nu * e, b[1], b[2] - dv + nv * e,
-          a[0] + du + nu * e, a[1], a[2] + dv + nv * e, b[0] - du + nu * e, b[1], b[2] - dv + nv * e, b[0] + du + nu * e, b[1], b[2] + dv + nv * e];
-        p.add('concreteDark', tris(facing(q, [nu, 0, nv])));
-      }
-    }
-    // the railings on both sides of the crest and its lamps
-    const rail = (A: number[][], dn: number) => {
-      const R = A.map((c, k) => [c[0] + N[k][0] * dn, c[1] + 1.0, c[2] + N[k][1] * dn]), B = A.map((c, k) => [c[0] + N[k][0] * dn, c[1] + 0.9, c[2] + N[k][1] * dn]);
-      p.add('iron', strip(R, B, (k) => [N[k][0], 0, N[k][1]]));
-      p.add('iron', strip(B, R, (k) => [-N[k][0], 0, -N[k][1]]));
-    };
-    rail(up, 0.15); rail(top, -0.15);
-    let run = 0;
-    for (let k = 0; k < n; k++) {
-      if (k) run += Math.hypot(P[k][0] - P[k - 1][0], P[k][1] - P[k - 1][1]);
-      if (k && run < 14 && k < n - 1) continue;
-      run = 0;
-      const [nu, nv] = N[k], lu = P[k][0] + nu * 0.3, lv = P[k][1] + nv * 0.3;
-      p.cyl('iron', lu, lv, crest, crest + 4.0, 0.06, 0.06, 6);
-      p.add('glass', new THREE.SphereGeometry(0.22, 10, 6).translate(lu, crest + 4.1, lv));
-    }
-    // a small house of the dam's keepers on the left bank (the photos), downstream of the north end
-    const [hu, hv] = [P[0][0] + N[0][0] * 12, P[0][1] + N[0][1] * 12], hy = gnd(hu, hv);
-    p.box('plaster', hu - 3, hu + 3, hv - 2.5, hv + 2.5, hy - 1, hy + 3.0);
-    p.hip('tile', hu - 3, hu + 3, hv - 2.5, hv + 2.5, hy + 3.0, 1.4, 0.4);
-    place(p, df);
-  }
+  if (df) { const p = parts(); archDam(p, df, M.bdam, terrain, true); place(p, df); }
 
   return { group, nightLit: [glass] };
+}
+
+/** A concrete arch dam on OSM's crest line (`ring` in world x, z; Берово, Света Петка): the crest 1.4 m over the lake's
+ *  flat level, read 20 m upstream; the downstream face leans out to the gorge on the concave side, panel joints,
+ *  railings and lamps; `keeper`: a small house on the left bank. Parts go into `p` in the frame `df`. */
+export function archDam(p: Parts, df: Frame, ring: Flat, terrain: Terrain, keeper = false) {
+  const P: Pt[] = [];
+  for (let i = 0; i < ring.length; i += 2) P.push(df.local(ring[i], ring[i + 1]));
+  const n = P.length, chord: Pt = [(P[0][0] + P[n - 1][0]) / 2, (P[0][1] + P[n - 1][1]) / 2];
+  // each crest point's normal toward the downstream (concave) side
+  const N: Pt[] = P.map((q, k) => {
+    const a = P[Math.max(0, k - 1)], b = P[Math.min(n - 1, k + 1)], tu = b[0] - a[0], tv = b[1] - a[1], l = Math.hypot(tu, tv) || 1;
+    let nu = -tv / l, nv = tu / l;
+    if (nu * (chord[0] - q[0]) + nv * (chord[1] - q[1]) < 0) { nu = -nu; nv = -nv; }
+    return [nu, nv];
+  });
+  const gnd = (u: number, v: number) => { const [x, z] = df.world(u, v); return terrain.at(x, z) - df.y; };
+  // the lake's flat level, read 20 m upstream of the middle of the crest; the crest 1.4 m above it
+  const mid = Math.floor(n / 2), water = gnd(P[mid][0] - N[mid][0] * 20, P[mid][1] - N[mid][1] * 20);
+  const crest = water + 1.4, wet = water - 6;
+  const T = 3.0; // crest thickness; the downstream face leans out a quarter of the height below it
+  const top: number[][] = [], foot: number[][] = [], up: number[][] = [], wetTop: number[][] = [];
+  P.forEach((q, k) => {
+    const [nu, nv] = N[k];
+    let g = crest;
+    for (const d of [T + 2, T + 5, T + 9]) g = Math.min(g, gnd(q[0] + nu * d, q[1] + nv * d));
+    const hgt = Math.max(0, crest - g), o = T + hgt * 0.25, bot = Math.min(gnd(q[0] + nu * o, q[1] + nv * o), g) - 1.5;
+    top.push([q[0] + nu * T, crest, q[1] + nv * T]);
+    foot.push([q[0] + nu * o, bot, q[1] + nv * o]);
+    up.push([q[0], crest, q[1]]);
+    wetTop.push([q[0], Math.min(wet, bot), q[1]]);
+  });
+  const strip = (A: number[][], B: number[][], toward: (k: number) => [number, number, number]) => {
+    const t: number[] = [];
+    for (let k = 0; k + 1 < n; k++) t.push(...facing([...A[k], ...A[k + 1], ...B[k + 1], ...A[k], ...B[k + 1], ...B[k]], toward(k)));
+    return tris(t);
+  };
+  p.add('concrete', strip(up, top, () => [0, 1, 0])); // the crest
+  p.add('concrete', strip(top, foot, (k) => [N[k][0], 0, N[k][1]])); // the downstream face
+  p.add('concrete', strip(up, wetTop, (k) => [-N[k][0], 0, -N[k][1]])); // the upstream face, into the water
+  // the joints dividing the downstream face into panels, a few metres apart
+  for (let k = 0; k + 1 < n; k++) {
+    const len = Math.hypot(P[k + 1][0] - P[k][0], P[k + 1][1] - P[k][1]), m = Math.max(1, Math.round(len / 9));
+    for (let j = k === 0 ? 0 : 1; j <= m; j++) {
+      const f = j / m, a = top[k].map((c, i) => c + (top[k + 1][i] - c) * f), b = foot[k].map((c, i) => c + (foot[k + 1][i] - c) * f);
+      const nu = N[k][0] + (N[k + 1][0] - N[k][0]) * f, nv = N[k][1] + (N[k + 1][1] - N[k][1]) * f, e = 0.08;
+      const du = -nv * 0.18, dv = nu * 0.18; // across the joint
+      const q = [a[0] + du + nu * e, a[1], a[2] + dv + nv * e, a[0] - du + nu * e, a[1], a[2] - dv + nv * e, b[0] - du + nu * e, b[1], b[2] - dv + nv * e,
+        a[0] + du + nu * e, a[1], a[2] + dv + nv * e, b[0] - du + nu * e, b[1], b[2] - dv + nv * e, b[0] + du + nu * e, b[1], b[2] + dv + nv * e];
+      p.add('concreteDark', tris(facing(q, [nu, 0, nv])));
+    }
+  }
+  // the railings on both sides of the crest and its lamps
+  const rail = (A: number[][], dn: number) => {
+    const R = A.map((c, k) => [c[0] + N[k][0] * dn, c[1] + 1.0, c[2] + N[k][1] * dn]), B = A.map((c, k) => [c[0] + N[k][0] * dn, c[1] + 0.9, c[2] + N[k][1] * dn]);
+    p.add('iron', strip(R, B, (k) => [N[k][0], 0, N[k][1]]));
+    p.add('iron', strip(B, R, (k) => [-N[k][0], 0, -N[k][1]]));
+  };
+  rail(up, 0.15); rail(top, -0.15);
+  let run = 0;
+  for (let k = 0; k < n; k++) {
+    if (k) run += Math.hypot(P[k][0] - P[k - 1][0], P[k][1] - P[k - 1][1]);
+    if (k && run < 14 && k < n - 1) continue;
+    run = 0;
+    const [nu, nv] = N[k], lu = P[k][0] + nu * 0.3, lv = P[k][1] + nv * 0.3;
+    p.cyl('iron', lu, lv, crest, crest + 4.0, 0.06, 0.06, 6);
+    p.add('glass', new THREE.SphereGeometry(0.22, 10, 6).translate(lu, crest + 4.1, lv));
+  }
+  if (keeper) {
+  // a small house of the dam's keepers on the left bank (the photos), downstream of the north end
+  const [hu, hv] = [P[0][0] + N[0][0] * 12, P[0][1] + N[0][1] * 12], hy = gnd(hu, hv);
+  p.box('plaster', hu - 3, hu + 3, hv - 2.5, hv + 2.5, hy - 1, hy + 3.0);
+  p.hip('tile', hu - 3, hu + 3, hv - 2.5, hv + 2.5, hy + 3.0, 1.4, 0.4);
+  }
 }

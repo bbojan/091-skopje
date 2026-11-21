@@ -170,6 +170,44 @@ export const CITIES = {
       ],
     } as TerrainSpec,
   },
+  // Тетово and the Полог valley: Тетово under Шар Планина with Тетовско Кале and Лешочки манастир to the north,
+  // Попова Шапка and Титов Врв (2747 m) with the glacial lakes (Боговињско, Бело, Црно, Шутманско), Гостивар
+  // to the south and the source of the Вардар at Вруток (41.764 N); the south edge is Ростуше's north edge
+  tetovo: {
+    bbox: { s: 41.725, w: 20.72, n: 42.075, e: 21.06 },
+    tiles: [6, 7] as [number, number],
+    files: { raw: 'data/tetovo_raw.json', scene: 'public/tetovo.json', terrainBin: 'public/tetovo-terrain.bin', terrainJson: 'public/tetovo-terrain.json', overture: 'data/tetovo_overture.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
+  // Македонски Брод and the Треска: Брод and Пешна on the river, Зрзе monastery on its cliff to the east, the whole of
+  // Езеро Козјак (41.679–41.878 N) and Акумулација Света Петка (to 41.925 N) up to their dams, Солунска Глава
+  // (Јакупица) to the east; the north edge stops short of Езеро Матка (from 41.926 N, on the Скопје map)
+  brod: {
+    bbox: { s: 41.45, w: 21.12, n: 41.926, e: 21.42 },
+    tiles: [5, 8] as [number, number],
+    files: { raw: 'data/brod_raw.json', scene: 'public/brod.json', terrainBin: 'public/brod-terrain.bin', terrainJson: 'public/brod-terrain.json', overture: 'data/brod_overture.json' },
+    // the DEM has no gorge under Света Петка's arch dam (the lake flat at ≈ 364 m, the ground right below the crest
+    // as high): its foot bent down to ≈ 320 m with points 25 m off the crest on the downstream (east) side, as at
+    // Берово. Козјак's rockfill dam is already in the DEM (lake 468 m, the face down to ≈ 385 m)
+    terrain: {
+      cell: 20, smooth: 1, flatWater: true, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] },
+      points: [
+        [41.92512, 21.26460, 315, 32], [41.92480, 21.26455, 315, 32], [41.92447, 21.26465, 315, 32],
+        [41.92500, 21.26570, 320, 45],
+      ],
+    } as TerrainSpec,
+  },
+  // Ресен and Преспа: the town, the whole of Преспанско Езеро with its Albanian and Greek shores, Голем Град, and
+  // Мала Преспа (40.691–40.811 N) to the south; edge to edge with Охрид (its e 20.845) and Битола (its w 21.165),
+  // Галичица between the two lakes
+  resen: {
+    bbox: { s: 40.685, w: 20.845, n: 41.13, e: 21.165 },
+    tiles: [5, 8] as [number, number],
+    files: { raw: 'data/resen_raw.json', scene: 'public/resen.json', terrainBin: 'public/resen-terrain.bin', terrainJson: 'public/resen-terrain.json', overture: 'data/resen_overture.json' },
+    // Преспанско Езеро flattened at its lowest DEM part (840.8 m) leaves the beach a few metres over the water; the ground
+    // 20 m outside OSM's outline is 843.5 m (median of 452 points): the water at 842.5 m. Мала Преспа stays at 848 m
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterLevels: { 2905510: 842.5 }, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: { s: number; w: number; n: number; e: number }; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec }>;
 export type CityName = keyof typeof CITIES;
 const isCity = (s: string | undefined): s is CityName => !!s && s in CITIES;
