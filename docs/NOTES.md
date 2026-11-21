@@ -460,7 +460,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    checked: phones, firefighting over the lake, the race, walking cards one by one. Not modelled: Споменик на
    Дојрана and the Salonica Front memorial (no photos looked at; labels only).
 
-34. **v10.0.0** (Nov 2026, on `city-batinci`): **02 Батинци** (`?city=batinci`), the tenth map: Батинци and its
+34. **v10.0.0** (Nov 2026, on `develop`): **02 Батинци** (`?city=batinci`), the tenth map: Батинци and its
    surroundings south of Skopje, 41.875–41.955 N, 21.385–21.545 E (13.3 × 8.9 km). Its north edge is Skopje's
    south edge, so nothing is drawn twice: Пинтија at the top, Драчево to the east, Марков манастир by Маркова
    Сушица to the west, Долно Количани to the south, the Маркова Река between them. Badge 02, the area's
