@@ -8,7 +8,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 
 Илустрирана, жива 3Д мапа на Скопје, нацртана од отворените податоци на OpenStreetMap.
 
-More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) and **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid
+More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) and **048 Прилеп** (Prilep under Markovi Kuli) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=prilep
 
 ## Features
 
@@ -34,6 +34,11 @@ More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš 
 - The whole of Lake Ohrid (≈ 19 × 35 km): Ohrid and Struga, Св. Наум, the villages on both shores and Pogradec on the Albanian side, Galičica to the east, on real terrain
 - Hand-built monuments after photos: St. John at Kaneo, St. Clement and Panteleimon at Plaošnik with its bell tower, St. Sophia with its two-storey gallery, the church of St. Naum, the ancient theatre, and the pile dwellings of the Bay of Bones out on the water; Samuel's Fortress from OSM's walls
 - Its own places, labels, race route (12 rings round the lake), walking info cards; firefighting refills anywhere over the lake; no ЈСП buses
+
+**Prilep** (`?city=prilep`)
+- The town of tobacco in the Pelagonia plain, Markovi Kuli on its granite hill, Treskavec under Zlatovrv, Prilep Lake, on real terrain
+- Hand-built after photos: the Clock Tower, the Mound of the Unbeaten (Bogdan Bogdanović) with its stone urns, the boulders of Markovi Kuli, Treskavec's church
+- Its own places, labels, race route (11 rings), walking info cards; firefighting refills from Prilep Lake; no ЈСП buses
 
 **Time, weather and seasons**
 - Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, paragliders over Vodno, flowing river
@@ -88,6 +93,7 @@ npm run download -- bitola && npm run terrain -- bitola && npm run data -- bitol
                    # → public/bitola.json, public/bitola-terrain.bin/.json
 npm run download -- ohrid && npm run overture -- ohrid && npm run terrain -- ohrid && npm run data -- ohrid
                    # → public/ohrid.json, public/ohrid-terrain.bin/.json (20 m cells)
+npm run download -- prilep && npm run overture -- prilep && npm run terrain -- prilep && npm run data -- prilep
 ```
 
 ## Credits

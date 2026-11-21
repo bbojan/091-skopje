@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid', 'prilep'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -365,6 +365,68 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.ohrid',
     bestRaceKey: 'skopje.bestRace.ohrid',
     banners: { fire: 'Охридската пастрмка го спаси градот!', roll: 'Ајде на Канео!' },
+  },
+  prilep: {
+    id: 'prilep', name: 'Прилеп', code: '048', icon: './favicon-prilep.svg',
+    files: { scene: './prilep.json', terrainBin: './prilep-terrain.bin', terrainJson: './prilep-terrain.json' },
+    sceneBytes: 4.4e6,
+    views: {
+      center: { place: 'square', ll: [41.34560, 21.55300], d: 560, polar: 0.74, az: 0.08 },
+      markovi: { ll: [41.36165, 21.53850], d: 1100, polar: 0.86, az: 0.35 }, // the fortress hill from the town
+      mogila: { place: 'mogila', ll: [41.33424, 21.55457], d: 240, polar: 0.92, az: 0.5 },
+      treskavec: { place: 'treskavec', ll: [41.40378, 21.53811], d: 520, polar: 0.9, az: 0.5 },
+      plake: { ll: [41.38750, 21.60000], d: 1300, polar: 0.98, az: 0.6 }, // under the clouds (about 1 km up)
+      overview: { ll: [41.36000, 21.56000], d: 17000, polar: 0.66, az: 0 },
+    },
+    districts: [
+      ['Прилеп', 41.3440, 21.5560], ['Варош', 41.3585, 21.5330], ['Дабница', 41.3725, 21.5605], ['Оревоец', 41.3666, 21.5983],
+      ['Лениште', 41.3584, 21.6272], ['Селце', 41.3257, 21.5936], ['Златоврв', 41.40604, 21.54194, 60], ['Маркови Кули', 41.36165, 21.53850, 40],
+    ],
+    labels: [
+      ['Саат-кула', 41.34589, 21.55505, 44, 'pclock'],
+      ['Стара чаршија', 41.34560, 21.55500, 18],
+      ['Чарши џамија', 41.34553, 21.55530, 16],
+      ['Маркови Кули', 41.36165, 21.53850, 40],
+      ['Могила на непобедените', 41.33424, 21.55457, 14, 'mogila'],
+      ['Трескавец', 41.40378, 21.53811, 24, 'treskavec'],
+      ['Прилепско Езеро', 41.38750, 21.60000, 10],
+      ['Театар Војдан Чернодрински', 41.34166, 21.55804, 16],
+      ['Варошки манастир', 41.36027, 21.53426, 14],
+    ],
+    route: [
+      ['Плоштад', 41.34560, 21.55300, 70, 'square'],
+      ['Саат-кула', 41.34589, 21.55505, 80, 'pclock'],
+      ['Варош', 41.3585, 21.5330, 80],
+      ['Маркови Кули', 41.36165, 21.53850, 110],
+      ['Трескавец', 41.40378, 21.53811, 90, 'treskavec'],
+      ['Дабница', 41.3725, 21.5605, 80],
+      ['Прилепско Езеро', 41.38750, 21.60000, 50],
+      ['Оревоец', 41.3666, 21.5983, 80],
+      ['Селце', 41.3257, 21.5936, 90],
+      ['Могила на непобедените', 41.33424, 21.55457, 60, 'mogila'],
+      ['Плоштад', 41.34560, 21.55300, 65, 'square'],
+    ],
+    spots: [
+      ['p.square', 'Плоштад', 41.34560, 21.55300, 60, 'square'],
+      ['p.clock', 'Саат-кула', 41.34589, 21.55505, 30, 'pclock'],
+      ['p.markovi', 'Маркови Кули', 41.36165, 21.53850, 200],
+      ['p.mogila', 'Могила на непобедените', 41.33424, 21.55457, 50, 'mogila'],
+      ['p.treskavec', 'Трескавец', 41.40378, 21.53811, 80, 'treskavec'],
+      ['p.lake', 'Прилепско Езеро', 41.38750, 21.60000, 250],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.34560, 21.55300], near: 3500, far: 8000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    // Пелагонија north of the town: tobacco and wheat fields, a few vineyards
+    vineyards: 760,
+    vineShare: 0.1,
+    walker: 'pejo',
+    snowLabel: 'weather.zlatovrv',
+    refillLabel: 'fire.refill.prilep',
+    bestRaceKey: 'skopje.bestRace.prilep',
+    banners: { fire: 'Крале Марко го спаси Прилеп!', roll: 'Ај на Пивофест!' },
   },
 };
 
