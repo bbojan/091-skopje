@@ -310,11 +310,25 @@ const PREP: Record<CityName, CityPrep> = {
     tall: [], mid: [], squareBonus: false, maxLevels: 6,
   },
   prilep: {
-    old: null,
-    square: [41.3450, 21.5540],
+    old: { s: 41.3443, n: 41.3472, w: 21.5515, e: 21.5572 }, // Старата чаршија round the clock tower
+    square: [41.34560, 21.55300], // the square by the town hall, its row of monuments
     landmarks: {},
-    placeNames: {}, placeIds: {}, placeNodes: {}, nodeLL: {},
-    tall: [], mid: [], squareBonus: false, maxLevels: 9,
+    // modelled by hand after photos (src/prilep.ts): the clock tower (OSM: Прчикур, height 40), Трескавец's church
+    models: { pclock: 606054201, treskavec: 198197913 },
+    // Могила на непобедените: the urns round the paved plaza (OSM: a pedestrian area 45 × 37 m); Маркови Кули:
+    // the granite boulders over the hill of the fortress (OSM's meadow multipolygon, 400 × 230 m)
+    modelRects: { mogila: [41.33424, 21.55457, 46, 36, 0], markovi: [41.36165, 21.53850, 420, 230, Math.PI / 2] },
+    placeNames: {},
+    placeIds: { pclock: 606054201, treskavec: 899200388, mogila: 338675543 },
+    placeNodes: { zlatovrv: 2098892075 },
+    nodeLL: { 2098892075: [41.40604, 21.54194] }, // natural=peak, Златоврв (1422 m)
+    // blocks of flats round the old bazaar; the чаршија and Варош left out
+    tall: [],
+    mid: [[41.3380, 41.3443, 21.5450, 21.5680], [41.3472, 41.3530, 21.5450, 21.5680], [41.3443, 41.3472, 21.5572, 21.5680]],
+    squareBonus: false,
+    maxLevels: 10,
+    // Трескавец's medieval fortification is a line of low ruined walls on the steep top (OSM: city wall, 8 m)
+    buildingTags: { 414261893: { height: '3' } },
   },
   krusevo: {
     old: null,

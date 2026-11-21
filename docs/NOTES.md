@@ -355,6 +355,21 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    (42.8k buildings and 372k trees: the heaviest map; `MOBILE` halves trees and parked cars), firefighting
    played over the lake, walking cards one by one.
 
+28. **v3.2.0** (Nov 2026, on `develop`): **048 Прилеп** (`?city=prilep`): 41.31–41.41 N, 21.49–21.63 E
+   (11.7 × 11.1 km): the town, Маркови Кули, Варош and its monasteries, Трескавец under Златоврв (1422 m) at the
+   north edge, Прилепско Езеро (the firefighting water) to the north-east. 4,803 OSM buildings plus 17,809
+   Overture footprints; 10 m cells; Пелагонија's fields from the farmland painter (`vineyards: 760`,
+   `vineShare: 0.1`). Models (`src/prilep.ts`): the clock tower on OSM's outline (Прчикур, height 40: rubble
+   shaft with brick roundels, the open clock stage on slender piers, balcony, lantern, octagonal lead spire);
+   Могила на непобедените (Bogdan Bogdanović, 1961) as eleven lathe-turned white urns with scrolls round the
+   paved plaza, a path in and a wall of names (`modelRects.mogila`); Маркови Кули: ~220 granite boulders
+   (noisy dodecahedra on the slope) over the fortress hill (`modelRects.markovi`), the walls are OSM's city
+   walls; Трескавец's church as a `byzChurch`. OSM's fortification at Трескавец retagged to 3 m (it drew
+   8 m walls up the steep ridge). Tow banners: „Крале Марко го спаси Прилеп!“ / „Ај на Пивофест!“.
+   Merged before Rostuše, against the asked order: Rostuše's download (36 tiles of mountains) came last.
+   Checked: views rendered and looked at; typecheck, build. Not checked: phones, firefighting over the lake,
+   walking cards one by one.
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
@@ -447,6 +462,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Kavadarci | `skopje.bestRace.kavadarci` | none |
 | Best race time in Bitola | `skopje.bestRace.bitola` | none |
 | Best race time in Ohrid | `skopje.bestRace.ohrid` | none |
+| Best race time in Prilep | `skopje.bestRace.prilep` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.

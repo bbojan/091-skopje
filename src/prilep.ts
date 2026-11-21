@@ -74,19 +74,21 @@ export function createPrilep(data: CityData, terrain: Terrain, clippingPlanes: T
       const pr = [[0, 0], [1.05, 0], [1.0, 0.25], [0.62, 1.6], [0.5, 2.3], [0.62, 2.6], [1.15, 3.05], [1.3, 3.35], [1.0, 3.45], [0, 3.45]].map(([x, y]) => new THREE.Vector2(x * s, y * s));
       return new THREE.LatheGeometry(pr, 14);
     };
-    const n = 9;
+    // the urns stand in a ring round the paved plaza, open toward +u (the path in), the wall of names at −u
+    const n = 11;
     for (let i = 0; i < n; i++) {
-      const t = i / (n - 1), u = -L * 0.75 + t * L * 1.5, v = (i % 2 ? 1 : -1) * W * (0.45 + 0.15 * ((i * 3) % 2)), s = 0.9 + ((i * 5) % 3) * 0.18;
+      const t = 0.35 + (i / (n - 1)) * (2 * Math.PI - 0.7), u = Math.cos(t) * L * 0.78, v = Math.sin(t) * W * 0.78, s = 1.45 + ((i * 5) % 3) * 0.2; // 5–6.5 m tall
       const y = gnd(mf, u, v);
       p.add('white', urn(s).translate(u, y, v));
-      for (const sd of [-1, 1]) p.add('white', new THREE.TorusGeometry(0.28 * s, 0.1 * s, 6, 12).rotateY(Math.PI / 2).translate(u, y + 3.2 * s, v + sd * 1.05 * s));
+      for (const sd of [-1, 1]) p.add('white', new THREE.TorusGeometry(0.28 * s, 0.1 * s, 6, 12).rotateY(t).translate(u - Math.sin(t) * sd * 1.05 * s, y + 3.2 * s, v + Math.cos(t) * sd * 1.05 * s));
       p.box('stoneDark', u - 1.3 * s, u + 1.3 * s, v - 1.3 * s, v + 1.3 * s, y - 0.6, y + 0.05);
     }
+    for (let u = -L * 0.6; u < L * 0.6; u += 3) for (let v = -W * 0.55; v < W * 0.55; v += 3) { const y = gnd(mf, u + 1.5, v + 1.5); p.box('stoneDark', u, u + 3.02, v, v + 3.02, y - 0.5, y + 0.06); } // the flagstones
     // the paved path along u and the wall of names across its end
-    for (let u = -L; u < L; u += 2) { const y = gnd(mf, u + 1, 0); p.box('stoneDark', u, u + 2.05, -1.6, 1.6, y - 0.5, y + 0.08); }
-    const wy = gnd(mf, L * 0.9, 0);
-    p.box('white', L * 0.85, L * 0.85 + 0.8, -W * 0.7, W * 0.7, wy - 0.5, wy + 3.2);
-    for (let v = -W * 0.65; v < W * 0.65; v += 0.9) p.box('stoneDark', L * 0.85 - 0.02, L * 0.85, v, v + 0.5, wy + 0.6, wy + 2.6); // the engraved names (darker panels)
+    for (let u = L * 0.6; u < L * 1.6; u += 2) { const y = gnd(mf, u + 1, 0); p.box('stoneDark', u, u + 2.05, -1.8, 1.8, y - 0.5, y + 0.08); } // the path in
+    const wy = gnd(mf, -L * 0.95, 0);
+    p.box('white', -L * 0.95 - 0.8, -L * 0.95, -W * 0.7, W * 0.7, wy - 0.5, wy + 3.2);
+    for (let v = -W * 0.65; v < W * 0.65; v += 0.9) p.box('stoneDark', -L * 0.95, -L * 0.95 + 0.02, v, v + 0.5, wy + 0.6, wy + 2.6); // the engraved names (darker panels)
     place(p, mf);
   }
 
