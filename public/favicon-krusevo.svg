@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Kruševo: the Македониум, a round body with tubes reaching out, the ramp to its door -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <g fill="#1f2a44">
+    <circle cx="50" cy="50" r="20"/>
+    <rect x="34" y="14" width="12" height="18" rx="3" transform="rotate(-20 40 23)"/>
+    <rect x="54" y="14" width="12" height="18" rx="3" transform="rotate(20 60 23)"/>
+    <rect x="13" y="35" width="18" height="13" rx="3" transform="rotate(-15 22 41)"/>
+    <rect x="69" y="35" width="18" height="13" rx="3" transform="rotate(15 78 41)"/>
+    <rect x="15" y="55" width="17" height="14" rx="6"/>
+    <rect x="68" y="55" width="17" height="14" rx="6"/>
+    <path d="M44 88 L47 70 H53 L56 88 Z"/>
+  </g>
+  <ellipse cx="50" cy="44" rx="9" ry="5" fill="#f4ede0"/>
+  <circle cx="23.5" cy="62" r="4" fill="#f4ede0"/><circle cx="76.5" cy="62" r="4" fill="#f4ede0"/>
+  <rect x="48.5" y="54" width="3" height="16" fill="#f4ede0"/>
+</svg>

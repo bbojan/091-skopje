@@ -82,13 +82,15 @@ export function createKrusevo(data: CityData, terrain: Terrain, clippingPlanes: 
   // ---------------- Мечкин Камен: the giant lifting the boulder
   const kf = M.meckin ? frame(M.meckin, terrain, A.meckin, true) : null;
   if (kf) {
-    const p = parts(), s = 1.0;
+    const p = parts(), s = 1.35; // ≈ 14 m to the top of the boulder
     // the rock outcrop it stands on
     for (let i = 0; i < 9; i++) {
       const a = i * 0.7, d = 1.5 + (i % 3) * 1.4;
       p.add('rock', new THREE.DodecahedronGeometry(1.4 + (i % 4) * 0.4, 0).scale(1, 0.45, 1).translate(Math.cos(a) * d, kf.under * 0.5, Math.sin(a) * d));
     }
-    p.box('rockDark', -2.4, 2.4, -1.6, 1.6, kf.under, 0.5);
+    p.box('rockDark', -3, 3, -2.2, 2.2, kf.under, 0.5);
+    // the bare rock round it: low slabs over the clearing
+    for (let i = 0; i < 26; i++) { const a = i * 2.39, d = 5 + (i % 7) * 2.2; p.add(i % 3 ? 'rock' : 'rockDark', new THREE.DodecahedronGeometry(0.9 + (i % 5) * 0.35, 0).scale(1.4, 0.35, 1).translate(Math.cos(a) * d, kf.under + 0.2 + (i % 4) * 0.15, Math.sin(a) * d * 0.9)); }
     const B = 'slate' as const;
     for (const sv of [-1, 1]) { // legs wide apart, knees bent
       p.add(B, new THREE.CylinderGeometry(0.42 * s, 0.32 * s, 3.2 * s, 10).rotateX(sv * 0.38).translate(0, 2.0 * s, sv * 1.15 * s));
@@ -99,7 +101,7 @@ export function createKrusevo(data: CityData, terrain: Terrain, clippingPlanes: 
     p.add(B, new THREE.SphereGeometry(0.5 * s, 12, 8).translate(0.25, 8.4 * s, 0)); // the head, bowed under the load
     for (const sv of [-1, 1]) p.add(B, new THREE.CylinderGeometry(0.28 * s, 0.34 * s, 2.6 * s, 8).rotateX(-sv * 0.35).translate(0, 8.7 * s, sv * 0.95 * s)); // arms up
     p.add(B, new THREE.DodecahedronGeometry(1.5 * s, 1).scale(1.1, 0.85, 1.3).translate(0, 10.6 * s, 0)); // the boulder
-    for (const dv of [-4.2, -5, -5.8]) p.cyl('white', -2, dv, kf.under, 12, 0.07, 0.05, 6); // flagpoles
+    for (const dv of [-4.2, -5, -5.8]) p.cyl('white', -2, dv - 1, kf.under, 14, 0.08, 0.06, 6); // flagpoles
     place(p, kf);
   }
   return { group, nightLit: [glass, stained] };

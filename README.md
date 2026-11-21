@@ -8,7 +8,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 
 Илустрирана, жива 3Д мапа на Скопје, нацртана од отворените податоци на OpenStreetMap.
 
-More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) and **048 Прилеп** (Prilep under Markovi Kuli) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=prilep
+More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) and **048 Крушево** (Kruševo, the town of the Ilinden Uprising) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo
 
 ## Features
 
@@ -39,6 +39,11 @@ More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš 
 - The town of tobacco in the Pelagonia plain, Markovi Kuli on its granite hill, Treskavec under Zlatovrv, Prilep Lake, on real terrain
 - Hand-built after photos: the Clock Tower, the Mound of the Unbeaten (Bogdan Bogdanović) with its stone urns, the boulders of Markovi Kuli, Treskavec's church
 - Its own places, labels, race route (11 rings), walking info cards; firefighting refills from Prilep Lake; no ЈСП buses
+
+**Kruševo** (`?city=krusevo`)
+- The highest town in Macedonia on the slopes of Buševa Planina, its white houses with red roofs, the forests round it, on real terrain
+- Hand-built after photos: the Makedonium (Jordan and Iskra Grabul, 1974) with its stained-glass windows, the giant of Mečkin Kamen
+- Its own places, labels, race route (8 rings), walking info cards; firefighting refills from Kruševo Lake; no ЈСП buses
 
 **Time, weather and seasons**
 - Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, paragliders over Vodno, flowing river
@@ -94,6 +99,7 @@ npm run download -- bitola && npm run terrain -- bitola && npm run data -- bitol
 npm run download -- ohrid && npm run overture -- ohrid && npm run terrain -- ohrid && npm run data -- ohrid
                    # → public/ohrid.json, public/ohrid-terrain.bin/.json (20 m cells)
 npm run download -- prilep && npm run overture -- prilep && npm run terrain -- prilep && npm run data -- prilep
+npm run download -- krusevo && npm run overture -- krusevo && npm run terrain -- krusevo && npm run data -- krusevo
 ```
 
 ## Credits

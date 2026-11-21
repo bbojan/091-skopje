@@ -370,6 +370,20 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    Checked: views rendered and looked at; typecheck, build. Not checked: phones, firefighting over the lake,
    walking cards one by one.
 
+29. **v3.3.0** (Nov 2026, on `develop`): **048 Крушево** (`?city=krusevo`): 41.33–41.405 N, 21.19–21.31 E
+   (10.0 × 8.3 km): the town on the slopes of Бушева Планина, Македониум, Мечкин Камен at the south edge,
+   Крушевско Езеро (the firefighting water: a pond of ~38,000 m² below the Македониум, small to skim). 1,766
+   OSM buildings plus 1,819 Overture footprints; 10 m cells; the town's centre as an old-town box (low, tiled,
+   dense), `maxLevels: 5`. Models (`src/krusevo.ts`): the Македониум (Jordan and Iskra Grabul, 1974) on its OSM
+   outline: a white sphere on a waist, twelve stubby tubes in every direction, the side ones ending in round
+   and oval stained-glass windows with metal bars (a second night-lit material, `stained`), the upper ones in
+   small glass domes, the slot door at the end of a ramp between white parapets; Мечкин Камен: the dark giant
+   lifting a boulder (≈ 14 m), on slabs of bare rock, three flagpoles, a 40 × 36 m clearing kept free of trees
+   (`modelRects.meckin`, at OSM's monument node). Tow banners: „Питу Гули го спаси Крушево!“ / „Да живее
+   Крушевската Република!“. Merged before Rostuše (its download came last).
+   Checked: views rendered and looked at; typecheck, build. Not checked: phones, firefighting over the small
+   lake, walking cards one by one. The giant is a stylised figure, not modelled from measurements.
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
@@ -463,6 +477,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Bitola | `skopje.bestRace.bitola` | none |
 | Best race time in Ohrid | `skopje.bestRace.ohrid` | none |
 | Best race time in Prilep | `skopje.bestRace.prilep` | none |
+| Best race time in Kruševo | `skopje.bestRace.krusevo` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
