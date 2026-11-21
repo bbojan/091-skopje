@@ -92,6 +92,9 @@ interface CityPrep {
   /** outlines of buildings and sites modelled by hand for this city (Bitola: src/bitola.ts), by key → OSM
    *  way id; the OSM building is left out, the outline goes to `landmarks.models[key]` */
   models?: Record<string, number>;
+  /** hand-built models with no usable OSM outline: a rectangle [centre lat, lon, length m, width m, heading of the
+   *  length (radians from north toward east)] that goes to `landmarks.models[key]` like an outline */
+  modelRects?: Record<string, [lat: number, lon: number, length: number, width: number, heading: number]>;
   /** rivers OSM draws only as lines, widened into water areas (firefighting refill): [way id, half width m] */
   waterLines?: [id: number, halfWidth: number][];
 }
@@ -272,6 +275,54 @@ const PREP: Record<CityName, CityPrep> = {
     // fetch: its outer ring, stitched (Nov 2026), drawn as a square
     extraPlazas: [[[41.030423, 21.334784], [41.030406, 21.334932], [41.030245, 21.33492], [41.030243, 21.334962], [41.030142, 21.334953], [41.030136, 21.335068], [41.030238, 21.335078], [41.030234, 21.335166], [41.030394, 21.335179], [41.03043, 21.33518], [41.03043, 21.335235], [41.030431, 21.335283], [41.0303, 21.335283], [41.030218, 21.335243], [41.030169, 21.335255], [41.030151, 21.335271], [41.030139, 21.335314], [41.03014, 21.335415], [41.030132, 21.335416], [41.030086, 21.33543], [41.030077, 21.335394], [41.030068, 21.335386], [41.030056, 21.335342], [41.030044, 21.335295], [41.030036, 21.335265], [41.030009, 21.335158], [41.030031, 21.335147], [41.030028, 21.335135], [41.030046, 21.335125], [41.030008, 21.334993], [41.029998, 21.334998], [41.029973, 21.335009], [41.029964, 21.334979], [41.02995, 21.334938], [41.029948, 21.334919], [41.029978, 21.334896], [41.029994, 21.33488], [41.030019, 21.334831], [41.030034, 21.334841], [41.030059, 21.334776], [41.030047, 21.334769], [41.030087, 21.334661], [41.030093, 21.334665], [41.030155, 21.334499], [41.030161, 21.334503], [41.030203, 21.334393], [41.030211, 21.334369], [41.030221, 21.334378], [41.03024, 21.334394], [41.030289, 21.334437], [41.030322, 21.334492], [41.030338, 21.334521], [41.030357, 21.334574], [41.030391, 21.334683]]],
   },
+  ohrid: {
+    // Стариот град (Варош) on the hill, from Канео to the чаршија: low, tiled, dense houses
+    old: { s: 41.1100, n: 41.1170, w: 20.7880, e: 20.8005 },
+    square: [41.11276, 20.79939], // Плоштад „Св. Климент Охридски“ by the harbour
+    landmarks: {},
+    // modelled by hand after photos (src/ohrid.ts): Св. Јован Канео, Св. Климент и Пантелејмон на Плаошник,
+    // Св. Софија, the church of Св. Наум (Св. Архангели Михаил и Гаврил); the ancient theatre (bitola.ts's theatre)
+    models: { kaneo: 233274330, plaosnik: 34094478, sofija: 194610965, naum: 179291828, theatre: 1497789103 },
+    // Залив на коските (Gradište, near Пештани): OSM has the museum as a pier area (way 217931793); the platform and
+    // its huts are modelled on a rectangle over it, its length running west from the shore (the footbridge back east)
+    modelRects: { bones: [40.99436, 20.79800, 46, 34, -Math.PI / 2] },
+    placeNames: {},
+    placeIds: {
+      kaneo: 233274330, plaosnik: 34094478, sofija: 194610965, naum: 179291828, theatre: 1497789103,
+      samuil: 34093752, // Самуилова тврдина (castle)
+      bones: 217931793, // Залив на Коските (the museum's pier area)
+    },
+    placeNodes: { square: 6781576799 },
+    nodeLL: { 6781576799: [41.11276, 20.79939] }, // place=square, Плоштад „Св. Климент Охридски“
+    // blocks of flats east and north of the old town (Ohrid) and in the middle of Struga
+    tall: [],
+    mid: [[41.1120, 41.1300, 20.8010, 20.8250], [41.1720, 41.1850, 20.6650, 20.6900]],
+    squareBonus: false,
+    maxLevels: 9,
+    // OSM has the low walls round Канео's terrace as city walls (8 m): a parapet on the rock
+    buildingTags: { 305673405: { barrier: 'wall', historic: 'yes', height: '1.6' }, 1529646204: { barrier: 'wall', historic: 'yes', height: '1.6' } },
+  },
+  rostuse: {
+    old: null,
+    square: [41.6085, 20.6005],
+    landmarks: {},
+    placeNames: {}, placeIds: {}, placeNodes: {}, nodeLL: {},
+    tall: [], mid: [], squareBonus: false, maxLevels: 6,
+  },
+  prilep: {
+    old: null,
+    square: [41.3450, 21.5540],
+    landmarks: {},
+    placeNames: {}, placeIds: {}, placeNodes: {}, nodeLL: {},
+    tall: [], mid: [], squareBonus: false, maxLevels: 9,
+  },
+  krusevo: {
+    old: null,
+    square: [41.3690, 21.2480],
+    landmarks: {},
+    placeNames: {}, placeIds: {}, placeNodes: {}, nodeLL: {},
+    tall: [], mid: [], squareBonus: false, maxLevels: 5,
+  },
 };
 const CFG = PREP[CITY];
 const OLD = CFG.old;
@@ -294,6 +345,15 @@ const out: CityData = {
 const LANDMARK_IDS = CFG.landmarks;
 // outlines replaced by a model
 const SKIP_BUILDINGS = new Set<number>([LANDMARK_IDS.porta, LANDMARK_IDS.ossuary, LANDMARK_IDS.townhall, LANDMARK_IDS.hpp, LANDMARK_IDS.petka, LANDMARK_IDS.dimitrij, ...Object.values(CFG.models ?? {}), ...(CFG.dropBuildings ?? [])].filter((id): id is number => id != null));
+// models placed as rectangles (`modelRects`) replace whatever OSM drew there (Залив на коските: its huts)
+const rectRing = ([lat, lon, len, wid, hd]: [number, number, number, number, number]): Ring => {
+  const [cx, cz] = proj(lat, lon), a: Pt = [Math.sin(hd), -Math.cos(hd)], b: Pt = [-a[1], a[0]];
+  return [[1, 1], [-1, 1], [-1, -1], [1, -1]].map(([su, sv]): Pt => [cx + a[0] * su * len / 2 + b[0] * sv * wid / 2, cz + a[1] * su * len / 2 + b[1] * sv * wid / 2]);
+};
+for (const rr of Object.values(CFG.modelRects ?? {})) {
+  const ring = rectRing(rr);
+  for (const el of raw.elements) if (el.type === 'way' && el.tags?.building && el.geometry?.length && pip(centroid(dropLast(wayPts(el.geometry))), ring)) SKIP_BUILDINGS.add(el.id);
+}
 // buildings OSM lacks join the download as closed ways, so they are read like any other
 for (const el of raw.elements) { const t = CFG.buildingTags?.[el.id]; if (t && el.type === 'way') el.tags = { ...el.tags, ...t }; }
 (CFG.extraBuildings ?? []).forEach(({ tags, r }, i) => {
@@ -344,6 +404,11 @@ for (const el of raw.elements) {
   if (el.id === LANDMARK_IDS.switchyard) out.landmarks.switchyard = flat(dropLast(pts));
   if (el.id === LANDMARK_IDS.spillway) out.landmarks.spillway = flat(dropLast(pts));
   for (const [key, id] of Object.entries(CFG.models ?? {})) if (el.id === id) (out.landmarks.models ??= {})[key] = flat(dropLast(pts));
+}
+for (const [key, rr] of Object.entries(CFG.modelRects ?? {})) {
+  const hd = rr[4], a: Pt = [Math.sin(hd), -Math.cos(hd)];
+  (out.landmarks.models ??= {})[key] = flat(rectRing(rr));
+  (out.landmarks.modelAxes ??= {})[key] = [Math.round(a[0] * 1e4) / 1e4, Math.round(a[1] * 1e4) / 1e4];
 }
 // Kavadarci, Луда Мара: the regulated channel's centre line (south → north, every 2 m), centred between
 // the two promenade footways where OSM has both (the river line is up to 3 m off), smoothed; the rest

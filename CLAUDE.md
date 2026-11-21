@@ -40,7 +40,7 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | File | Role |
 |---|---|
 | `main.ts` | App shell: renderer, controls, loading (staged build + progress card), city switching (`loadCity` / `unloadWorld` / `switchCity`), views, time of day, flight/race wiring, popups, help, gamepad, adaptive quality |
-| `cities.ts` | The cities (Skopje, Kavadarci, Bitola) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
+| `cities.ts` | The cities (Skopje, Kavadarci, Bitola, Ohrid) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
 | `city.ts` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds; Kavadarci's vineyards and Bitola's fields (`farmMask`, `VINE_GROUND`: farmland marked by one terrain colour, plots painted by the ground shader; `vineShare` per city: the share of plots that are vineyards) |
 | `terrain.ts` | Heightfield with exact mesh-matching interpolation; chunk/low-res meshes; triangle clipping for draping |
 | `post.ts` | `InkRenderer`: colour + normal/depth passes (one pass in the low tier or with smooth edges off: normals as a second attachment) → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
@@ -58,11 +58,14 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | `square.ts` | Kavadarci, Плоштад Маршал Тито (after an aerial image and photos): the town hall's terrace with curved steps and two fountains, ball bollards, S-shaped and oval planters, lawn strip, clock, the darker bands in the grey paving; its layout also gives walking collision and the terrace height. The grey paving and the forecourt are `plazaColour` / `extraPlazas` in `PREP` |
 | `churches.ts` | Kavadarci, Св. Петка and Св. Димитриј (after photos of 2026 and an aerial image): built from parts on their OSM outlines (`petka` / `dimitrij` in `PREP`, the generic buildings left out): stone walls with brick courses, hip and gable tile roofs, octagonal drums, arched windows, gold crosses; Св. Петка's free-standing bell tower (`landmarkLL.petkaTower`); walking collision |
 | `market.ts` | Kavadarci, Градски зелен пазар (2022, after the opening's press photos and an aerial image of 2025): the deck over two parking levels, the white steel roof (two pitched bays, glazed lanterns, space frame) on round columns, green-framed stalls, glazed shops, flower stalls, railings; also walking height and collision. Its position is `landmarkLL.market` in `PREP`; next to it OSM's wrong outline is left out and two low buildings added (`dropBuildings` / `extraBuildings`) |
+| `models.ts` | The shared kit for hand-built models on OSM outlines: `frame` (along an outline's axis), `parts` (boxes, cylinders, domes, arches, walls on an outline, hipped roofs, crosses), `gable`, `byzChurch` (a parameterised Byzantine church: arms, drum, apse, conches, narthex, bell tower, cloisonné), `modelKit` (materials, `place`) |
+| `ohrid.ts` | Ohrid (after photos): Св. Јован Канео, Плаошник with its bell tower, Св. Софија, Св. Наум, Залив на коските (pile dwellings on the water, `modelRects`); the ancient theatre uses `bitola.ts`'s theatre |
 | `bitola.ts` | Bitola (after photos): Саат-кула, Ајдар-кади џамија, Безистен, Св. Димитриј and its bell tower, Хераклеа's theatre and Great Basilica with its mosaic floors (painted canvases), built on their OSM outlines (`models` in `PREP`, `landmarks.models` in the data; the generic buildings left out); walking collision |
 | `river.ts` | Kavadarci, the Луда Мара (after photos): the stone-lined channel through the town between two promenades, cut exactly out of the terrain and draped ground (`cut`), its water, banks and promenades emitted into the draped ground; copings, railing, arched footbridges, road-bridge parapets, cascades, steps, benches, lamps, promenade trees; walking height and collision |
 | `sound.ts` | Sound, on by default (a switch turns it off): Web Audio synthesis only (engine, wind, rain, water, fire, birds, crickets, short signals), fed a `SoundScene` once per frame from `main.ts` |
 | `labels.ts` | HTML Cyrillic labels (districts far, landmarks near), positions from `data.places` |
 | `input.ts` | Keyboard map navigation, camera height (C / V, horizontal wheel, LB / RB) + gamepad reading (browser "standard" mapping only; unmapped pads are ignored) |
+| `i18n-towns.ts` | UI texts of the towns added after Bitola, spread into `STR` |
 | `i18n.ts` | UI translations (mk, en, sr Cyrillic, hr, sl, sq): `t(key)`, `data-i18n*` attributes in `index.html`, 🌐 picker, auto-detect, `?lang=` |
 | `types.ts` | Shared types: 2D geometry (`Pt`, `Ring`, `Poly`) and the `skopje.json` format (`CityData`) written by `prepare.ts` |
 | `geo.ts` | 2D helpers: rng, PIP, OBB, spatial grids, scanline `rowCrossings` |
@@ -81,7 +84,8 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   per city, `data-city`) and shows only on the map itself, not while flying, driving or walking.
   The round `?` right after the badge opens the help
   (shared by every city; per-city paragraphs carry `data-city="…"`, hidden by the `city-<id>` body class).
-- Three cities: 091 Скопје, 043 Кавадарци (`?city=kavadarci`), 047 Битола (`?city=bitola`, v2.10.0).
+- Cities: 091 Скопје, 043 Кавадарци (`?city=kavadarci`), 047 Битола (`?city=bitola`, v2.10.0), 046 Охрид
+  (`?city=ohrid`, v3.1.0: the whole lake, 20 m terrain cells).
 - The city is in the address: `?city=kavadarci`; no parameter = Skopje. Switching pushes a history entry
   (back / forward switch too) and drops the camera hash. Per-city menu items in `index.html` use `data-city`.
 - Switching unloads the city completely (`unloadWorld()` in `main.ts`): modes stopped, everything the

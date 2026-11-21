@@ -6,6 +6,8 @@
 // is whatever index.html contains, captured on first apply. STR.mk only holds the
 // strings that are set from JavaScript.
 
+import { TOWNS } from './i18n-towns.ts';
+
 export const LANGS = [
   ['mk', 'Македонски'],
   ['en', 'English'],
@@ -99,6 +101,7 @@ export const STR = {
     'info.b.heraclea': 'Хераклеа Линкестис ја основал Филип II Македонски во средината на 4 век п.н.е. Позната е по подните мозаици и римскиот театар.',
     'info.b.pelister': 'Пелистер (2601 м) е највисокиот врв на планината Баба. Националниот парк Пелистер, основан во 1948 година, е најстариот во Македонија и е познат по моликата.',
     'info.b.lakes': '„Пелистерските очи“ се двете глацијални езера под врвот: Големо Езеро, на околу 2.200 метри, и Мало Езеро.',
+    ...TOWNS.mk,
   },
 
   en: {
@@ -230,7 +233,7 @@ export const STR = {
     'city.pick': 'Choose a city',
     'city.menu': 'City',
     'b.city': 'City badge (top left)',
-    'b.cityD': 'Choose another city: Skopje, Kavadarci or Bitola. The link remembers the city, so you can send it to someone.',
+    'b.cityD': 'Choose another city: Skopje, Kavadarci, Bitola, Ohrid and more. The link remembers the city, so you can send it to someone.',
     'help.lead.kavadarci': 'An illustrated, living 3D map of Kavadarci — the town of Tikveš wine, from Glišić and Vataša to the whole of Tikveš Lake and its dam on the Crna Reka. Every building, street, park and tree is drawn from OpenStreetMap and Overture Maps open data and placed on the real terrain.',
     'f.race.kavadarci': '<b>Race (optional):</b> while flying, press “🏁 Race” and fly through the 11 rings in order — from the Square, over Glišić, the Memorial Ossuary, Vataša, Tikveš Lake and its dam, to the finish. The arrow at the top points to the next ring and a bright pillar marks it. Pop the “091” balloons along the way. Your best time is remembered.',
     'v.ossuary': 'Memorial Ossuary',
@@ -272,6 +275,7 @@ export const STR = {
     'info.b.pelister': 'Pelister (2601 m) is the highest peak of the Baba mountain. Pelister National Park, founded in 1948, is the oldest in Macedonia and is known for its Macedonian pine (molika).',
     'info.b.lakes': '“Pelister’s eyes” are the two glacial lakes below the peak: Golemo Ezero, at about 2,200 metres, and Malo Ezero.',
     'f.fire.kavadarci': `<b>Firefighting (optional):</b> while flying, press “🔥 Fire” and the plane becomes a yellow Air Tractor firefighting plane. At most two fires burn at a time — a patch of forest, a building or a bus; the smoke shows from afar and the arrow at the top points to the nearest one. Fly over the fire and hold ${K('Space')} (or the 💧 button) to drop water — the white ring on the ground shows where it will land. When the tank is empty, skim low over Tikveš Lake, south-west of the town, to fill it. As soon as one fire is out, another starts somewhere else.`,
+    ...TOWNS.en,
   },
 
   sr: {
@@ -403,7 +407,7 @@ export const STR = {
     'city.pick': 'Изабери град',
     'city.menu': 'Град',
     'b.city': 'Значка града (горе лево)',
-    'b.cityD': 'Изабери други град: Скопље, Кавадарци или Битољ. Линк памти град, па га можеш послати некоме.',
+    'b.cityD': 'Изабери други град: Скопље, Кавадарци, Битољ, Охрид и друге. Линк памти град, па га можеш послати некоме.',
     'help.lead.kavadarci': 'Илустрована, жива 3Д мапа Кавадараца — града тиквешког вина, од Глишића и Ваташе до целог Тиквешког језера и бране на Црној реци. Све зграде, улице, паркови и дрвеће нацртани су из отворених података пројеката OpenStreetMap и Overture Maps и постављени на стварни рељеф.',
     'f.race.kavadarci': '<b>Трка (опционо):</b> у лету притисни „🏁 Трка“ и пролети кроз 11 прстенова редом — од Трга, преко Глишића, Спомен-костурнице, Ваташе, Тиквешког језера и бране, до циља. Стрелица горе показује ка следећем прстену, а светли стуб га обележава. Успут пробуши балоне „091“. Најбоље време се памти.',
     'v.ossuary': 'Спомен-костурница',
@@ -445,6 +449,7 @@ export const STR = {
     'info.b.pelister': 'Пелистер (2601 м) највиши је врх планине Бабе. Национални парк Пелистер, основан 1948. године, најстарији је у Македонији и познат по молики.',
     'info.b.lakes': '„Пелистерске очи“ су два глацијална језера испод врха: Велико језеро, на око 2.200 метара, и Мало језеро.',
     'f.fire.kavadarci': `<b>Гашење пожара (опционо):</b> у лету притисни „🔥 Пожар“ и авион постаје жути противпожарни „Ер трактор“. Истовремено горе највише два пожара — део шуме, зграда или аутобус; дим се види издалека, а стрелица горе показује ка најближем. Прелети изнад ватре и држи ${K('Space')} (или дугме 💧) да испустиш воду — бели круг на тлу показује где ће пасти. Кад се резервоар испразни, спусти се ниско изнад Тиквешког језера, југозападно од града, да га напуниш. Чим се један пожар угаси, избија други на другом месту.`,
+    ...TOWNS.sr,
   },
 
   hr: {
@@ -576,7 +581,7 @@ export const STR = {
     'city.pick': 'Odaberi grad',
     'city.menu': 'Grad',
     'b.city': 'Značka grada (gore lijevo)',
-    'b.cityD': 'Odaberi drugi grad: Skopje, Kavadarci ili Bitola. Poveznica pamti grad, pa je možeš nekome poslati.',
+    'b.cityD': 'Odaberi drugi grad: Skopje, Kavadarci, Bitola, Ohrid i druge. Poveznica pamti grad, pa je možeš nekome poslati.',
     'help.lead.kavadarci': 'Ilustrirana, živa 3D karta Kavadaraca — grada tikveškog vina, od Glišića i Vataše do cijelog Tikveškog jezera i brane na Crnoj rijeci. Sve zgrade, ulice, parkovi i stabla nacrtani su iz otvorenih podataka projekata OpenStreetMap i Overture Maps i postavljeni na stvarni reljef.',
     'f.race.kavadarci': '<b>Utrka (neobavezno):</b> u letu pritisni „🏁 Utrka” i proleti kroz 11 prstenova redom — od Trga, preko Glišića, Spomen-kosturnice, Vataše, Tikveškog jezera i brane, do cilja. Strelica gore pokazuje prema sljedećem prstenu, a svijetli stup ga označava. Usput probuši balone „091”. Najbolje vrijeme se pamti.',
     'v.ossuary': 'Spomen-kosturnica',
@@ -618,6 +623,7 @@ export const STR = {
     'info.b.pelister': 'Pelister (2601 m) najviši je vrh planine Babe. Nacionalni park Pelister, osnovan 1948., najstariji je u Makedoniji i poznat po molici.',
     'info.b.lakes': '„Pelisterske oči” dva su ledenjačka jezera ispod vrha: Veliko jezero, na oko 2200 metara, i Malo jezero.',
     'f.fire.kavadarci': `<b>Gašenje požara (neobavezno):</b> u letu pritisni „🔥 Požar” i avion postaje žuti protupožarni „Air Tractor”. Istodobno gore najviše dva požara — dio šume, zgrada ili autobus; dim se vidi izdaleka, a strelica gore pokazuje prema najbližem. Preleti iznad vatre i drži ${K('Space')} (ili tipku 💧) da ispustiš vodu — bijeli krug na tlu pokazuje gdje će pasti. Kad se spremnik isprazni, spusti se nisko iznad Tikveškog jezera, jugozapadno od grada, da ga napuniš. Čim se jedan požar ugasi, izbija drugi na drugom mjestu.`,
+    ...TOWNS.hr,
   },
 
   sl: {
@@ -749,7 +755,7 @@ export const STR = {
     'city.pick': 'Izberi mesto',
     'city.menu': 'Mesto',
     'b.city': 'Značka mesta (zgoraj levo)',
-    'b.cityD': 'Izberi drugo mesto: Skopje, Kavadarci ali Bitola. Povezava si zapomni mesto, zato jo lahko komu pošlješ.',
+    'b.cityD': 'Izberi drugo mesto: Skopje, Kavadarci, Bitola, Ohrid in druga. Povezava si zapomni mesto, zato jo lahko komu pošlješ.',
     'help.lead.kavadarci': 'Ilustriran, živ 3D zemljevid Kavadarcev — mesta tikveškega vina, od Glišića in Vataše do celotnega Tikveškega jezera in jezu na reki Crni. Vse stavbe, ulice, parki in drevesa so narisani iz odprtih podatkov projektov OpenStreetMap in Overture Maps in postavljeni na resnični relief.',
     'f.race.kavadarci': '<b>Dirka (neobvezno):</b> med letom pritisni „🏁 Dirka“ in po vrsti preleti 11 obročev — od Trga, prek Glišića, Spominske kostnice, Vataše, Tikveškega jezera in jezu, do cilja. Puščica zgoraj kaže proti naslednjemu obroču, svetel steber pa ga označuje. Spotoma prebodi balone „091“. Najboljši čas se shrani.',
     'v.ossuary': 'Spominska kostnica',
@@ -791,6 +797,7 @@ export const STR = {
     'info.b.pelister': 'Pelister (2601 m) je najvišji vrh gore Baba. Narodni park Pelister, ustanovljen leta 1948, je najstarejši v Makedoniji in je znan po makedonskem boru (moliki).',
     'info.b.lakes': '„Pelistrske oči“ sta dve ledeniški jezeri pod vrhom: Veliko jezero na okoli 2200 metrih in Malo jezero.',
     'f.fire.kavadarci': `<b>Gašenje požarov (neobvezno):</b> med letom pritisni „🔥 Požar“ in letalo postane rumeno gasilsko letalo „Air Tractor“. Hkrati gorita največ dva požara — del gozda, stavba ali avtobus; dim se vidi od daleč, puščica zgoraj pa kaže proti najbližjemu. Preleti ogenj in drži ${K('Space')} (ali gumb 💧), da spustiš vodo — beli krog na tleh kaže, kam bo padla. Ko se rezervoar izprazni, se spusti nizko nad Tikveško jezero jugozahodno od mesta, da ga napolniš. Takoj ko je en požar pogašen, izbruhne drug nekje drugje.`,
+    ...TOWNS.sl,
   },
 
   sq: {
@@ -922,7 +929,7 @@ export const STR = {
     'city.pick': 'Zgjidh qytetin',
     'city.menu': 'Qyteti',
     'b.city': 'Shenja e qytetit (lart majtas)',
-    'b.cityD': 'Zgjidh një qytet tjetër: Shkupin, Kavadarcin ose Manastirin. Lidhja e mban mend qytetin, ndaj mund t’ia dërgosh dikujt.',
+    'b.cityD': 'Zgjidh një qytet tjetër: Shkupin, Kavadarcin, Manastirin, Ohrin e të tjerë. Lidhja e mban mend qytetin, ndaj mund t’ia dërgosh dikujt.',
     'help.lead.kavadarci': 'Një hartë 3D e ilustruar dhe e gjallë e Kavadarcit — qytetit të verës së Tikveshit, nga Glishiqi dhe Vatasha deri te i gjithë liqeni i Tikveshit dhe diga e tij në lumin Crna Reka. Të gjitha ndërtesat, rrugët, parqet dhe pemët janë vizatuar nga të dhënat e hapura të OpenStreetMap dhe Overture Maps dhe janë vendosur mbi relievin e vërtetë.',
     'f.race.kavadarci': '<b>Gara (opsionale):</b> gjatë fluturimit shtyp „🏁 Gara“ dhe kalo me radhë nëpër 11 unazat — nga Sheshi, përmes Glishiqit, Kostnicës përkujtimore, Vatashës, liqenit të Tikveshit dhe digës së tij, deri në finish. Shigjeta lart tregon drejt unazës së radhës, ndërsa një shtyllë drite e shënon. Plas balonat „091“ gjatë rrugës. Koha më e mirë ruhet.',
     'v.ossuary': 'Kostnica përkujtimore',
@@ -964,6 +971,7 @@ export const STR = {
     'info.b.pelister': 'Pelisteri (2601 m) është maja më e lartë e malit Baba. Parku Kombëtar Pelister, i themeluar në vitin 1948, është më i vjetri në Maqedoni dhe njihet për pishën molika.',
     'info.b.lakes': '“Sytë e Pelisterit” janë dy liqenet akullnajore nën majë: Liqeni i Madh, në rreth 2200 metra, dhe Liqeni i Vogël.',
     'f.fire.kavadarci': `<b>Shuarja e zjarreve (opsionale):</b> gjatë fluturimit shtyp „🔥 Zjarr“ dhe aeroplani bëhet një „Air Tractor“ i verdhë zjarrfikës. Digjen më së shumti dy zjarre njëkohësisht — një pjesë pylli, një ndërtesë ose një autobus; tymi duket nga larg, ndërsa shigjeta lart tregon drejt më të afërtit. Fluturo mbi zjarr dhe mbaj shtypur ${K('Space')} (ose butonin 💧) për të lëshuar ujë — rrethi i bardhë në tokë tregon ku do të bjerë. Kur rezervuari zbrazet, zbrit ulët mbi liqenin e Tikveshit, në jugperëndim të qytetit, për ta mbushur. Sapo shuhet një zjarr, ndizet një tjetër diku tjetër.`,
+    ...TOWNS.sq,
   },
 };
 

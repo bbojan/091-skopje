@@ -1604,6 +1604,16 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THRE
     for (const m of [L.terrainHi, L.ground]) if (m) { m.removeFromParent(); m.geometry.dispose(); }
     L.terrainHi = L.ground = null;
   }
+  /** the draped ground covers the whole chunk in one colour (a chunk of open water) */
+  function oneColour(g: THREE.BufferGeometry, rect: Box): boolean {
+    const c = g.getAttribute('color') as THREE.BufferAttribute | undefined, p = g.getAttribute('position') as THREE.BufferAttribute;
+    if (!c || !c.count) return false;
+    const r = c.getX(0), gg = c.getY(0), b = c.getZ(0);
+    for (let i = 1; i < c.count; i++) if (Math.abs(c.getX(i) - r) + Math.abs(c.getY(i) - gg) + Math.abs(c.getZ(i) - b) > 1e-4) return false;
+    let a2 = 0; // its area (not indexed: one triangle per three vertices; layers never overlap in one colour)
+    for (let i = 0; i + 2 < p.count; i += 3) a2 += Math.abs((p.getX(i + 1) - p.getX(i)) * (p.getZ(i + 2) - p.getZ(i)) - (p.getX(i + 2) - p.getX(i)) * (p.getZ(i + 1) - p.getZ(i)));
+    return a2 / 2 >= (rect[2] - rect[0]) * (rect[3] - rect[1]) * 0.995;
+  }
   // Bake each chunk's draped ground (land use + roads) into a texture for the
   // coarse far-away terrain, so distant chunks cost a few thousand triangles.
   // `sparseVerts` > 0: chunks whose draped ground has fewer vertices than that (bare hills: land cover
@@ -1638,7 +1648,8 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THRE
       if (temp) buildHi(L);
       const hiMesh = L.terrainHi!;
       const sparse = sparseVerts > 0 && (L.ground?.geometry.attributes.position?.count ?? 0) < sparseVerts;
-      const r = sparse ? res / 2 : res, big = bigFor(r);
+      // one colour everywhere (open water: Ohrid's lake): a tiny texture holds it as well
+      const r = sparseVerts > 0 && L.ground && oneColour(L.ground.geometry, L.rect) ? 16 : sparse ? res / 2 : res, big = bigFor(r);
       copyMat.uniforms.t.value = big.texture;
       const rt = new THREE.WebGLRenderTarget(r, r, { depthBuffer: false });
       rt.texture.colorSpace = THREE.SRGBColorSpace;
