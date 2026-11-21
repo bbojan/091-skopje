@@ -419,6 +419,38 @@ const PREP: Record<CityName, CityPrep> = {
     // no lake on this map: the Маркова Река, from Марков манастир down past Батинци, widened for refilling
     waterLines: [[182532170, 5], [46033085, 5]],
   },
+  berovo: {
+    old: null,
+    square: [41.70654, 22.85682], // Градски плоштад „Димитар Беровски“
+    landmarks: {},
+    // modelled by hand after photos (src/berovo.ts): the arch dam of Беровско Езеро on its OSM crest line
+    models: { bdam: 606170062 },
+    // the churches have only OSM nodes: rectangles read off an aerial image. Св. Архангел Михаил (the women's
+    // monastery, 1818) under its wide porch, its long axis toward the south-east; its bell tower at the north-west
+    // end of the konak beside it (to the left of the porch front in the photos); Рождество на Пресвета Богородица on
+    // the square, east–west, its tower at the south-west corner
+    modelRects: {
+      mihail: [41.70097, 22.85896, 32, 15, 2.3],
+      mtower: [41.70129, 22.85876, 5, 5, 2.3],
+      rozdestvo: [41.70674, 22.85700, 24, 15, Math.PI / 2],
+    },
+    // the monastery's konak, a long two-storey wing between the church and the street (aerial image; not in OSM)
+    extraBuildings: [
+      { tags: { building: 'yes', 'building:levels': '2', 'roof:shape': 'hipped' }, r: [[41.701109, 22.859101], [41.701265, 22.858868], [41.701211, 22.858804], [41.701056, 22.859037]] },
+    ],
+    placeNames: {},
+    placeIds: { square: 239374902, lake: 37372709, bdam: 606170062, psquare: 606145632, park: 1264878902 },
+    placeNodes: { mihail: 499973497, rozdestvo: 499973498, pehcevo: 6228439417, ratevo: 456844057, spikovo: 5747845483 },
+    nodeLL: {
+      499973497: [41.70104, 22.85902], 499973498: [41.70676, 22.85707], // the two churches
+      6228439417: [41.76357, 22.88730], 456844057: [41.67633, 22.85144], 5747845483: [41.73176, 22.93313], // Пехчево, Ратево, Спиковски водопад
+    },
+    tall: [],
+    // the blocks of flats round the square of Берово and in the middle of Пехчево
+    mid: [[41.7030, 41.7110, 22.8480, 22.8600], [41.7590, 41.7650, 22.8820, 22.8920]],
+    squareBonus: false,
+    maxLevels: 6,
+  },
 };
 const CFG = PREP[CITY];
 const OLD = CFG.old;

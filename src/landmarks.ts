@@ -15,6 +15,7 @@ import { createKrusevo, krusevoFootprints } from './krusevo.ts';
 import { createKamenica, kamenicaFootprints } from './kamenica.ts';
 import { createDojran, dojranFootprints } from './dojran.ts';
 import { createBatinci, batinciFootprints } from './batinci.ts';
+import { createBerovo, berovoFootprints } from './berovo.ts';
 import type { BuildingData, CityData, Flat, Pt, Vec3 } from './types.ts';
 
 // Hand-built models for landmarks that OSM can only describe as outlines.
@@ -227,6 +228,7 @@ export function landmarkFootprints(data: CityData, terrain: Terrain): BuildingDa
   for (const [r, h] of kamenicaFootprints(data)) add(r, h); // Makedonska Kamenica: Успение
   for (const [r, h] of dojranFootprints(data)) add(r, h); // Dojran: the clock tower, Св. Илија
   for (const [r, h] of batinciFootprints(data)) add(r, h); // Batinci: Марков манастир, the mosque
+  for (const [r, h] of berovoFootprints(data)) add(r, h); // Berovo: the two churches, the bell tower
   const cl = canalLayout(data, terrain); // the Луда Мара's channel, open at the bridges
   if (cl) for (const b of canalFootprints(cl)) out.push({ ...b, id: -1 - out.length });
   return out;
@@ -1044,8 +1046,8 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
   const ohrid = L.models ? createOhrid(data, terrain, clippingPlanes) : null;
   if (ohrid?.group.children.length) { group.add(ohrid.group); nightGlass.push(...ohrid.nightLit); }
   // ---------------- Rostuše: Бигорски манастир, Св. Никола in Mavrovo (rostuse.ts); Prilep (prilep.ts); Kruševo (krusevo.ts);
-  // Makedonska Kamenica (kamenica.ts); Dojran (dojran.ts); Batinci (batinci.ts)
-  for (const make of [createRostuse, createPrilep, createKrusevo, createKamenica, createDojran, createBatinci]) {
+  // Makedonska Kamenica (kamenica.ts); Dojran (dojran.ts); Batinci (batinci.ts); Berovo (berovo.ts)
+  for (const make of [createRostuse, createPrilep, createKrusevo, createKamenica, createDojran, createBatinci, createBerovo]) {
     const t = L.models ? make(data, terrain, clippingPlanes) : null;
     if (t?.group.children.length) { group.add(t.group); nightGlass.push(...t.nightLit); }
   }

@@ -153,6 +153,23 @@ export const CITIES = {
     files: { raw: 'data/batinci_raw.json', scene: 'public/batinci.json', terrainBin: 'public/batinci-terrain.bin', terrainJson: 'public/batinci-terrain.json', overture: 'data/batinci_overture.json' },
     terrain: { smooth: 1, flatWater: true, rivers: { river: [4, 1.5], stream: [2, 1], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Берово in the Малешево basin: the town, Ратево and Смојмирово, Пехчево and Чифлик to the north, the whole of
+  // Беровско Езеро (41.659–41.676 N, 22.893–22.917 E) and its dam south-east of the town, the Спиковски водопади
+  berovo: {
+    bbox: { s: 41.65, w: 22.82, n: 41.778, e: 22.94 },
+    tiles: [3, 3] as [number, number],
+    files: { raw: 'data/berovo_raw.json', scene: 'public/berovo.json', terrainBin: 'public/berovo-terrain.bin', terrainJson: 'public/berovo-terrain.json', overture: 'data/berovo_overture.json' },
+    // the lake flat at 990 m (OSM's ele); the DEM has no gorge under the arch dam (≈ 990 m right below the crest, the
+    // stream reaches 971 m only 100 m on): its foot bent down to ≈ 958 m, a wall of about 33 m as in the photos;
+    // the crest is convex toward the lake (east), the gorge below it to the north-west
+    terrain: {
+      smooth: 1, flatWater: true, rivers: { river: [4, 1.5], stream: [2, 1], canal: [2, 1] },
+      points: [ // 24 m off the crest on its concave (downstream) side, radius 22: the lake is untouched
+        [41.67106, 22.89420, 958, 22], [41.67073, 22.89407, 958, 22], [41.67067, 22.89400, 958, 22], [41.67053, 22.89371, 958, 22],
+        [41.67114, 22.89310, 962, 40],
+      ],
+    } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: { s: number; w: number; n: number; e: number }; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec }>;
 export type CityName = keyof typeof CITIES;
 const isCity = (s: string | undefined): s is CityName => !!s && s in CITIES;

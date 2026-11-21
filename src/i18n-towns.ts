@@ -1,4 +1,4 @@
-// UI texts of the towns added after Bitola (Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran, Batinci), spread into STR in i18n.ts.
+// UI texts of the towns added after Bitola (Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran, Batinci, Berovo), spread into STR in i18n.ts.
 // Macedonian holds only the strings set from JavaScript; the static ones (views, help) are in index.html.
 const K = (...keys: string[]) => keys.map((k) => `<kbd>${k}</kbd>`).join(' ');
 
@@ -67,6 +67,14 @@ export const TOWNS = {
     "info.bt.markov": "Марков манастир, со црквата Св. Димитрија, е подигнат во втората половина на 14 век: градбата ја започнал кралот Волкашин, а ја завршил неговиот син Крале Марко. Познат е по фреските.",
     "info.bt.dracevo": "Драчево е населба во Општина Кисела Вода, на југоисточниот раб на Скопје.",
     "info.bt.river": "Маркова Река тече покрај Марков манастир и Батинци, а потоа на север кон Скопје и Вардар.",
+    // Berovo
+    "fire.refill.berovo": "💧 Наполни вода од Беровско Езеро",
+    "info.br.square": "Берово е центарот на Малешевијата, на околу 850 m надморска височина под Малешевските Планини.",
+    "info.br.mihail": "Црквата Св. Архангел Михаил на Беровскиот женски манастир е изградена од 1815 до 1818 година. Според преданието, морала да биде ниска, под нивото на патот, за да не се гледа. Манастирот е познат по мозаиците што се прават во него.",
+    "info.br.rozdestvo": "Црквата Рождество на Пресвета Богородица стои на градскиот плоштад, со високата камбанарија со часовник.",
+    "info.br.lake": "Беровско или Ратевско Езеро е вештачко езеро на околу 7 km од Берово, на околу 1000 m надморска височина, опкружено со борови и букови шуми.",
+    "info.br.dam": "Езерото го задржува тенка лачна бетонска брана, свиткана кон водата, во тесната клисура на неговиот западен крај.",
+    "info.br.pehcevo": "Пехчево, на околу 1000 m надморска височина, е по Крушево вториот највисок град во Македонија.",
   },
   en: {
     // Ohrid
@@ -178,6 +186,21 @@ export const TOWNS = {
     "info.bt.dracevo": "Dračevo is a neighbourhood in the municipality of Kisela Voda, on the south-eastern edge of Skopje.",
     "info.bt.river": "The Markova Reka flows past Marko’s Monastery and Batinci, then north toward Skopje and the Vardar.",
     'f.fire.batinci': `<b>Firefighting (optional):</b> while flying, press “🔥 Fire” and the plane becomes a yellow Air Tractor firefighting plane. At most two fires burn at a time — a patch of forest or a building; the smoke shows from afar and the arrow at the top points to the nearest one. Fly over the fire and hold ${K('Space')} (or the 💧 button) to drop water — the white ring on the ground shows where it will land. When the tank is empty, skim low along the Markova Reka to fill it. As soon as one fire is out, another starts somewhere else.`,
+    // Berovo
+    "help.lead.berovo": "An illustrated, living 3D map of Maleševo — Berovo under the Maleševo Mountains, the whole of Berovo Lake with its arch dam, Ratevo and Smojmirovo, and Pehčevo to the north. Every building, street, park and tree is drawn from OpenStreetMap and Overture Maps open data and placed on the real terrain.",
+    "f.race.berovo": "<b>Race (optional):</b> while flying, press “🏁 Race” and fly through the rings in order — from the square, past the monastery of St. Michael the Archangel and Ratevo, down the gorge to the dam and along Berovo Lake, to the Spikovo waterfalls and Pehčevo, and back over Smojmirovo to the finish. The arrow at the top points to the next ring and a bright pillar marks it. Pop the “091” balloons along the way. Your best time is remembered.",
+    "fire.refill.berovo": "💧 Refill from Berovo Lake",
+    "v.mihail": "St. Michael the Archangel",
+    "v.blake": "Berovo Lake",
+    "v.bdam": "The dam",
+    "v.pehcevo": "Pehčevo",
+    "info.br.square": "Berovo is the centre of Maleševo, at about 850 m above sea level below the Maleševo Mountains.",
+    "info.br.mihail": "The church of St. Michael the Archangel of Berovo’s convent was built from 1815 to 1818. According to legend it had to be low, below the level of the road, so that it would not be seen. The convent is known for the mosaics made there.",
+    "info.br.rozdestvo": "The church of the Nativity of the Theotokos stands on the town square, with its tall bell tower and clock.",
+    "info.br.lake": "Berovo Lake, also called Ratevo Lake, is a reservoir about 7 km from Berovo, at about 1000 m above sea level, surrounded by pine and beech forests.",
+    "info.br.dam": "The lake is held back by a thin concrete arch dam, curved toward the water, in the narrow gorge at its western end.",
+    "info.br.pehcevo": "Pehčevo, at about 1000 m above sea level, is the second highest town in Macedonia after Kruševo.",
+    'f.fire.berovo': `<b>Firefighting (optional):</b> while flying, press “🔥 Fire” and the plane becomes a yellow Air Tractor firefighting plane. At most two fires burn at a time — a patch of forest or a building; the smoke shows from afar and the arrow at the top points to the nearest one. Fly over the fire and hold ${K('Space')} (or the 💧 button) to drop water — the white ring on the ground shows where it will land. When the tank is empty, skim low over Berovo Lake, south-east of the town, to fill it. As soon as one fire is out, another starts somewhere else.`,
   },
   sr: {
     // Ohrid
@@ -289,6 +312,21 @@ export const TOWNS = {
     "info.bt.dracevo": "Драчево је насеље у општини Кисела Вода, на југоисточном рубу Скопља.",
     "info.bt.river": "Маркова река тече поред Марковог манастира и Батинаца, а затим на север ка Скопљу и Вардару.",
     'f.fire.batinci': `<b>Гашење пожара (опционо):</b> у лету притисни „🔥 Пожар“ и авион постаје жути противпожарни „Ер трактор“. Истовремено горе највише два пожара — део шуме или зграда; дим се види издалека, а стрелица горе показује ка најближем. Прелети преко ватре и држи ${K('Space')} (или дугме 💧) да испустиш воду — бели круг на тлу показује где ће пасти. Кад се резервоар испразни, спусти се ниско дуж Маркове реке да га напуниш. Чим један пожар угасне, пали се нови на другом месту.`,
+    // Berovo
+    "help.lead.berovo": "Илустрована, жива 3Д мапа Малешева — Берово под Малешевским планинама, цело Беровско језеро са лучном браном, Ратево и Смојмирово, и Пехчево на северу. Све зграде, улице, паркови и дрвеће нацртани су из отворених података OpenStreetMap и Overture Maps и постављени на прави рељеф.",
+    "f.race.berovo": "<b>Трка (опционо):</b> у лету притисни „🏁 Трка“ и пролети кроз прстенове редом — од трга, поред манастира Св. Архангела Михаила и Ратева, низ клисуру до бране и дуж Беровског језера, до Спиковских водопада и Пехчева, и назад преко Смојмирова до циља. Стрелица горе показује ка следећем прстену, а светли стуб га означава. Успут пробуши балоне „091“. Најбоље време се памти.",
+    "fire.refill.berovo": "💧 Напуни воду из Беровског језера",
+    "v.mihail": "Св. Архангел Михаило",
+    "v.blake": "Беровско језеро",
+    "v.bdam": "Брана",
+    "v.pehcevo": "Пехчево",
+    "info.br.square": "Берово је средиште Малешева, на око 850 m надморске висине испод Малешевских планина.",
+    "info.br.mihail": "Црква Св. Архангела Михаила беровског женског манастира саграђена је од 1815. до 1818. године. Према предању, морала је бити ниска, испод нивоа пута, да се не би видела. Манастир је познат по мозаицима који се у њему израђују.",
+    "info.br.rozdestvo": "Црква Рођења Пресвете Богородице стоји на градском тргу, са високим звоником са сатом.",
+    "info.br.lake": "Беровско или Ратевско језеро је вештачко језеро на око 7 km од Берова, на око 1000 m надморске висине, окружено боровим и буковим шумама.",
+    "info.br.dam": "Језеро задржава танка лучна бетонска брана, повијена ка води, у уској клисури на његовом западном крају.",
+    "info.br.pehcevo": "Пехчево, на око 1000 m надморске висине, други је највиши град у Македонији, после Крушева.",
+    'f.fire.berovo': `<b>Гашење пожара (опционо):</b> у лету притисни „🔥 Пожар“ и авион постаје жути противпожарни „Ер трактор“. Истовремено горе највише два пожара — део шуме или зграда; дим се види издалека, а стрелица горе показује ка најближем. Прелети преко ватре и држи ${K('Space')} (или дугме 💧) да испустиш воду — бели круг на тлу показује где ће пасти. Кад се резервоар испразни, спусти се ниско над Беровско језеро, југоисточно од града, да га напуниш. Чим један пожар угасне, пали се нови на другом месту.`,
   },
   hr: {
     // Ohrid
@@ -400,6 +438,21 @@ export const TOWNS = {
     "info.bt.dracevo": "Dračevo je naselje u općini Kisela Voda, na jugoistočnom rubu Skopja.",
     "info.bt.river": "Markova rijeka teče pokraj Markova manastira i Batinaca, a zatim na sjever prema Skopju i Vardaru.",
     'f.fire.batinci': `<b>Gašenje požara (neobavezno):</b> u letu pritisni „🔥 Požar” i avion postaje žuti protupožarni „Air Tractor”. Istodobno gore najviše dva požara — dio šume ili zgrada; dim se vidi izdaleka, a strelica gore pokazuje prema najbližem. Preleti preko vatre i drži ${K('Space')} (ili gumb 💧) da ispustiš vodu — bijeli krug na tlu pokazuje gdje će pasti. Kad se spremnik isprazni, spusti se nisko duž Markove rijeke da ga napuniš. Čim se jedan požar ugasi, novi se pali na drugom mjestu.`,
+    // Berovo
+    "help.lead.berovo": "Ilustrirana, živa 3D karta Maleševa — Berovo pod Maleševskim planinama, cijelo Berovsko jezero s lučnom branom, Ratevo i Smojmirovo te Pehčevo na sjeveru. Sve zgrade, ulice, parkovi i stabla nacrtani su iz otvorenih podataka OpenStreetMap i Overture Maps i postavljeni na stvarni reljef.",
+    "f.race.berovo": "<b>Utrka (neobavezno):</b> u letu pritisni „🏁 Utrka” i proleti kroz prstenove redom — od trga, pokraj samostana Sv. Arkanđela Mihaela i Rateva, niz klisuru do brane i duž Berovskog jezera, do Spikovskih slapova i Pehčeva, i natrag preko Smojmirova do cilja. Strelica gore pokazuje prema sljedećem prstenu, a svijetli stup ga označava. Usput probuši balone „091”. Najbolje vrijeme se pamti.",
+    "fire.refill.berovo": "💧 Napuni vodu iz Berovskog jezera",
+    "v.mihail": "Sv. Arkanđel Mihael",
+    "v.blake": "Berovsko jezero",
+    "v.bdam": "Brana",
+    "v.pehcevo": "Pehčevo",
+    "info.br.square": "Berovo je središte Maleševa, na oko 850 m nadmorske visine ispod Maleševskih planina.",
+    "info.br.mihail": "Crkva Sv. Arkanđela Mihaela berovskog ženskog samostana sagrađena je od 1815. do 1818. Prema predaji morala je biti niska, ispod razine ceste, da se ne bi vidjela. Samostan je poznat po mozaicima koji se u njemu izrađuju.",
+    "info.br.rozdestvo": "Crkva Rođenja Presvete Bogorodice stoji na gradskom trgu, s visokim zvonikom sa satom.",
+    "info.br.lake": "Berovsko ili Ratevsko jezero umjetno je jezero oko 7 km od Berova, na oko 1000 m nadmorske visine, okruženo borovim i bukovim šumama.",
+    "info.br.dam": "Jezero zadržava tanka lučna betonska brana, svinuta prema vodi, u uskoj klisuri na njegovu zapadnom kraju.",
+    "info.br.pehcevo": "Pehčevo, na oko 1000 m nadmorske visine, drugi je najviši grad u Makedoniji, nakon Kruševa.",
+    'f.fire.berovo': `<b>Gašenje požara (neobavezno):</b> u letu pritisni „🔥 Požar” i avion postaje žuti protupožarni „Air Tractor”. Istodobno gore najviše dva požara — dio šume ili zgrada; dim se vidi izdaleka, a strelica gore pokazuje prema najbližem. Preleti preko vatre i drži ${K('Space')} (ili gumb 💧) da ispustiš vodu — bijeli krug na tlu pokazuje gdje će pasti. Kad se spremnik isprazni, spusti se nisko nad Berovsko jezero, jugoistočno od grada, da ga napuniš. Čim se jedan požar ugasi, novi se pali na drugom mjestu.`,
   },
   sl: {
     // Ohrid
@@ -511,6 +564,21 @@ export const TOWNS = {
     "info.bt.dracevo": "Dračevo je naselje v občini Kisela Voda, na jugovzhodnem robu Skopja.",
     "info.bt.river": "Markova reka teče mimo Markovega samostana in Batincev, nato proti severu proti Skopju in Vardarju.",
     'f.fire.batinci': `<b>Gašenje požarov (neobvezno):</b> med letom pritisni „🔥 Požar“ in letalo postane rumeno gasilsko letalo „Air Tractor“. Hkrati gorita največ dva požara — del gozda ali stavba; dim se vidi od daleč, puščica zgoraj pa kaže proti najbližjemu. Preleti ogenj in drži ${K('Space')} (ali gumb 💧), da spustiš vodo — bel krog na tleh kaže, kam bo padla. Ko se rezervoar izprazni, se spusti nizko vzdolž Markove reke, da ga napolniš. Takoj ko en požar ugasne, se drugje vname nov.`,
+    // Berovo
+    "help.lead.berovo": "Ilustriran, živ 3D zemljevid Maleševa — Berovo pod Maleševskimi planinami, celotno Berovsko jezero z ločnim jezom, Ratevo in Smojmirovo ter Pehčevo na severu. Vse stavbe, ulice, parki in drevesa so narisani iz odprtih podatkov OpenStreetMap in Overture Maps in postavljeni na pravi relief.",
+    "f.race.berovo": "<b>Dirka (neobvezno):</b> med letom pritisni „🏁 Dirka“ in po vrsti preleti obroče — od trga, mimo samostana sv. nadangela Mihaela in Rateva, po soteski do jezu in vzdolž Berovskega jezera, do Spikovskih slapov in Pehčeva ter nazaj čez Smojmirovo do cilja. Puščica zgoraj kaže proti naslednjemu obroču, svetel steber ga označuje. Spotoma poči balone „091“. Najboljši čas si zapomnimo.",
+    "fire.refill.berovo": "💧 Natoči vodo iz Berovskega jezera",
+    "v.mihail": "Sv. nadangel Mihael",
+    "v.blake": "Berovsko jezero",
+    "v.bdam": "Jez",
+    "v.pehcevo": "Pehčevo",
+    "info.br.square": "Berovo je središče Maleševa, na približno 850 m nadmorske višine pod Maleševskimi planinami.",
+    "info.br.mihail": "Cerkev sv. nadangela Mihaela v berovskem ženskem samostanu je bila zgrajena med letoma 1815 in 1818. Po izročilu je morala biti nizka, pod ravnjo ceste, da je ne bi videli. Samostan je znan po mozaikih, ki jih izdelujejo v njem.",
+    "info.br.rozdestvo": "Cerkev Rojstva Presvete Bogorodice stoji na mestnem trgu, z visokim zvonikom z uro.",
+    "info.br.lake": "Berovsko ali Ratevsko jezero je umetno jezero približno 7 km od Berova, na približno 1000 m nadmorske višine, obdano z borovimi in bukovimi gozdovi.",
+    "info.br.dam": "Jezero zadržuje tanek ločni betonski jez, upognjen proti vodi, v ozki soteski na njegovem zahodnem koncu.",
+    "info.br.pehcevo": "Pehčevo je na približno 1000 m nadmorske višine za Kruševom drugo najvišje ležeče mesto v Makedoniji.",
+    'f.fire.berovo': `<b>Gašenje požarov (neobvezno):</b> med letom pritisni „🔥 Požar“ in letalo postane rumeno gasilsko letalo „Air Tractor“. Hkrati gorita največ dva požara — del gozda ali stavba; dim se vidi od daleč, puščica zgoraj pa kaže proti najbližjemu. Preleti ogenj in drži ${K('Space')} (ali gumb 💧), da spustiš vodo — bel krog na tleh kaže, kam bo padla. Ko se rezervoar izprazni, se spusti nizko nad Berovsko jezero, jugovzhodno od mesta, da ga napolniš. Takoj ko en požar ugasne, se drugje vname nov.`,
   },
   sq: {
     // Ohrid
@@ -622,5 +690,20 @@ export const TOWNS = {
     "info.bt.dracevo": "Draçeva është lagje në komunën e Kisella Vodës, në skajin juglindor të Shkupit.",
     "info.bt.river": "Lumi Markova Reka rrjedh pranë Manastirit të Markos dhe Batincit, e pastaj në veri drejt Shkupit dhe Vardarit.",
     'f.fire.batinci': `<b>Shuarja e zjarreve (opsionale):</b> gjatë fluturimit shtyp “🔥 Zjarr” dhe avioni bëhet avioni i verdhë kundër zjarrit “Air Tractor”. Njëkohësisht digjen më së shumti dy zjarre — një pjesë pylli ose një ndërtesë; tymi duket nga larg, ndërsa shigjeta lart tregon drejt më të afërtit. Fluturo mbi zjarr dhe mbaj shtypur ${K('Space')} (ose butonin 💧) për të lëshuar ujë — rrethi i bardhë në tokë tregon ku do të bjerë. Kur rezervuari zbrazet, zbrit ulët përgjatë lumit Markova Reka për ta mbushur. Sapo shuhet një zjarr, ndizet një tjetër diku tjetër.`,
+    // Berovo
+    "help.lead.berovo": "Një hartë 3D e ilustruar dhe e gjallë e Maleshevës — Berova nën Malet e Maleshevës, i gjithë liqeni i Berovës me digën e tij me hark, Rateva dhe Smojmirova, dhe Pehçeva në veri. Të gjitha ndërtesat, rrugët, parqet dhe pemët janë vizatuar nga të dhënat e hapura të OpenStreetMap dhe Overture Maps dhe janë vendosur mbi relievin e vërtetë.",
+    "f.race.berovo": "<b>Gara (opsionale):</b> gjatë fluturimit shtyp “🏁 Gara” dhe fluturo me radhë nëpër unaza — nga sheshi, pranë manastirit të Kryeengjëllit Mihail dhe Ratevës, poshtë grykës deri te diga dhe përgjatë liqenit të Berovës, deri te ujëvarat e Spikovës dhe Pehçeva, e pastaj prapë mbi Smojmirovë deri në finish. Shigjeta lart tregon drejt unazës së radhës, ndërsa një shtyllë e ndritshme e shënon. Plas balonat “091” gjatë rrugës. Koha më e mirë mbahet mend.",
+    "fire.refill.berovo": "💧 Mbush ujë nga liqeni i Berovës",
+    "v.mihail": "Kryeengjëlli Mihail",
+    "v.blake": "Liqeni i Berovës",
+    "v.bdam": "Diga",
+    "v.pehcevo": "Pehçeva",
+    "info.br.square": "Berova është qendra e Maleshevës, në rreth 850 m mbi nivelin e detit, nën Malet e Maleshevës.",
+    "info.br.mihail": "Kisha e Kryeengjëllit Mihail e manastirit të grave të Berovës u ndërtua nga viti 1815 deri në 1818. Sipas gojëdhënës, duhej të ishte e ulët, nën nivelin e rrugës, që të mos dukej. Manastiri është i njohur për mozaikët që punohen në të.",
+    "info.br.rozdestvo": "Kisha e Lindjes së Hyjlindëses qëndron në sheshin e qytetit, me kambanoren e lartë me orë.",
+    "info.br.lake": "Liqeni i Berovës, i quajtur edhe i Ratevës, është liqen artificial rreth 7 km nga Berova, në rreth 1000 m mbi nivelin e detit, i rrethuar me pyje pishe dhe ahu.",
+    "info.br.dam": "Liqenin e mban një digë e hollë betoni me hark, e përkulur drejt ujit, në grykën e ngushtë në skajin e tij perëndimor.",
+    "info.br.pehcevo": "Pehçeva, në rreth 1000 m mbi nivelin e detit, është qyteti i dytë më i lartë në Maqedoni pas Krushevës.",
+    'f.fire.berovo': `<b>Shuarja e zjarreve (opsionale):</b> gjatë fluturimit shtyp “🔥 Zjarr” dhe avioni bëhet avioni i verdhë kundër zjarrit “Air Tractor”. Njëkohësisht digjen më së shumti dy zjarre — një pjesë pylli ose një ndërtesë; tymi duket nga larg, ndërsa shigjeta lart tregon drejt më të afërtit. Fluturo mbi zjarr dhe mbaj shtypur ${K('Space')} (ose butonin 💧) për të lëshuar ujë — rrethi i bardhë në tokë tregon ku do të bjerë. Kur rezervuari zbrazet, zbrit ulët mbi liqenin e Berovës, në juglindje të qytetit, për ta mbushur. Sapo shuhet një zjarr, ndizet një tjetër diku tjetër.`,
   },
 };

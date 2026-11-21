@@ -311,6 +311,19 @@ Shortcuts and fixes that came out of the third city; reuse them before writing n
 - **Is a pixel difference the gondola?** If the count changes with the time since load and the spot lies on the
   line of the cabins (project the meshes that share one geometry), it is.
 
+## What Berovo added (v11.0.0)
+
+- **Models in metres above sea do not work:** `terrain.at()` is relative to the heightfield, not metres above sea.
+  Read levels off the terrain (the dam's crest: the lake 20 m upstream, plus 1.4 m).
+- **A gorge the DEM lacks:** under a tall dam the DEM may stay level with the lake. `points` on the downstream side,
+  closer to the crest than their radius only on the dry side, cut it without touching the flat water.
+- **An arch dam on OSM's crest line** (`waterway=dam` as a line): put the way in `models`; the downstream side is the
+  concave one (the arch bulges toward the lake).
+- **Churches that are OSM nodes only:** read the rectangle off an aerial image (Esri World Imagery tiles; zoom 18
+  where 19 is "not yet available"), and add a neighbouring building OSM lacks (a konak) with `extraBuildings`.
+- **A stale scene in the browser:** after `npm run data` the open tab may keep the old JSON; reload the page
+  (a new tab or the pane restarted) before judging a change.
+
 ## Checklist
 
 - [ ] `scripts/config.ts`: `CITIES.<id>` (bbox, tiles, files)

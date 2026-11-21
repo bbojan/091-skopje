@@ -477,6 +477,31 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    pixel check (0 except 11–13 pixels at the gondola cabins in the overview, as before). Not checked: phones,
    switching memory, firefighting over the river, the race, walking cards, the Драчево view.
 
+35. **v11.0.0** (Nov 2026, the `city-berovo` branch): **033 Берово** (`?city=berovo`), the eleventh map: the
+   Малешево basin, 41.650–41.778 N, 22.82–22.94 E (14.2 × 10 km): Берово, Ратево and Смојмирово, Пехчево and
+   Чифлик to the north, the whole of Беровско Езеро (OSM way 37372709, 0.55 km²) with its dam, the Спиковски
+   водопади. Badge 033 (like Македонска Каменица). 438 OSM buildings (the count query and Overture's skipped OSM
+   outlines agree) plus 7,939 Overture footprints; 10 m cells, 806–1680 m. `mid` boxes round the square of
+   Берово and the middle of Пехчево, `maxLevels: 6`. The lake is flat at 990 m (OSM's `ele`); the DEM has no
+   gorge under the arch dam, so its foot is bent down to ≈ 958 m with `points` on the concave side, 24 m off
+   the crest (radius 22, so the lake stays flat).
+   Models (`src/berovo.ts`, after Commons photos and an Esri aerial image): Св. Архангел Михаил of the women's
+   monastery (1815–1818: low stone church under one hipped roof over a deep wooden porch on carved posts, an
+   apse), its bell tower (stone base, white shaft, open octagonal wooden belfry) at the north-west end of the
+   konak, which OSM lacks and is added as an `extraBuildings` wing; Рождество на Пресвета Богородица on the
+   square (white basilica, a tall clock tower with a small green dome); the concrete arch dam on OSM's crest
+   line (way 606170062), with panel joints, railings, lamps and the keeper's house. The churches are OSM
+   nodes only: their rectangles (`modelRects`) are read off the aerial image; the bell tower's place is a
+   guess from one photo. The dam's crest is taken from the terrain's water level (`terrain.at()` is not
+   metres above sea). Tow banners: „Беровско Езеро го спаси Берово!“ / „Поздрав од Малешево!“.
+   Also: the badge codes of Битола, Охрид, Прилеп and Крушево changed to 097, 096, 098 and 098 at the
+   owner's request (the entries above keep the codes they were released with).
+   Checked: the square, both churches, the dam from the gorge and the lake, Пехчево and the overview
+   rendered and looked at, no console errors; typecheck, build; Skopje pixel check (0 over 2/255 on all 9
+   renders); switching away and back (textures and scene objects equal, geometries +2). Not checked: phones,
+   firefighting over the lake, the race, walking cards one by one, night and snow views. Not modelled:
+   Пехчево's buildings (no photos looked at), the Спиковски водопади (a label only).
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
@@ -575,6 +600,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Makedonska Kamenica | `skopje.bestRace.kamenica` | none |
 | Best race time in Dojran | `skopje.bestRace.dojran` | none |
 | Best race time in Batinci | `skopje.bestRace.batinci` | none |
+| Best race time in Berovo | `skopje.bestRace.berovo` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
