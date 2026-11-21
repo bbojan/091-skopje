@@ -8,7 +8,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 
 Илустрирана, жива 3Д мапа на Скопје, нацртана од отворените податоци на OpenStreetMap.
 
-More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) **048 Крушево** (Kruševo, the town of the Ilinden Uprising) **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) and **034 Дојран** (Dojran and the whole of Lake Dojran) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica, https://bbojan.github.io/091-skopje/?city=dojran
+More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) **048 Крушево** (Kruševo, the town of the Ilinden Uprising) **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) **034 Дојран** (Dojran and the whole of Lake Dojran) and **02 Батинци** (Batinci and its surroundings south of Skopje, to Marko's Monastery) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica, https://bbojan.github.io/091-skopje/?city=dojran, https://bbojan.github.io/091-skopje/?city=batinci
 
 ## Features
 
@@ -59,6 +59,11 @@ More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš 
 - The whole of Lake Dojran: Star Dojran and Nov Dojran on the west shore, Kale Tepe, the Greek shore with Doirani, on real terrain
 - Hand-built after photos: the clock tower, St. Elijah's basilica (1848), a mandra — the lake's reed fishing enclosure with its hut on stilts
 - Its own places, labels, race route (12 rings), walking info cards; firefighting refills from the lake; no ЈСП buses
+
+**Batinci** (`?city=batinci`)
+- Batinci and its surroundings south of Skopje's map: Pintija, Dračevo, Dolno Količani and Marko's Monastery along the Markova Reka valley, on real terrain
+- Hand-built after photos: Marko's Monastery, the church of St. Demetrius (14th century)
+- Its own places, labels, race route (10 rings), walking info cards; firefighting refills from the Markova Reka; no ЈСП buses
 
 **Time, weather and seasons**
 - Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, paragliders over Vodno, flowing river
@@ -118,6 +123,7 @@ npm run download -- prilep && npm run overture -- prilep && npm run terrain -- p
 npm run download -- krusevo && npm run overture -- krusevo && npm run terrain -- krusevo && npm run data -- krusevo
 npm run download -- kamenica && npm run overture -- kamenica && npm run terrain -- kamenica && npm run data -- kamenica
 npm run download -- dojran && npm run overture -- dojran && npm run terrain -- dojran && npm run data -- dojran
+npm run download -- batinci && npm run overture -- batinci && npm run terrain -- batinci && npm run data -- batinci
 ```
 
 ## Credits
