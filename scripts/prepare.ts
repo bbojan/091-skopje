@@ -378,6 +378,28 @@ const PREP: Record<CityName, CityPrep> = {
     // OSM outlines without levels that the centre's zone would raise into towers: the Макпетрол station, the Жито shop
     buildingTags: { 1540138912: { 'building:levels': '1' }, 1041185442: { 'building:levels': '2' } },
   },
+  dojran: {
+    // Стар Дојран: low houses with tiled roofs on the slope above the lake, round the square and the clock tower
+    old: { s: 41.1700, n: 41.1960, w: 22.7120, e: 22.7360 },
+    square: [41.18694, 22.72239], // Трите Јавори, by the municipality
+    landmarks: {},
+    // modelled by hand after photos (src/dojran.ts): the clock tower and Св. Илија on their OSM outlines
+    models: { dclock: 1554871748, ilija: 1230559149 },
+    // a мандра (reed fishing enclosure with a hut on stilts) off the pier north of Стар Дојран; not in OSM.
+    // +u east, away from the shore
+    modelRects: { mandra: [41.19628, 22.71722, 70, 46, Math.PI / 2] },
+    placeNames: {},
+    placeIds: { square: 1241503018, dclock: 1554871748, ilija: 1230559149, magdalena: 1546945797, beach: 762181802, townhall: 1107785886 },
+    placeNodes: { museum: 1853704787, monument: 7124138432, front: 5055444424, kale: 5475798448, doirani: 146300294, novdojran: 367783087 },
+    nodeLL: {
+      1853704787: [41.18703, 22.72207], 7124138432: [41.18566, 22.72271], 5055444424: [41.19499, 22.68785], // museum, monuments
+      5475798448: [41.19096, 22.68649], 146300294: [41.17859, 22.76106], 367783087: [41.21791, 22.70391], // Кале Тепе, Δοϊράνη, Нов Дојран
+    },
+    tall: [],
+    mid: [],
+    squareBonus: false,
+    maxLevels: 6,
+  },
 };
 const CFG = PREP[CITY];
 const OLD = CFG.old;

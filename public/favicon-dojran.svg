@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Dojran: a мандра's reed hut on stilts over the lake, its reed fence beside it -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <g fill="#1f2a44">
+    <path d="M22 40 L45 22 L68 40 Z"/>
+    <rect x="27" y="40" width="36" height="20"/>
+    <rect x="18" y="58" width="54" height="5"/>
+    <rect x="25" y="63" width="4" height="17"/><rect x="43" y="63" width="4" height="17"/><rect x="61" y="63" width="4" height="17"/>
+    <rect x="74" y="50" width="3" height="30"/><rect x="80" y="47" width="3" height="33"/><rect x="86" y="50" width="3" height="30"/>
+  </g>
+  <rect x="41" y="46" width="8" height="14" fill="#f4ede0"/>
+  <g fill="none" stroke="#7a1f1a" stroke-width="3.5" stroke-linecap="round">
+    <path d="M12 76 Q19 71 26 76 T40 76 T54 76 T68 76 T82 76 T90 76"/>
+    <path d="M18 86 Q25 81 32 86 T46 86 T60 86 T74 86 T86 86"/>
+  </g>
+</svg>

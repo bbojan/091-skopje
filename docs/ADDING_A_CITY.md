@@ -296,6 +296,21 @@ Shortcuts and fixes that came out of the third city; reuse them before writing n
 - **Scripts with Cyrillic text:** a Python heredoc on the command line failed with a non-UTF-8 error; write the
   script to a file with `# -*- coding: utf-8 -*-`.
 
+## What Dojran added (v9.0.0)
+
+- **A lake lower in the DEM than in OSM:** the DEM may hold a lake at an old, low level (Дојранско Езеро: 139 m
+  from the drought years) while OSM draws today's shoreline. `flatWater` then flattens it at the low level and the
+  beach stands as a cliff all round. Sample the ground just outside OSM's outline (10–50 m out, every few
+  vertices) and set `waterLevels: { <OSM id>: <metres> }` a metre below its median; the shore within 20 m is
+  lifted to just above the water. Look at a beach close up after `npm run terrain`.
+- **Something OSM lacks, on the water:** a model in `modelRects` over a lake stands on the flat water level
+  (`frame().y`); run a walkway or a jetty to the shore by stepping along it until `terrain.at()` rises above
+  the water, rather than trusting a pier drawn only as a line.
+- **Views over a big lake:** keep the camera under the clouds (~1 km): distance × cos(polar) under ~900 m.
+- **Snow label:** name a range only if it is inside the map; otherwise the shared `weather.hills`.
+- **Is a pixel difference the gondola?** If the count changes with the time since load and the spot lies on the
+  line of the cabins (project the meshes that share one geometry), it is.
+
 ## Checklist
 
 - [ ] `scripts/config.ts`: `CITIES.<id>` (bbox, tiles, files)

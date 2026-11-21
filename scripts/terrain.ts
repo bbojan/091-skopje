@@ -205,8 +205,23 @@ if (fixes) {
       for (const poly of polygonsOf(el)) {
         const cells = cellsIn(poly);
         if (cells.length < 4) continue;
-        const hs = cells.map((k) => g[k]).sort((a, b) => a - b), level = hs[Math.floor(hs.length * 0.15)];
+        const set = SPEC.waterLevels?.[el.id];
+        const hs = cells.map((k) => g[k]).sort((a, b) => a - b), level = set ?? hs[Math.floor(hs.length * 0.15)];
         for (const k of cells) g[k] = level;
+        // a level given by hand (the DEM shows the lake lower than OSM's shoreline): the shore within 20 m of the
+        // water is lifted to just above it, so no land dips under the water's edge
+        if (set != null) {
+          const inside = new Set(cells), R = Math.ceil(20 / CELL);
+          for (const k of cells) {
+            const i = k % nx, j = (k - i) / nx;
+            for (let dj = -R; dj <= R; dj++) for (let di = -R; di <= R; di++) {
+              const ii = i + di, jj = j + dj, q = jj * nx + ii;
+              if (ii < 0 || jj < 0 || ii >= nx || jj >= nz || inside.has(q)) continue;
+              const lift = level + 0.3 + 0.15 * Math.hypot(di, dj) * CELL / 10;
+              if (g[q] < lift) g[q] = lift;
+            }
+          }
+        }
         lakes++;
       }
     }

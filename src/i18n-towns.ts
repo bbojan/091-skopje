@@ -1,4 +1,4 @@
-// UI texts of the towns added after Bitola (Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica), spread into STR in i18n.ts.
+// UI texts of the towns added after Bitola (Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran), spread into STR in i18n.ts.
 // Macedonian holds only the strings set from JavaScript; the static ones (views, help) are in index.html.
 const K = (...keys: string[]) => keys.map((k) => `<kbd>${k}</kbd>`).join(' ');
 
@@ -53,6 +53,14 @@ export const TOWNS = {
     "info.km.lake": "Езерото Калиманци на Брегалница е создадено во 1969 година со брана висока 92 метри. Водата ги наводнува оризовите полиња во Кочанско и дава струја.",
     "info.km.kalata": "Калата е археолошки локалитет на рид над Езерото Калиманци.",
     "info.km.sasa": "Рудникот Саса, во долината над градот, е еден од најголемите рудници за олово и цинк во Македонија.",
+    // Dojran
+    "fire.refill.dojran": "💧 Наполни вода од Дојранското Езеро",
+    "info.dj.square": "Стар Дојран лежи на западниот брег на Дојранското Езеро. Стариот град бил разурнат во Првата светска војна, кога низ Дојран минувал Солунскиот фронт.",
+    "info.dj.clock": "Саат-кулата над стариот дел на Стар Дојран е заштитено културно наследство; обновена е во 2021 година.",
+    "info.dj.ilija": "Црквата Св. Илија (1848) е голема камена базилика над езерото, со три апсиди и мала кула покрај неа.",
+    "info.dj.mandra": "Мандрите се стар начин на риболов на Дојранското Езеро: огради од трска во плитката вода во кои се собира рибата, со колиба на колци и мостик од брегот.",
+    "info.dj.lake": "Дојранското Езеро е тектонско езеро од околу 43 km² што го делат Македонија и Грција.",
+    "info.dj.front": "Во Првата светска војна (1916–1918) на ридовите над Дојранското Езеро се воделе тешки битки на Солунскиот фронт.",
   },
   en: {
     // Ohrid
@@ -138,6 +146,21 @@ export const TOWNS = {
     "info.km.kalata": "Kalata is an archaeological site on a hill above Lake Kalimanci.",
     "info.km.sasa": "The Sasa mine, in the valley above the town, is one of the largest lead and zinc mines in Macedonia.",
     'f.fire.kamenica': `<b>Firefighting (optional):</b> while flying, press “🔥 Fire” and the plane becomes a yellow Air Tractor firefighting plane. At most two fires burn at a time — a patch of forest or a building; the smoke shows from afar and the arrow at the top points to the nearest one. Fly over the fire and hold ${K('Space')} (or the 💧 button) to drop water — the white ring on the ground shows where it will land. When the tank is empty, skim low over Lake Kalimanci, south of the town, to fill it. As soon as one fire is out, another starts somewhere else.`,
+    // Dojran
+    "help.lead.dojran": "An illustrated, living 3D map of Lake Dojran — Star Dojran with its clock tower and St. Elijah’s church, Nov Dojran, the reed fishing enclosures (mandri) and the Greek shore with Doirani. Every building, street, park and tree is drawn from OpenStreetMap and Overture Maps open data and placed on the real terrain.",
+    "f.race.dojran": "<b>Race (optional):</b> while flying, press “🏁 Race” and fly through the rings in order — from the square, past the clock tower and the mandra, over the lake to Nov Dojran and the Greek shore, over Kale Tepe and the Salonica Front memorial, and back to the finish. The arrow at the top points to the next ring and a bright pillar marks it. Pop the “091” balloons along the way. Your best time is remembered.",
+    "fire.refill.dojran": "💧 Refill from Lake Dojran",
+    "v.dclock": "Clock tower",
+    "v.ilija": "St. Elijah",
+    "v.mandra": "Mandra",
+    "v.dlake": "Lake Dojran",
+    "info.dj.square": "Star Dojran lies on the west shore of Lake Dojran. The old town was destroyed in the First World War, when the Salonica Front ran through Dojran.",
+    "info.dj.clock": "The clock tower above the old part of Star Dojran is protected cultural heritage; it was restored in 2021.",
+    "info.dj.ilija": "St. Elijah’s church (1848) is a large stone basilica above the lake, with three apses and a small tower beside it.",
+    "info.dj.mandra": "Mandri are an old way of fishing on Lake Dojran: fences of reeds in the shallow water where the fish gather, with a hut on stilts and a walkway from the shore.",
+    "info.dj.lake": "Lake Dojran is a tectonic lake of about 43 km², shared by Macedonia and Greece.",
+    "info.dj.front": "In the First World War (1916–1918) heavy battles of the Salonica Front were fought on the hills above Lake Dojran.",
+    'f.fire.dojran': `<b>Firefighting (optional):</b> while flying, press “🔥 Fire” and the plane becomes a yellow Air Tractor firefighting plane. At most two fires burn at a time — a patch of forest or a building; the smoke shows from afar and the arrow at the top points to the nearest one. Fly over the fire and hold ${K('Space')} (or the 💧 button) to drop water — the white ring on the ground shows where it will land. When the tank is empty, skim low over Lake Dojran to fill it. As soon as one fire is out, another starts somewhere else.`,
   },
   sr: {
     // Ohrid
@@ -223,6 +246,21 @@ export const TOWNS = {
     "info.km.kalata": "Калата је археолошки локалитет на брду изнад језера Калиманци.",
     "info.km.sasa": "Рудник Саса, у долини изнад града, један је од највећих рудника олова и цинка у Македонији.",
     'f.fire.kamenica': `<b>Гашење пожара (опционо):</b> у лету притисни „🔥 Пожар“ и авион постаје жути противпожарни „Ер трактор“. Истовремено горе највише два пожара — део шуме или зграда; дим се види издалека, а стрелица горе показује ка најближем. Прелети преко ватре и држи ${K('Space')} (или дугме 💧) да испустиш воду — бели круг на тлу показује где ће пасти. Кад се резервоар испразни, спусти се ниско над језеро Калиманци, јужно од града, да га напуниш. Чим један пожар угасне, пали се нови на другом месту.`,
+    // Dojran
+    "help.lead.dojran": "Илустрована, жива 3Д мапа Дојранског језера — Стари Дојран са сахат-кулом и црквом Св. Илије, Нови Дојран, рибарске мандре од трске и грчка обала са Дојранијем. Све зграде, улице, паркови и дрвеће нацртани су из отворених података OpenStreetMap и Overture Maps и постављени на прави рељеф.",
+    "f.race.dojran": "<b>Трка (опционо):</b> у лету притисни „🏁 Трка“ и пролети кроз прстенове редом — од трга, поред сахат-куле и мандре, преко језера до Новог Дојрана и грчке обале, преко Кале Тепеа и споменика Солунском фронту, па назад до циља. Стрелица горе показује ка следећем прстену, а светли стуб га означава. Бушиш балоне „091“ успут. Најбоље време се памти.",
+    "fire.refill.dojran": "💧 Напуни воду из Дојранског језера",
+    "v.dclock": "Сахат-кула",
+    "v.ilija": "Св. Илија",
+    "v.mandra": "Мандра",
+    "v.dlake": "Дојранско језеро",
+    "info.dj.square": "Стари Дојран лежи на западној обали Дојранског језера. Стари град је разорен у Првом светском рату, када је кроз Дојран пролазио Солунски фронт.",
+    "info.dj.clock": "Сахат-кула изнад старог дела Старог Дојрана заштићено је културно наслеђе; обновљена је 2021. године.",
+    "info.dj.ilija": "Црква Св. Илије (1848) велика је камена базилика изнад језера, са три апсиде и малом кулом поред ње.",
+    "info.dj.mandra": "Мандре су стари начин риболова на Дојранском језеру: ограде од трске у плиткој води у којима се скупља риба, са колибом на стубовима и мостићем од обале.",
+    "info.dj.lake": "Дојранско језеро је тектонско језеро од око 43 km² које деле Македонија и Грчка.",
+    "info.dj.front": "У Првом светском рату (1916–1918) на брдима изнад Дојранског језера вођене су тешке битке Солунског фронта.",
+    'f.fire.dojran': `<b>Гашење пожара (опционо):</b> у лету притисни „🔥 Пожар“ и авион постаје жути противпожарни „Ер трактор“. Истовремено горе највише два пожара — део шуме или зграда; дим се види издалека, а стрелица горе показује ка најближем. Прелети преко ватре и држи ${K('Space')} (или дугме 💧) да испустиш воду — бели круг на тлу показује где ће пасти. Кад се резервоар испразни, спусти се ниско над Дојранско језеро да га напуниш. Чим један пожар угасне, пали се нови на другом месту.`,
   },
   hr: {
     // Ohrid
@@ -308,6 +346,21 @@ export const TOWNS = {
     "info.km.kalata": "Kalata je arheološko nalazište na brdu iznad jezera Kalimanci.",
     "info.km.sasa": "Rudnik Sasa, u dolini iznad grada, jedan je od najvećih rudnika olova i cinka u Makedoniji.",
     'f.fire.kamenica': `<b>Gašenje požara (neobavezno):</b> u letu pritisni „🔥 Požar” i avion postaje žuti protupožarni „Air Tractor”. Istodobno gore najviše dva požara — dio šume ili zgrada; dim se vidi izdaleka, a strelica gore pokazuje prema najbližem. Preleti preko vatre i drži ${K('Space')} (ili gumb 💧) da ispustiš vodu — bijeli krug na tlu pokazuje gdje će pasti. Kad se spremnik isprazni, spusti se nisko nad jezero Kalimanci, južno od grada, da ga napuniš. Čim se jedan požar ugasi, novi se pali na drugom mjestu.`,
+    // Dojran
+    "help.lead.dojran": "Ilustrirana, živa 3D karta Dojranskog jezera — Stari Dojran sa sahat-kulom i crkvom Sv. Ilije, Novi Dojran, ribarske mandre od trske i grčka obala s Dojranijem. Sve zgrade, ulice, parkovi i stabla nacrtani su iz otvorenih podataka OpenStreetMap i Overture Maps i postavljeni na stvarni reljef.",
+    "f.race.dojran": "<b>Utrka (neobavezno):</b> u letu pritisni „🏁 Utrka” i proleti kroz prstenove redom — od trga, pokraj sahat-kule i mandre, preko jezera do Novog Dojrana i grčke obale, preko Kale Tepea i spomenika Solunskom frontu, pa natrag do cilja. Strelica gore pokazuje prema sljedećem prstenu, a svijetli stup ga označava. Usput probuši balone „091”. Najbolje vrijeme se pamti.",
+    "fire.refill.dojran": "💧 Napuni vodu iz Dojranskog jezera",
+    "v.dclock": "Sahat-kula",
+    "v.ilija": "Sv. Ilija",
+    "v.mandra": "Mandra",
+    "v.dlake": "Dojransko jezero",
+    "info.dj.square": "Stari Dojran leži na zapadnoj obali Dojranskog jezera. Stari grad razoren je u Prvom svjetskom ratu, kada je kroz Dojran prolazila Solunska bojišnica.",
+    "info.dj.clock": "Sahat-kula iznad staroga dijela Starog Dojrana zaštićeno je kulturno dobro; obnovljena je 2021.",
+    "info.dj.ilija": "Crkva Sv. Ilije (1848.) velika je kamena bazilika iznad jezera, s tri apside i malom kulom uz nju.",
+    "info.dj.mandra": "Mandre su stari način ribolova na Dojranskom jezeru: ograde od trske u plitkoj vodi u kojima se skuplja riba, s kolibom na stupovima i mostićem s obale.",
+    "info.dj.lake": "Dojransko jezero tektonsko je jezero od oko 43 km² koje dijele Makedonija i Grčka.",
+    "info.dj.front": "U Prvom svjetskom ratu (1916.–1918.) na brdima iznad Dojranskog jezera vođene su teške bitke Solunske bojišnice.",
+    'f.fire.dojran': `<b>Gašenje požara (neobavezno):</b> u letu pritisni „🔥 Požar” i avion postaje žuti protupožarni „Air Tractor”. Istodobno gore najviše dva požara — dio šume ili zgrada; dim se vidi izdaleka, a strelica gore pokazuje prema najbližem. Preleti preko vatre i drži ${K('Space')} (ili gumb 💧) da ispustiš vodu — bijeli krug na tlu pokazuje gdje će pasti. Kad se spremnik isprazni, spusti se nisko nad Dojransko jezero da ga napuniš. Čim se jedan požar ugasi, novi se pali na drugom mjestu.`,
   },
   sl: {
     // Ohrid
@@ -393,6 +446,21 @@ export const TOWNS = {
     "info.km.kalata": "Kalata je arheološko najdišče na hribu nad jezerom Kalimanci.",
     "info.km.sasa": "Rudnik Sasa v dolini nad mestom je eden največjih rudnikov svinca in cinka v Makedoniji.",
     'f.fire.kamenica': `<b>Gašenje požarov (neobvezno):</b> med letom pritisni „🔥 Požar“ in letalo postane rumeno gasilsko letalo „Air Tractor“. Hkrati gorita največ dva požara — del gozda ali stavba; dim se vidi od daleč, puščica zgoraj pa kaže proti najbližjemu. Preleti ogenj in drži ${K('Space')} (ali gumb 💧), da spustiš vodo — bel krog na tleh kaže, kam bo padla. Ko se rezervoar izprazni, se spusti nizko nad jezero Kalimanci, južno od mesta, da ga napolniš. Takoj ko en požar ugasne, se drugje vname nov.`,
+    // Dojran
+    "help.lead.dojran": "Ilustriran, živ 3D zemljevid Dojranskega jezera — Stari Dojran z urnim stolpom in cerkvijo sv. Ilije, Novi Dojran, ribiške mandre iz trstičja in grška obala z Dojranijem. Vse stavbe, ulice, parki in drevesa so narisani iz odprtih podatkov OpenStreetMap in Overture Maps in postavljeni na pravi relief.",
+    "f.race.dojran": "<b>Dirka (neobvezno):</b> med letom pritisni „🏁 Dirka“ in po vrsti preleti obroče — od trga, mimo urnega stolpa in mandre, čez jezero do Novega Dojrana in grške obale, prek Kale Tepeja in spomenika solunski fronti ter nazaj do cilja. Puščica zgoraj kaže proti naslednjemu obroču, svetel steber ga označuje. Spotoma poči balone „091“. Najboljši čas si zapomnimo.",
+    "fire.refill.dojran": "💧 Natoči vodo iz Dojranskega jezera",
+    "v.dclock": "Urni stolp",
+    "v.ilija": "Sv. Ilija",
+    "v.mandra": "Mandra",
+    "v.dlake": "Dojransko jezero",
+    "info.dj.square": "Stari Dojran leži na zahodni obali Dojranskega jezera. Staro mesto je bilo porušeno v prvi svetovni vojni, ko je skozi Dojran potekala solunska fronta.",
+    "info.dj.clock": "Urni stolp nad starim delom Starega Dojrana je zaščitena kulturna dediščina; obnovljen je bil leta 2021.",
+    "info.dj.ilija": "Cerkev sv. Ilije (1848) je velika kamnita bazilika nad jezerom, s tremi apsidami in majhnim stolpom ob njej.",
+    "info.dj.mandra": "Mandre so star način ribolova na Dojranskem jezeru: ograde iz trstičja v plitvi vodi, kjer se zbirajo ribe, s kočo na kolih in brvjo z obale.",
+    "info.dj.lake": "Dojransko jezero je tektonsko jezero s površino približno 43 km², ki si ga delita Makedonija in Grčija.",
+    "info.dj.front": "V prvi svetovni vojni (1916–1918) so na hribih nad Dojranskim jezerom potekali hudi boji solunske fronte.",
+    'f.fire.dojran': `<b>Gašenje požarov (neobvezno):</b> med letom pritisni „🔥 Požar“ in letalo postane rumeno gasilsko letalo „Air Tractor“. Hkrati gorita največ dva požara — del gozda ali stavba; dim se vidi od daleč, puščica zgoraj pa kaže proti najbližjemu. Preleti ogenj in drži ${K('Space')} (ali gumb 💧), da spustiš vodo — bel krog na tleh kaže, kam bo padla. Ko se rezervoar izprazni, se spusti nizko nad Dojransko jezero, da ga napolniš. Takoj ko en požar ugasne, se drugje vname nov.`,
   },
   sq: {
     // Ohrid
@@ -478,5 +546,20 @@ export const TOWNS = {
     "info.km.kalata": "Kalata është një vend arkeologjik mbi një kodër mbi Liqenin e Kalimancit.",
     "info.km.sasa": "Miniera e Sasës, në luginën mbi qytet, është një nga minierat më të mëdha të plumbit dhe zinkut në Maqedoni.",
     'f.fire.kamenica': `<b>Shuarja e zjarreve (opsionale):</b> gjatë fluturimit shtyp “🔥 Zjarr” dhe avioni bëhet avioni i verdhë kundër zjarrit “Air Tractor”. Njëkohësisht digjen më së shumti dy zjarre — një pjesë pylli ose një ndërtesë; tymi duket nga larg, ndërsa shigjeta lart tregon drejt më të afërtit. Fluturo mbi zjarr dhe mbaj shtypur ${K('Space')} (ose butonin 💧) për të lëshuar ujë — rrethi i bardhë në tokë tregon ku do të bjerë. Kur rezervuari zbrazet, zbrit ulët mbi Liqenin e Kalimancit, në jug të qytetit, për ta mbushur. Sapo shuhet një zjarr, ndizet një tjetër diku tjetër.`,
+    // Dojran
+    "help.lead.dojran": "Një hartë 3D e ilustruar dhe e gjallë e Liqenit të Dojranit — Dojrani i Vjetër me kullën e sahatit dhe kishën e Shën Ilisë, Dojrani i Ri, mandrat e peshkimit prej kallami dhe bregu grek me Dojranin grek. Të gjitha ndërtesat, rrugët, parqet dhe pemët janë vizatuar nga të dhënat e hapura të OpenStreetMap dhe Overture Maps dhe janë vendosur mbi relievin e vërtetë.",
+    "f.race.dojran": "<b>Gara (opsionale):</b> gjatë fluturimit shtyp “🏁 Gara” dhe fluturo me radhë nëpër unaza — nga sheshi, pranë kullës së sahatit dhe mandrës, mbi liqen deri te Dojrani i Ri dhe bregu grek, mbi Kale Tepe dhe përmendoren e Frontit të Selanikut, e pastaj prapë deri në finish. Shigjeta lart tregon drejt unazës së radhës, ndërsa një shtyllë e ndritshme e shënon. Plas balonat “091” gjatë rrugës. Koha më e mirë mbahet mend.",
+    "fire.refill.dojran": "💧 Mbush ujë nga Liqeni i Dojranit",
+    "v.dclock": "Kulla e sahatit",
+    "v.ilija": "Shën Ilia",
+    "v.mandra": "Mandra",
+    "v.dlake": "Liqeni i Dojranit",
+    "info.dj.square": "Dojrani i Vjetër shtrihet në bregun perëndimor të Liqenit të Dojranit. Qyteti i vjetër u shkatërrua në Luftën e Parë Botërore, kur nëpër Dojran kalonte Fronti i Selanikut.",
+    "info.dj.clock": "Kulla e sahatit mbi pjesën e vjetër të Dojranit të Vjetër është trashëgimi kulturore e mbrojtur; u restaurua në vitin 2021.",
+    "info.dj.ilija": "Kisha e Shën Ilisë (1848) është një bazilikë e madhe prej guri mbi liqen, me tri absida dhe një kullë të vogël pranë saj.",
+    "info.dj.mandra": "Mandrat janë një mënyrë e vjetër peshkimi në Liqenin e Dojranit: gardhe prej kallami në ujin e cekët ku mblidhet peshku, me një kasolle mbi shtylla dhe një urëz nga bregu.",
+    "info.dj.lake": "Liqeni i Dojranit është një liqen tektonik prej rreth 43 km², që e ndajnë Maqedonia dhe Greqia.",
+    "info.dj.front": "Në Luftën e Parë Botërore (1916–1918) në kodrat mbi Liqenin e Dojranit u zhvilluan beteja të rënda të Frontit të Selanikut.",
+    'f.fire.dojran': `<b>Shuarja e zjarreve (opsionale):</b> gjatë fluturimit shtyp “🔥 Zjarr” dhe avioni bëhet avioni i verdhë kundër zjarrit “Air Tractor”. Njëkohësisht digjen më së shumti dy zjarre — një pjesë pylli ose një ndërtesë; tymi duket nga larg, ndërsa shigjeta lart tregon drejt më të afërtit. Fluturo mbi zjarr dhe mbaj shtypur ${K('Space')} (ose butonin 💧) për të lëshuar ujë — rrethi i bardhë në tokë tregon ku do të bjerë. Kur rezervuari zbrazet, zbrit ulët mbi Liqenin e Dojranit për ta mbushur. Sapo shuhet një zjarr, ndizet një tjetër diku tjetër.`,
   },
 };

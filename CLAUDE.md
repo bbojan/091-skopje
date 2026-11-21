@@ -40,7 +40,7 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | File | Role |
 |---|---|
 | `main.ts` | App shell: renderer, controls, loading (staged build + progress card), city switching (`loadCity` / `unloadWorld` / `switchCity`), views, time of day, flight/race wiring, popups, help, gamepad, adaptive quality |
-| `cities.ts` | The cities (Skopje, Kavadarci, Bitola, Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
+| `cities.ts` | The cities (Skopje, Kavadarci, Bitola, Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
 | `city.ts` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds; Kavadarci's vineyards and Bitola's fields (`farmMask`, `VINE_GROUND`: farmland marked by one terrain colour, plots painted by the ground shader; `vineShare` per city: the share of plots that are vineyards) |
 | `terrain.ts` | Heightfield with exact mesh-matching interpolation; chunk/low-res meshes; triangle clipping for draping |
 | `post.ts` | `InkRenderer`: colour + normal/depth passes (one pass in the low tier or with smooth edges off: normals as a second attachment) → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
@@ -64,6 +64,7 @@ npm run strings      # index.html + src/i18n.ts → docs/translations/strings.js
 | `prilep.ts` | Prilep (after photos): the clock tower, Могила на непобедените (urns), Маркови Кули's boulders, Трескавец |
 | `krusevo.ts` | Kruševo (after photos): Македониум (stained glass, night-lit), the giant of Мечкин Камен |
 | `kamenica.ts` | Makedonska Kamenica (after photos): Успение на Пресвета Богородица (`byzChurch`), the square's fountain with its statue |
+| `dojran.ts` | Dojran (after photos): the clock tower, Св. Илија (a basilica), a мандра (reed fishing enclosure, hut on stilts, walkway to the beach) |
 | `bitola.ts` | Bitola (after photos): Саат-кула, Ајдар-кади џамија, Безистен, Св. Димитриј and its bell tower, Хераклеа's theatre and Great Basilica with its mosaic floors (painted canvases), built on their OSM outlines (`models` in `PREP`, `landmarks.models` in the data; the generic buildings left out); walking collision |
 | `river.ts` | Kavadarci, the Луда Мара (after photos): the stone-lined channel through the town between two promenades, cut exactly out of the terrain and draped ground (`cut`), its water, banks and promenades emitted into the draped ground; copings, railing, arched footbridges, road-bridge parapets, cascades, steps, benches, lamps, promenade trees; walking height and collision |
 | `sound.ts` | Sound, on by default (a switch turns it off): Web Audio synthesis only (engine, wind, rain, water, fire, birds, crickets, short signals), fed a `SoundScene` once per frame from `main.ts` |
@@ -90,7 +91,8 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   (shared by every city; per-city paragraphs carry `data-city="…"`, hidden by the `city-<id>` body class).
 - Cities: 091 Скопје, 043 Кавадарци (`?city=kavadarci`), 047 Битола (`?city=bitola`, v2.10.0), 046 Охрид
   (`?city=ohrid`, v3.1.0: the whole lake, 20 m terrain cells), 048 Прилеп (`?city=prilep`, v3.2.0), 048 Крушево (`?city=krusevo`, v3.3.0), 042 Ростуше (`?city=rostuse`,
-  v3.4.0: Бигорски, Дебар, Маврово; 20 m cells), 033 Македонска Каменица (`?city=kamenica`, v8.0.0: Саса, Калиманци).
+  v3.4.0: Бигорски, Дебар, Маврово; 20 m cells), 033 Македонска Каменица (`?city=kamenica`, v8.0.0: Саса, Калиманци), 034 Дојран
+  (`?city=dojran`, v9.0.0: the whole lake, its level set by hand with `waterLevels`).
 - The city is in the address: `?city=kavadarci`; no parameter = Skopje. Switching pushes a history entry
   (back / forward switch too) and drops the camera hash. Per-city menu items in `index.html` use `data-city`.
 - Switching unloads the city completely (`unloadWorld()` in `main.ts`): modes stopped, everything the
@@ -99,7 +101,7 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   ended (`AbortSignal`). The loader shows while the next city builds. Only the lights, the renderer, the
   ink passes and the settings stay.
 - Terrain per city: `terrain` in `scripts/config.ts` (smoothing, flat water, flat squares, river
-  channels, known heights; applied by `scripts/terrain.ts` from the raw OSM) and `terrainExag` in
+  channels, known heights, water levels by hand; applied by `scripts/terrain.ts` from the raw OSM) and `terrainExag` in
   `src/cities.ts` (Skopje 1.12, Kavadarci and Bitola 1 = true heights). OSM reading helpers: `scripts/osm.ts`.
 - What else differs per city in `CITIES` (`src/cities.ts`): `buses` (red ЈСП buses and the drivable
   double-decker: Skopje only), `walker` (`pejo`, Kavadarci's `suit`, Bitola's `manaki` whose action films an

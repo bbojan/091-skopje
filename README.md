@@ -8,7 +8,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 
 Илустрирана, жива 3Д мапа на Скопје, нацртана од отворените податоци на OpenStreetMap.
 
-More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) **048 Крушево** (Kruševo, the town of the Ilinden Uprising) and **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica
+More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) **048 Крушево** (Kruševo, the town of the Ilinden Uprising) **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) and **034 Дојран** (Dojran and the whole of Lake Dojran) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica, https://bbojan.github.io/091-skopje/?city=dojran
 
 ## Features
 
@@ -54,6 +54,11 @@ More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš 
 - The miners' town in the valley of the Kamenička Reka under Osogovo, the Sasa lead and zinc mine up the valley, Lake Kalimanci on the Bregalnica, on real terrain
 - Hand-built after photos: the church of the Dormition on the town square, the square's fountain with its statue
 - Its own places, labels, race route (12 rings), walking info cards; firefighting refills from Lake Kalimanci; no ЈСП buses
+
+**Dojran** (`?city=dojran`)
+- The whole of Lake Dojran: Star Dojran and Nov Dojran on the west shore, Kale Tepe, the Greek shore with Doirani, on real terrain
+- Hand-built after photos: the clock tower, St. Elijah's basilica (1848), a mandra — the lake's reed fishing enclosure with its hut on stilts
+- Its own places, labels, race route (12 rings), walking info cards; firefighting refills from the lake; no ЈСП buses
 
 **Time, weather and seasons**
 - Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, paragliders over Vodno, flowing river
@@ -112,6 +117,7 @@ npm run download -- rostuse && npm run overture -- rostuse && npm run terrain --
 npm run download -- prilep && npm run overture -- prilep && npm run terrain -- prilep && npm run data -- prilep
 npm run download -- krusevo && npm run overture -- krusevo && npm run terrain -- krusevo && npm run data -- krusevo
 npm run download -- kamenica && npm run overture -- kamenica && npm run terrain -- kamenica && npm run data -- kamenica
+npm run download -- dojran && npm run overture -- dojran && npm run terrain -- dojran && npm run data -- dojran
 ```
 
 ## Credits
