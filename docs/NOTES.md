@@ -436,7 +436,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    (Томе Серафимовски), whose place on the square was not found. The church's second, smaller drum and the
    mosaic over the door are left out.
 
-33. **v9.0.0** (Nov 2026, on `city-dojran`): **034 Дојран** (`?city=dojran`), the ninth city:
+33. **v9.0.0** (Nov 2026, on `develop`): **034 Дојран** (`?city=dojran`), the ninth city:
    41.15–41.27 N, 22.66–22.82 E (13.4 × 13.3 km): the whole of Дојранско Езеро (OSM relation 4557289, 38.7 km²
    drawn; 43.1 km² on Wikidata), Стар Дојран and Нов Дојран on its west shore, Кале Тепе and the Salonica Front
    memorial above them, and the Greek shore with Дојрани (Δοϊράνη), as Ohrid includes the Albanian one. 2,588
