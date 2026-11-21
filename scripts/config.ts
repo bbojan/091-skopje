@@ -24,6 +24,9 @@ export interface TerrainSpec {
   smooth: number;
   /** lakes and reservoirs get one flat water level (their lowest part) */
   flatWater?: boolean;
+  /** water levels given by hand (metres above sea) by OSM id, where the DEM holds an older, lower lake than OSM's
+   *  shoreline (Дојранско Езеро: 139 m in the DEM, the ground at OSM's shore ≈ 145 m); the shore is lifted above it */
+  waterLevels?: Record<number, number>;
   /** squares (OSM `name`) made flat at their middle height, blended into the ground around them */
   flatSquares?: string[];
   /** OSM ways (pitches…) made flat the same way, at the given height (metres above sea) or their middle height,
@@ -130,6 +133,16 @@ export const CITIES = {
     tiles: [4, 4] as [number, number],
     files: { raw: 'data/kamenica_raw.json', scene: 'public/kamenica.json', terrainBin: 'public/kamenica-terrain.bin', terrainJson: 'public/kamenica-terrain.json', overture: 'data/kamenica_overture.json' },
     terrain: { smooth: 1, flatWater: true, rivers: { river: [4, 1.5], stream: [2, 1], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
+  // Дојран: the whole of Дојранско Езеро (41.173–41.250 N, 22.708–22.785 E), Стар Дојран and Нов Дојран on its
+  // west shore, Кале Тепе and the Salonica Front memorial above them, the Greek shore with Δοϊράνη to the south-east
+  dojran: {
+    bbox: { s: 41.15, w: 22.66, n: 41.27, e: 22.82 },
+    tiles: [3, 3] as [number, number],
+    files: { raw: 'data/dojran_raw.json', scene: 'public/dojran.json', terrainBin: 'public/dojran-terrain.bin', terrainJson: 'public/dojran-terrain.json', overture: 'data/dojran_overture.json' },
+    // the DEM (≈ 2000) holds the lake at its low level of the drought years, 139 m; OSM's shoreline is today's larger
+    // lake, the ground just outside it 145.5 m (median of 294 points, 10 m out): the water at 144.5 m
+    terrain: { smooth: 1, flatWater: true, waterLevels: { 4557289: 144.5 }, rivers: { river: [4, 1.5], stream: [2, 1], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
 } satisfies Record<string, { bbox: { s: number; w: number; n: number; e: number }; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec }>;
 export type CityName = keyof typeof CITIES;

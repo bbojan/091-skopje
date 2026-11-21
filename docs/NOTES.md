@@ -436,6 +436,30 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    (Томе Серафимовски), whose place on the square was not found. The church's second, smaller drum and the
    mosaic over the door are left out.
 
+33. **v9.0.0** (Nov 2026, on `city-dojran`): **034 Дојран** (`?city=dojran`), the ninth city:
+   41.15–41.27 N, 22.66–22.82 E (13.4 × 13.3 km): the whole of Дојранско Езеро (OSM relation 4557289, 38.7 km²
+   drawn; 43.1 km² on Wikidata), Стар Дојран and Нов Дојран on its west shore, Кале Тепе and the Salonica Front
+   memorial above them, and the Greek shore with Дојрани (Δοϊράνη), as Ohrid includes the Albanian one. 2,588
+   OSM buildings plus 3,318 Overture footprints; 10 m cells, elevation 130–702 m. Стар Дојран as an old-town box
+   (low, tiled), `maxLevels: 6`. **The lake level is set by hand**: the DEM holds the lake at its low level of the
+   drought years (139 m; EU-DEM agrees), but OSM's shoreline is today's larger lake, and the ground 10 m outside
+   it is 145.5 m (median of 294 points). Flattened at 139 m, the beach stood as a 5–7 m cliff over the water. A new
+   terrain setting, `waterLevels` (OSM id → metres), puts the lake at 144.5 m and lifts the shore within 20 m to
+   just above it; cities without it are unchanged. Models (`src/dojran.ts`, after Commons photos of 2013–2025):
+   the clock tower (restored 2021) and Св. Илија (1848, a stone basilica: one hipped tile roof, three polygonal
+   apses with half-cones, a small corner tower) on their OSM outlines; a мандра (`modelRects.mandra`, not in OSM;
+   the Ramsar sheet puts them on the west and north shores) off the pier north of Стар Дојран: reed fences on
+   stakes, the pen split into chambers with a funnel and leading arms (after the Dojran museum's scale model), a
+   reed hut on stilts with a deck, and a plank walkway that runs west until the ground rises out of the water.
+   Snow label: the shared „Снег на ридовите“ (Беласица is outside the map). Tow banners: „Дојранското Езеро го
+   спаси Дојран!“ / „Ајде на дојранска мандра!“.
+   Checked: views rendered and looked at (the square and beach, the clock tower, Св. Илија, the мандра from the
+   shore and from above, the lake view under the clouds, the overview); typecheck, build; Skopje pixel check (0
+   except 11–16 pixels at the gondola cabins in the overview: the count changed with the time since load, and the
+   spot lies on the cabin line); switching away and back (textures and scene objects equal, geometries +2). Not
+   checked: phones, firefighting over the lake, the race, walking cards one by one. Not modelled: Споменик на
+   Дојрана and the Salonica Front memorial (no photos looked at; labels only).
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
@@ -532,6 +556,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Prilep | `skopje.bestRace.prilep` | none |
 | Best race time in Kruševo | `skopje.bestRace.krusevo` | none |
 | Best race time in Makedonska Kamenica | `skopje.bestRace.kamenica` | none |
+| Best race time in Dojran | `skopje.bestRace.dojran` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.

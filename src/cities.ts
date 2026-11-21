@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid', 'rostuse', 'prilep', 'krusevo', 'kamenica'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid', 'rostuse', 'prilep', 'krusevo', 'kamenica', 'dojran'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -601,6 +601,67 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.kamenica',
     bestRaceKey: 'skopje.bestRace.kamenica',
     banners: { fire: 'Калиманци ја спаси Каменица!', roll: 'Среќно, рудари!' },
+  },
+  dojran: {
+    id: 'dojran', name: 'Дојран', code: '034', icon: './favicon-dojran.svg',
+    files: { scene: './dojran.json', terrainBin: './dojran-terrain.bin', terrainJson: './dojran-terrain.json' },
+    sceneBytes: 1.4e6,
+    views: {
+      center: { place: 'square', ll: [41.18694, 22.72239], d: 460, polar: 0.8, az: 1.9 },
+      dclock: { place: 'dclock', ll: [41.18503, 22.71975], d: 70, polar: 1.12, az: 1.6 },
+      ilija: { place: 'ilija', ll: [41.18881, 22.71922], d: 95, polar: 1.05, az: 2.3 },
+      mandra: { place: 'mandra', ll: [41.19628, 22.71722], d: 110, polar: 1.15, az: -1.9 },
+      dlake: { ll: [41.19200, 22.71900], d: 2600, polar: 1.3, az: 1.9 }, // from over the lake back to Стар Дојран and its hills, under the clouds
+      overview: { ll: [41.20500, 22.74000], d: 14500, polar: 0.66, az: 0 },
+    },
+    districts: [
+      ['Стар Дојран', 41.18273, 22.72160], ['Нов Дојран', 41.21791, 22.70391], ['Дојрани', 41.17859, 22.76106, 40],
+      ['Сретеново', 41.17261, 22.73157, 30], ['Николиќ', 41.26369, 22.74751, 30],
+    ],
+    labels: [
+      ['Трите Јавори', 41.18694, 22.72239, 12, 'square'],
+      ['Саат-кула', 41.18503, 22.71975, 20, 'dclock'],
+      ['Св. Илија', 41.18881, 22.71922, 18, 'ilija'],
+      ['Св. Марија Магдалена', 41.18783, 22.71964, 14, 'magdalena'],
+      ['Мандра', 41.19628, 22.71722, 8, 'mandra'],
+      ['Градска плажа', 41.18659, 22.72290, 8, 'beach'],
+      ['Музеј на Дојран', 41.18703, 22.72207, 12, 'museum'],
+      ['Споменик „Солунски фронт“', 41.19499, 22.68785, 14, 'front'],
+      ['Кале Тепе', 41.19096, 22.68649, 30, 'kale'],
+      ['Дојранско Езеро', 41.21152, 22.74612, 8],
+    ],
+    route: [
+      ['Трите Јавори', 41.18694, 22.72239, 55, 'square'],
+      ['Саат-кула', 41.18503, 22.71975, 60, 'dclock'],
+      ['Мандра', 41.19628, 22.71722, 30, 'mandra'],
+      ['Нов Дојран', 41.21791, 22.70391, 60, 'novdojran'],
+      ['Дојранско Езеро', 41.24000, 22.73500, 35],
+      ['Дојранско Езеро', 41.21152, 22.76500, 35],
+      ['Дојрани', 41.17859, 22.76106, 60, 'doirani'],
+      ['Дојранско Езеро', 41.19500, 22.74000, 35],
+      ['Кале Тепе', 41.19096, 22.68649, 70, 'kale'],
+      ['Солунски фронт', 41.19499, 22.68785, 60, 'front'],
+      ['Св. Илија', 41.18881, 22.71922, 60, 'ilija'],
+      ['Трите Јавори', 41.18694, 22.72239, 50, 'square'],
+    ],
+    spots: [
+      ['dj.square', 'Трите Јавори', 41.18694, 22.72239, 50, 'square'],
+      ['dj.clock', 'Саат-кула', 41.18503, 22.71975, 40, 'dclock'],
+      ['dj.ilija', 'Св. Илија', 41.18881, 22.71922, 40, 'ilija'],
+      ['dj.mandra', 'Мандра', 41.19628, 22.71722, 90, 'mandra'],
+      ['dj.lake', 'Дојранско Езеро', 41.18659, 22.72290, 120, 'beach'],
+      ['dj.front', 'Споменик „Солунски фронт“', 41.19499, 22.68785, 50, 'front'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.18694, 22.72239], near: 3000, far: 7000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.hills', // the hills round the lake (Беласица is outside the map)
+    refillLabel: 'fire.refill.dojran',
+    bestRaceKey: 'skopje.bestRace.dojran',
+    banners: { fire: 'Дојранското Езеро го спаси Дојран!', roll: 'Ајде на дојранска мандра!' },
   },
 };
 
