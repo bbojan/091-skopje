@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Batinci: the church of Марков манастир, its tall drum and dome over the curved roofs of the cross -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <g fill="#1f2a44">
+    <rect x="49" y="10" width="2" height="7"/>
+    <path d="M39 30 Q39 17 50 17 Q61 17 61 30 Z"/>
+    <rect x="40" y="30" width="20" height="16"/>
+    <path d="M30 50 Q30 42 50 42 Q70 42 70 50 Z"/>
+    <path d="M14 58 Q14 50 26 50 Q38 50 38 58 Z"/>
+    <path d="M62 58 Q62 50 74 50 Q86 50 86 58 Z"/>
+    <rect x="16" y="58" width="68" height="26"/>
+  </g>
+  <g fill="#f4ede0">
+    <rect x="44" y="33" width="3" height="9" rx="1.5"/><rect x="53" y="33" width="3" height="9" rx="1.5"/>
+    <path d="M45 84 V72 Q50 66 55 72 V84 Z"/>
+    <path d="M24 78 V68 Q27 64 30 68 V78 Z"/><path d="M70 78 V68 Q73 64 76 68 V78 Z"/>
+  </g>
+  <rect x="16" y="64" width="68" height="2" fill="#7a1f1a"/>
+</svg>

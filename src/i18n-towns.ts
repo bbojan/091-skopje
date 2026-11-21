@@ -1,4 +1,4 @@
-// UI texts of the towns added after Bitola (Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran), spread into STR in i18n.ts.
+// UI texts of the towns added after Bitola (Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran, Batinci), spread into STR in i18n.ts.
 // Macedonian holds only the strings set from JavaScript; the static ones (views, help) are in index.html.
 const K = (...keys: string[]) => keys.map((k) => `<kbd>${k}</kbd>`).join(' ');
 
@@ -61,6 +61,12 @@ export const TOWNS = {
     "info.dj.mandra": "Мандрите се стар начин на риболов на Дојранското Езеро: огради од трска во плитката вода во кои се собира рибата, со колиба на колци и мостик од брегот.",
     "info.dj.lake": "Дојранското Езеро е тектонско езеро од околу 43 km² што го делат Македонија и Грција.",
     "info.dj.front": "Во Првата светска војна (1916–1918) на ридовите над Дојранското Езеро се воделе тешки битки на Солунскиот фронт.",
+    // Batinci
+    "fire.refill.batinci": "💧 Наполни вода од Маркова Река",
+    "info.bt.batinci": "Батинци е населено место во Општина Студеничани, јужно од Скопје, во долината на Маркова Река.",
+    "info.bt.markov": "Марков манастир, со црквата Св. Димитрија, е подигнат во втората половина на 14 век: градбата ја започнал кралот Волкашин, а ја завршил неговиот син Крале Марко. Познат е по фреските.",
+    "info.bt.dracevo": "Драчево е населба во Општина Кисела Вода, на југоисточниот раб на Скопје.",
+    "info.bt.river": "Маркова Река тече покрај Марков манастир и Батинци, а потоа на север кон Скопје и Вардар.",
   },
   en: {
     // Ohrid
@@ -161,6 +167,17 @@ export const TOWNS = {
     "info.dj.lake": "Lake Dojran is a tectonic lake of about 43 km², shared by Macedonia and Greece.",
     "info.dj.front": "In the First World War (1916–1918) heavy battles of the Salonica Front were fought on the hills above Lake Dojran.",
     'f.fire.dojran': `<b>Firefighting (optional):</b> while flying, press “🔥 Fire” and the plane becomes a yellow Air Tractor firefighting plane. At most two fires burn at a time — a patch of forest or a building; the smoke shows from afar and the arrow at the top points to the nearest one. Fly over the fire and hold ${K('Space')} (or the 💧 button) to drop water — the white ring on the ground shows where it will land. When the tank is empty, skim low over Lake Dojran to fill it. As soon as one fire is out, another starts somewhere else.`,
+    // Batinci
+    "help.lead.batinci": "An illustrated, living 3D map of Batinci and its surroundings south of Skopje — from Pintija and Dračevo to Dolno Količani and Marko’s Monastery, along the valley of the Markova Reka. Every building, street, park and tree is drawn from OpenStreetMap and Overture Maps open data and placed on the real terrain.",
+    "f.race.batinci": "<b>Race (optional):</b> while flying, press “🏁 Race” and fly through the rings in order — from Batinci, over Pintija, Dračevo and Studeničani, to Dolno Količani, along the Markova Reka to Marko’s Monastery and back to the finish. The arrow at the top points to the next ring and a bright pillar marks it. Pop the “091” balloons along the way. Your best time is remembered.",
+    "fire.refill.batinci": "💧 Refill from the Markova Reka",
+    "v.markov": "Marko’s Monastery",
+    "v.dracevo": "Dračevo",
+    "info.bt.batinci": "Batinci is a settlement in the municipality of Studeničani, south of Skopje, in the valley of the Markova Reka.",
+    "info.bt.markov": "Marko’s Monastery, with its church of St. Demetrius, was built in the second half of the 14th century: begun by King Vukašin and finished by his son, Prince Marko. It is known for its frescoes.",
+    "info.bt.dracevo": "Dračevo is a neighbourhood in the municipality of Kisela Voda, on the south-eastern edge of Skopje.",
+    "info.bt.river": "The Markova Reka flows past Marko’s Monastery and Batinci, then north toward Skopje and the Vardar.",
+    'f.fire.batinci': `<b>Firefighting (optional):</b> while flying, press “🔥 Fire” and the plane becomes a yellow Air Tractor firefighting plane. At most two fires burn at a time — a patch of forest or a building; the smoke shows from afar and the arrow at the top points to the nearest one. Fly over the fire and hold ${K('Space')} (or the 💧 button) to drop water — the white ring on the ground shows where it will land. When the tank is empty, skim low along the Markova Reka to fill it. As soon as one fire is out, another starts somewhere else.`,
   },
   sr: {
     // Ohrid
@@ -261,6 +278,17 @@ export const TOWNS = {
     "info.dj.lake": "Дојранско језеро је тектонско језеро од око 43 km² које деле Македонија и Грчка.",
     "info.dj.front": "У Првом светском рату (1916–1918) на брдима изнад Дојранског језера вођене су тешке битке Солунског фронта.",
     'f.fire.dojran': `<b>Гашење пожара (опционо):</b> у лету притисни „🔥 Пожар“ и авион постаје жути противпожарни „Ер трактор“. Истовремено горе највише два пожара — део шуме или зграда; дим се види издалека, а стрелица горе показује ка најближем. Прелети преко ватре и држи ${K('Space')} (или дугме 💧) да испустиш воду — бели круг на тлу показује где ће пасти. Кад се резервоар испразни, спусти се ниско над Дојранско језеро да га напуниш. Чим један пожар угасне, пали се нови на другом месту.`,
+    // Batinci
+    "help.lead.batinci": "Илустрована, жива 3Д мапа Батинаца и околине јужно од Скопља — од Пинтије и Драчева до Доњих Количана и Марковог манастира, долином Маркове реке. Све зграде, улице, паркови и дрвеће нацртани су из отворених података OpenStreetMap и Overture Maps и постављени на прави рељеф.",
+    "f.race.batinci": "<b>Трка (опционо):</b> у лету притисни „🏁 Трка“ и пролети кроз прстенове редом — од Батинаца, преко Пинтије, Драчева и Студеничана, до Доњих Количана, дуж Маркове реке до Марковог манастира и назад до циља. Стрелица горе показује ка следећем прстену, а светли стуб га означава. Бушиш балоне „091“ успут. Најбоље време се памти.",
+    "fire.refill.batinci": "💧 Напуни воду из Маркове реке",
+    "v.markov": "Марков манастир",
+    "v.dracevo": "Драчево",
+    "info.bt.batinci": "Батинци су насеље у општини Студеничани, јужно од Скопља, у долини Маркове реке.",
+    "info.bt.markov": "Марков манастир, са црквом Св. Димитрија, подигнут је у другој половини 14. века: градњу је започео краљ Вукашин, а завршио његов син Краљевић Марко. Познат је по фрескама.",
+    "info.bt.dracevo": "Драчево је насеље у општини Кисела Вода, на југоисточном рубу Скопља.",
+    "info.bt.river": "Маркова река тече поред Марковог манастира и Батинаца, а затим на север ка Скопљу и Вардару.",
+    'f.fire.batinci': `<b>Гашење пожара (опционо):</b> у лету притисни „🔥 Пожар“ и авион постаје жути противпожарни „Ер трактор“. Истовремено горе највише два пожара — део шуме или зграда; дим се види издалека, а стрелица горе показује ка најближем. Прелети преко ватре и држи ${K('Space')} (или дугме 💧) да испустиш воду — бели круг на тлу показује где ће пасти. Кад се резервоар испразни, спусти се ниско дуж Маркове реке да га напуниш. Чим један пожар угасне, пали се нови на другом месту.`,
   },
   hr: {
     // Ohrid
@@ -361,6 +389,17 @@ export const TOWNS = {
     "info.dj.lake": "Dojransko jezero tektonsko je jezero od oko 43 km² koje dijele Makedonija i Grčka.",
     "info.dj.front": "U Prvom svjetskom ratu (1916.–1918.) na brdima iznad Dojranskog jezera vođene su teške bitke Solunske bojišnice.",
     'f.fire.dojran': `<b>Gašenje požara (neobavezno):</b> u letu pritisni „🔥 Požar” i avion postaje žuti protupožarni „Air Tractor”. Istodobno gore najviše dva požara — dio šume ili zgrada; dim se vidi izdaleka, a strelica gore pokazuje prema najbližem. Preleti preko vatre i drži ${K('Space')} (ili gumb 💧) da ispustiš vodu — bijeli krug na tlu pokazuje gdje će pasti. Kad se spremnik isprazni, spusti se nisko nad Dojransko jezero da ga napuniš. Čim se jedan požar ugasi, novi se pali na drugom mjestu.`,
+    // Batinci
+    "help.lead.batinci": "Ilustrirana, živa 3D karta Batinaca i okolice južno od Skopja — od Pintije i Dračeva do Donjih Količana i Markova manastira, dolinom Markove rijeke. Sve zgrade, ulice, parkovi i stabla nacrtani su iz otvorenih podataka OpenStreetMap i Overture Maps i postavljeni na stvarni reljef.",
+    "f.race.batinci": "<b>Utrka (neobavezno):</b> u letu pritisni „🏁 Utrka” i proleti kroz prstenove redom — od Batinaca, preko Pintije, Dračeva i Studeničana, do Donjih Količana, duž Markove rijeke do Markova manastira i natrag do cilja. Strelica gore pokazuje prema sljedećem prstenu, a svijetli stup ga označava. Usput probuši balone „091”. Najbolje vrijeme se pamti.",
+    "fire.refill.batinci": "💧 Napuni vodu iz Markove rijeke",
+    "v.markov": "Markov manastir",
+    "v.dracevo": "Dračevo",
+    "info.bt.batinci": "Batinci su naselje u općini Studeničani, južno od Skopja, u dolini Markove rijeke.",
+    "info.bt.markov": "Markov manastir, s crkvom Sv. Dimitrija, podignut je u drugoj polovini 14. stoljeća: gradnju je započeo kralj Vukašin, a dovršio njegov sin Kraljević Marko. Poznat je po freskama.",
+    "info.bt.dracevo": "Dračevo je naselje u općini Kisela Voda, na jugoistočnom rubu Skopja.",
+    "info.bt.river": "Markova rijeka teče pokraj Markova manastira i Batinaca, a zatim na sjever prema Skopju i Vardaru.",
+    'f.fire.batinci': `<b>Gašenje požara (neobavezno):</b> u letu pritisni „🔥 Požar” i avion postaje žuti protupožarni „Air Tractor”. Istodobno gore najviše dva požara — dio šume ili zgrada; dim se vidi izdaleka, a strelica gore pokazuje prema najbližem. Preleti preko vatre i drži ${K('Space')} (ili gumb 💧) da ispustiš vodu — bijeli krug na tlu pokazuje gdje će pasti. Kad se spremnik isprazni, spusti se nisko duž Markove rijeke da ga napuniš. Čim se jedan požar ugasi, novi se pali na drugom mjestu.`,
   },
   sl: {
     // Ohrid
@@ -461,6 +500,17 @@ export const TOWNS = {
     "info.dj.lake": "Dojransko jezero je tektonsko jezero s površino približno 43 km², ki si ga delita Makedonija in Grčija.",
     "info.dj.front": "V prvi svetovni vojni (1916–1918) so na hribih nad Dojranskim jezerom potekali hudi boji solunske fronte.",
     'f.fire.dojran': `<b>Gašenje požarov (neobvezno):</b> med letom pritisni „🔥 Požar“ in letalo postane rumeno gasilsko letalo „Air Tractor“. Hkrati gorita največ dva požara — del gozda ali stavba; dim se vidi od daleč, puščica zgoraj pa kaže proti najbližjemu. Preleti ogenj in drži ${K('Space')} (ali gumb 💧), da spustiš vodo — bel krog na tleh kaže, kam bo padla. Ko se rezervoar izprazni, se spusti nizko nad Dojransko jezero, da ga napolniš. Takoj ko en požar ugasne, se drugje vname nov.`,
+    // Batinci
+    "help.lead.batinci": "Ilustriran, živ 3D zemljevid Batincev in okolice južno od Skopja — od Pintije in Dračeva do Spodnjih Količanov in Markovega samostana, po dolini Markove reke. Vse stavbe, ulice, parki in drevesa so narisani iz odprtih podatkov OpenStreetMap in Overture Maps in postavljeni na pravi relief.",
+    "f.race.batinci": "<b>Dirka (neobvezno):</b> med letom pritisni „🏁 Dirka“ in po vrsti preleti obroče — od Batincev, prek Pintije, Dračeva in Studeničanov, do Spodnjih Količanov, vzdolž Markove reke do Markovega samostana ter nazaj do cilja. Puščica zgoraj kaže proti naslednjemu obroču, svetel steber ga označuje. Spotoma poči balone „091“. Najboljši čas si zapomnimo.",
+    "fire.refill.batinci": "💧 Natoči vodo iz Markove reke",
+    "v.markov": "Markov samostan",
+    "v.dracevo": "Dračevo",
+    "info.bt.batinci": "Batinci so naselje v občini Studeničani, južno od Skopja, v dolini Markove reke.",
+    "info.bt.markov": "Markov samostan s cerkvijo sv. Dimitrija je bil zgrajen v drugi polovici 14. stoletja: gradnjo je začel kralj Vukašin, dokončal pa njegov sin kraljevič Marko. Znan je po freskah.",
+    "info.bt.dracevo": "Dračevo je naselje v občini Kisela Voda, na jugovzhodnem robu Skopja.",
+    "info.bt.river": "Markova reka teče mimo Markovega samostana in Batincev, nato proti severu proti Skopju in Vardarju.",
+    'f.fire.batinci': `<b>Gašenje požarov (neobvezno):</b> med letom pritisni „🔥 Požar“ in letalo postane rumeno gasilsko letalo „Air Tractor“. Hkrati gorita največ dva požara — del gozda ali stavba; dim se vidi od daleč, puščica zgoraj pa kaže proti najbližjemu. Preleti ogenj in drži ${K('Space')} (ali gumb 💧), da spustiš vodo — bel krog na tleh kaže, kam bo padla. Ko se rezervoar izprazni, se spusti nizko vzdolž Markove reke, da ga napolniš. Takoj ko en požar ugasne, se drugje vname nov.`,
   },
   sq: {
     // Ohrid
@@ -561,5 +611,16 @@ export const TOWNS = {
     "info.dj.lake": "Liqeni i Dojranit është një liqen tektonik prej rreth 43 km², që e ndajnë Maqedonia dhe Greqia.",
     "info.dj.front": "Në Luftën e Parë Botërore (1916–1918) në kodrat mbi Liqenin e Dojranit u zhvilluan beteja të rënda të Frontit të Selanikut.",
     'f.fire.dojran': `<b>Shuarja e zjarreve (opsionale):</b> gjatë fluturimit shtyp “🔥 Zjarr” dhe avioni bëhet avioni i verdhë kundër zjarrit “Air Tractor”. Njëkohësisht digjen më së shumti dy zjarre — një pjesë pylli ose një ndërtesë; tymi duket nga larg, ndërsa shigjeta lart tregon drejt më të afërtit. Fluturo mbi zjarr dhe mbaj shtypur ${K('Space')} (ose butonin 💧) për të lëshuar ujë — rrethi i bardhë në tokë tregon ku do të bjerë. Kur rezervuari zbrazet, zbrit ulët mbi Liqenin e Dojranit për ta mbushur. Sapo shuhet një zjarr, ndizet një tjetër diku tjetër.`,
+    // Batinci
+    "help.lead.batinci": "Një hartë 3D e ilustruar dhe e gjallë e Batincit dhe rrethinës në jug të Shkupit — nga Pintija dhe Draçeva deri te Kolliçani i Poshtëm dhe Manastiri i Markos, përgjatë luginës së lumit Markova Reka. Të gjitha ndërtesat, rrugët, parqet dhe pemët janë vizatuar nga të dhënat e hapura të OpenStreetMap dhe Overture Maps dhe janë vendosur mbi relievin e vërtetë.",
+    "f.race.batinci": "<b>Gara (opsionale):</b> gjatë fluturimit shtyp “🏁 Gara” dhe fluturo me radhë nëpër unaza — nga Batinci, mbi Pintijë, Draçevë dhe Studeniçan, deri te Kolliçani i Poshtëm, përgjatë lumit Markova Reka deri te Manastiri i Markos, e pastaj prapë deri në finish. Shigjeta lart tregon drejt unazës së radhës, ndërsa një shtyllë e ndritshme e shënon. Plas balonat “091” gjatë rrugës. Koha më e mirë mbahet mend.",
+    "fire.refill.batinci": "💧 Mbush ujë nga lumi Markova Reka",
+    "v.markov": "Manastiri i Markos",
+    "v.dracevo": "Draçeva",
+    "info.bt.batinci": "Batinci është vendbanim në komunën e Studeniçanit, në jug të Shkupit, në luginën e lumit Markova Reka.",
+    "info.bt.markov": "Manastiri i Markos, me kishën e Shën Dhimitrit, u ndërtua në gjysmën e dytë të shekullit XIV: ndërtimin e nisi mbreti Vukashin dhe e përfundoi i biri, Marko Kraleviqi. Është i njohur për afresket.",
+    "info.bt.dracevo": "Draçeva është lagje në komunën e Kisella Vodës, në skajin juglindor të Shkupit.",
+    "info.bt.river": "Lumi Markova Reka rrjedh pranë Manastirit të Markos dhe Batincit, e pastaj në veri drejt Shkupit dhe Vardarit.",
+    'f.fire.batinci': `<b>Shuarja e zjarreve (opsionale):</b> gjatë fluturimit shtyp “🔥 Zjarr” dhe avioni bëhet avioni i verdhë kundër zjarrit “Air Tractor”. Njëkohësisht digjen më së shumti dy zjarre — një pjesë pylli ose një ndërtesë; tymi duket nga larg, ndërsa shigjeta lart tregon drejt më të afërtit. Fluturo mbi zjarr dhe mbaj shtypur ${K('Space')} (ose butonin 💧) për të lëshuar ujë — rrethi i bardhë në tokë tregon ku do të bjerë. Kur rezervuari zbrazet, zbrit ulët përgjatë lumit Markova Reka për ta mbushur. Sapo shuhet një zjarr, ndizet një tjetër diku tjetër.`,
   },
 };

@@ -144,6 +144,15 @@ export const CITIES = {
     // lake, the ground just outside it 145.5 m (median of 294 points, 10 m out): the water at 144.5 m
     terrain: { smooth: 1, flatWater: true, waterLevels: { 4557289: 144.5 }, rivers: { river: [4, 1.5], stream: [2, 1], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Батинци and its surroundings south of Skopje's map (its south edge, 41.955 N, is this map's north edge: nothing
+  // overlaps): Пинтија at the top, Драчево to the east, Марков манастир by Маркова Сушица to the west, Долно Количани
+  // to the south, the Маркова Река valley between them
+  batinci: {
+    bbox: { s: 41.875, w: 21.385, n: 41.955, e: 21.545 },
+    tiles: [3, 3] as [number, number],
+    files: { raw: 'data/batinci_raw.json', scene: 'public/batinci.json', terrainBin: 'public/batinci-terrain.bin', terrainJson: 'public/batinci-terrain.json', overture: 'data/batinci_overture.json' },
+    terrain: { smooth: 1, flatWater: true, rivers: { river: [4, 1.5], stream: [2, 1], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: { s: number; w: number; n: number; e: number }; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec }>;
 export type CityName = keyof typeof CITIES;
 const isCity = (s: string | undefined): s is CityName => !!s && s in CITIES;

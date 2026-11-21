@@ -400,6 +400,23 @@ const PREP: Record<CityName, CityPrep> = {
     squareBonus: false,
     maxLevels: 6,
   },
+  batinci: {
+    old: null,
+    square: [41.91966, 21.48139], // the middle of Батинци
+    landmarks: {},
+    // modelled by hand after photos (src/batinci.ts): the church Св. Димитрија of Марков манастир on its OSM outline
+    models: { markov: 177490048 },
+    placeNames: {},
+    placeIds: { markov: 177490048, monastery: 177490047, dsquare: 1418028028, spas: 247817665, eremija: 224671004 },
+    placeNodes: {},
+    nodeLL: {},
+    tall: [],
+    mid: [[41.9300, 41.9420, 21.5080, 21.5300]], // the blocks of flats of Драчево round Плоштад на Бранителите
+    squareBonus: false,
+    maxLevels: 7,
+    // no lake on this map: the Маркова Река, from Марков манастир down past Батинци, widened for refilling
+    waterLines: [[182532170, 5], [46033085, 5]],
+  },
 };
 const CFG = PREP[CITY];
 const OLD = CFG.old;
