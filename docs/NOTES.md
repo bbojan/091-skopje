@@ -407,6 +407,10 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    typecheck, build. Not checked: phones (the largest map: 1,064 chunks), firefighting over the lakes, walking
    cards one by one; the church of Bigorski's interior (the iconostasis) is not modelled.
 
+31. **v7.0.0** (Nov 2026, on `develop`): the version goes to 7 for the map of seven cities (Skopje,
+   Kavadarci, Bitola, Ohrid, Prilep, Kruševo, Rostuše), as v3.0.0 did for three; no change in the app itself
+   since v3.4.0 besides the docs.
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
