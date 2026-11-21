@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid', 'prilep', 'krusevo'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid', 'rostuse', 'prilep', 'krusevo'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -365,6 +365,67 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.ohrid',
     bestRaceKey: 'skopje.bestRace.ohrid',
     banners: { fire: 'Охридската пастрмка го спаси градот!', roll: 'Ајде на Канео!' },
+  },
+  rostuse: {
+    id: 'rostuse', name: 'Ростуше', code: '042', icon: './favicon-rostuse.svg',
+    files: { scene: './rostuse.json', terrainBin: './rostuse-terrain.bin', terrainJson: './rostuse-terrain.json' },
+    sceneBytes: 5e6,
+    views: {
+      center: { ll: [41.61050, 20.59950], d: 650, polar: 0.76, az: 0.08 },
+      bigorski: { place: 'bigorski', ll: [41.62116, 20.60940], d: 190, polar: 0.98, az: -1.9 }, // from the valley (west), the konaks up the slope
+      debar: { ll: [41.52150, 20.52650], d: 1400, polar: 0.8, az: 0.2 },
+      mavrovo: { ll: [41.68500, 20.76500], d: 6500, polar: 1.0, az: 0.5 }, // Мавровско Езеро from the south, Бистра behind the camera
+      galicnik: { place: 'galicnik', ll: [41.59403, 20.65312], d: 700, polar: 0.86, az: -0.6 },
+      // the map is 27 × 37 km of mountains: seen from the south-west, the two lakes at the ends
+      overview: { ll: [41.59000, 20.68000], d: 23000, polar: 0.92, az: -0.6 },
+    },
+    districts: [
+      ['Ростуше', 41.6105, 20.5995], ['Дебар', 41.5215, 20.5265], ['Маврово', 41.6500, 20.7370], ['Маврови Анови', 41.7050, 20.7600],
+      ['Галичник', 41.5940, 20.6531], ['Жировница', 41.6740, 20.5870], ['Бистра', 41.6300, 20.7000, 80],
+      ['Дебарско Езеро', 41.4600, 20.5500, 0], ['Мавровско Езеро', 41.6900, 20.7700, 0],
+    ],
+    labels: [
+      ['Бигорски манастир', 41.62116, 20.60940, 30, 'bigorski'],
+      ['Св. Никола', 41.66003, 20.73552, 12, 'nikola'],
+      ['Брана Шпиље', 41.49385, 20.50558, 16, 'dam'],
+      ['Свети Град', 41.44833, 20.59319, 16, 'svetigrad'],
+      ['Дримколски манастир', 41.41366, 20.57021, 14],
+      ['Радика', 41.6000, 20.5900, 6, undefined, 'river'],
+      ['Црн Дрим', 41.4300, 20.5500, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Ростуше', 41.6105, 20.5995, 80],
+      ['Бигорски манастир', 41.62116, 20.60940, 80, 'bigorski'],
+      ['Жировница', 41.6740, 20.5870, 90],
+      ['Маврово', 41.6500, 20.7370, 90],
+      ['Мавровско Езеро', 41.6900, 20.7700, 50],
+      ['Маврови Анови', 41.7050, 20.7600, 80],
+      ['Галичник', 41.5940, 20.6531, 100, 'galicnik'],
+      ['Дебар', 41.5215, 20.5265, 90],
+      ['Брана Шпиље', 41.49385, 20.50558, 60, 'dam'],
+      ['Дебарско Езеро', 41.4600, 20.5500, 50],
+      ['Ростуше', 41.6105, 20.5995, 70],
+    ],
+    spots: [
+      ['r.rostuse', 'Ростуше', 41.6105, 20.5995, 150],
+      ['r.bigorski', 'Бигорски манастир', 41.62116, 20.60940, 60, 'bigorski'],
+      ['r.debar', 'Дебар', 41.5215, 20.5265, 300],
+      ['r.debarlake', 'Дебарско Езеро', 41.49385, 20.50558, 300, 'dam'],
+      ['r.mavrovo', 'Мавровско Езеро', 41.6500, 20.7370, 300],
+      ['r.nikola', 'Св. Никола', 41.66003, 20.73552, 50, 'nikola'],
+      ['r.galicnik', 'Галичник', 41.5940, 20.6531, 200, 'galicnik'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    // the forests of Бистра and the Радика valley: full density round Ростуше and Бигорски, thinner (drawn larger) far out
+    treeThin: { ll: [41.61500, 20.60500], near: 2500, far: 7000, min: 0.035, grow: 2.2 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.bistra',
+    refillLabel: 'fire.refill.rostuse',
+    bestRaceKey: 'skopje.bestRace.rostuse',
+    banners: { fire: 'Бигорски е спасен!', roll: 'Ајде на Галичка свадба!' },
   },
   prilep: {
     id: 'prilep', name: 'Прилеп', code: '048', icon: './favicon-prilep.svg',

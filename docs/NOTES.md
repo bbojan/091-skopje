@@ -384,6 +384,29 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    Checked: views rendered and looked at; typecheck, build. Not checked: phones, firefighting over the small
    lake, walking cards one by one. The giant is a stylised figure, not modelled from measurements.
 
+30. **v3.4.0** (Nov 2026, on `develop`): **042 Ростуше** (`?city=rostuse`): the Mijak country, 41.39–41.725 N,
+   20.49–20.815 E (27.1 × 37.3 km, the largest map): Ростуше and Бигорски манастир in the Радика valley, Дебар
+   and Дебарско Езеро (9.7 km²) with Брана Шпиље to the south-west, Мавровско Езеро (10.5 km²) and Маврово to
+   the north-east, Галичник and Бистра between them. 36 tiles of mountains through busy mirrors took ~1.5 hours:
+   a second worker fetched the tiles from the other end into the same `data/tiles/` cache. 2,341 OSM buildings
+   plus 17,583 Overture footprints; 20 m cells (5.1 MB); the forest thinned hard away from Ростуше
+   (`treeThin` min 0.035 from 7 km: 632k trees instead of 1.02M), 1,064 chunks.
+   **Бигорски манастир** (`src/rostuse.ts`, a `modelRects` rectangle of 82 × 58 m over the church and OSM's ten
+   plain outlines, which are left out; +u south down the valley, +v west toward the river; the slope rises
+   ~25 m across it): konak wings round a terraced court (`konak()`: rubble-stone storeys down the slope, white
+   plastered storeys with dark floor beams and rows of dark-framed windows, the top storey jutting out on
+   curved brackets, low hipped roofs of grey stone slabs with wide timber eaves, stone chimneys with slab caps,
+   red flower boxes, an open arcade gallery on the valley wing); the bell tower (stone shaft with a clock, the
+   white belvedere with windows all round cantilevered on brackets, a wide slab roof); the church (stone,
+   slab gable roof, apse, open narthex porch, octagonal stone drum with arched windows and a lead dome); the
+   gate passage with its marble portico, gilt band and lead dome; the octagonal fountain pavilion; the terrace
+   wall, two cypresses, a timber stair. Layout read off photos of the court, not surveyed. **Св. Никола** in
+   Маврово on OSM's outline of the ruin: roofless stone walls with a ragged crest, the apse, arched windows,
+   the bell tower with a lead pyramid roof. Tow banners: „Бигорски е спасен!“ / „Ајде на Галичка свадба!“.
+   Checked: views rendered and looked at (Bigorski from the valley and from above, the two lakes, Debar);
+   typecheck, build. Not checked: phones (the largest map: 1,064 chunks), firefighting over the lakes, walking
+   cards one by one; the church of Bigorski's interior (the iconostasis) is not modelled.
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
@@ -476,6 +499,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Kavadarci | `skopje.bestRace.kavadarci` | none |
 | Best race time in Bitola | `skopje.bestRace.bitola` | none |
 | Best race time in Ohrid | `skopje.bestRace.ohrid` | none |
+| Best race time in Rostuše | `skopje.bestRace.rostuse` | none |
 | Best race time in Prilep | `skopje.bestRace.prilep` | none |
 | Best race time in Kruševo | `skopje.bestRace.krusevo` | none |
 

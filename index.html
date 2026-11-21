@@ -40,7 +40,8 @@
       body:not(.city-skopje) [data-city="skopje"], body:not(.city-kavadarci) [data-city="kavadarci"], body:not(.city-bitola) [data-city="bitola"],
       body:not(.city-ohrid) [data-city="ohrid"],
       body:not(.city-prilep) [data-city="prilep"],
-      body:not(.city-krusevo) [data-city="krusevo"] { display: none !important; }
+      body:not(.city-krusevo) [data-city="krusevo"],
+      body:not(.city-rostuse) [data-city="rostuse"] { display: none !important; }
       body.no-buses #bus { display: none !important; } /* no red ЈСП buses in this city */
       .title .h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.15; display: flex; align-items: center; gap: 12px; }
       .code { display: inline-block; font-family: 'Rubik Mono One', 'Lora', sans-serif; font-weight: 400; font-size: 19px; letter-spacing: 0.04em; line-height: 1;
@@ -354,6 +355,7 @@
         <p class="lead" data-city="ohrid" data-i18n="help.lead.ohrid">Илустрирана, жива 3Д мапа на Охридското Езеро — Охрид и Струга, Св. Јован Канео, Самоиловата тврдина и Св. Наум, со целото езеро меѓу Галичица и албанскиот брег. Сите згради, улици, паркови и дрвја се нацртани од отворените податоци на OpenStreetMap и Overture Maps и поставени на вистинскиот релјеф.</p>
         <p class="lead" data-city="prilep" data-i18n="help.lead.prilep">Илустрирана, жива 3Д мапа на Прилеп — градот на тутунот под Маркови Кули, со Могилата на непобедените, манастирот Трескавец и Прилепското Езеро. Сите згради, улици, паркови и дрвја се нацртани од отворените податоци на OpenStreetMap и Overture Maps и поставени на вистинскиот релјеф.</p>
         <p class="lead" data-city="krusevo" data-i18n="help.lead.krusevo">Илустрирана, жива 3Д мапа на Крушево — градот на Илинденското востание, високо на падините на Бушева Планина, со Македониумот и Мечкин Камен. Сите згради, улици, паркови и дрвја се нацртани од отворените податоци на OpenStreetMap и Overture Maps и поставени на вистинскиот релјеф.</p>
+        <p class="lead" data-city="rostuse" data-i18n="help.lead.rostuse">Илустрирана, жива 3Д мапа на Мијачијата — Ростуше и Бигорскиот манастир во долината на Радика, Дебар на своето езеро и Мавровското Езеро во националниот парк. Сите згради, улици, паркови и дрвја се нацртани од отворените податоци на OpenStreetMap и Overture Maps и поставени на вистинскиот релјеф.</p>
         <p class="lead" data-city="skopje" data-i18n="help.lead">Илустрирана, жива 3Д мапа на Скопје — од Ѓорче Петров до Гази Баба и од Бутел до врвот на Водно. Сите згради, улици, паркови и дрвја се нацртани од отворените податоци на OpenStreetMap и поставени на вистинскиот релјеф.</p>
 
         <h3 data-i18n="h.controls">Контроли</h3>
@@ -407,7 +409,7 @@
           <tr><td data-i18n="b.season">🌳 Лето · 🍂 Есен · ☃ Зима · 🌸 Пролет</td><td data-i18n="b.seasonD">Смени го годишното време: цут и свежо зеленило напролет, есенски бои или голи дрвја во зима; зимзелените дрвја остануваат зелени</td></tr>
           <tr><td data-i18n="bar.live">Живо</td><td data-i18n="b.liveD">Вклучи/исклучи ги автомобилите, автобусите и пешаците</td></tr>
           <tr><td data-i18n="bar.names">Имиња</td><td data-i18n="b.namesD">Прикажи ги имињата на населбите и знаменитостите</td></tr>
-          <tr><td data-i18n="b.city">Значка на градот (горе лево)</td><td data-i18n="b.cityD">Избери друг град: Скопје, Кавадарци, Битола, Охрид, Прилеп, Крушево и други. Линкот го памти градот, па можеш да го испратиш некому.</td></tr>
+          <tr><td data-i18n="b.city">Значка на градот (горе лево)</td><td data-i18n="b.cityD">Избери друг град: Скопје, Кавадарци, Битола, Охрид, Ростуше, Прилеп, Крушево. Линкот го памти градот, па можеш да го испратиш некому.</td></tr>
           <tr><td data-i18n="b.menus">📍 Места · ⚙ Опции</td><td data-i18n="b.menusD">Мени со местата и мени со опциите; на телефон во нив се и Преглед, времето, годишното време и јазикот</td></tr>
           <tr><td data-i18n="bar.ink">Контури</td><td data-i18n="b.inkD">Вклучи/исклучи ги цртаните линии</td></tr>
           <tr><td data-i18n="bar.shot">Зачувај слика</td><td data-i18n="b.shotD">Преземи PNG од тековниот поглед</td></tr>
@@ -436,12 +438,14 @@
         <p data-city="ohrid" data-i18n="f.race.ohrid"><b>Трка (опционално):</b> во летот притисни „🏁 Трка“ и пролетај низ прстените по ред — од пристаништето, преку Канео, Самоиловата тврдина, Струга и езерото до Св. Наум, и назад до финишот. Стрелката горе покажува кон следниот прстен, а светлиот столб го означува. Пукни ги балоните „091“ по патот. Најдоброто време се памти.</p>
         <p data-city="prilep" data-i18n="f.race.prilep"><b>Трка (опционално):</b> во летот притисни „🏁 Трка“ и пролетај низ прстените по ред — од плоштадот, преку Маркови Кули, Трескавец и Прилепското Езеро, покрај Могилата на непобедените, и назад до финишот. Стрелката горе покажува кон следниот прстен, а светлиот столб го означува. Пукни ги балоните „091“ по патот. Најдоброто време се памти.</p>
         <p data-city="krusevo" data-i18n="f.race.krusevo"><b>Трка (опционално):</b> во летот притисни „🏁 Трка“ и пролетај низ прстените по ред — од плоштадот, преку Македониумот, Мечкин Камен и Крушевското Езеро, и назад до финишот. Стрелката горе покажува кон следниот прстен, а светлиот столб го означува. Пукни ги балоните „091“ по патот. Најдоброто време се памти.</p>
+        <p data-city="rostuse" data-i18n="f.race.rostuse"><b>Трка (опционално):</b> во летот притисни „🏁 Трка“ и пролетај низ прстените по ред — од Ростуше, преку Бигорскиот манастир, Галичник и Мавровското Езеро, до Дебар и неговото езеро, и назад до финишот. Стрелката горе покажува кон следниот прстен, а светлиот столб го означува. Пукни ги балоните „091“ по патот. Најдоброто време се памти.</p>
         <p data-city="skopje" data-i18n="f.fire"><b>Гаснење пожари (опционално):</b> во летот притисни „🔥 Пожар“ и авионот станува жолт противпожарен „Ер трактор“. Горат најмногу два пожара одеднаш — дел од шума, зграда или автобус; чадот се гледа оддалеку, а стрелката горе покажува кон најблискиот. Прелетај над огнот и држи <kbd>Space</kbd> (или копчето 💧) за да испуштиш вода — белиот круг на земјата покажува каде ќе падне. Кога резервоарот ќе се испразни, спушти се ниско над Вардар за да го наполниш. Штом еден пожар ќе изгасне, се пали нов на друго место.</p>
         <p data-city="kavadarci" data-i18n="f.fire.kavadarci"><b>Гаснење пожари (опционално):</b> во летот притисни „🔥 Пожар“ и авионот станува жолт противпожарен „Ер трактор“. Горат најмногу два пожара одеднаш — дел од шума, зграда или автобус; чадот се гледа оддалеку, а стрелката горе покажува кон најблискиот. Прелетај над огнот и држи <kbd>Space</kbd> (или копчето 💧) за да испуштиш вода — белиот круг на земјата покажува каде ќе падне. Кога резервоарот ќе се испразни, спушти се ниско над Тиквешкото Езеро, југозападно од градот, за да го наполниш. Штом еден пожар ќе изгасне, се пали нов на друго место.</p>
         <p data-city="bitola" data-i18n="f.fire.bitola"><b>Гаснење пожари (опционално):</b> во летот притисни „🔥 Пожар“ и авионот станува жолт противпожарен „Ер трактор“. Горат најмногу два пожара одеднаш — дел од шума или зграда; чадот се гледа оддалеку, а стрелката горе покажува кон најблискиот. Прелетај над огнот и држи <kbd>Space</kbd> (или копчето 💧) за да испуштиш вода — белиот круг на земјата покажува каде ќе падне. Кога резервоарот ќе се испразни, спушти се ниско по Драгор низ градот, или над Големото Езеро под врвот на Пелистер, за да го наполниш. Штом еден пожар ќе изгасне, се пали нов на друго место.</p>
         <p data-city="ohrid" data-i18n="f.fire.ohrid"><b>Гаснење пожари (опционално):</b> во летот притисни „🔥 Пожар“ и авионот станува жолт противпожарен „Ер трактор“. Горат најмногу два пожара одеднаш — дел од шума или зграда; чадот се гледа оддалеку, а стрелката горе покажува кон најблискиот. Прелетај над огнот и држи <kbd>Space</kbd> (или копчето 💧) за да испуштиш вода — белиот круг на земјата покажува каде ќе падне. Кога резервоарот ќе се испразни, спушти се ниско над Охридското Езеро за да го наполниш. Штом еден пожар ќе изгасне, се пали нов на друго место.</p>
         <p data-city="prilep" data-i18n="f.fire.prilep"><b>Гаснење пожари (опционално):</b> во летот притисни „🔥 Пожар“ и авионот станува жолт противпожарен „Ер трактор“. Горат најмногу два пожара одеднаш — дел од шума или зграда; чадот се гледа оддалеку, а стрелката горе покажува кон најблискиот. Прелетај над огнот и држи <kbd>Space</kbd> (или копчето 💧) за да испуштиш вода — белиот круг на земјата покажува каде ќе падне. Кога резервоарот ќе се испразни, спушти се ниско над Прилепското Езеро, североисточно од градот, за да го наполниш. Штом еден пожар ќе изгасне, се пали нов на друго место.</p>
         <p data-city="krusevo" data-i18n="f.fire.krusevo"><b>Гаснење пожари (опционално):</b> во летот притисни „🔥 Пожар“ и авионот станува жолт противпожарен „Ер трактор“. Горат најмногу два пожара одеднаш — дел од шума или зграда; чадот се гледа оддалеку, а стрелката горе покажува кон најблискиот. Прелетај над огнот и држи <kbd>Space</kbd> (или копчето 💧) за да испуштиш вода — белиот круг на земјата покажува каде ќе падне. Кога резервоарот ќе се испразни, спушти се ниско над Крушевското Езеро, малото езеро под Македониумот, за да го наполниш. Штом еден пожар ќе изгасне, се пали нов на друго место.</p>
+        <p data-city="rostuse" data-i18n="f.fire.rostuse"><b>Гаснење пожари (опционално):</b> во летот притисни „🔥 Пожар“ и авионот станува жолт противпожарен „Ер трактор“. Горат најмногу два пожара одеднаш — дел од шума или зграда; чадот се гледа оддалеку, а стрелката горе покажува кон најблискиот. Прелетај над огнот и држи <kbd>Space</kbd> (или копчето 💧) за да испуштиш вода — белиот круг на земјата покажува каде ќе падне. Кога резервоарот ќе се испразни, спушти се ниско над Мавровското или над Дебарското Езеро за да го наполниш. Штом еден пожар ќе изгасне, се пали нов на друго место.</p>
         <p data-i18n="f.auto">Авионот секогаш лета напред, не може да удри во земја и сам се враќа кога ќе стигне до работ на мапата.</p>
 
         <h3 data-i18n="h.style">Стилот</h3>
@@ -466,6 +470,7 @@
         <p class="foot" data-city="ohrid"><a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps Foundation</a> · Microsoft Building Footprints (ODbL)</p>
         <p class="foot" data-city="prilep"><a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps Foundation</a> · Microsoft Building Footprints (ODbL)</p>
         <p class="foot" data-city="krusevo"><a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps Foundation</a> · Microsoft Building Footprints (ODbL)</p>
+        <p class="foot" data-city="rostuse"><a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps Foundation</a> · Microsoft Building Footprints (ODbL)</p>
         <p class="version" id="app-version"></p>
       </div>
     </dialog>
@@ -475,6 +480,10 @@
         <span class="me-name" data-i18n="me">Бојан Божиновски</span>
       </a>
       <a class="me-main" data-city="bitola" href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+        <span class="me-name" data-i18n="me">Бојан Божиновски</span>
+      </a>
+      <a class="me-main" data-city="rostuse" href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
         <span class="me-name" data-i18n="me">Бојан Божиновски</span>
       </a>
@@ -529,6 +538,10 @@
         <button data-view="plake" data-city="prilep" data-i18n="v.plake">Прилепско Езеро</button>
         <button data-view="makedonium" data-city="krusevo" data-i18n="v.makedonium">Македониум</button>
         <button data-view="meckin" data-city="krusevo" data-i18n="v.meckin">Мечкин Камен</button>
+        <button data-view="bigorski" data-city="rostuse" data-i18n="v.bigorski">Бигорски манастир</button>
+        <button data-view="debar" data-city="rostuse" data-i18n="v.debar">Дебар</button>
+        <button data-view="mavrovo" data-city="rostuse" data-i18n="v.mavrovo">Мавровско Езеро</button>
+        <button data-view="galicnik" data-city="rostuse" data-i18n="v.galicnik">Галичник</button>
       </div>
       <button id="fly" data-i18n="bar.fly">✈ Авион</button>
       <button id="time">☀ Ден</button>
@@ -632,7 +645,7 @@
         и <a href="https://www.linkedin.com/in/ristes/" target="_blank" rel="noopener">Ристе Самарџиев</a> (Кавадарци)
       </p>
     </div>
-    <div class="attr"><span data-i18n="attr">Податоци © соработниците на <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span> <span data-city="kavadarci">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span> <span data-city="bitola">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span> <span data-city="krusevo">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span> <span data-city="prilep">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span> <span data-city="ohrid">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span></div>
+    <div class="attr"><span data-i18n="attr">Податоци © соработниците на <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span> <span data-city="kavadarci">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span> <span data-city="bitola">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span> <span data-city="rostuse">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span> <span data-city="krusevo">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span> <span data-city="prilep">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span> <span data-city="ohrid">· <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps</a> (Microsoft)</span></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
