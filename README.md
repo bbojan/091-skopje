@@ -8,7 +8,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 
 Илустрирана, жива 3Д мапа на Скопје, нацртана од отворените податоци на OpenStreetMap.
 
-More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) and **048 Крушево** (Kruševo, the town of the Ilinden Uprising) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo
+More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) and **048 Крушево** (Kruševo, the town of the Ilinden Uprising) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo
 
 ## Features
 
@@ -34,6 +34,11 @@ More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš 
 - The whole of Lake Ohrid (≈ 19 × 35 km): Ohrid and Struga, Св. Наум, the villages on both shores and Pogradec on the Albanian side, Galičica to the east, on real terrain
 - Hand-built monuments after photos: St. John at Kaneo, St. Clement and Panteleimon at Plaošnik with its bell tower, St. Sophia with its two-storey gallery, the church of St. Naum, the ancient theatre, and the pile dwellings of the Bay of Bones out on the water; Samuel's Fortress from OSM's walls
 - Its own places, labels, race route (12 rings round the lake), walking info cards; firefighting refills anywhere over the lake; no ЈСП buses
+
+**Rostuše** (`?city=rostuse`)
+- The Mijak country (≈ 27 × 37 km): Rostuše in the Radika valley, Debar and Debar Lake, Lake Mavrovo in the national park, Galičnik on Bistra, on real terrain
+- The **Bigorski Monastery** built in detail after photos: konaks with jutting timber storeys and stone-slab roofs, the bell tower with its belvedere, the church with its drum, the gate portico and the fountain pavilion; the sunken church of St. Nicholas at Mavrovo
+- Its own places, labels, race route (11 rings), walking info cards; firefighting refills from Lake Mavrovo or Debar Lake; no ЈСП buses
 
 **Prilep** (`?city=prilep`)
 - The town of tobacco in the Pelagonia plain, Markovi Kuli on its granite hill, Treskavec under Zlatovrv, Prilep Lake, on real terrain
@@ -98,6 +103,7 @@ npm run download -- bitola && npm run terrain -- bitola && npm run data -- bitol
                    # → public/bitola.json, public/bitola-terrain.bin/.json
 npm run download -- ohrid && npm run overture -- ohrid && npm run terrain -- ohrid && npm run data -- ohrid
                    # → public/ohrid.json, public/ohrid-terrain.bin/.json (20 m cells)
+npm run download -- rostuse && npm run overture -- rostuse && npm run terrain -- rostuse && npm run data -- rostuse
 npm run download -- prilep && npm run overture -- prilep && npm run terrain -- prilep && npm run data -- prilep
 npm run download -- krusevo && npm run overture -- krusevo && npm run terrain -- krusevo && npm run data -- krusevo
 ```

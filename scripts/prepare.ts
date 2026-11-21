@@ -304,10 +304,21 @@ const PREP: Record<CityName, CityPrep> = {
   },
   rostuse: {
     old: null,
-    square: [41.6085, 20.6005],
+    square: [41.61050, 20.59950], // the middle of Ростуше
     landmarks: {},
-    placeNames: {}, placeIds: {}, placeNodes: {}, nodeLL: {},
-    tall: [], mid: [], squareBonus: false, maxLevels: 6,
+    // modelled by hand after photos (src/rostuse.ts): Св. Никола, the church of the village flooded by Мавровско Езеро
+    models: { nikola: 1313861245 },
+    // Бигорски манастир: the konaks, the bell tower, the court and the church (OSM: the church, 1279192718, and ten
+    // plain outlines round it), 82 × 58 m along the slope, +u south down the valley, +v west toward the Радика
+    modelRects: { bigorski: [41.62116, 20.60940, 82, 58, Math.PI] },
+    placeNames: {},
+    placeIds: { bigorski: 1279192718, nikola: 1313861245, galicnik: 132038486, dam: 510972965, svetigrad: 1312594768 },
+    placeNodes: {},
+    nodeLL: {},
+    tall: [],
+    mid: [[41.5150, 41.5280, 20.5180, 20.5350]], // the middle of Дебар
+    squareBonus: false,
+    maxLevels: 6,
   },
   prilep: {
     old: { s: 41.3443, n: 41.3472, w: 21.5515, e: 21.5572 }, // Старата чаршија round the clock tower

@@ -54,9 +54,19 @@ function konak(p: Parts, u0: number, u1: number, v0: number, v1: number, y0: num
   for (let s = 0; s < stone; s++) for (let u = u0 + 1.5; u < u1 - 1; u += 3.2) for (const [v, ang] of [[v0, MV], [v1, PV]] as const)
     p.put('dark', p.arch(0.7, 1.3, 0.08), u, v, y0 + s * st + 1, ang);
   // the roof: low hipped stone slabs, wide eaves, a dark timber fascia
-  const rv0 = face < 0 ? v0 - jut : v0, rv1 = face > 0 ? v1 + jut : v1;
+  const rv0 = face < 0 ? v0 - jut : v0, rv1 = face > 0 ? v1 + jut : v1, rise = Math.min(2.4, (rv1 - rv0) * 0.28);
   p.box('woodDark', u0 - 0.9, u1 + 0.9, rv0 - 0.9, rv1 + 0.9, yW, yW + 0.22);
-  p.hip('slate', u0, u1, rv0, rv1, yW + 0.22, Math.min(2.4, (rv1 - rv0) * 0.28), 0.9);
+  p.hip('slate', u0, u1, rv0, rv1, yW + 0.22, rise, 0.9);
+  // stone chimneys with slab caps along the roof, a little off the ridge
+  const cv = (rv0 + rv1) / 2 + (rv1 - rv0) * 0.18;
+  for (let u = u0 + 2.5; u < u1 - 1.5; u += 5.5) {
+    p.box('stone', u - 0.35, u + 0.35, cv - 0.35, cv + 0.35, yW, yW + rise + 1.3);
+    p.box('slate', u - 0.55, u + 0.55, cv - 0.55, cv + 0.55, yW + rise + 1.3, yW + rise + 1.45);
+    p.box('stone', u - 0.12, u + 0.12, cv - 0.12, cv + 0.12, yW + rise + 1.45, yW + rise + 1.75);
+  }
+  // flower boxes (red geraniums) under the windows of the first white storey, on the courtyard side
+  const fv = face > 0 ? v1 : v0;
+  for (let u = u0 + 1.4; u < u1 - 0.8; u += 2.1) p.box('brick', u - 0.5, u + 0.5, fv - 0.22, fv + 0.22, yS + 0.62, yS + 0.85);
 }
 
 export function createRostuse(data: CityData, terrain: Terrain, clippingPlanes: THREE.Plane[]) {
@@ -157,6 +167,11 @@ export function createRostuse(data: CityData, terrain: Terrain, clippingPlanes: 
     p.cyl('plaster', fu, fv, cy + 2.7, cy + 3.3, fr + 0.2, fr + 0.2, 8);
     p.dome('lead', fu, fv, cy + 3.3, fr + 0.15, 0.6);
     p.cross(fu, fv, cy + 3.3 + (fr + 0.15) * 0.6, 0.3);
+    // the retaining wall of the court's terrace toward the valley, with a stone coping
+    p.box('stone', -L * 0.62, L * 0.55, W * 0.6, W * 0.64, Math.min(cy, valley) - 8, cy + 1.0);
+    p.box('ashlar', -L * 0.62, L * 0.55, W * 0.59, W * 0.65, cy + 1.0, cy + 1.15);
+    // two cypresses by the church
+    for (const [u, v] of [[-L * 0.38, W * 0.32], [L * 0.27, -W * 0.3]] as const) { p.cyl('woodDark', u, v, cy, cy + 1.2, 0.15, 0.15, 6); p.add('green', new THREE.ConeGeometry(0.9, 8, 8).translate(u, cy + 5, v)); }
     // a timber stair up to the hill wing's gallery, flowers in pots along the court (red dots)
     for (let i = 0; i < 9; i++) p.box('woodDark', -L * 0.2 + i * 0.35, -L * 0.2 + i * 0.35 + 0.4, -W * 0.56, -W * 0.56 + 1.4, cy + i * 0.33, cy + i * 0.33 + 0.12);
     for (let u = -L * 0.5; u < L * 0.5; u += 3.5) p.cyl('brick', u, W * 0.58, cy, cy + 0.5, 0.25, 0.3, 8);
@@ -167,12 +182,12 @@ export function createRostuse(data: CityData, terrain: Terrain, clippingPlanes: 
   const nf = M.nikola ? frame(M.nikola, terrain, [1, 0], true) : null;
   if (nf) {
     const p = parts(), L = nf.L, W = nf.W, h = 6.5, t = 0.7, u = nf.under;
-    p.box('stone', -L + 3.6, L, -W, -W + t, u, h); p.box('stone', -L + 3.6, L, W - t, W, u, h);
+    p.box('stone', -L + 3.6, L, -W, -W + t, u, h - 1.2); p.box('stone', -L + 3.6, L, W - t, W, u, h - 1.2); // the broken tops above, stone by stone
     p.box('stone', L - t, L, -W, W, u, h);
     p.add('stone', new THREE.CylinderGeometry(W * 0.65, W * 0.65, h - 1.5 - u, 10, 1, true, 0, Math.PI).translate(L, (u + h - 1.5) / 2, 0)); // the apse
-    for (let y = 1.4; y < h; y += 1.4) { p.box('stoneDark', -L + 3.6, L, -W - 0.02, -W + t + 0.02, y, y + 0.1); p.box('stoneDark', -L + 3.6, L, W - t - 0.02, W + 0.02, y, y + 0.1); }
+    for (let y = 1.4; y < h - 1.3; y += 1.4) { p.box('stoneDark', -L + 3.6, L, -W - 0.02, -W + t + 0.02, y, y + 0.1); p.box('stoneDark', -L + 3.6, L, W - t - 0.02, W + 0.02, y, y + 0.1); }
     // broken wall tops: a few higher and lower stones along the crests
-    for (let k = -L + 4; k < L; k += 1.3) for (const s of [-1, 1]) p.box('stone', k, k + 0.8, s * (W - t / 2) - t / 2, s * (W - t / 2) + t / 2, h, h + ((k * 7.3) % 1) * 0.6);
+    for (let k = -L + 3.6; k < L - 0.4; k += 1.1) for (const s of [-1, 1]) { const r = 0.5 + 0.35 * Math.sin(k * 0.45 + s * 2) + 0.15 * Math.sin(k * 2.3); p.box('stone', k, k + 1.1, s * (W - t / 2) - t / 2, s * (W - t / 2) + t / 2, h - 1.25, h - 1.2 + 1.5 * r); } // a ragged crest, higher toward the tower
     for (let k = -L + 6; k < L - 1; k += 3) for (const [v, ang] of [[W, PV], [-W, MV]] as const) p.put('dark', p.arch(1.0, 2.4, 0.75), k, v - Math.sign(v) * 0.72, 2.0, ang); // windows through the walls
     // the bell tower: square stone shaft, arched belfry openings, a pyramid roof (lead) and a cross
     const s = 1.8, th = 13;
