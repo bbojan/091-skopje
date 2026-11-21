@@ -1,4 +1,4 @@
-// UI texts of the towns added after Bitola (Ohrid, Rostuše, Prilep, Kruševo), spread into STR in i18n.ts.
+// UI texts of the towns added after Bitola (Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica), spread into STR in i18n.ts.
 // Macedonian holds only the strings set from JavaScript; the static ones (views, help) are in index.html.
 const K = (...keys: string[]) => keys.map((k) => `<kbd>${k}</kbd>`).join(' ');
 
@@ -44,6 +44,15 @@ export const TOWNS = {
     'info.kr.meckin': "На Мечкин Камен, во август 1903 година, четата на Питу Гули се борела до последен човек бранејќи ја Крушевската Република.",
     'info.kr.toshe': "Спомен-куќата на Тоше Проески, пејачот што израснал во Крушево, е музеј на неговиот живот и музика.",
     'info.kr.lake': "Крушевското Езеро е мало езеро во шумата под Македониумот.",
+    // Makedonska Kamenica
+    "weather.osogovo": "🏔 Снег на Осогово",
+    "fire.refill.kamenica": "💧 Наполни вода од Езерото Калиманци",
+    "info.km.square": "Македонска Каменица лежи во подножјето на Осогово, покрај Каменичка Река. До 1950 година градот се викал само Каменица.",
+    "info.km.uspenie": "Црквата Успение на Пресвета Богородица стои на градскиот плоштад: камени ѕидови со тули, куполи, камбанарија и мозаик на Богородица над влезот.",
+    "info.km.miners": "Каменица е рударски град: паркот покрај плоштадот го носи името на рударите, а нивниот поздрав е „Среќно!“.",
+    "info.km.lake": "Езерото Калиманци на Брегалница е создадено во 1969 година со брана висока 92 метри. Водата ги наводнува оризовите полиња во Кочанско и дава струја.",
+    "info.km.kalata": "Калата е археолошки локалитет на рид над Езерото Калиманци.",
+    "info.km.sasa": "Рудникот Саса, во долината над градот, е еден од најголемите рудници за олово и цинк во Македонија.",
   },
   en: {
     // Ohrid
@@ -114,6 +123,21 @@ export const TOWNS = {
     'info.kr.meckin': "At Mečkin Kamen, in August 1903, the band of Pitu Guli fought to the last man defending the Kruševo Republic.",
     'info.kr.toshe': "The memorial house of Toše Proeski, the singer who grew up in Kruševo, is a museum of his life and music.",
     'info.kr.lake': "Kruševo Lake is a small lake in the forest below the Makedonium.",
+    // Makedonska Kamenica
+    "help.lead.kamenica": "An illustrated, living 3D map of Makedonska Kamenica — the mining town at the foot of Osogovo, with the Sasa mine in the valley above it and Lake Kalimanci on the Bregalnica. Every building, street, park and tree is drawn from OpenStreetMap and Overture Maps open data and placed on the real terrain.",
+    "f.race.kamenica": "<b>Race (optional):</b> while flying, press “🏁 Race” and fly through the rings in order — from the square, up the Kamenička Reka to Sasa and the mine, over Osogovo, to the Kalimanci dam and along the whole lake to the Bregalnica, and back to the finish. The arrow at the top points to the next ring and a bright pillar marks it. Pop the “091” balloons along the way. Your best time is remembered.",
+    "weather.osogovo": "🏔 Snow on Osogovo",
+    "fire.refill.kamenica": "💧 Refill from Lake Kalimanci",
+    "v.uspenie": "Dormition of the Theotokos",
+    "v.kalimanci": "Lake Kalimanci",
+    "v.sasa": "Sasa mine",
+    "info.km.square": "Makedonska Kamenica lies at the foot of Osogovo, by the Kamenička Reka. Until 1950 the town was called just Kamenica.",
+    "info.km.uspenie": "The church of the Dormition of the Theotokos stands on the town square: stone walls with brick courses, domes, a bell tower and a mosaic of the Virgin above the door.",
+    "info.km.miners": "Kamenica is a mining town: the park by the square is named after the miners, whose greeting is “Sreḱno!” (good luck).",
+    "info.km.lake": "Lake Kalimanci on the Bregalnica was created in 1969 by a dam 92 metres high. Its water irrigates the rice fields round Kočani and makes electricity.",
+    "info.km.kalata": "Kalata is an archaeological site on a hill above Lake Kalimanci.",
+    "info.km.sasa": "The Sasa mine, in the valley above the town, is one of the largest lead and zinc mines in Macedonia.",
+    'f.fire.kamenica': `<b>Firefighting (optional):</b> while flying, press “🔥 Fire” and the plane becomes a yellow Air Tractor firefighting plane. At most two fires burn at a time — a patch of forest or a building; the smoke shows from afar and the arrow at the top points to the nearest one. Fly over the fire and hold ${K('Space')} (or the 💧 button) to drop water — the white ring on the ground shows where it will land. When the tank is empty, skim low over Lake Kalimanci, south of the town, to fill it. As soon as one fire is out, another starts somewhere else.`,
   },
   sr: {
     // Ohrid
@@ -184,6 +208,21 @@ export const TOWNS = {
     'info.kr.meckin': "На Мечкином камену, у августу 1903, чета Питуа Гулија борила се до последњег човека бранећи Крушевску републику.",
     'info.kr.toshe': "Спомен-кућа Тоше Проеског, певача који је одрастао у Крушеву, музеј је његовог живота и музике.",
     'info.kr.lake': "Крушевско језеро је мало језеро у шуми испод Македониума.",
+    // Makedonska Kamenica
+    "help.lead.kamenica": "Илустрована, жива 3Д мапа Македонске Каменице — рударског града у подножју Осогова, са рудником Саса у долини изнад њега и језером Калиманци на Брегалници. Све зграде, улице, паркови и дрвеће нацртани су из отворених података OpenStreetMap и Overture Maps и постављени на прави рељеф.",
+    "f.race.kamenica": "<b>Трка (опционо):</b> у лету притисни „🏁 Трка“ и пролети кроз прстенове редом — од трга, уз Каменичку реку до Сасе и рудника, преко Осогова, до бране Калиманци и дуж целог језера до Брегалнице, па назад до циља. Стрелица горе показује ка следећем прстену, а светли стуб га означава. Бушиш балоне „091“ успут. Најбоље време се памти.",
+    "weather.osogovo": "🏔 Снег на Осогову",
+    "fire.refill.kamenica": "💧 Напуни воду из језера Калиманци",
+    "v.uspenie": "Успење Пресвете Богородице",
+    "v.kalimanci": "Језеро Калиманци",
+    "v.sasa": "Рудник Саса",
+    "info.km.square": "Македонска Каменица лежи у подножју Осогова, поред Каменичке реке. До 1950. град се звао само Каменица.",
+    "info.km.uspenie": "Црква Успења Пресвете Богородице стоји на градском тргу: камени зидови с опеком, кубета, звоник и мозаик Богородице изнад улаза.",
+    "info.km.miners": "Каменица је рударски град: парк поред трга носи име рудара, чији је поздрав „Срећно!“.",
+    "info.km.lake": "Језеро Калиманци на Брегалници настало је 1969. године браном високом 92 метра. Вода наводњава пиринчана поља око Кочана и даје струју.",
+    "info.km.kalata": "Калата је археолошки локалитет на брду изнад језера Калиманци.",
+    "info.km.sasa": "Рудник Саса, у долини изнад града, један је од највећих рудника олова и цинка у Македонији.",
+    'f.fire.kamenica': `<b>Гашење пожара (опционо):</b> у лету притисни „🔥 Пожар“ и авион постаје жути противпожарни „Ер трактор“. Истовремено горе највише два пожара — део шуме или зграда; дим се види издалека, а стрелица горе показује ка најближем. Прелети преко ватре и држи ${K('Space')} (или дугме 💧) да испустиш воду — бели круг на тлу показује где ће пасти. Кад се резервоар испразни, спусти се ниско над језеро Калиманци, јужно од града, да га напуниш. Чим један пожар угасне, пали се нови на другом месту.`,
   },
   hr: {
     // Ohrid
@@ -254,6 +293,21 @@ export const TOWNS = {
     'info.kr.meckin': "Na Mečkinu kamenu, u kolovozu 1903., četa Pitua Gulija borila se do posljednjeg čovjeka braneći Kruševsku Republiku.",
     'info.kr.toshe': "Spomen-kuća Toše Proeskog, pjevača koji je odrastao u Kruševu, muzej je njegova života i glazbe.",
     'info.kr.lake': "Kruševsko jezero malo je jezero u šumi ispod Makedoniuma.",
+    // Makedonska Kamenica
+    "help.lead.kamenica": "Ilustrirana, živa 3D karta Makedonske Kamenice — rudarskoga grada u podnožju Osogova, s rudnikom Sasa u dolini iznad njega i jezerom Kalimanci na Bregalnici. Sve zgrade, ulice, parkovi i stabla nacrtani su iz otvorenih podataka OpenStreetMap i Overture Maps i postavljeni na stvarni reljef.",
+    "f.race.kamenica": "<b>Utrka (neobavezno):</b> u letu pritisni „🏁 Utrka” i proleti kroz prstenove redom — od trga, uz Kameničku rijeku do Sase i rudnika, preko Osogova, do brane Kalimanci i duž cijelog jezera do Bregalnice, pa natrag do cilja. Strelica gore pokazuje prema sljedećem prstenu, a svijetli stup ga označava. Usput probuši balone „091”. Najbolje vrijeme se pamti.",
+    "weather.osogovo": "🏔 Snijeg na Osogovu",
+    "fire.refill.kamenica": "💧 Napuni vodu iz jezera Kalimanci",
+    "v.uspenie": "Uznesenje Blažene Djevice Marije",
+    "v.kalimanci": "Jezero Kalimanci",
+    "v.sasa": "Rudnik Sasa",
+    "info.km.square": "Makedonska Kamenica leži u podnožju Osogova, uz Kameničku rijeku. Do 1950. grad se zvao samo Kamenica.",
+    "info.km.uspenie": "Crkva Uznesenja Blažene Djevice Marije stoji na gradskom trgu: kameni zidovi s opekom, kupole, zvonik i mozaik Bogorodice iznad ulaza.",
+    "info.km.miners": "Kamenica je rudarski grad: park uz trg nosi ime rudara, čiji je pozdrav „Sretno!”.",
+    "info.km.lake": "Jezero Kalimanci na Bregalnici nastalo je 1969. branom visokom 92 metra. Voda navodnjava rižina polja oko Kočana i daje struju.",
+    "info.km.kalata": "Kalata je arheološko nalazište na brdu iznad jezera Kalimanci.",
+    "info.km.sasa": "Rudnik Sasa, u dolini iznad grada, jedan je od najvećih rudnika olova i cinka u Makedoniji.",
+    'f.fire.kamenica': `<b>Gašenje požara (neobavezno):</b> u letu pritisni „🔥 Požar” i avion postaje žuti protupožarni „Air Tractor”. Istodobno gore najviše dva požara — dio šume ili zgrada; dim se vidi izdaleka, a strelica gore pokazuje prema najbližem. Preleti preko vatre i drži ${K('Space')} (ili gumb 💧) da ispustiš vodu — bijeli krug na tlu pokazuje gdje će pasti. Kad se spremnik isprazni, spusti se nisko nad jezero Kalimanci, južno od grada, da ga napuniš. Čim se jedan požar ugasi, novi se pali na drugom mjestu.`,
   },
   sl: {
     // Ohrid
@@ -324,6 +378,21 @@ export const TOWNS = {
     'info.kr.meckin': "Na Mečkinem kamnu se je avgusta 1903 četa Pituja Gulija borila do zadnjega moža za obrambo Kruševske republike.",
     'info.kr.toshe': "Spominska hiša Toše Proeskega, pevca, ki je odraščal v Kruševu, je muzej njegovega življenja in glasbe.",
     'info.kr.lake': "Kruševsko jezero je majhno jezero v gozdu pod Makedoniumom.",
+    // Makedonska Kamenica
+    "help.lead.kamenica": "Ilustriran, živ 3D zemljevid Makedonske Kamenice — rudarskega mesta ob vznožju Osogova, z rudnikom Sasa v dolini nad njim in jezerom Kalimanci na Bregalnici. Vse stavbe, ulice, parki in drevesa so narisani iz odprtih podatkov OpenStreetMap in Overture Maps in postavljeni na pravi relief.",
+    "f.race.kamenica": "<b>Dirka (neobvezno):</b> med letom pritisni „🏁 Dirka“ in po vrsti preleti obroče — od trga, ob Kamenički reki do Sase in rudnika, čez Osogovo, do jezu Kalimanci in vzdolž vsega jezera do Bregalnice ter nazaj do cilja. Puščica zgoraj kaže proti naslednjemu obroču, svetel steber ga označuje. Spotoma poči balone „091“. Najboljši čas si zapomnimo.",
+    "weather.osogovo": "🏔 Sneg na Osogovu",
+    "fire.refill.kamenica": "💧 Natoči vodo iz jezera Kalimanci",
+    "v.uspenie": "Marijino vnebovzetje",
+    "v.kalimanci": "Jezero Kalimanci",
+    "v.sasa": "Rudnik Sasa",
+    "info.km.square": "Makedonska Kamenica leži ob vznožju Osogova, ob Kamenički reki. Do leta 1950 se je mesto imenovalo samo Kamenica.",
+    "info.km.uspenie": "Cerkev Marijinega vnebovzetja stoji na mestnem trgu: kamniti zidovi z opeko, kupole, zvonik in mozaik Bogorodice nad vhodom.",
+    "info.km.miners": "Kamenica je rudarsko mesto: park ob trgu nosi ime rudarjev, katerih pozdrav je „Srečno!“.",
+    "info.km.lake": "Jezero Kalimanci na Bregalnici je nastalo leta 1969 z 92 metrov visokim jezom. Voda namaka riževa polja okoli Kočanov in daje elektriko.",
+    "info.km.kalata": "Kalata je arheološko najdišče na hribu nad jezerom Kalimanci.",
+    "info.km.sasa": "Rudnik Sasa v dolini nad mestom je eden največjih rudnikov svinca in cinka v Makedoniji.",
+    'f.fire.kamenica': `<b>Gašenje požarov (neobvezno):</b> med letom pritisni „🔥 Požar“ in letalo postane rumeno gasilsko letalo „Air Tractor“. Hkrati gorita največ dva požara — del gozda ali stavba; dim se vidi od daleč, puščica zgoraj pa kaže proti najbližjemu. Preleti ogenj in drži ${K('Space')} (ali gumb 💧), da spustiš vodo — bel krog na tleh kaže, kam bo padla. Ko se rezervoar izprazni, se spusti nizko nad jezero Kalimanci, južno od mesta, da ga napolniš. Takoj ko en požar ugasne, se drugje vname nov.`,
   },
   sq: {
     // Ohrid
@@ -394,5 +463,20 @@ export const TOWNS = {
     'info.kr.meckin': "Në Meçkin Kamen, në gusht 1903, çeta e Pitu Gulit luftoi deri në njeriun e fundit duke mbrojtur Republikën e Krushevës.",
     'info.kr.toshe': "Shtëpia përkujtimore e Toshe Proeskit, këngëtarit që u rrit në Krushevë, është një muze i jetës dhe muzikës së tij.",
     'info.kr.lake': "Liqeni i Krushevës është një liqen i vogël në pyll nën Makedonium.",
+    // Makedonska Kamenica
+    "help.lead.kamenica": "Një hartë 3D e ilustruar dhe e gjallë e Kamenicës — qytetit të minatorëve në rrëzë të Osogovës, me minierën e Sasës në luginën mbi të dhe Liqenin e Kalimancit në Bregallnicë. Të gjitha ndërtesat, rrugët, parqet dhe pemët janë vizatuar nga të dhënat e hapura të OpenStreetMap dhe Overture Maps dhe janë vendosur mbi relievin e vërtetë.",
+    "f.race.kamenica": "<b>Gara (opsionale):</b> gjatë fluturimit shtyp “🏁 Gara” dhe fluturo me radhë nëpër unaza — nga sheshi, përgjatë lumit të Kamenicës deri te Sasa dhe miniera, mbi Osogovë, deri te diga e Kalimancit dhe përgjatë gjithë liqenit deri te Bregallnica, e pastaj prapë deri në finish. Shigjeta lart tregon drejt unazës së radhës, ndërsa një shtyllë e ndritshme e shënon. Plas balonat “091” gjatë rrugës. Koha më e mirë mbahet mend.",
+    "weather.osogovo": "🏔 Borë në Osogovë",
+    "fire.refill.kamenica": "💧 Mbush ujë nga Liqeni i Kalimancit",
+    "v.uspenie": "Fjetja e Hyjlindëses",
+    "v.kalimanci": "Liqeni i Kalimancit",
+    "v.sasa": "Miniera e Sasës",
+    "info.km.square": "Kamenica e Maqedonisë shtrihet në rrëzë të Osogovës, pranë lumit të Kamenicës. Deri në vitin 1950 qyteti quhej vetëm Kamenicë.",
+    "info.km.uspenie": "Kisha e Fjetjes së Hyjlindëses qëndron në sheshin e qytetit: mure guri me rreshta tullash, kube, kambanore dhe një mozaik i Shën Marisë mbi hyrje.",
+    "info.km.miners": "Kamenica është qytet minatorësh: parku pranë sheshit mban emrin e minatorëve, përshëndetja e të cilëve është “Sreḱno!” (fat të mbarë).",
+    "info.km.lake": "Liqeni i Kalimancit në Bregallnicë u krijua në vitin 1969 me një digë 92 metra të lartë. Uji ujit fushat e orizit rreth Koçanit dhe prodhon rrymë.",
+    "info.km.kalata": "Kalata është një vend arkeologjik mbi një kodër mbi Liqenin e Kalimancit.",
+    "info.km.sasa": "Miniera e Sasës, në luginën mbi qytet, është një nga minierat më të mëdha të plumbit dhe zinkut në Maqedoni.",
+    'f.fire.kamenica': `<b>Shuarja e zjarreve (opsionale):</b> gjatë fluturimit shtyp “🔥 Zjarr” dhe avioni bëhet avioni i verdhë kundër zjarrit “Air Tractor”. Njëkohësisht digjen më së shumti dy zjarre — një pjesë pylli ose një ndërtesë; tymi duket nga larg, ndërsa shigjeta lart tregon drejt më të afërtit. Fluturo mbi zjarr dhe mbaj shtypur ${K('Space')} (ose butonin 💧) për të lëshuar ujë — rrethi i bardhë në tokë tregon ku do të bjerë. Kur rezervuari zbrazet, zbrit ulët mbi Liqenin e Kalimancit, në jug të qytetit, për ta mbushur. Sapo shuhet një zjarr, ndizet një tjetër diku tjetër.`,
   },
 };

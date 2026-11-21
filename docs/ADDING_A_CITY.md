@@ -277,6 +277,25 @@ Shortcuts and fixes that came out of the third city; reuse them before writing n
   replace `requestAnimationFrame` with a timer first (`window.requestAnimationFrame = (cb) =>
   setTimeout(() => cb(performance.now()), 4)`), then `__px.compare()` runs.
 
+## What Makedonska Kamenica added (v8.0.0)
+
+- **A reservoir mapped at low water:** OSM's Езеро Калиманци is 3.4 km², the published lake 4.23 km² and 14 km
+  long. Sample the DEM along the river that feeds it (EU-DEM via opentopodata): where the flat water ends and
+  where the valley floor passes the full level shows how far the lake reaches. Keep the whole of it in the box,
+  with margin for the dam and the power house below it; widening later means downloading everything again.
+- **A dam drawn as a closed outline** (OSM `waterway=dam` as an area, not a crest line) does not fit `dams`;
+  check first whether the DEM already holds the dam body (sample heights along the outline).
+- **The storey histogram is not enough:** after `npm run data`, list the buildings of 7+ storeys with their
+  coordinates. A `mid` zone also raises a petrol station or a shop into a tower; pin those with `buildingTags`.
+- **Cross-check of the download:** `npm run overture` prints how many OSM outlines it skipped (Overture's own
+  copy of OSM); it should match the building count in the raw file when the count servers are busy.
+- **Churches with `byzChurch`:** `frame(outline, terrain, [1, 0], true)` puts +u east (the apse) and +v south,
+  so `tower.side: 1` is the south side.
+- **Commons thumbnails:** send a User-Agent and wait ~3 s between files, or Commons answers 403 / 429.
+- **Port 5173 held by another session:** a launch entry `npx vite --port 5174 --strictPort` (not committed).
+- **Scripts with Cyrillic text:** a Python heredoc on the command line failed with a non-UTF-8 error; write the
+  script to a file with `# -*- coding: utf-8 -*-`.
+
 ## Checklist
 
 - [ ] `scripts/config.ts`: `CITIES.<id>` (bbox, tiles, files)

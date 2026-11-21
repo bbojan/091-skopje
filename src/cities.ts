@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid', 'rostuse', 'prilep', 'krusevo'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid', 'rostuse', 'prilep', 'krusevo', 'kamenica'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -539,6 +539,68 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.krusevo',
     bestRaceKey: 'skopje.bestRace.krusevo',
     banners: { fire: 'Питу Гули го спаси Крушево!', roll: 'Да живее Крушевската Република!' },
+  },
+  kamenica: {
+    id: 'kamenica', name: 'Македонска Каменица', code: '033', icon: './favicon-kamenica.svg',
+    files: { scene: './kamenica.json', terrainBin: './kamenica-terrain.bin', terrainJson: './kamenica-terrain.json' },
+    sceneBytes: 1.8e6,
+    views: {
+      center: { place: 'square', ll: [42.02165, 22.58816], d: 480, polar: 0.78, az: 0.1 },
+      uspenie: { place: 'uspenie', ll: [42.02192, 22.58817], d: 95, polar: 1.08, az: 0.5 },
+      kalimanci: { place: 'dam', ll: [41.97286, 22.58144], d: 1500, polar: 1.0, az: 2.7 },
+      sasa: { place: 'mine', ll: [42.11426, 22.51931], d: 1500, polar: 0.9, az: 2.4 },
+      overview: { ll: [42.01000, 22.60000], d: 19500, polar: 0.66, az: 0 },
+    },
+    districts: [
+      ['Македонска Каменица', 42.0230, 22.5880], ['Саса', 42.09592, 22.54309, 30], ['Луковица', 42.02003, 22.61399, 30],
+      ['Моштица', 42.07123, 22.57705, 30], ['Осогово', 42.1080, 22.6100, 60],
+      ['Калиманци', 41.96531, 22.62984, 30], ['Бигла', 41.95721, 22.67400, 30],
+    ],
+    labels: [
+      ['Плоштад', 42.02165, 22.58816, 14, 'square'],
+      ['Успение на Пресвета Богородица', 42.02192, 22.58817, 22, 'uspenie'],
+      ['Парк на рударите', 42.02181, 22.58855, 10, 'miners'],
+      ['Стадион на ФК Саса', 42.01740, 22.58930, 10, 'stadium'],
+      ['Езеро Калиманци', 41.99863, 22.60999, 8],
+      ['Брана Калиманци', 41.97286, 22.58144, 20, 'dam'],
+      ['Калата', 41.98655, 22.59090, 20, 'kalata'],
+      ['Рудник Саса', 42.11426, 22.51931, 30, 'mine'],
+      ['Каменичка Река', 42.04280, 22.56134, 6, undefined, 'river'],
+      ['Брегалница', 41.98880, 22.66170, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Плоштад', 42.02165, 22.58816, 60, 'square'],
+      ['Успение', 42.02192, 22.58817, 70, 'uspenie'],
+      ['Каменичка Река', 42.04280, 22.56134, 60],
+      ['Саса', 42.09592, 22.54309, 70, 'sasa'],
+      ['Рудник Саса', 42.11426, 22.51931, 80, 'mine'],
+      ['Осогово', 42.10469, 22.59506, 90],
+      ['Езеро Калиманци', 42.00402, 22.58942, 40],
+      ['Калата', 41.98655, 22.59090, 60, 'kalata'],
+      ['Брана Калиманци', 41.97286, 22.58144, 60, 'dam'],
+      ['Езеро Калиманци', 41.99593, 22.60757, 40],
+      ['Езеро Калиманци', 41.99144, 22.63781, 40],
+      ['Брегалница', 41.98880, 22.66170, 50],
+      ['Плоштад', 42.02165, 22.58816, 55, 'square'],
+    ],
+    spots: [
+      ['km.square', 'Плоштад', 42.02165, 22.58816, 50, 'square'],
+      ['km.uspenie', 'Успение на Пресвета Богородица', 42.02192, 22.58817, 40, 'uspenie'],
+      ['km.miners', 'Парк на рударите', 42.02181, 22.58855, 30, 'miners'],
+      ['km.lake', 'Езеро Калиманци', 41.97976, 22.58096, 150],
+      ['km.kalata', 'Калата', 41.98655, 22.59090, 60, 'kalata'],
+      ['km.sasa', 'Рудник Саса', 42.11426, 22.51931, 150, 'mine'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [42.02165, 22.58816], near: 3000, far: 8000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.osogovo',
+    refillLabel: 'fire.refill.kamenica',
+    bestRaceKey: 'skopje.bestRace.kamenica',
+    banners: { fire: 'Калиманци ја спаси Каменица!', roll: 'Среќно, рудари!' },
   },
 };
 

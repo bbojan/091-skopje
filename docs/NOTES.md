@@ -411,6 +411,31 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    Kavadarci, Bitola, Ohrid, Prilep, Kruševo, Rostuše), as v3.0.0 did for three; no change in the app itself
    since v3.4.0 besides the docs.
 
+32. **v8.0.0** (Nov 2026, on `develop`): **033 Македонска Каменица** (`?city=kamenica`), the eighth
+   city (the version follows the number of cities, as v7.0.0 did): 41.945–42.125 N, 22.495–22.71 E
+   (17.8 × 20.0 km): the miners' town in the valley of the Каменичка Река under Осогово, Саса and its lead and
+   zinc mine up the valley to the north, and the whole of Езеро Калиманци on the Брегалница to the south (the
+   firefighting water: 3.4 km², OSM's relation 18158229, at a low level; published: 14 km long, 4.23 km²). The box
+   first ended at 22.665 E and 41.965 N; it was widened so that the dam, the power house below it and the lake's
+   tail up the Брегалница valley are inside: EU-DEM puts the water's end at ~22.646 E (512.6 m) and the valley
+   floor passes ~535 m, about the full level, near 22.68 E. OSM's outline is kept as it is (no full-level water). Only 241 OSM buildings, so 5,476 Overture footprints; 10 m cells,
+   elevation 426–1780 m. No old core; one `mid` box round the square, `maxLevels: 9` (photos of 2010 show a
+   handful of towers of about ten storeys among low houses with tiled roofs); the Макпетрол station and the
+   Жито shop pinned low with `buildingTags` (the zone made them 12-storey towers). The Калиманци dam (rockfill,
+   92 m) is not raised with `dams`: OSM draws it as a closed outline, not a crest line, and the DEM already
+   holds its body (≈ 537 m crest, the lake flat at 513 m, as at low water in a photo of September 2026).
+   Models (`src/kamenica.ts`, after Commons photos of 2013): Успение на Пресвета Богородица on its OSM outline
+   with `byzChurch` (stone with brick courses, trefoil plan, octagonal drum, the small bell tower at the
+   south-west corner); the square's fountain (`modelRects.kfountain`, OSM's fountain is not in the download):
+   a granite basin, three stepped tiers, a column and bowl, a white statue of a woman on top. Tab icon: the
+   miners' hammer and pick. Tow banners: „Калиманци ја спаси Каменица!“ / „Среќно, рудари!“.
+   Checked: views rendered and looked at (the square, the church from the square, the dam, the Саса mine, the
+   overview, night); typecheck, build; Skopje pixel check (0 except 3 pixels at the gondola in the overview);
+   switching away and back (textures and scene objects equal, geometries +2). Not checked: phones, firefighting
+   over the lake, the race, walking cards one by one. Not modelled: the Monument to the Miners and Вера Јоциќ
+   (Томе Серафимовски), whose place on the square was not found. The church's second, smaller drum and the
+   mosaic over the door are left out.
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
@@ -506,6 +531,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Rostuše | `skopje.bestRace.rostuse` | none |
 | Best race time in Prilep | `skopje.bestRace.prilep` | none |
 | Best race time in Kruševo | `skopje.bestRace.krusevo` | none |
+| Best race time in Makedonska Kamenica | `skopje.bestRace.kamenica` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
