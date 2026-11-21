@@ -17,9 +17,7 @@
 //   brick-arched stage building) and the low walls of the Great Basilica.
 // Sizes are read off the photos (door ≈ 2.5 m), not measured; outlines and the tower's height from OSM.
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { obb } from './geo.ts';
-import { strip } from './churches.ts';
+import { frame, parts, modelKit, toPts, PU, MU, PV, MV, type Frame, type Key } from './models.ts';
 import type { Terrain } from './terrain.ts';
 import type { CityData, Flat, Pt } from './types.ts';
 
@@ -194,89 +192,6 @@ const paintPeacock: Paint = (g, w, h, rnd) => {
   g.beginPath(); for (const lx of [-15, 15]) { g.moveTo(cx + lx, cy + 35); g.lineTo(cx + lx + 10, cy + 95); } g.stroke();
 };
 
-type Key = 'stone' | 'stoneDark' | 'ashlar' | 'cream' | 'white' | 'pink' | 'brick' | 'lead' | 'tile' | 'glass' | 'dark' | 'door' | 'gold' | 'face' | 'iron';
-
-const toPts = (r: Flat): Pt[] => { const p: Pt[] = []; for (let i = 0; i < r.length; i += 2) p.push([r[i], r[i + 1]]); return p; };
-
-/** A model's frame: u along the outline's long axis, v across it (both m), y up from the floor. */
-interface Frame { c: Pt; a: Pt; b: Pt; L: number; W: number; y: number; under: number; m: THREE.Matrix4; local: (x: number, z: number) => Pt; world: (u: number, v: number) => Pt }
-function frame(r: Flat, terrain: Terrain, axis?: Pt): Frame | null {
-  const pts = toPts(r), o = obb(pts);
-  if (!o) return null;
-  let a = o.a, b = o.b, L = o.L, W = o.W;
-  if (axis && a[0] * axis[0] + a[1] * axis[1] < 0) a = [-a[0], -a[1]];
-  if (a[0] * b[1] - b[0] * a[1] < 0) b = [-b[0], -b[1]]; // keep the frame right-handed (no mirrored faces)
-  const hs = pts.map(([x, z]) => terrain.at(x, z));
-  const y = Math.max(...hs) + 0.2, under = Math.min(...hs) - y - 0.6;
-  const c = o.c;
-  const m = new THREE.Matrix4().set(a[0], 0, b[0], c[0], 0, 1, 0, y, a[1], 0, b[1], c[1], 0, 0, 0, 1);
-  return {
-    c, a, b, L, W, y, under, m,
-    local: (x, z) => [(x - c[0]) * a[0] + (z - c[1]) * a[1], (x - c[0]) * b[0] + (z - c[1]) * b[1]],
-    world: (u, v) => [c[0] + a[0] * u + b[0] * v, c[1] + a[1] * u + b[1] * v],
-  };
-}
-
-/** Parts by material, built in a frame's local space (x = u, z = v). */
-function parts() {
-  const map = new Map<Key, THREE.BufferGeometry[]>();
-  const add = (k: Key, g: THREE.BufferGeometry) => { let l = map.get(k); if (!l) map.set(k, (l = [])); l.push(g); return g; };
-  const box = (k: Key, u0: number, u1: number, v0: number, v1: number, y0: number, y1: number) =>
-    add(k, new THREE.BoxGeometry(u1 - u0, y1 - y0, v1 - v0).translate((u0 + u1) / 2, (y0 + y1) / 2, (v0 + v1) / 2));
-  const cyl = (k: Key, u: number, v: number, y0: number, y1: number, r0: number, r1 = r0, seg = 16) =>
-    add(k, new THREE.CylinderGeometry(r1, r0, y1 - y0, seg).translate(u, (y0 + y1) / 2, v));
-  const cone = (k: Key, u: number, v: number, y: number, r: number, h: number, seg = 16) =>
-    add(k, new THREE.ConeGeometry(r, h, seg).translate(u, y + h / 2, v));
-  const dome = (k: Key, u: number, v: number, y: number, r: number, squash = 1) =>
-    add(k, new THREE.SphereGeometry(r, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, squash, 1).translate(u, y, v));
-  /** an arched opening w wide and h high (to the top of the arch), d deep, built facing +z */
-  const arch = (w: number, h: number, d = 0.08) => {
-    const r = w / 2, body = Math.max(0.01, h - r);
-    const top = new THREE.CylinderGeometry(r, r, d, 12, 1, false, Math.PI / 2, Math.PI).rotateX(Math.PI / 2).translate(0, body, d / 2);
-    return mergeGeometries([new THREE.BoxGeometry(w, body, d).translate(0, body / 2, d / 2).toNonIndexed(), top.toNonIndexed()].map(strip))!;
-  };
-  /** a feature built facing +z put at (u, v, y), turned to face (sin ang, cos ang) in (u, v) */
-  const put = (k: Key, g: THREE.BufferGeometry, u: number, v: number, y: number, ang: number) => add(k, g.rotateY(ang).translate(u, y, v));
-  /** walls on an outline (local u, v) from y0 to y1 */
-  const walls = (k: Key, ring: Pt[], y0: number, y1: number) =>
-    add(k, new THREE.ExtrudeGeometry(new THREE.Shape(ring.map(([u, v]) => new THREE.Vector2(u, -v))), { depth: y1 - y0, bevelEnabled: false }).rotateX(-Math.PI / 2).translate(0, y0, 0));
-  /** the outline's edges: f(mid u, mid v, length, outward facing angle) */
-  const edges = (ring: Pt[], f: (u: number, v: number, len: number, ang: number) => void) => {
-    let a2 = 0;
-    for (let i = 0; i < ring.length; i++) { const p = ring[i], q = ring[(i + 1) % ring.length]; a2 += p[0] * q[1] - q[0] * p[1]; }
-    for (let i = 0; i < ring.length; i++) {
-      const p = ring[i], q = ring[(i + 1) % ring.length], du = q[0] - p[0], dv = q[1] - p[1], len = Math.hypot(du, dv);
-      if (len < 0.4) continue;
-      const ou = (a2 > 0 ? dv : -dv) / len, ov = (a2 > 0 ? -du : du) / len; // outward
-      f((p[0] + q[0]) / 2, (p[1] + q[1]) / 2, len, Math.atan2(ou, ov));
-    }
-  };
-  /** thin bands round an outline (courses, cornices) */
-  const bands = (k: Key, ring: Pt[], ys: number[], t: number, o = 0.06) =>
-    edges(ring, (u, v, len, ang) => { for (const y of ys) put(k, new THREE.BoxGeometry(len + 2 * o, t, 2 * o).translate(0, t / 2, 0), u, v, y, ang); });
-  /** a hipped roof over a rectangle (u0…u1, v0…v1) from its eaves at y, `o` overhang */
-  const hip = (k: Key, u0: number, u1: number, v0: number, v1: number, y: number, rise: number, o = 0.4) => {
-    const lu = u1 - u0 + 2 * o, lv = v1 - v0 + 2 * o, r = Math.max(0, (lu - lv) / 2);
-    const g = new THREE.BufferGeometry(), U0 = u0 - o, U1 = u1 + o, V0 = v0 - o, V1 = v1 + o, cu = (u0 + u1) / 2, cv = (v0 + v1) / 2, T = y + rise;
-    const A = [U0, y, V0], B = [U1, y, V0], C = [U1, y, V1], D = [U0, y, V1], R1 = [cu - r, T, cv], R2 = [cu + r, T, cv];
-    const tri = [A, R1, R2, A, R2, B, D, R2, R1, D, C, R2, A, D, R1, B, R2, C].flat(); // eaves to ridge, both hips
-    g.setAttribute('position', new THREE.Float32BufferAttribute(tri, 3));
-    g.computeVertexNormals();
-    return add(k, g);
-  };
-  /** an Orthodox cross on a ball (three bars, the lowest slanted), s ≈ its height in metres / 2 */
-  const cross = (u: number, v: number, y: number, s: number) => {
-    const g = (w: number, h: number, yy: number, rot = 0) => new THREE.BoxGeometry(w * s, h * s, 0.1 * s).rotateZ(rot).translate(0, yy * s, 0);
-    const ps = [new THREE.SphereGeometry(0.16 * s, 8, 6).translate(0, 0.05 * s, 0), g(0.11, 1.8, 0.9), g(1.0, 0.11, 1.25), g(0.55, 0.1, 1.55), g(0.65, 0.1, 0.6, 0.35)];
-    add('gold', mergeGeometries(ps.map((p) => strip(p.index ? p.toNonIndexed() : p)))!.translate(u, y, v));
-  };
-  return { map, add, box, cyl, cone, dome, arch, put, walls, edges, bands, hip, cross };
-}
-type Parts = ReturnType<typeof parts>;
-
-// facing angles in a frame: toward +u, −u, +v, −v
-const PU = Math.PI / 2, MU = -Math.PI / 2, PV = 0, MV = Math.PI;
-
 /** Саат-кула: half the shaft's side when OSM's outline is missing (m) */
 const CLOCK_H = 32;
 
@@ -292,20 +207,7 @@ export function bitolaFootprints(data: CityData): [Flat, number][] {
 export function createBitola(data: CityData, terrain: Terrain, clippingPlanes: THREE.Plane[]) {
   const M = data.landmarks?.models ?? {};
   const group = new THREE.Group();
-  const mat = (color: THREE.ColorRepresentation, extra: THREE.MeshLambertMaterialParameters = {}) => new THREE.MeshLambertMaterial({ color, clippingPlanes, ...extra });
-  const glass = mat('#3a3b40', { emissive: '#ffd08a', emissiveIntensity: 0 });
-  const MATS: Record<Key, THREE.Material> = {
-    stone: mat('#b9aa92'), stoneDark: mat('#9d8f7a'), ashlar: mat('#e2d6c0'), cream: mat('#ece2cf'), white: mat('#f4f0e8'),
-    pink: mat('#efd9cf'), brick: mat('#b96a4c'), lead: mat('#8e959b'), tile: mat('#c9653f'), glass, dark: mat('#2e2b2b'),
-    door: mat('#7a4a2a'), gold: mat('#e3b84c', { emissive: '#6a4a10', emissiveIntensity: 0.25 }), face: mat('#26386a'), iron: mat('#2b2b2e'),
-  };
-  const place = (p: Parts, f: Frame) => {
-    for (const [k, list] of p.map) {
-      const mesh = new THREE.Mesh(mergeGeometries(list.map((g) => strip(g.index ? g.toNonIndexed() : g)))!.applyMatrix4(f.m), MATS[k]);
-      mesh.castShadow = mesh.receiveShadow = true;
-      group.add(mesh);
-    }
-  };
+  const { MATS, glass, place } = modelKit(group, clippingPlanes);
 
   // ---------------- Саат-кула (32 m with the cross)
   const ct = M.clock ? frame(M.clock, terrain) : null;

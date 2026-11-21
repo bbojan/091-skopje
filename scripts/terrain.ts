@@ -9,7 +9,7 @@ import { rowCrossings } from '../src/geo.ts';
 import type { Poly, Pt } from '../src/types.ts';
 
 const Z = 15;
-const CELL = 10; // metres between samples
+const CELL = CITIES[CITY].terrain.cell ?? 10; // metres between samples
 const CACHE = 'data/terrarium';
 fs.mkdirSync(CACHE, { recursive: true });
 

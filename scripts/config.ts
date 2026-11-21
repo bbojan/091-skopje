@@ -18,6 +18,8 @@ export interface CityFiles {
 
 /** How scripts/terrain.ts shapes a city's heightfield. Everything except `smooth` reads the raw OSM download. */
 export interface TerrainSpec {
+  /** metres between samples (default 10); 20 for the largest, mostly mountain or lake maps (memory) */
+  cell?: number;
   /** 3×3 box-blur passes after sampling (each pass softens features under ~10–15 m more) */
   smooth: number;
   /** lakes and reservoirs get one flat water level (their lowest part) */
@@ -89,6 +91,36 @@ export const CITIES = {
       rivers: { river: [5, 2], stream: [2.5, 1.2], canal: [2, 1] },
       points: [],
     } as TerrainSpec,
+  },
+  // Охрид: the whole of Охридско Езеро (40.90–41.17 N, incl. the Albanian shore with Pogradec), Охрид on its
+  // north-east shore, Струга where the Црн Дрим leaves the lake, Св. Наум at the south end, Галичица to the east
+  ohrid: {
+    bbox: { s: 40.885, w: 20.615, n: 41.205, e: 20.845 },
+    tiles: [4, 7] as [number, number],
+    files: { raw: 'data/ohrid_raw.json', scene: 'public/ohrid.json', terrainBin: 'public/ohrid-terrain.bin', terrainJson: 'public/ohrid-terrain.json', overture: 'data/ohrid_overture.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, rivers: { river: [8, 2], stream: [2.5, 1.2], canal: [3, 1.5] }, points: [] } as TerrainSpec,
+  },
+  // Ростуше: the village and Бигорски манастир in the Радика valley, Дебар and Дебарско Езеро to the south-west,
+  // Мавровско Езеро and Маврово to the north-east, the Бистра and Кораб ranges between them
+  rostuse: {
+    bbox: { s: 41.39, w: 20.49, n: 41.725, e: 20.815 },
+    tiles: [6, 6] as [number, number],
+    files: { raw: 'data/rostuse_raw.json', scene: 'public/rostuse.json', terrainBin: 'public/rostuse-terrain.bin', terrainJson: 'public/rostuse-terrain.json', overture: 'data/rostuse_overture.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
+  // Прилеп: the town under Маркови Кули, Прилепско Езеро to the north-east, Трескавец on Златоврв
+  prilep: {
+    bbox: { s: 41.31, w: 21.49, n: 41.41, e: 21.63 },
+    tiles: [3, 3] as [number, number],
+    files: { raw: 'data/prilep_raw.json', scene: 'public/prilep.json', terrainBin: 'public/prilep-terrain.bin', terrainJson: 'public/prilep-terrain.json', overture: 'data/prilep_overture.json' },
+    terrain: { smooth: 1, flatWater: true, rivers: { river: [4, 1.5], stream: [2, 1], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
+  // Крушево: the town on the slopes of Бушева Планина, Македониум and Мечкин Камен, Крушевско Езеро
+  krusevo: {
+    bbox: { s: 41.33, w: 21.19, n: 41.405, e: 21.31 },
+    tiles: [2, 2] as [number, number],
+    files: { raw: 'data/krusevo_raw.json', scene: 'public/krusevo.json', terrainBin: 'public/krusevo-terrain.bin', terrainJson: 'public/krusevo-terrain.json', overture: 'data/krusevo_overture.json' },
+    terrain: { smooth: 1, flatWater: true, rivers: { river: [4, 1.5], stream: [2, 1], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
 } satisfies Record<string, { bbox: { s: number; w: number; n: number; e: number }; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec }>;
 export type CityName = keyof typeof CITIES;

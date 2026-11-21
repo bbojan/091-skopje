@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'bitola'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -25,7 +25,7 @@ export interface CitySpec {
   /** the town's name (map data) and its old telephone code, shown on the badge */
   name: string;
   code: string;
-  /** the browser tab's icon (public/): Skopje's coat of arms, Kavadarci's flag, Bitola's clock tower */
+  /** the browser tab's icon (public/): Skopje's coat of arms, Kavadarci's flag, Bitola's clock tower, Ohrid's Канео… */
   icon: string;
   files: { scene: string; terrainBin: string; terrainJson: string };
   /** expected scene JSON size, for the progress bar when the server sends no length */
@@ -294,6 +294,77 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.pelister',
     bestRaceKey: 'skopje.bestRace.bitola',
     banners: { fire: 'Манаки го сними спасувањето!', roll: 'Ај на Широк Сокак!' },
+  },
+  ohrid: {
+    id: 'ohrid', name: 'Охрид', code: '046', icon: './favicon-ohrid.svg',
+    files: { scene: './ohrid.json', terrainBin: './ohrid-terrain.bin', terrainJson: './ohrid-terrain.json' },
+    sceneBytes: 9.4e6,
+    views: {
+      center: { place: 'square', ll: [41.11276, 20.79939], d: 600, polar: 0.74, az: 0.08 },
+      kaneo: { place: 'kaneo', ll: [41.11112, 20.78877], d: 330, polar: 0.92, az: 0.9 }, // from the lake, the church on its rock
+      samuil: { place: 'samuil', ll: [41.11524, 20.79109], d: 700, polar: 0.8, az: -0.2 },
+      plaosnik: { place: 'plaosnik', ll: [41.11242, 20.79098], d: 380, polar: 0.82, az: 0.5 },
+      struga: { place: 'struga', ll: [41.17780, 20.67850], d: 1400, polar: 0.78, az: 0.2 },
+      naum: { place: 'naum', ll: [40.91395, 20.74064], d: 520, polar: 0.85, az: 2.6 },
+      olake: { ll: [41.00000, 20.73500], d: 13000, polar: 1.18, az: Math.PI }, // down the length of the lake from above Ohrid, Св. Наум and Pogradec far off
+      // the map is 19 × 35 km, much longer north–south: seen from the north, down the lake (the far end in the haze)
+      overview: { ll: [41.05000, 20.73000], d: 24000, polar: 0.95, az: Math.PI },
+    },
+    districts: [
+      ['Охрид', 41.1172, 20.8030], ['Струга', 41.1780, 20.6780], ['Охридско Езеро', 41.0300, 20.7200, 0],
+      ['Поградец', 40.9020, 20.6540], ['Пештани', 41.0090, 20.8110], ['Трпејца', 40.9580, 20.7800], ['Љубаништа', 40.9230, 20.7600],
+      ['Лагадин', 41.0560, 20.8060], ['Велгошти', 41.1270, 20.8240], ['Калишта', 41.1600, 20.6560], ['Радожда', 41.1050, 20.6380],
+      ['Подмоље', 41.1460, 20.7490], ['Шум', 41.1900, 20.7160], ['Лин', 41.0600, 20.6350], ['Галичица', 40.9900, 20.8350, 120],
+    ],
+    labels: [
+      ['Св. Јован Канео', 41.11112, 20.78877, 18, 'kaneo'],
+      ['Самоилова тврдина', 41.11524, 20.79109, 30, 'samuil'],
+      ['Плаошник', 41.11242, 20.79098, 22, 'plaosnik'],
+      ['Св. Софија', 41.11205, 20.79418, 20, 'sofija'],
+      ['Антички театар', 41.11465, 20.79380, 12, 'theatre'],
+      ['Стара чаршија', 41.11420, 20.79950, 18],
+      ['Чинар', 41.11602, 20.80032, 14],
+      ['Св. Наум', 40.91395, 20.74064, 22, 'naum'],
+      ['Залив на коските', 40.99436, 20.79813, 14, 'bones'],
+      ['Црн Дрим', 41.17750, 20.67600, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Плоштад', 41.11276, 20.79939, 70, 'square'],
+      ['Св. Софија', 41.11205, 20.79418, 75, 'sofija'],
+      ['Св. Јован Канео', 41.11112, 20.78877, 60, 'kaneo'],
+      ['Самоилова тврдина', 41.11524, 20.79109, 90, 'samuil'],
+      ['Подмоље', 41.1460, 20.7490, 70],
+      ['Струга', 41.17780, 20.67850, 70, 'struga'],
+      ['Калишта', 41.1600, 20.6560, 60],
+      ['Охридско Езеро', 41.0800, 20.7200, 45],
+      ['Св. Наум', 40.91395, 20.74064, 70, 'naum'],
+      ['Залив на коските', 40.99436, 20.79813, 55, 'bones'],
+      ['Плаошник', 41.11242, 20.79098, 75, 'plaosnik'],
+      ['Плоштад', 41.11276, 20.79939, 65, 'square'],
+    ],
+    spots: [
+      ['o.square', 'Плоштад', 41.11276, 20.79939, 60, 'square'],
+      ['o.kaneo', 'Св. Јован Канео', 41.11112, 20.78877, 40, 'kaneo'],
+      ['o.samuil', 'Самоилова тврдина', 41.11524, 20.79109, 120, 'samuil'],
+      ['o.plaosnik', 'Плаошник', 41.11242, 20.79098, 50, 'plaosnik'],
+      ['o.sofija', 'Св. Софија', 41.11205, 20.79418, 40, 'sofija'],
+      ['o.theatre', 'Антички театар', 41.11465, 20.79380, 40, 'theatre'],
+      ['o.struga', 'Струга', 41.17780, 20.67850, 120, 'struga'],
+      ['o.naum', 'Св. Наум', 40.91395, 20.74064, 80, 'naum'],
+      ['o.bones', 'Залив на коските', 40.99436, 20.79813, 80, 'bones'],
+      ['o.lake', 'Охридско Езеро', 41.11050, 20.79900, 60],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    // Галичица's forest and the hills round the lake: full density round Ohrid, thinner (drawn larger) far out
+    treeThin: { ll: [41.11276, 20.79939], near: 4000, far: 10000, min: 0.1, grow: 1.7 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.galicica',
+    refillLabel: 'fire.refill.ohrid',
+    bestRaceKey: 'skopje.bestRace.ohrid',
+    banners: { fire: 'Охридската пастрмка го спаси градот!', roll: 'Ајде на Канео!' },
   },
 };
 

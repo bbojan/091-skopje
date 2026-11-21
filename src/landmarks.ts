@@ -8,6 +8,10 @@ import { canalLayout, createCanal, canalWalkGround, canalFootprints } from './ri
 import { marketFrame, createMarket, marketFootprints, marketGround } from './market.ts';
 import { createChurches, churchFootprints } from './churches.ts';
 import { createBitola, bitolaFootprints } from './bitola.ts';
+import { createOhrid, ohridFootprints } from './ohrid.ts';
+import { createRostuse, rostuseFootprints } from './rostuse.ts';
+import { createPrilep, prilepFootprints } from './prilep.ts';
+import { createKrusevo, krusevoFootprints } from './krusevo.ts';
 import type { BuildingData, CityData, Flat, Pt, Vec3 } from './types.ts';
 
 // Hand-built models for landmarks that OSM can only describe as outlines.
@@ -213,6 +217,10 @@ export function landmarkFootprints(data: CityData, terrain: Terrain): BuildingDa
   if (mf) for (const [r, h] of marketFootprints(mf)) add(r, mf.y - terrain.at(r[0], r[1]) + h);
   for (const [r, h] of churchFootprints(data)) add(r, h); // Kavadarci: Св. Петка, Св. Димитриј
   for (const [r, h] of bitolaFootprints(data)) add(r, h); // Bitola: the clock tower, the mosque, the bazaar, the cathedral
+  for (const [r, h] of ohridFootprints(data)) add(r, h); // Ohrid: Канео, Плаошник, Св. Софија, Св. Наум
+  for (const [r, h] of rostuseFootprints(data)) add(r, h); // Mavrovo: Св. Никола (Бигорски: its konaks are walked round)
+  for (const [r, h] of prilepFootprints(data)) add(r, h); // Prilep: the clock tower, Трескавец
+  for (const [r, h] of krusevoFootprints(data)) add(r, h); // Kruševo: Македониум
   const cl = canalLayout(data, terrain); // the Луда Мара's channel, open at the bridges
   if (cl) for (const b of canalFootprints(cl)) out.push({ ...b, id: -1 - out.length });
   return out;
@@ -1026,6 +1034,14 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
   // ---------------- Bitola: Саат-кула, Ајдар-кади џамија, Безистен, Св. Димитриј, Хераклеа (bitola.ts)
   const bitola = L.models ? createBitola(data, terrain, clippingPlanes) : null;
   if (bitola) { group.add(bitola.group); nightGlass.push(...bitola.nightLit); }
+  // ---------------- Ohrid: Св. Јован Канео, Плаошник, Св. Софија, Св. Наум, Залив на коските (ohrid.ts)
+  const ohrid = L.models ? createOhrid(data, terrain, clippingPlanes) : null;
+  if (ohrid?.group.children.length) { group.add(ohrid.group); nightGlass.push(...ohrid.nightLit); }
+  // ---------------- Rostuše: Бигорски манастир, Св. Никола in Mavrovo (rostuse.ts); Prilep (prilep.ts); Kruševo (krusevo.ts)
+  for (const make of [createRostuse, createPrilep, createKrusevo]) {
+    const t = L.models ? make(data, terrain, clippingPlanes) : null;
+    if (t?.group.children.length) { group.add(t.group); nightGlass.push(...t.nightLit); }
+  }
 
   // ---------------- Дом на културата „Иван Мазов-Климе“ (not in OSM). Its plan from the site and
   // floor plans of the 2023 fire-safety report: 41.4 m along Илинденска, ground floor + one storey;

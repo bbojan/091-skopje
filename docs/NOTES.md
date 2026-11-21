@@ -325,6 +325,36 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 26. **v3.0.0** (Nov 2026, on `develop`): the version goes to 3 for the map of three cities (Skopje,
    Kavadarci, Bitola); no change in the app itself since v2.10.0 besides the docs.
 
+27. **v3.1.0** (Nov 2026, on `develop`): **046 Охрид** (`?city=ohrid`), the fourth city: the whole of
+   Охридско Езеро, 40.885–41.205 N, 20.615–20.845 E (19.3 × 35.6 km): Ohrid and Struga, Св. Наум at the south
+   end, the villages on both shores, Pogradec and Lin on the Albanian side, the western slope of Галичица.
+   Downloaded in 4 × 7 tiles (the town's column took four mirrors and ~20 minutes); 13,143 OSM buildings plus
+   29,707 Overture footprints. The largest map so far, so the heightfield has **20 m cells** (`cell` in the
+   city's `TerrainSpec`; the app reads the cell size from the terrain JSON and needed no change): 3.4 MB
+   instead of ~14 MB, 720 chunks of 1 km. The lake (357 km²) is flattened at one level; the Црн Дрим in Struga
+   and the canals are cut as channels. **Far-ground textures of open water**: a chunk whose draped ground covers
+   it entirely in one colour bakes a 16 px texture instead of 512 px (`oneColour` in `bakeGround`; only when
+   `sparseFar` is set, so not for Skopje): 312 of Ohrid's 720 chunks, ~300 MB of GPU memory saved.
+   Models (`src/ohrid.ts`, on OSM outlines via `models`; the shared kit moved out of `src/bitola.ts` into
+   `src/models.ts`, with a new `gable` roof and `byzChurch`: a cross-in-square church of two gabled arms over
+   lower corner bays, a drum with a blind arcade and a tiled cone, apse, side conches, small drums, a narthex
+   with an open arcade, a bell tower; cloisonné courses of brick in the stone): Св. Јован Канео, Св. Климент и
+   Пантелејмон на Плаошник (trefoil, two small drums, the bell tower), Св. Софија (basilica, clerestory,
+   apse, the two-storey exonarthex with its open gallery and two domed corner towers), Св. Наум (a second drum
+   over the narthex, an arcade round it), the ancient theatre (Bitola's theatre code on its outline, key
+   `theatre`). Залив на коските: the pile dwellings on a timber platform with thatched huts, palisade and
+   footbridge, placed by a new `modelRects` entry in `PREP` (a rectangle and a heading, written to
+   `landmarks.models` and `landmarks.modelAxes`); OSM buildings whose centre lies in such a rectangle are left
+   out (OSM maps the reconstructed huts as buildings). OSM's walls round Канео's terrace are tagged city walls:
+   retagged to 1.6 m parapets (`buildingTags` applies to any way). Самоилова тврдина is OSM's walls.
+   Strings of the four new towns are in `src/i18n-towns.ts`, spread into `STR`. No ЈСП buses; Итар Пејо and
+   the grey Шарпланинец as in Skopje. Tow banners: „Охридската пастрмка го спаси градот!“ / „Ајде на Канео!“.
+   Checked: Skopje pixel check 0 on the 9 views except the gondola cabins in the overview (≤ 13 pixels);
+   switching Ohrid → Bitola → Ohrid → Kavadarci → Ohrid: textures 727 = 727, scene children 19, geometries
+   +2 per round (the same as Bitola's); typecheck, build; views rendered and looked at. Not checked: phones
+   (42.8k buildings and 372k trees: the heaviest map; `MOBILE` halves trees and parked cars), firefighting
+   played over the lake, walking cards one by one.
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
@@ -416,6 +446,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Most fires put out in one flight | `skopje.bestFire` | 0 |
 | Best race time in Kavadarci | `skopje.bestRace.kavadarci` | none |
 | Best race time in Bitola | `skopje.bestRace.bitola` | none |
+| Best race time in Ohrid | `skopje.bestRace.ohrid` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.

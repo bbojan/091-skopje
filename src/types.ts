@@ -109,6 +109,8 @@ export interface LandmarkData {
   /** outlines of a city's own hand-built models by key (Bitola, src/bitola.ts: clock, ajdar, bezisten,
    *  dimitrij, dimitrijTower, heraclea, theatre) */
   models?: Record<string, Flat>;
+  /** the +u direction of models placed as rectangles (`modelRects` in PREP; unit, scene x / z) */
+  modelAxes?: Record<string, Pt>;
 }
 
 /** Exact positions of named places, by key (Skopje: square, porta, park, zoo, arena, bazaar…; Kavadarci: square, ossuary, heroes, vatasa, lake…). */
