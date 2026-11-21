@@ -5,5 +5,7 @@ dist/
 data/*.json
 data/terrarium/
 data/tiles/
+data/*.osm.pbf
+.venv/
 data/*.log
 !data/aerialway.json

@@ -502,6 +502,63 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    firefighting over the lake, the race, walking cards one by one, night and snow views. Not modelled:
    Пехчево's buildings (no photos looked at), the Спиковски водопади (a label only).
 
+36. **v14.0.0** (Nov 2026, the `city-tetovo-brod-resen` branch): three maps at once, so the version goes from 11 to 14:
+   **094 Тетово** (`?city=tetovo`), **045 Македонски Брод** (`?city=brod`) and **047 Ресен** (`?city=resen`),
+   the first three of the towns plan (docs/TOWNS_TODO.md). Badge 094 was decided with the owner; 045 and 047 are the
+   towns' telephone codes (the plan left them open: change them in `CITIES` if the owner wants others).
+   - **The download came from Geofabrik, not Overpass.** On the day every Overpass server answered 502 / 504 or timed
+     out (5 of Тетово's 42 tiles in 40 minutes). `scripts/pbf2overpass.py` (pyosmium, outside npm) builds the same
+     `out geom` JSON from the Geofabrik extracts (Macedonia, plus Kosovo and Albania for Тетово, Albania and Greece
+     for Ресен). Checked for Тетово: 3,538 building ways, 11 building relations and 8,074 roads, exactly the
+     Overpass count query; every element of the five tiles Overpass did return is in it, the few differing
+     geometries being edits newer than that mirror's snapshot.
+   - **Тетово** (41.725–42.075 N, 20.72–21.06 E, 28 × 39 km, 20 m cells, 405–2715 m): Тетово, Гостивар, Вруток and
+     the source of the Вардар, Попова Шапка, Титов Врв and the glacial lakes of Шар Планина; edge to edge with
+     Ростуше (its north edge, 41.725 N); the plan's north edge 42.06 was moved to 42.075 so that Лешочки манастир
+     (42.067 N) is inside. 3,539 OSM buildings plus 71,757 Overture footprints: **75,297 buildings, a 16 MB scene,
+     the largest map by far** (Охрид: 42,826, 9.4 MB). It loaded in under 30 s on the desktop (1,131 chunks,
+     683k trees); not tried on a phone. `mid` boxes over the middle of Тетово and of Гостивар, `maxLevels: 10`;
+     eight churches and mosques and two petrol stations the zones made into towers are pinned low with
+     `buildingTags`. No lake near the towns (the glacial lakes are small and 2 km up): the Вардар through Полог
+     (way 907645304) is widened with `waterLines` for refilling.
+     Models (`src/tetovo.ts`, after Commons photos): **Шарена џамија** on its OSM outline (painted panels and
+     rosettes in two rows, grilled and arched windows, the porch on white columns, the wide hipped roof, the stone
+     minaret with its balcony and dark pencil cone); **Gostivar's Саат-кула** (`modelRects`, OSM has only a node:
+     the square stone base with corner pyramids, the octagonal shaft, the dark timber clock stage, the lantern);
+     **Св. Атанасиј Велики** of Лешок (`byzChurch` in grey ashlar; a new `courses: false` option leaves out the brick
+     courses, the other cities unchanged); **Тетовско Кале**: broken walls with arched niches and squat round towers
+     along OSM's outline of the fortress. Tow banners: „Шар Планина го спаси Тетово!“ / „Поздрав од Полог!“.
+   - **Македонски Брод** (41.45–41.926 N, 21.12–21.42 E, 25 × 53 km, 20 m cells, 315–2507 m): Брод and Пешна on the
+     Треска, Зрзе monastery, the whole of Езеро Козјак and Акумулација Света Петка, Солунска Глава on Јакупица. The
+     north edge stops at 41.926 N, where Езеро Матка begins (it goes on the widened Скопје map); the east edge
+     (21.42, for Солунска Глава) overlaps Батинци's south-west corner a little (41.875–41.926 N, 21.385–21.42 E,
+     mountains). 3,685 OSM buildings plus 12,394 Overture. Models (`src/brod.ts`): **Св. Преображение of Зрзе**
+     (low stone church, hipped tile roof, apse, the small open timber belfry); **Света Петка's arch dam** on OSM's
+     crest line with `archDam`, the Берово dam code moved into a function (Берово's geometry is the same, its call
+     passes the keeper's house). The DEM has no gorge below that dam: `points` 25 m off the crest bend it ~30 m
+     down. Козјак's rockfill dam is already in the DEM (lake 468 m, face down to ~385 m) and is not modelled; its
+     view was dropped because a smooth slope does not read as a dam. The hills round Козјак are bare in OSM (few
+     wood polygons), so the lake looks barer than in photos. Tow banners: „Козјак го спаси Брод!“ / „Поздрав од
+     Порече!“.
+   - **Ресен** (40.685–41.13 N, 20.845–21.165 E, 27 × 50 km, 20 m cells, 732–2218 m): Ресен, the whole of
+     Преспанско Езеро with its Albanian and Greek shores, Голем Град, Курбиново, Мала Преспа with Свети Ахил; edge
+     to edge with Охрид (its east edge) and Битола (its west edge). 3,908 OSM buildings plus 20,120 Overture.
+     Like Дојран, **the lake level is set by hand**: flattened at its lowest DEM part (840.8 m) the beach stood a few
+     metres over the water; the ground 20 m outside OSM's outline is 843.5 m (median of 452 points), so
+     `waterLevels: { 2905510: 842.5 }`. Мала Преспа stays at its own 848 m. Models (`src/resen.ts`): **Ресенски
+     сарај** on OSM's outline (two wings round a recess: yellow walls, white cornices and pilasters, tall windows,
+     a mansard of dark tiles that follows the outline, the stone porch with its balcony and the tower with a glazed
+     belvedere in the recess); **Св. Петар** on Голем Град and **Св. Ѓорѓи** in Курбиново (`byzChurch` without a
+     drum). Tow banners: „Преспа го спаси Ресен!“ / „Поздрав од Преспа!“.
+   - View azimuths, for the record: `az` turns the camera from south (0) toward east (π/2): `-π/2` puts it west of
+     the target, looking east.
+   Checked: every view of the three maps rendered and looked at (hidden pane, frames stepped by hand), no console
+   errors; typecheck, build (the new files in `dist/`); Skopje pixel check (0 except 11–13 pixels at the gondola
+   cabins in the three overviews); Берово's dam code compared line by line with the old block. Not checked:
+   phones (Тетово's 75k buildings are the real question), firefighting, the races, walking cards one by one, night
+   and snow views. Not modelled: Арабати Баба Теќе, the ski lifts of Попова Шапка (aerialways are not in the
+   download), Пешна's cave mouth, Св. Ахил's basilica, Kurbinovo's frescoes (labels and cards only).
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
@@ -601,6 +658,9 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Dojran | `skopje.bestRace.dojran` | none |
 | Best race time in Batinci | `skopje.bestRace.batinci` | none |
 | Best race time in Berovo | `skopje.bestRace.berovo` | none |
+| Best race time in Tetovo | `skopje.bestRace.tetovo` | none |
+| Best race time in Makedonski Brod | `skopje.bestRace.brod` | none |
+| Best race time in Resen | `skopje.bestRace.resen` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.

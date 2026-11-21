@@ -451,6 +451,66 @@ const PREP: Record<CityName, CityPrep> = {
     squareBonus: false,
     maxLevels: 6,
   },
+  tetovo: {
+    old: null,
+    square: [42.01008, 20.97057], // Плоштад „Илинден“ in Тетово (OSM: a pedestrian square, 110 × 106 m)
+    landmarks: {},
+    // modelled by hand after photos (src/tetovo.ts): Шарена џамија, Св. Атанасиј Велики of Лешочки манастир,
+    // the ruined walls of Тетовско Кале on Балтепе
+    models: { sarena: 241085465, lesok: 981839456, tkale: 33100249 },
+    // Gostivar's clock tower has only an OSM node (amenity=clock): a square of its base, 5.6 m (photos)
+    modelRects: { gsaat: [41.79490, 20.91095, 5.6, 5.6, 0] },
+    placeNames: {},
+    placeIds: { square: 366654067, sarena: 241085465, lesok: 981839456, tkale: 33100249, teke: 479804854, bogovinje: 196279940 },
+    placeNodes: { gsaat: 2026119373, vrutok: 2074390739, titov: 470409541, popova: 2113593788 },
+    nodeLL: {
+      2026119373: [41.79490, 20.91095], 2074390739: [41.76403, 20.83696], // Gostivar's clock tower, the source of the Вардар
+      470409541: [41.99201, 20.79824], 2113593788: [42.01658, 20.88604], // Титов Врв, Попова Шапка
+    },
+    tall: [],
+    // the blocks of flats in the middle of Тетово and of Гостивар
+    mid: [[41.9960, 42.0160, 20.9600, 20.9860], [41.7870, 41.8000, 20.8980, 20.9200]],
+    squareBonus: false,
+    maxLevels: 10,
+    // no lake near the towns (the glacial lakes are small and high): the Вардар through Полог, widened for refilling
+    waterLines: [[907645304, 6]],
+    // churches, mosques and petrol stations the height zones made into towers (Gostivar's Саат-џамија: two storeys
+    // under its dome, the photos)
+    buildingTags: Object.fromEntries([
+      ...[246171790, 265053393, 267650666, 429475632, 476718500, 476718503, 479803132, 1167314615].map((id) => [id, { 'building:levels': '2' }]),
+      ...[389055598, 1329461769].map((id) => [id, { 'building:levels': '1' }]),
+    ]),
+  },
+  brod: {
+    old: null,
+    square: [41.50676, 21.21943], // the paved square by the municipality building in Македонски Брод
+    landmarks: {},
+    // modelled by hand after photos (src/brod.ts): the church of Зрзе monastery, Света Петка's arch dam on its crest line
+    models: { zrze: 875859708, spdam: 229947907 },
+    placeNames: { kozjak: 'Езеро Козјак' },
+    placeIds: { square: 375660399, zrze: 875859708, kdam: 1382001962, svpetka: 701868141, devini: 1050278253 },
+    placeNodes: { pesna: 11881154455, solunska: 26864743 },
+    nodeLL: { 11881154455: [41.54793, 21.25259], 26864743: [41.70391, 21.40416] }, // the cave Пешна, Солунска Глава
+    tall: [],
+    mid: [[41.5030, 41.5110, 21.2120, 21.2230]], // the few blocks of flats in the middle of Брод
+    squareBonus: false,
+    maxLevels: 6,
+  },
+  resen: {
+    old: null,
+    square: [41.09001, 21.01292], // the square in front of the municipality building in Ресен
+    landmarks: {},
+    // modelled by hand after photos (src/resen.ts): Ресенски сарај, Св. Петар on Голем Град, Св. Ѓорѓи in Курбиново
+    models: { saraj: 1218564775, gpetar: 199050953, kurbinovo: 356219819 },
+    placeNames: {},
+    placeIds: { square: 1218564767, saraj: 1218564775, gpetar: 199050953, kurbinovo: 356219819, achilleios: 257934474 },
+    placeNodes: {},
+    nodeLL: {},
+    tall: [],
+    mid: [[41.0850, 41.0950, 21.0060, 21.0200]], // the blocks of flats in the middle of Ресен
+    squareBonus: false,
+    maxLevels: 6,
+  },
 };
 const CFG = PREP[CITY];
 const OLD = CFG.old;

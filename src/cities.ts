@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'kamenica', 'batinci'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'kamenica', 'batinci', 'tetovo', 'brod', 'resen'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -772,6 +772,205 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.berovo',
     bestRaceKey: 'skopje.bestRace.berovo',
     banners: { fire: 'Беровско Езеро го спаси Берово!', roll: 'Поздрав од Малешево!' },
+  },
+  tetovo: {
+    id: 'tetovo', name: 'Тетово', code: '094', icon: './favicon-tetovo.svg',
+    files: { scene: './tetovo.json', terrainBin: './tetovo-terrain.bin', terrainJson: './tetovo-terrain.json' },
+    sceneBytes: 16e6,
+    views: {
+      center: { place: 'square', ll: [42.01008, 20.97057], d: 560, polar: 0.78, az: 0.1 },
+      sarena: { place: 'sarena', ll: [42.00573, 20.96676], d: 95, polar: 1.05, az: 2.6 },
+      tkale: { place: 'tkale', ll: [42.01938, 20.96008], d: 520, polar: 0.92, az: 0.5 }, // the fortress hill from the town
+      lesok: { place: 'lesok', ll: [42.06681, 21.02798], d: 160, polar: 0.98, az: 0.4 },
+      gostivar: { place: 'gsaat', ll: [41.79490, 20.91095], d: 240, polar: 0.95, az: 0.2 },
+      vrutok: { place: 'vrutok', ll: [41.76403, 20.83696], d: 900, polar: 0.95, az: -0.5 },
+      popova: { place: 'popova', ll: [42.01333, 20.88800], d: 1500, polar: 0.96, az: 0.9 }, // Попова Шапка, Титов Врв behind
+      // the map is 28 × 39 km: the Полог valley from the south-east, Шар Планина along its west side
+      overview: { ll: [41.90000, 20.89000], d: 24000, polar: 0.9, az: 0.55 },
+    },
+    districts: [
+      ['Тетово', 42.00683, 20.97286], ['Гостивар', 41.79202, 20.90817], ['Боговиње', 41.92495, 20.91435, 30],
+      ['Камењане', 41.94446, 20.92666, 30], ['Чегране', 41.83722, 20.97438, 30], ['Брвеница', 41.96617, 20.98049, 30],
+      ['Шипковица', 42.03500, 20.91555, 30], ['Лешок', 42.06584, 21.03124, 30], ['Врапчиште', 41.83396, 20.88392, 30],
+      ['Добри Дол', 41.86584, 20.88749, 30], ['Пирок', 41.91195, 20.91037, 30], ['Мала Речица', 41.99302, 20.94767, 30],
+      ['Вруток', 41.76787, 20.83781, 30], ['Попова Шапка', 42.01333, 20.88800, 40], ['Шар Планина', 41.95500, 20.76000, 120],
+    ],
+    labels: [
+      ['Плоштад „Илинден“', 42.01008, 20.97057, 12, 'square'],
+      ['Шарена џамија', 42.00573, 20.96676, 22, 'sarena'],
+      ['Арабати Баба Теќе', 42.00395, 20.95685, 14, 'teke'],
+      ['Тетовско Кале', 42.01938, 20.96008, 20, 'tkale'],
+      ['Лешочки манастир', 42.06681, 21.02798, 24, 'lesok'],
+      ['Саат-кула', 41.79490, 20.91095, 36, 'gsaat'],
+      ['Извор на Вардар', 41.76403, 20.83696, 10, 'vrutok'],
+      ['Титов Врв', 41.99201, 20.79824, 20, 'titov'],
+      ['Боговињско Езеро', 41.95015, 20.79306, 8, 'bogovinje'],
+      ['Црно Езеро', 41.92620, 20.79120, 8],
+      ['Бегов амам', 42.00628, 20.96735, 10],
+      ['Вардар', 41.86000, 20.95600, 6, undefined, 'river'],
+      ['Пена', 42.00900, 20.95500, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Плоштад „Илинден“', 42.01008, 20.97057, 70, 'square'],
+      ['Шарена џамија', 42.00573, 20.96676, 60, 'sarena'],
+      ['Тетовско Кале', 42.01938, 20.96008, 70, 'tkale'],
+      ['Лешочки манастир', 42.06681, 21.02798, 70, 'lesok'],
+      ['Попова Шапка', 42.01333, 20.88800, 90],
+      ['Титов Врв', 41.99201, 20.79824, 110, 'titov'],
+      ['Боговињско Езеро', 41.95015, 20.79306, 70, 'bogovinje'],
+      ['Извор на Вардар', 41.76403, 20.83696, 80, 'vrutok'],
+      ['Гостивар', 41.79490, 20.91095, 80, 'gsaat'],
+      ['Вардар', 41.86000, 20.95600, 50],
+      ['Плоштад „Илинден“', 42.01008, 20.97057, 60, 'square'],
+    ],
+    spots: [
+      ['te.square', 'Плоштад „Илинден“', 42.01008, 20.97057, 60, 'square'],
+      ['te.sarena', 'Шарена џамија', 42.00573, 20.96676, 45, 'sarena'],
+      ['te.teke', 'Арабати Баба Теќе', 42.00395, 20.95685, 90, 'teke'],
+      ['te.kale', 'Тетовско Кале', 42.01938, 20.96008, 150, 'tkale'],
+      ['te.lesok', 'Лешочки манастир', 42.06681, 21.02798, 70, 'lesok'],
+      ['te.gostivar', 'Саат-кула', 41.79490, 20.91095, 50, 'gsaat'],
+      ['te.vrutok', 'Извор на Вардар', 41.76403, 20.83696, 120, 'vrutok'],
+      ['te.popova', 'Попова Шапка', 42.01333, 20.88800, 250],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    // the forests of Шар Планина: full density round Тетово, thinner (drawn larger) far out
+    treeThin: { ll: [42.00683, 20.97286], near: 3000, far: 9000, min: 0.04, grow: 2.2 },
+    sparseFar: 1500,
+    walker: 'pejo', // with the Шарпланинец, at home here
+    snowLabel: 'weather.shar',
+    refillLabel: 'fire.refill.tetovo',
+    bestRaceKey: 'skopje.bestRace.tetovo',
+    banners: { fire: 'Шар Планина го спаси Тетово!', roll: 'Поздрав од Полог!' },
+  },
+  brod: {
+    id: 'brod', name: 'Македонски Брод', code: '045', icon: './favicon-brod.svg',
+    files: { scene: './brod.json', terrainBin: './brod-terrain.bin', terrainJson: './brod-terrain.json' },
+    sceneBytes: 4.3e6,
+    views: {
+      center: { place: 'square', ll: [41.50676, 21.21943], d: 480, polar: 0.8, az: 0.1 },
+      zrze: { place: 'zrze', ll: [41.52130, 21.34220], d: 170, polar: 0.98, az: 0.5 },
+      pesna: { place: 'pesna', ll: [41.54793, 21.25259], d: 600, polar: 0.95, az: -0.4 },
+      kozjak: { place: 'kozjak', ll: [41.78000, 21.19900], d: 2000, polar: 1.12, az: 0.4 }, // under the clouds
+      spdam: { ll: [41.92477, 21.26415], d: 230, polar: 0.9, az: Math.PI / 2 }, // from below the dam (east)
+      solunska: { place: 'solunska', ll: [41.70391, 21.40416], d: 2600, polar: 0.92, az: -0.9 },
+      // the map is 25 × 53 km along the Треска: seen from the south, the lakes to the north
+      overview: { ll: [41.69000, 21.27000], d: 25000, polar: 0.9, az: 0.25 },
+    },
+    districts: [
+      ['Македонски Брод', 41.50749, 21.21654], ['Самоков', 41.68049, 21.15040, 30], ['Девич', 41.55103, 21.22651, 30],
+      ['Зрзе', 41.51583, 21.35244, 30], ['Требино', 41.52771, 21.21116, 30], ['Суводол', 41.52103, 21.23866, 30],
+      ['Сланско', 41.48813, 21.22901, 30], ['Дебреште', 41.47899, 21.32710, 30], ['Модриште', 41.63937, 21.24399, 30],
+      ['Калуѓерец', 41.66120, 21.24135, 30], ['Брезница', 41.73647, 21.22744, 30], ['Нова Брезница', 41.88677, 21.27839, 30],
+      ['Јакупица', 41.72000, 21.37000, 150], ['Езеро Козјак', 41.80000, 21.19500, 0],
+    ],
+    labels: [
+      ['Македонски Брод', 41.50676, 21.21943, 14, 'square'],
+      ['Манастир Зрзе', 41.52130, 21.34220, 18, 'zrze'],
+      ['Пешна', 41.54793, 21.25259, 14, 'pesna'],
+      ['Девини Кули', 41.54175, 21.23741, 14, 'devini'],
+      ['Брана Козјак', 41.87870, 21.19250, 20, 'kdam'],
+      ['Брана Света Петка', 41.92477, 21.26415, 20],
+      ['Акумулација Света Петка', 41.90286, 21.22774, 8, 'svpetka'],
+      ['Езеро Козјак', 41.78000, 21.19900, 8, 'kozjak'],
+      ['Солунска Глава', 41.70391, 21.40416, 20, 'solunska'],
+      ['Треска', 41.52500, 21.21500, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Македонски Брод', 41.50676, 21.21943, 70, 'square'],
+      ['Пешна', 41.54793, 21.25259, 80, 'pesna'],
+      ['Зрзе', 41.52130, 21.34220, 80, 'zrze'],
+      ['Солунска Глава', 41.70391, 21.40416, 120, 'solunska'],
+      ['Езеро Козјак', 41.72000, 21.17500, 50],
+      ['Езеро Козјак', 41.80000, 21.19500, 50],
+      ['Брана Козјак', 41.87870, 21.19250, 70, 'kdam'],
+      ['Света Петка', 41.90286, 21.22774, 50, 'svpetka'],
+      ['Брана Света Петка', 41.92477, 21.26415, 60],
+      ['Самоков', 41.68049, 21.15040, 80],
+      ['Македонски Брод', 41.50676, 21.21943, 60, 'square'],
+    ],
+    spots: [
+      ['mb.square', 'Македонски Брод', 41.50676, 21.21943, 80, 'square'],
+      ['mb.zrze', 'Манастир Зрзе', 41.52130, 21.34220, 60, 'zrze'],
+      ['mb.pesna', 'Пешна', 41.54793, 21.25259, 120, 'pesna'],
+      ['mb.kozjak', 'Брана Козјак', 41.87870, 21.19250, 250, 'kdam'],
+      ['mb.spetka', 'Брана Света Петка', 41.92477, 21.26415, 120],
+      ['mb.solunska', 'Солунска Глава', 41.70391, 21.40416, 300, 'solunska'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.50749, 21.21654], near: 2500, far: 8000, min: 0.04, grow: 2.2 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.jakupica',
+    refillLabel: 'fire.refill.brod',
+    bestRaceKey: 'skopje.bestRace.brod',
+    banners: { fire: 'Козјак го спаси Брод!', roll: 'Поздрав од Порече!' },
+  },
+  resen: {
+    id: 'resen', name: 'Ресен', code: '047', icon: './favicon-resen.svg',
+    files: { scene: './resen.json', terrainBin: './resen-terrain.bin', terrainJson: './resen-terrain.json' },
+    sceneBytes: 6.8e6,
+    views: {
+      center: { place: 'square', ll: [41.09001, 21.01292], d: 480, polar: 0.8, az: 0.1 },
+      saraj: { place: 'saraj', ll: [41.08813, 21.01590], d: 120, polar: 1.0, az: 0.2 },
+      golemgrad: { place: 'gpetar', ll: [40.86950, 20.98900], d: 900, polar: 1.0, az: 0.5 },
+      kurbinovo: { place: 'kurbinovo', ll: [40.98603, 21.08516], d: 160, polar: 0.98, az: -0.5 },
+      prespa: { ll: [40.97900, 21.04600], d: 2000, polar: 1.12, az: -Math.PI / 2 }, // from over the lake east to Претор and Баба; under the clouds
+      mprespa: { ll: [40.76000, 21.07000], d: 2000, polar: 1.12, az: 0.3 },
+      // the map is 27 × 50 km: both lakes from the south-east, Галичица along the west
+      overview: { ll: [40.91000, 21.00000], d: 25000, polar: 0.9, az: 0.35 },
+    },
+    districts: [
+      ['Ресен', 41.09005, 21.01306], ['Љубојно', 40.89373, 21.13924, 30], ['Брајчино', 40.90741, 21.16000, 30],
+      ['Претор', 40.97908, 21.06318, 30], ['Отешево', 40.98960, 20.91521, 30], ['Стење', 40.93982, 20.91170, 30],
+      ['Коњско', 40.91093, 20.98735, 30], ['Курбиново', 40.98562, 21.06880, 30], ['Царев Двор', 41.04301, 21.00709, 30],
+      ['Езерани', 41.02866, 21.02191, 30], ['Асамати', 40.98628, 21.05107, 30], ['Наколец', 40.89551, 21.11015, 30],
+      ['Галичица', 40.97000, 20.86500, 150], ['Баба', 40.98000, 21.13000, 150],
+      ['Преспанско Езеро', 40.92000, 21.02000, 0], ['Мала Преспа', 40.76000, 21.07000, 0],
+    ],
+    labels: [
+      ['Плоштад', 41.09001, 21.01292, 12, 'square'],
+      ['Ресенски сарај', 41.08813, 21.01590, 24, 'saraj'],
+      ['Голем Град', 40.86950, 20.98900, 30, 'gpetar'],
+      ['Св. Ѓорѓи, Курбиново', 40.98603, 21.08516, 14, 'kurbinovo'],
+      ['Езерани', 41.02866, 21.02191, 10],
+      ['Св. Ахил', 40.78815, 21.07934, 14, 'achilleios'],
+    ],
+    route: [
+      ['Ресен', 41.09001, 21.01292, 70, 'square'],
+      ['Ресенски сарај', 41.08813, 21.01590, 60, 'saraj'],
+      ['Езерани', 41.02866, 21.02191, 50],
+      ['Курбиново', 40.98603, 21.08516, 70, 'kurbinovo'],
+      ['Претор', 40.97908, 21.06318, 50],
+      ['Голем Град', 40.86950, 20.98900, 60, 'gpetar'],
+      ['Мала Преспа', 40.78815, 21.07934, 50, 'achilleios'],
+      ['Љубојно', 40.89373, 21.13924, 70],
+      ['Стење', 40.93982, 20.91170, 60],
+      ['Отешево', 40.98960, 20.91521, 60],
+      ['Ресен', 41.09001, 21.01292, 60, 'square'],
+    ],
+    spots: [
+      ['rs.square', 'Ресен', 41.09001, 21.01292, 70, 'square'],
+      ['rs.saraj', 'Ресенски сарај', 41.08813, 21.01590, 60, 'saraj'],
+      ['rs.golemgrad', 'Голем Град', 40.86950, 20.98900, 300, 'gpetar'],
+      ['rs.kurbinovo', 'Св. Ѓорѓи, Курбиново', 40.98603, 21.08516, 50, 'kurbinovo'],
+      ['rs.lake', 'Преспанско Езеро', 40.97908, 21.06318, 200],
+      ['rs.achil', 'Св. Ахил', 40.78815, 21.07934, 120, 'achilleios'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.09005, 21.01306], near: 2500, far: 8000, min: 0.04, grow: 2.2 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.baba',
+    refillLabel: 'fire.refill.resen',
+    bestRaceKey: 'skopje.bestRace.resen',
+    banners: { fire: 'Преспа го спаси Ресен!', roll: 'Поздрав од Преспа!' },
   },
 };
 

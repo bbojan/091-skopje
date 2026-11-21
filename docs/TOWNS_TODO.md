@@ -2,19 +2,20 @@
 
 **Finished: 11 maps on the site** (v11.0.0, 2026-11-21): 091 Скопје, 043 Кавадарци, 097 Битола,
 096 Охрид (with Струга), 048 Прилеп, 098 Крушево, 042 Ростуше (with Дебар and Маврово),
-033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево). Details in the
-first table below.
+033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево). **Built, not yet on the
+site: 3 more** (v14.0.0, the `city-tetovo-brod-resen` branch): 094 Тетово (with Гостивар), 045 Македонски Брод, 047 Ресен.
+Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
-**To do: 14 new maps** (8 shared, 6 single) **and Скопје widened** (east, west, north, with Матка), planned with the owner on 2026-11-21. None is started;
-Тетово is next. How to build one: [ADDING_A_CITY.md](ADDING_A_CITY.md).
+**To do: 11 new maps** (5 shared, 6 single) **and Скопје widened** (east, west, north, with Матка), planned with the owner on 2026-11-21
+(14 maps then; Тетово, Брод and Ресен are built). Кратово is next in the list. How to build one: [ADDING_A_CITY.md](ADDING_A_CITY.md).
 
 Coordinates are approximate, written from memory while planning: **check every point in OSM before
 drawing a bbox**. Badge codes are the owner's own choice, not always the phone code (Bitola 097,
 Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 
-## Finished: on the site (11 maps)
+## Finished (14 maps: 11 on the site, 3 on the `city-tetovo-brod-resen` branch)
 
 | Map | Also on it | `?city=` | bbox (s, w, n, e) |
 |---|---|---|---|
@@ -29,10 +30,16 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 | 034 Дојран | the whole lake | `dojran` | 41.15, 22.66, 41.27, 22.82 |
 | 02 Батинци | Марков манастир | `batinci` | 41.875, 21.385, 41.955, 21.545 |
 | 033 Берово | Пехчево, Беровско Езеро | `berovo` | 41.65, 22.82, 41.778, 22.94 |
+| 094 Тетово | Гостивар, Вруток, Шар Планина | `tetovo` | 41.725, 20.72, 42.075, 21.06 |
+| 045 Македонски Брод | Козјак, Света Петка, Зрзе, Солунска Глава | `brod` | 41.45, 21.12, 41.926, 21.42 |
+| 047 Ресен | the whole of Преспа, Голем Град, Мала Преспа | `resen` | 40.685, 20.845, 41.13, 21.165 |
 
 ## Planned maps
 
-### 1. 094 Тетово — next
+### 1. 094 Тетово — built (v14.0.0)
+
+- **Built** with n moved to 42.075 (Лешочки манастир at 42.067 N). Not done from the plan below: the ski lifts
+  (aerialways), Арабати Баба Теќе as a model, the LinkedIn developer (the default link for now).
 
 - **On it:** Тетово, Гостивар, Вруток, Шар Планина (Попова Шапка, Титов Врв).
 - **Code:** **094** (decided). `?city=tetovo`, likely v12.0.0.
@@ -99,7 +106,10 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
   including them makes the map much wider.
 - **Landmarks:** Св. Никола; the lake and its dam (`waterLevels` if needed).
 
-### 7. Ресен
+### 7. 047 Ресен — built (v14.0.0)
+
+- **Built** as drafted (s 40.685 takes in the whole of Мала Преспа); code 047 is the phone code, the owner may
+  choose another. The lake level is set by hand (842.5 m). Not modelled: Св. Ахил's basilica, the orchards.
 
 - **On it:** Ресен, the whole of Преспанско Езеро (Albanian and Greek shores too, as Ohrid's map
   reaches into Albania), Голем Град.
@@ -111,7 +121,10 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 - **Landmarks:** Сарај, Голем Град (ruins), Курбиново, shore villages, apple orchards. Lake level by hand
   (`waterLevels`, as Dojran).
 
-### 8. Македонски Брод
+### 8. 045 Македонски Брод — built (v14.0.0)
+
+- **Built**: 41.45–41.926 N, 21.12–21.42 E (the north edge where Езеро Матка begins, 41.926 N); code 045 is
+  the phone code, the owner may choose another. Overlaps Батинци's south-west corner a little (mountains).
 
 - **On it:** Македонски Брод, the whole of Козјак lake and Света Петка lake (Треска), Солунска Глава
   (Јакупица), Зрзе monastery. **Not Матка** (decided): Матка goes on the widened Скопје map.
@@ -129,7 +142,8 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 - **What:** the existing 091 Скопје map grows east, west and north. **Матка** (canyon, lake, dam,
   Св. Андреј, ~41.95 N 21.30 E) comes onto it.
 - **Today:** s 41.955, w 21.33, n 42.055, e 21.525.
-- **Edges to settle:** Матка lies at or just below the present south edge, so widening west alone may
+- **Edges to settle:** the Брод map ends at 41.926 N, where Езеро Матка begins: the widened Скопје should start
+  there. Матка lies at or just below the present south edge, so widening west alone may
   cut it: the west strip probably has to reach a little south (to meet the Брод map). North and east
   move toward the Куманово map: decide where the two meet. The south edge stays on Батинци's n (41.955).
 - **Caution:** Скопје is the reference map. Its terrain settings are "unchanged since v1 (the reference

@@ -8,7 +8,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 
 Илустрирана, жива 3Д мапа на Скопје, нацртана од отворените податоци на OpenStreetMap.
 
-More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **097 Битола** (Bitola, the city of consuls under Pelister) **096 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) **098 Крушево** (Kruševo, the town of the Ilinden Uprising) **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) **034 Дојран** (Dojran and the whole of Lake Dojran) **02 Батинци** (Batinci and its surroundings south of Skopje, to Marko's Monastery) and **033 Берово** (Berovo, Pehčevo and the whole of Berovo Lake) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica, https://bbojan.github.io/091-skopje/?city=dojran, https://bbojan.github.io/091-skopje/?city=batinci, https://bbojan.github.io/091-skopje/?city=berovo
+More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **097 Битола** (Bitola, the city of consuls under Pelister) **096 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) **098 Крушево** (Kruševo, the town of the Ilinden Uprising) **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) **034 Дојран** (Dojran and the whole of Lake Dojran) **02 Батинци** (Batinci and its surroundings south of Skopje, to Marko's Monastery) **033 Берово** (Berovo, Pehčevo and the whole of Berovo Lake) **094 Тетово** (Tetovo, Gostivar and the Šar Mountains) **045 Македонски Брод** (Makedonski Brod, Lake Kozjak and the Treska) and **047 Ресен** (Resen and the whole of Lake Prespa) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica, https://bbojan.github.io/091-skopje/?city=dojran, https://bbojan.github.io/091-skopje/?city=batinci, https://bbojan.github.io/091-skopje/?city=berovo, https://bbojan.github.io/091-skopje/?city=tetovo, https://bbojan.github.io/091-skopje/?city=brod, https://bbojan.github.io/091-skopje/?city=resen
 
 ## Features
 
@@ -68,6 +68,21 @@ More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš 
 **Berovo** (`?city=berovo`)
 - The Maleševo basin: Berovo, Ratevo and Smojmirovo, Pehčevo to the north, the whole of Berovo Lake and the Spikovo waterfalls, on real terrain
 - Hand-built after photos: the church of St. Michael the Archangel (1818) with its porch and bell tower, the church of the Nativity of the Theotokos on the square, the arch dam of the lake
+- Its own places, labels, race route (11 rings), walking info cards; firefighting refills from the lake; no ЈСП buses
+
+**Tetovo** (`?city=tetovo`)
+- The Polog valley under the Šar Mountains: Tetovo, Gostivar, the source of the Vardar at Vrutok, Popova Šapka, Titov Vrv and the glacial lakes, on real terrain
+- Hand-built after photos: the Painted Mosque, Gostivar's clock tower, the church of the Lešok Monastery, the walls of Tetovo Fortress
+- Its own places, labels, race route (11 rings), walking info cards; firefighting refills from the Vardar; no ЈСП buses
+
+**Makedonski Brod** (`?city=brod`)
+- Poreče along the Treska: Makedonski Brod, the Pešna cave, the Zrze Monastery, the whole of Lake Kozjak and the Sveta Petka reservoir, Solunska Glava on Jakupica, on real terrain
+- Hand-built after photos: the church of the Zrze Monastery, the Sveta Petka arch dam
+- Its own places, labels, race route (11 rings), walking info cards; firefighting refills from the lakes; no ЈСП buses
+
+**Resen** (`?city=resen`)
+- Prespa: Resen, the whole of Lake Prespa with its Albanian and Greek shores, the island of Golem Grad, Kurbinovo, and Small Prespa, on real terrain
+- Hand-built after photos: the Resen Saray (the palace of Niyazi Bey), the churches of St. Peter on Golem Grad and St. George in Kurbinovo
 - Its own places, labels, race route (11 rings), walking info cards; firefighting refills from the lake; no ЈСП buses
 
 **Time, weather and seasons**
@@ -130,6 +145,10 @@ npm run download -- kamenica && npm run overture -- kamenica && npm run terrain 
 npm run download -- dojran && npm run overture -- dojran && npm run terrain -- dojran && npm run data -- dojran
 npm run download -- batinci && npm run overture -- batinci && npm run terrain -- batinci && npm run data -- batinci
 npm run download -- berovo && npm run overture -- berovo && npm run terrain -- berovo && npm run data -- berovo
+npm run download -- tetovo && npm run overture -- tetovo && npm run terrain -- tetovo && npm run data -- tetovo
+npm run download -- brod && npm run overture -- brod && npm run terrain -- brod && npm run data -- brod
+npm run download -- resen && npm run overture -- resen && npm run terrain -- resen && npm run data -- resen
+                   # when Overpass is down: scripts/pbf2overpass.py writes data/<city>_raw.json from Geofabrik extracts
 ```
 
 ## Credits
