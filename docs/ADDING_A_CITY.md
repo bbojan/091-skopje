@@ -324,6 +324,22 @@ Shortcuts and fixes that came out of the third city; reuse them before writing n
 - **A stale scene in the browser:** after `npm run data` the open tab may keep the old JSON; reload the page
   (a new tab or the pane restarted) before judging a change.
 
+## What Tetovo, Brod and Resen added (v14.0.0)
+
+- **Overpass down for hours:** `scripts/pbf2overpass.py` writes the same raw JSON from Geofabrik extracts (usage
+  in its header; pyosmium in a virtualenv). Add the neighbouring countries' extracts when the box crosses a border.
+  Check it as for a download: the building and road counts against a count query when a server answers.
+- **A very dense valley:** Overture can add far more than OSM (Тетово: 71,757 footprints to 3,539 OSM buildings).
+  Look at the total before modelling; the scene's size grows with it (16 MB).
+- **Towers out of zones:** list the buildings of 6+ storeys that are churches, mosques, petrol stations or shops and
+  pin them with `buildingTags` (Гостивар's Саат-џамија became a domed tower block).
+- **An arch dam the DEM lacks:** `archDam` (src/berovo.ts) on the crest line, `points` on the downstream side to
+  cut the gorge; with 20 m cells the cut is shallow and the dam reads as a block at the lake's end.
+- **A model on an irregular outline:** `p.walls` extrudes any outline; a mansard that follows it is an offset ring
+  (Ресенски сарај, `offset()` in src/resen.ts).
+- **View azimuth:** `az` 0 puts the camera south of the target, π/2 east, −π/2 west. A view from the shore across a
+  15 km lake shows only water: look from the water toward the shore instead.
+
 ## Checklist
 
 - [ ] `scripts/config.ts`: `CITIES.<id>` (bbox, tiles, files)

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Tetovo: the Шарена џамија (painted façade under a wide hipped roof, its minaret) under Шар Планина -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <path d="M8 46 L26 26 L36 36 L52 18 L70 38 L80 30 L92 44" fill="none" stroke="#1f2a44" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M47 24 L52 18 L57 24 Z M23 30 L26 26 L29 30 Z" fill="#1f2a44"/>
+  <g fill="#1f2a44">
+    <path d="M66 20 L69 12 L72 20 Z"/>
+    <rect x="66" y="20" width="6" height="32"/>
+    <rect x="64" y="34" width="10" height="3"/>
+    <path d="M14 58 L28 48 H58 L72 58 Z"/>
+    <rect x="20" y="58" width="46" height="28"/>
+    <rect x="14" y="86" width="72" height="4"/>
+  </g>
+  <g fill="#f4ede0">
+    <rect x="24" y="62" width="8" height="8"/><rect x="35" y="62" width="8" height="8"/><rect x="46" y="62" width="8" height="8"/>
+    <circle cx="28" cy="77" r="2.6"/><circle cx="39" cy="77" r="2.6"/><circle cx="50" cy="77" r="2.6"/>
+    <path d="M57 86 V76 Q61 71 65 76 V86 Z"/>
+  </g>
+  <g fill="#7a1f1a">
+    <rect x="26.5" y="64.5" width="3" height="3"/><rect x="37.5" y="64.5" width="3" height="3"/><rect x="48.5" y="64.5" width="3" height="3"/>
+  </g>
+</svg>

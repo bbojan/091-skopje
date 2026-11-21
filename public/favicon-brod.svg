@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Makedonski Brod: the church of Зрзе monastery on its cliff (low stone body, a small open belfry), over the Треска -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <g fill="#1f2a44">
+    <path d="M30 26 L36 20 L42 26 Z"/>
+    <rect x="31" y="26" width="2.5" height="9"/><rect x="38.5" y="26" width="2.5" height="9"/>
+    <path d="M14 46 L24 35 H76 L86 46 Z"/>
+    <rect x="20" y="46" width="60" height="18"/>
+    <path d="M10 64 H90 L84 72 L70 70 L60 76 L44 72 L30 76 L16 70 Z"/>
+  </g>
+  <g fill="#f4ede0">
+    <path d="M30 64 V56 Q34 51 38 56 V64 Z"/>
+    <rect x="50" y="51" width="4" height="7" rx="2"/><rect x="62" y="51" width="4" height="7" rx="2"/>
+  </g>
+  <path d="M14 84 Q32 78 50 84 T86 84" fill="none" stroke="#1f2a44" stroke-width="4" stroke-linecap="round"/>
+  <path d="M22 91 Q36 87 50 91 T78 91" fill="none" stroke="#7a1f1a" stroke-width="3" stroke-linecap="round"/>
+</svg>

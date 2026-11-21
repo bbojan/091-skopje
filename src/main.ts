@@ -466,8 +466,25 @@ for (const id of CITY_IDS) {
 function setCityMenu(open: boolean): void {
   cityMenu.hidden = !open;
   cityBtn.setAttribute('aria-expanded', String(open));
+  if (open) fitCityMenu();
   if (open) cityMenu.querySelector<HTMLElement>('[aria-checked="true"]')?.focus();
 }
+// on a short screen the list wraps into as many columns as it needs (filled top to bottom)
+function fitCityMenu(): void {
+  cityMenu.classList.remove('cols');
+  if (cityMenu.hidden) return;
+  const r = cityMenu.getBoundingClientRect(), avail = innerHeight - 8 - r.top;
+  if (r.height <= avail) return;
+  // as many columns as the height needs, but no more than fit across the screen (then it scrolls)
+  cityMenu.style.setProperty('--top', `${r.top}px`);
+  cityMenu.classList.add('cols');
+  const items = cityMenu.children.length;
+  for (let cols = Math.min(items, Math.ceil(r.height / Math.max(avail, 1))); cols >= 1; cols--) {
+    cityMenu.style.setProperty('--rows', String(Math.ceil(items / cols)));
+    if (cols === 1 || cityMenu.getBoundingClientRect().right <= innerWidth - 8) break;
+  }
+}
+addEventListener('resize', fitCityMenu);
 cityBtn.addEventListener('click', (e) => { e.stopPropagation(); setCityMenu(cityMenu.hidden === true); });
 addEventListener('pointerdown', (e) => { if (!cityMenu.hidden && !cityMenu.contains(e.target as Node) && !cityBtn.contains(e.target as Node)) setCityMenu(false); });
 addEventListener('keydown', (e) => {

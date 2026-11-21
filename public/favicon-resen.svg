@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Resen: the Сарај (palace) with its tower and glazed belvedere, over Преспанско Езеро -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <g fill="#1f2a44">
+    <rect x="46" y="12" width="8" height="7"/>
+    <path d="M44 12 L50 8 L56 12 Z"/>
+    <path d="M42 30 L50 19 L58 30 Z"/>
+    <path d="M12 46 L20 36 H80 L88 46 Z"/>
+    <rect x="43" y="30" width="14" height="10"/>
+    <rect x="16" y="46" width="68" height="28"/>
+  </g>
+  <g fill="#f4ede0">
+    <rect x="21" y="50" width="5" height="8"/><rect x="31" y="50" width="5" height="8"/><rect x="64" y="50" width="5" height="8"/><rect x="74" y="50" width="5" height="8"/>
+    <rect x="21" y="62" width="5" height="8"/><rect x="31" y="62" width="5" height="8"/><rect x="64" y="62" width="5" height="8"/><rect x="74" y="62" width="5" height="8"/>
+    <path d="M45 74 V64 Q50 58 55 64 V74 Z"/>
+    <circle cx="50" cy="35" r="2.2"/>
+  </g>
+  <path d="M14 84 Q32 78 50 84 T86 84" fill="none" stroke="#1f2a44" stroke-width="4" stroke-linecap="round"/>
+  <path d="M22 91 Q36 87 50 91 T78 91" fill="none" stroke="#7a1f1a" stroke-width="3" stroke-linecap="round"/>
+</svg>
