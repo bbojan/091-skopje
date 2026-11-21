@@ -331,11 +331,22 @@ const PREP: Record<CityName, CityPrep> = {
     buildingTags: { 414261893: { height: '3' } },
   },
   krusevo: {
-    old: null,
-    square: [41.3690, 21.2480],
+    // the old town of white houses with red tiled roofs on the slope round Плоштад Никола Мартиноски
+    old: { s: 41.3640, n: 41.3720, w: 21.2420, e: 21.2530 },
+    square: [41.36858, 21.24895], // Плоштад Никола Мартиноски
     landmarks: {},
-    placeNames: {}, placeIds: {}, placeNodes: {}, nodeLL: {},
-    tall: [], mid: [], squareBonus: false, maxLevels: 5,
+    // modelled by hand after photos (src/krusevo.ts): Македониум on its OSM outline
+    models: { makedonium: 217568679 },
+    // Мечкин Камен: the monument on the bare rock south of the town (OSM: a node), the giant facing north to the town
+    modelRects: { meckin: [41.33773, 21.25800, 40, 36, 0] }, // the bare rock round it, kept free of trees
+    placeNames: {},
+    placeIds: { makedonium: 217568679, toshe: 217563724, square: 1110290669, nikola: 224099193, museum: 224254694 },
+    placeNodes: { pitu: 2327281126, meckin: 410115784 },
+    nodeLL: { 2327281126: [41.36497, 21.24973], 410115784: [41.33773, 21.25800] }, // historic=monument: Питу Гули, Мечкин Камен
+    tall: [],
+    mid: [],
+    squareBonus: false,
+    maxLevels: 5,
   },
 };
 const CFG = PREP[CITY];

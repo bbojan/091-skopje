@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid', 'prilep'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid', 'prilep', 'krusevo'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -427,6 +427,57 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.prilep',
     bestRaceKey: 'skopje.bestRace.prilep',
     banners: { fire: 'Крале Марко го спаси Прилеп!', roll: 'Ај на Пивофест!' },
+  },
+  krusevo: {
+    id: 'krusevo', name: 'Крушево', code: '048', icon: './favicon-krusevo.svg',
+    files: { scene: './krusevo.json', terrainBin: './krusevo-terrain.bin', terrainJson: './krusevo-terrain.json' },
+    sceneBytes: 1.5e6,
+    views: {
+      center: { place: 'square', ll: [41.36858, 21.24895], d: 520, polar: 0.76, az: 0.08 },
+      makedonium: { place: 'makedonium', ll: [41.37741, 21.24837], d: 110, polar: 1.08, az: 2.6 },
+      meckin: { place: 'meckin', ll: [41.33773, 21.25800], d: 90, polar: 1.1, az: 0.4 },
+      overview: { ll: [41.36800, 21.25000], d: 13000, polar: 0.66, az: 0 },
+    },
+    districts: [
+      ['Крушево', 41.3700, 21.2480], ['Бушева Планина', 41.3900, 21.2250, 60], ['Вршник', 41.40254, 21.22326, 40],
+    ],
+    labels: [
+      ['Плоштад Никола Мартиноски', 41.36858, 21.24895, 18, 'square'],
+      ['Македониум', 41.37741, 21.24837, 24, 'makedonium'],
+      ['Мечкин Камен', 41.33773, 21.25800, 18, 'meckin'],
+      ['Спомен-куќа на Тоше Проески', 41.37441, 21.24629, 16, 'toshe'],
+      ['Св. Никола', 41.36837, 21.24903, 18, 'nikola'],
+      ['Музеј на Илинденското востание', 41.36907, 21.24529, 14, 'museum'],
+      ['Споменик на Питу Гули', 41.36497, 21.24973, 10, 'pitu'],
+      ['Крушевско Езеро', 41.37900, 21.24250, 8],
+    ],
+    route: [
+      ['Плоштад', 41.36858, 21.24895, 60, 'square'],
+      ['Св. Никола', 41.36837, 21.24903, 70, 'nikola'],
+      ['Македониум', 41.37741, 21.24837, 70, 'makedonium'],
+      ['Крушевско Езеро', 41.37900, 21.24250, 45],
+      ['Вршник', 41.40254, 21.22326, 80],
+      ['Мечкин Камен', 41.33773, 21.25800, 60, 'meckin'],
+      ['Питу Гули', 41.36497, 21.24973, 60, 'pitu'],
+      ['Плоштад', 41.36858, 21.24895, 55, 'square'],
+    ],
+    spots: [
+      ['kr.square', 'Плоштад Никола Мартиноски', 41.36858, 21.24895, 50, 'square'],
+      ['kr.makedonium', 'Македониум', 41.37741, 21.24837, 60, 'makedonium'],
+      ['kr.meckin', 'Мечкин Камен', 41.33773, 21.25800, 50, 'meckin'],
+      ['kr.toshe', 'Спомен-куќа на Тоше Проески', 41.37441, 21.24629, 30, 'toshe'],
+      ['kr.lake', 'Крушевско Езеро', 41.37900, 21.24250, 120],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.36858, 21.24895], near: 3000, far: 7000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.busheva',
+    refillLabel: 'fire.refill.krusevo',
+    bestRaceKey: 'skopje.bestRace.krusevo',
+    banners: { fire: 'Питу Гули го спаси Крушево!', roll: 'Да живее Крушевската Република!' },
   },
 };
 
