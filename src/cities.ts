@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid', 'rostuse', 'prilep', 'krusevo', 'kamenica', 'dojran'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'bitola', 'ohrid', 'rostuse', 'prilep', 'krusevo', 'kamenica', 'dojran', 'batinci'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -662,6 +662,56 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.dojran',
     bestRaceKey: 'skopje.bestRace.dojran',
     banners: { fire: 'Дојранското Езеро го спаси Дојран!', roll: 'Ајде на дојранска мандра!' },
+  },
+  batinci: {
+    id: 'batinci', name: 'Батинци', code: '02', icon: './favicon-batinci.svg',
+    files: { scene: './batinci.json', terrainBin: './batinci-terrain.bin', terrainJson: './batinci-terrain.json' },
+    sceneBytes: 3.9e6,
+    views: {
+      center: { ll: [41.91966, 21.48139], d: 520, polar: 0.8, az: 0.3 },
+      markov: { place: 'markov', ll: [41.89354, 21.40228], d: 85, polar: 1.08, az: 0.6 },
+      dracevo: { place: 'dsquare', ll: [41.93762, 21.51881], d: 520, polar: 0.82, az: 0.2 },
+      overview: { ll: [41.90500, 21.46500], d: 15000, polar: 0.66, az: 0 },
+    },
+    districts: [
+      ['Батинци', 41.91966, 21.48139], ['Драчево', 41.93239, 21.52193], ['Пинтија', 41.95100, 21.48579, 30],
+      ['Долно Количани', 41.88640, 21.48610, 30], ['Студеничани', 41.92014, 21.53531, 30],
+    ],
+    labels: [
+      ['Марков манастир', 41.89354, 21.40228, 22, 'markov'],
+      ['Плоштад на Бранителите', 41.93762, 21.51881, 12, 'dsquare'],
+      ['Св. Спас', 41.93500, 21.51779, 14, 'spas'],
+      ['Св. Еремија', 41.94534, 21.48383, 12, 'eremija'],
+      ['Маркова Река', 41.91647, 21.46279, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Батинци', 41.91966, 21.48139, 60],
+      ['Маркова Река', 41.92203, 21.47754, 40],
+      ['Пинтија', 41.95100, 21.48579, 60],
+      ['Драчево', 41.93762, 21.51881, 60, 'dsquare'],
+      ['Студеничани', 41.92014, 21.53531, 60],
+      ['Долно Количани', 41.88640, 21.48610, 70],
+      ['Маркова Река', 41.91110, 21.44228, 40],
+      ['Марков манастир', 41.89354, 21.40228, 60, 'markov'],
+      ['Маркова Река', 41.90720, 21.42244, 40],
+      ['Батинци', 41.91966, 21.48139, 55],
+    ],
+    spots: [
+      ['bt.batinci', 'Батинци', 41.91966, 21.48139, 80],
+      ['bt.markov', 'Марков манастир', 41.89354, 21.40228, 50, 'markov'],
+      ['bt.dracevo', 'Драчево', 41.93762, 21.51881, 60, 'dsquare'],
+      ['bt.river', 'Маркова Река', 41.92203, 21.47754, 60],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.91966, 21.48139], near: 3000, far: 7000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.hills',
+    refillLabel: 'fire.refill.batinci',
+    bestRaceKey: 'skopje.bestRace.batinci',
+    banners: { fire: 'Маркова Река го спаси Батинци!', roll: 'Поздрав од Батинци!' },
   },
 };
 

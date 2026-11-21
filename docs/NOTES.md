@@ -460,6 +460,23 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    checked: phones, firefighting over the lake, the race, walking cards one by one. Not modelled: Споменик на
    Дојрана and the Salonica Front memorial (no photos looked at; labels only).
 
+34. **v10.0.0** (Nov 2026, on `city-batinci`): **02 Батинци** (`?city=batinci`), the tenth map: Батинци and its
+   surroundings south of Skopje, 41.875–41.955 N, 21.385–21.545 E (13.3 × 8.9 km). Its north edge is Skopje's
+   south edge, so nothing is drawn twice: Пинтија at the top, Драчево to the east, Марков манастир by Маркова
+   Сушица to the west, Долно Количани to the south, the Маркова Река between them. Badge 02, the area's
+   telephone code today (Skopje keeps the old 091). 5,485 OSM buildings plus 12,578 Overture footprints (the
+   densest map after Skopje: 18,053 buildings, a 3.9 MB scene); 10 m cells, 224–837 m. One `mid` box over
+   Драчево's blocks of flats, `maxLevels: 7`. No lake: the Маркова Река (OSM ways 182532170, 46033085) is widened
+   with `waterLines` for refilling. Model (`src/batinci.ts`, after Commons photos of 2006–2014): Св. Димитрија of
+   Марков манастир on its OSM outline with `byzChurch` (cloisonné, lead roofs, octagonal drum, open porch); OSM's
+   outline of the whole monastery complex (177490047, `building=monastery`) drew a block over the church and is
+   left out. The mosque „Султан Мехмед Освојувачот“ in Батинци is not modelled: OSM has no outline or name for it
+   and the photo's position is in the street. Tow banners: „Маркова Река го спаси Батинци!“ / „Поздрав од
+   Батинци!“.
+   Checked: the monastery and the overview rendered and looked at, no console errors; typecheck, build; Skopje
+   pixel check (0 except 11–13 pixels at the gondola cabins in the overview, as before). Not checked: phones,
+   switching memory, firefighting over the river, the race, walking cards, the Драчево view.
+
 ## Key decisions (and why)
 
 - **Static site, no backend** — everything precomputed into `public/` and built
@@ -557,6 +574,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Kruševo | `skopje.bestRace.krusevo` | none |
 | Best race time in Makedonska Kamenica | `skopje.bestRace.kamenica` | none |
 | Best race time in Dojran | `skopje.bestRace.dojran` | none |
+| Best race time in Batinci | `skopje.bestRace.batinci` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
