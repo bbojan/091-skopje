@@ -495,7 +495,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    guess from one photo. The dam's crest is taken from the terrain's water level (`terrain.at()` is not
    metres above sea). Tow banners: „Беровско Езеро го спаси Берово!“ / „Поздрав од Малешево!“.
    Also: the badge codes of Битола, Охрид, Прилеп and Крушево changed to 097, 096, 098 and 098 at the
-   owner's request (the entries above keep the codes they were released with).
+   owner's request (the entries above keep the codes they were released with); later Прилеп became 048.
    Checked: the square, both churches, the dam from the gorge and the lake, Пехчево and the overview
    rendered and looked at, no console errors; typecheck, build; Skopje pixel check (0 over 2/255 on all 9
    renders); switching away and back (textures and scene objects equal, geometries +2). Not checked: phones,

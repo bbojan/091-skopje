@@ -428,7 +428,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Бигорски е спасен!', roll: 'Ајде на Галичка свадба!' },
   },
   prilep: {
-    id: 'prilep', name: 'Прилеп', code: '098', icon: './favicon-prilep.svg',
+    id: 'prilep', name: 'Прилеп', code: '048', icon: './favicon-prilep.svg',
     files: { scene: './prilep.json', terrainBin: './prilep-terrain.bin', terrainJson: './prilep-terrain.json' },
     sceneBytes: 4.4e6,
     views: {

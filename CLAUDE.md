@@ -92,7 +92,7 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   The round `?` right after the badge opens the help
   (shared by every city; per-city paragraphs carry `data-city="…"`, hidden by the `city-<id>` body class).
 - Cities: 091 Скопје, 043 Кавадарци (`?city=kavadarci`), 097 Битола (`?city=bitola`, v2.10.0), 096 Охрид
-  (`?city=ohrid`, v3.1.0: the whole lake, 20 m terrain cells), 098 Прилеп (`?city=prilep`, v3.2.0), 098 Крушево (`?city=krusevo`, v3.3.0), 042 Ростуше (`?city=rostuse`,
+  (`?city=ohrid`, v3.1.0: the whole lake, 20 m terrain cells), 048 Прилеп (`?city=prilep`, v3.2.0), 098 Крушево (`?city=krusevo`, v3.3.0), 042 Ростуше (`?city=rostuse`,
   v3.4.0: Бигорски, Дебар, Маврово; 20 m cells), 033 Македонска Каменица (`?city=kamenica`, v8.0.0: Саса, Калиманци), 034 Дојран
   (`?city=dojran`, v9.0.0: the whole lake, its level set by hand with `waterLevels`),
   02 Батинци (`?city=batinci`, v10.0.0: south of Skopje's map, edge to edge with it), 033 Берово (`?city=berovo`,
