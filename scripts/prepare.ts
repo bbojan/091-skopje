@@ -406,6 +406,8 @@ const PREP: Record<CityName, CityPrep> = {
     landmarks: {},
     // modelled by hand after photos (src/batinci.ts): the church Св. Димитрија of Марков манастир on its OSM outline
     models: { markov: 177490048 },
+    // OSM draws the whole monastery complex (court and konaks) as one building over the church: left out
+    dropBuildings: [177490047],
     placeNames: {},
     placeIds: { markov: 177490048, monastery: 177490047, dsquare: 1418028028, spas: 247817665, eremija: 224671004 },
     placeNodes: {},

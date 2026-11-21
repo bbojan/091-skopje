@@ -671,7 +671,7 @@ export const CITIES: Record<CityId, CitySpec> = {
       center: { ll: [41.91966, 21.48139], d: 520, polar: 0.8, az: 0.3 },
       markov: { place: 'markov', ll: [41.89354, 21.40228], d: 85, polar: 1.08, az: 0.6 },
       dracevo: { place: 'dsquare', ll: [41.93762, 21.51881], d: 520, polar: 0.82, az: 0.2 },
-      overview: { ll: [41.90500, 21.46500], d: 12500, polar: 0.66, az: 0 },
+      overview: { ll: [41.90500, 21.46500], d: 15000, polar: 0.66, az: 0 },
     },
     districts: [
       ['Батинци', 41.91966, 21.48139], ['Драчево', 41.93239, 21.52193], ['Пинтија', 41.95100, 21.48579, 30],
