@@ -5,6 +5,8 @@
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево). Details in the
 first table below.
 
+![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
+
 **To do: 14 new maps** (8 shared, 6 single) **and Скопје widened** (east, west, north, with Матка), planned with the owner on 2026-11-21. None is started;
 Тетово is next. How to build one: [ADDING_A_CITY.md](ADDING_A_CITY.md).
 
