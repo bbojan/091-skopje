@@ -8,7 +8,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 
 Илустрирана, жива 3Д мапа на Скопје, нацртана од отворените податоци на OpenStreetMap.
 
-More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **047 Битола** (Bitola, the city of consuls under Pelister) **046 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) **048 Крушево** (Kruševo, the town of the Ilinden Uprising) **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) **034 Дојран** (Dojran and the whole of Lake Dojran) and **02 Батинци** (Batinci and its surroundings south of Skopje, to Marko's Monastery) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica, https://bbojan.github.io/091-skopje/?city=dojran, https://bbojan.github.io/091-skopje/?city=batinci
+More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **097 Битола** (Bitola, the city of consuls under Pelister) **096 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **098 Прилеп** (Prilep under Markovi Kuli) **098 Крушево** (Kruševo, the town of the Ilinden Uprising) **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) **034 Дојран** (Dojran and the whole of Lake Dojran) **02 Батинци** (Batinci and its surroundings south of Skopje, to Marko's Monastery) and **033 Берово** (Berovo, Pehčevo and the whole of Berovo Lake) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica, https://bbojan.github.io/091-skopje/?city=dojran, https://bbojan.github.io/091-skopje/?city=batinci, https://bbojan.github.io/091-skopje/?city=berovo
 
 ## Features
 
@@ -64,6 +64,11 @@ More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš 
 - Batinci and its surroundings south of Skopje's map: Pintija, Dračevo, Dolno Količani and Marko's Monastery along the Markova Reka valley, on real terrain
 - Hand-built after photos: Marko's Monastery, the church of St. Demetrius (14th century)
 - Its own places, labels, race route (10 rings), walking info cards; firefighting refills from the Markova Reka; no ЈСП buses
+
+**Berovo** (`?city=berovo`)
+- The Maleševo basin: Berovo, Ratevo and Smojmirovo, Pehčevo to the north, the whole of Berovo Lake and the Spikovo waterfalls, on real terrain
+- Hand-built after photos: the church of St. Michael the Archangel (1818) with its porch and bell tower, the church of the Nativity of the Theotokos on the square, the arch dam of the lake
+- Its own places, labels, race route (11 rings), walking info cards; firefighting refills from the lake; no ЈСП buses
 
 **Time, weather and seasons**
 - Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, paragliders over Vodno, flowing river
@@ -124,6 +129,7 @@ npm run download -- krusevo && npm run overture -- krusevo && npm run terrain --
 npm run download -- kamenica && npm run overture -- kamenica && npm run terrain -- kamenica && npm run data -- kamenica
 npm run download -- dojran && npm run overture -- dojran && npm run terrain -- dojran && npm run data -- dojran
 npm run download -- batinci && npm run overture -- batinci && npm run terrain -- batinci && npm run data -- batinci
+npm run download -- berovo && npm run overture -- berovo && npm run terrain -- berovo && npm run data -- berovo
 ```
 
 ## Credits

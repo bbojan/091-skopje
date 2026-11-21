@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Berovo: the bell tower of the monastery of Св. Архангел Михаил, its open wooden belfry under a low roof, over the lake -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <g fill="#1f2a44">
+    <path d="M30 26 L50 14 L70 26 Z"/>
+    <rect x="34" y="26" width="32" height="4"/>
+    <rect x="35" y="30" width="3" height="14"/><rect x="48.5" y="30" width="3" height="14"/><rect x="62" y="30" width="3" height="14"/>
+    <rect x="33" y="44" width="34" height="5"/>
+    <rect x="37" y="49" width="26" height="30"/>
+  </g>
+  <g fill="#f4ede0">
+    <path d="M46 79 V70 Q50 65 54 70 V79 Z"/>
+    <rect x="47.5" y="54" width="5" height="8" rx="2.5"/>
+  </g>
+  <path d="M14 86 Q32 80 50 86 T86 86" fill="none" stroke="#1f2a44" stroke-width="4" stroke-linecap="round"/>
+  <path d="M22 92 Q36 88 50 92 T78 92" fill="none" stroke="#7a1f1a" stroke-width="3" stroke-linecap="round"/>
+</svg>

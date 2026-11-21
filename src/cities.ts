@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'kamenica', 'batinci'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'kamenica', 'batinci', 'berovo'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -213,7 +213,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Митко го спаси градот!', roll: 'Шо ги ебам нека му а мислат' },
   },
   bitola: {
-    id: 'bitola', name: 'Битола', code: '047', icon: './favicon-bitola.svg',
+    id: 'bitola', name: 'Битола', code: '097', icon: './favicon-bitola.svg',
     files: { scene: './bitola.json', terrainBin: './bitola-terrain.bin', terrainJson: './bitola-terrain.json' },
     sceneBytes: 5.3e6,
     views: {
@@ -296,7 +296,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Манаки го сними спасувањето!', roll: 'Ај на Широк Сокак!' },
   },
   ohrid: {
-    id: 'ohrid', name: 'Охрид', code: '046', icon: './favicon-ohrid.svg',
+    id: 'ohrid', name: 'Охрид', code: '096', icon: './favicon-ohrid.svg',
     files: { scene: './ohrid.json', terrainBin: './ohrid-terrain.bin', terrainJson: './ohrid-terrain.json' },
     sceneBytes: 9.4e6,
     views: {
@@ -428,7 +428,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Бигорски е спасен!', roll: 'Ајде на Галичка свадба!' },
   },
   prilep: {
-    id: 'prilep', name: 'Прилеп', code: '048', icon: './favicon-prilep.svg',
+    id: 'prilep', name: 'Прилеп', code: '098', icon: './favicon-prilep.svg',
     files: { scene: './prilep.json', terrainBin: './prilep-terrain.bin', terrainJson: './prilep-terrain.json' },
     sceneBytes: 4.4e6,
     views: {
@@ -490,7 +490,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Крале Марко го спаси Прилеп!', roll: 'Ај на Пивофест!' },
   },
   krusevo: {
-    id: 'krusevo', name: 'Крушево', code: '048', icon: './favicon-krusevo.svg',
+    id: 'krusevo', name: 'Крушево', code: '098', icon: './favicon-krusevo.svg',
     files: { scene: './krusevo.json', terrainBin: './krusevo-terrain.bin', terrainJson: './krusevo-terrain.json' },
     sceneBytes: 1.5e6,
     views: {
@@ -712,6 +712,66 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.batinci',
     bestRaceKey: 'skopje.bestRace.batinci',
     banners: { fire: 'Маркова Река го спаси Батинци!', roll: 'Поздрав од Батинци!' },
+  },
+  berovo: {
+    id: 'berovo', name: 'Берово', code: '033', icon: './favicon-berovo.svg',
+    files: { scene: './berovo.json', terrainBin: './berovo-terrain.bin', terrainJson: './berovo-terrain.json' },
+    sceneBytes: 1.8e6,
+    views: {
+      center: { place: 'square', ll: [41.70654, 22.85682], d: 480, polar: 0.8, az: 0.3 },
+      mihail: { place: 'mihail', ll: [41.70104, 22.85902], d: 90, polar: 1.08, az: 0.6 },
+      blake: { place: 'lake', ll: [41.66800, 22.90300], d: 1600, polar: 1.0, az: 2.4 },
+      bdam: { ll: [41.67078, 22.89440], d: 230, polar: 1.12, az: -0.95 },
+      pehcevo: { place: 'pehcevo', ll: [41.76357, 22.88730], d: 600, polar: 0.82, az: 0.2 },
+      overview: { ll: [41.70500, 22.88000], d: 19500, polar: 0.62, az: 0 },
+    },
+    districts: [
+      ['Берово', 41.70667, 22.85356], ['Пехчево', 41.76357, 22.88730], ['Ратево', 41.67633, 22.85144, 30],
+      ['Смојмирово', 41.73678, 22.84107, 30], ['Чифлик', 41.76099, 22.85659, 30], ['Спиково', 41.73952, 22.91755, 30],
+      ['Умлена', 41.76830, 22.83679, 30], ['Негрево', 41.77500, 22.89697, 30],
+    ],
+    labels: [
+      ['Плоштад „Димитар Беровски“', 41.70654, 22.85682, 12, 'square'],
+      ['Св. Архангел Михаил', 41.70104, 22.85902, 16, 'mihail'],
+      ['Рождество на Пресвета Богородица', 41.70676, 22.85707, 30, 'rozdestvo'],
+      ['Градски парк', 41.70858, 22.85225, 10, 'park'],
+      ['Беровско Езеро', 41.66800, 22.90300, 8, 'lake'],
+      ['Брана', 41.67078, 22.89440, 20],
+      ['Спиковски водопад', 41.73176, 22.93313, 20, 'spikovo'],
+      ['Плоштад „Св. Петар и Павле“', 41.76207, 22.88728, 12],
+      ['Ратевска Река', 41.67528, 22.85196, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Плоштад', 41.70654, 22.85682, 60, 'square'],
+      ['Св. Архангел Михаил', 41.70104, 22.85902, 60, 'mihail'],
+      ['Ратево', 41.67633, 22.85144, 60, 'ratevo'],
+      ['Ратевска Река', 41.67117, 22.88225, 50],
+      ['Брана', 41.67078, 22.89440, 45],
+      ['Беровско Езеро', 41.66800, 22.90300, 40],
+      ['Беровско Езеро', 41.66400, 22.91200, 40],
+      ['Спиковски водопад', 41.73176, 22.93313, 80, 'spikovo'],
+      ['Пехчево', 41.76357, 22.88730, 60, 'pehcevo'],
+      ['Смојмирово', 41.73678, 22.84107, 60],
+      ['Плоштад', 41.70654, 22.85682, 55, 'square'],
+    ],
+    spots: [
+      ['br.square', 'Плоштад „Димитар Беровски“', 41.70654, 22.85682, 50, 'square'],
+      ['br.mihail', 'Св. Архангел Михаил', 41.70104, 22.85902, 45, 'mihail'],
+      ['br.rozdestvo', 'Рождество на Пресвета Богородица', 41.70676, 22.85707, 35, 'rozdestvo'],
+      ['br.lake', 'Беровско Езеро', 41.67480, 22.89700, 150],
+      ['br.dam', 'Брана', 41.67078, 22.89440, 60],
+      ['br.pehcevo', 'Пехчево', 41.76207, 22.88728, 80],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.70654, 22.85682], near: 3000, far: 8000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.hills',
+    refillLabel: 'fire.refill.berovo',
+    bestRaceKey: 'skopje.bestRace.berovo',
+    banners: { fire: 'Беровско Езеро го спаси Берово!', roll: 'Поздрав од Малешево!' },
   },
 };
 
