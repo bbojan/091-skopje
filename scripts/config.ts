@@ -227,6 +227,24 @@ export const CITIES = {
     ],
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Вевчани: the land north and west of Охрид's map (docs/TOWNS_TODO.md, 12): Вевчани with its springs, Лабуништа,
+  // Подгорци, Требеништа, the Јабланица ridge. An L round Охрид's map, its west edge stepping ~2 km past the OSM border
+  // with Albania: Охрид's map and the steps beyond the edge are `cut`
+  vevcani: {
+    bbox: { s: 41.035, w: 20.47, n: 41.39, e: 20.815 },
+    tiles: [5, 5] as [number, number],
+    files: { raw: 'data/vevcani_raw.json', scene: 'public/vevcani.json', terrainBin: 'public/vevcani-terrain.bin', terrainJson: 'public/vevcani-terrain.json', overture: 'data/vevcani_overture.json' },
+    cut: [
+      { s: 41.035, w: 20.615, n: 41.205, e: 20.815 }, // Охрид
+      // the stepped west edge (towns plan): the parts of the rectangle beyond it, in Albania
+      { s: 41.035, w: 20.47, n: 41.085, e: 20.57 },
+      { s: 41.085, w: 20.47, n: 41.135, e: 20.56 },
+      { s: 41.135, w: 20.47, n: 41.185, e: 20.51 },
+      { s: 41.185, w: 20.47, n: 41.285, e: 20.49 },
+      { s: 41.385, w: 20.47, n: 41.39, e: 20.52 },
+    ],
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: Box; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec; cut?: Box[] }>;
 
 export type CityName = keyof typeof CITIES;

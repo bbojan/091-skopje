@@ -504,6 +504,29 @@ const PREP: Record<CityName, CityPrep> = {
     // Хотел и ресторан „Кањон Матка“ by the dam: two storeys (photos), not the four the guess gives
     relationTags: { 19955268: { 'building:levels': '2' } },
   },
+  vevcani: {
+    old: null,
+    square: [41.24030, 20.59230], // the middle of Вевчани
+    landmarks: {},
+    // modelled by hand after photos (src/vevcani.ts): Св. Никола with its bell tower and the white annex, one OSM outline
+    // (no name or tags in OSM; the photos' GPS is 20 m from it)
+    models: { vvnikola: 930990174 },
+    // wooden footbridges over the Вевчанска below the springs (OSM has one path bridge): [lat, lon, length, width, heading]
+    modelRects: {
+      vbr1: [41.239379, 20.585318, 7, 1.6, 2.639], vbr2: [41.239512, 20.585789, 7, 1.6, 0.303],
+      vbr3: [41.239280, 20.586218, 7, 1.6, 2.788], vbr4: [41.239476, 20.586788, 7, 1.6, 0.320],
+    },
+    placeNames: { globocica: 'Езеро Глобочица' },
+    placeIds: { springs: 228209293, nikola: 930990174, varvara: 930966104, belica: 712122418, lokov: 236587123, dimitrij: 853541376 },
+    placeNodes: { crnkamen: 698004658, strizak: 5020442822 },
+    nodeLL: { 698004658: [41.2462, 20.52182], 5020442822: [41.28461, 20.52955] }, // Црн Камен, Стрижак
+    tall: [],
+    mid: [],
+    squareBonus: false,
+    maxLevels: 5,
+    // the Вевчанска from the springs, a line in OSM: widened into a narrow strip of water under the footbridges
+    waterLines: [[228209279, 2.5]],
+  },
   brod: {
     old: null,
     square: [41.50676, 21.21943], // the paved square by the municipality building in Македонски Брод

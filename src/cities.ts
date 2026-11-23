@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'batinci', 'matka'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'vevcani', 'batinci', 'matka'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -662,6 +662,73 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.dojran',
     bestRaceKey: 'skopje.bestRace.dojran',
     banners: { fire: 'Дојранското Езеро го спаси Дојран!', roll: 'Ајде на дојранска мандра!' },
+  },
+  vevcani: {
+    id: 'vevcani', name: 'Вевчани', code: '046', icon: './favicon-vevcani.svg',
+    files: { scene: './vevcani.json', terrainBin: './vevcani-terrain.bin', terrainJson: './vevcani-terrain.json' },
+    sceneBytes: 5e6,
+    views: {
+      center: { ll: [41.24030, 20.59230], d: 480, polar: 0.8, az: 0.2 },
+      vvsprings: { ll: [41.23940, 20.58600], d: 150, polar: 0.55, az: 0.3 }, // the footbridges below the springs, from above (thick wood)
+      vvnikola: { place: 'nikola', ll: [41.23963, 20.58969], d: 110, polar: 0.95, az: 0.3 },
+      vvglobocica: { place: 'globocica', ll: [41.29500, 20.63700], d: 1800, polar: 1.1, az: 0.3 }, // under the clouds
+      vvjablanica: { ll: [41.26000, 20.52500], d: 5000, polar: 0.9, az: 1.2 }, // the ridge from the east, over the villages
+      // the map is an L round Охрид's map: its wide north part from the south-east
+      overview: { ll: [41.27000, 20.64000], d: 24000, polar: 0.85, az: 0.3 },
+    },
+    districts: [
+      ['Вевчани', 41.24027, 20.59227], ['Лабуништа', 41.26888, 20.59795, 30], ['Подгорци', 41.25930, 20.59717, 30],
+      ['Требеништа', 41.20756, 20.75265, 30], ['Октиси', 41.23196, 20.60545, 30], ['Долна Белица', 41.21195, 20.63516, 30],
+      ['Горна Белица', 41.22517, 20.55644, 30], ['Велешта', 41.24058, 20.64194, 30], ['Враништа', 41.21127, 20.66507, 30],
+      ['Драслајца', 41.21597, 20.69258, 30], ['Делогожди', 41.25767, 20.72171, 30], ['Бороец', 41.28781, 20.59833, 30],
+      ['Јабланица', 41.31978, 20.57327, 30], ['Глобочица', 41.31643, 20.64284, 30], ['Ботун', 41.28640, 20.78939, 30],
+      ['Мислодежда', 41.30095, 20.69072, 30], ['Луково', 41.35568, 20.60837, 30], ['Вишни', 41.19412, 20.59297, 30],
+      ['Јабланица', 41.27000, 20.51000, 150], ['Езеро Глобочица', 41.29500, 20.63700, 0],
+    ],
+    labels: [
+      ['Вевчански извори', 41.23948, 20.58478, 10, 'springs'],
+      ['Св. Никола', 41.23963, 20.58969, 18, 'nikola'],
+      ['Св. Варвара', 41.24709, 20.59418, 12, 'varvara'],
+      ['Св. Петка', 41.22474, 20.55662, 12, 'belica'],
+      ['Св. Димитриј', 41.32908, 20.60077, 12, 'dimitrij'],
+      ['Стар Локовски манастир', 41.38836, 20.65667, 12, 'lokov'],
+      ['Црн Камен', 41.24620, 20.52182, 20, 'crnkamen'],
+      ['Стрижак', 41.28461, 20.52955, 20, 'strizak'],
+      ['Брана Глобочица', 41.33731, 20.63433, 14],
+      ['Црн Дрим', 41.25000, 20.67000, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Вевчани', 41.24030, 20.59230, 60],
+      ['Вевчански извори', 41.23948, 20.58478, 40, 'springs'],
+      ['Горна Белица', 41.22517, 20.55644, 70],
+      ['Црн Камен', 41.24620, 20.52182, 110, 'crnkamen'],
+      ['Стрижак', 41.28461, 20.52955, 110, 'strizak'],
+      ['Јабланица', 41.31978, 20.57327, 80],
+      ['Брана Глобочица', 41.33731, 20.63433, 60],
+      ['Езеро Глобочица', 41.29500, 20.63700, 50],
+      ['Делогожди', 41.25767, 20.72171, 60],
+      ['Требеништа', 41.20756, 20.75265, 60],
+      ['Лабуништа', 41.26888, 20.59795, 60],
+      ['Вевчани', 41.24030, 20.59230, 55],
+    ],
+    spots: [
+      ['vv.village', 'Вевчани', 41.24030, 20.59230, 80],
+      ['vv.springs', 'Вевчански извори', 41.23948, 20.58478, 60, 'springs'],
+      ['vv.nikola', 'Св. Никола', 41.23963, 20.58969, 50, 'nikola'],
+      ['vv.labunista', 'Лабуништа', 41.26888, 20.59795, 80],
+      ['vv.globocica', 'Брана Глобочица', 41.33731, 20.63433, 200],
+      ['vv.jablanica', 'Црн Камен', 41.24620, 20.52182, 300, 'crnkamen'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.24030, 20.59230], near: 3000, far: 9000, min: 0.04, grow: 2.2 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.jablanica',
+    refillLabel: 'fire.refill.vevcani',
+    bestRaceKey: 'skopje.bestRace.vevcani',
+    banners: { fire: 'Изворите го спасија Вевчани!', roll: 'Поздрав од Вевчани!' },
   },
   matka: {
     id: 'matka', name: 'Матка', code: '02', icon: './favicon-matka.svg',

@@ -20,6 +20,7 @@ import { createTetovo, tetovoFootprints } from './tetovo.ts';
 import { createBrod, brodFootprints } from './brod.ts';
 import { createResen, resenFootprints } from './resen.ts';
 import { createMatka, matkaFootprints } from './matka.ts';
+import { createVevcani, vevcaniFootprints } from './vevcani.ts';
 import type { BuildingData, CityData, Flat, Pt, Vec3 } from './types.ts';
 
 // Hand-built models for landmarks that OSM can only describe as outlines.
@@ -237,6 +238,7 @@ export function landmarkFootprints(data: CityData, terrain: Terrain): BuildingDa
   for (const [r, h] of brodFootprints(data)) add(r, h); // Makedonski Brod: Зрзе
   for (const [r, h] of resenFootprints(data)) add(r, h); // Resen: the Сарај, Св. Петар on Голем Град, Курбиново
   for (const [r, h] of matkaFootprints(data)) add(r, h); // Матка: Св. Андреја, Св. Никола Шишевски
+  for (const [r, h] of vevcaniFootprints(data)) add(r, h); // Вевчани: Св. Никола
   const cl = canalLayout(data, terrain); // the Луда Мара's channel, open at the bridges
   if (cl) for (const b of canalFootprints(cl)) out.push({ ...b, id: -1 - out.length });
   return out;
@@ -1055,8 +1057,8 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
   if (ohrid?.group.children.length) { group.add(ohrid.group); nightGlass.push(...ohrid.nightLit); }
   // ---------------- Rostuše: Бигорски манастир, Св. Никола in Mavrovo (rostuse.ts); Prilep (prilep.ts); Kruševo (krusevo.ts);
   // Makedonska Kamenica (kamenica.ts); Dojran (dojran.ts); Batinci (batinci.ts); Berovo (berovo.ts); Tetovo (tetovo.ts);
-  // Makedonski Brod (brod.ts); Resen (resen.ts); Матка (matka.ts)
-  for (const make of [createRostuse, createPrilep, createKrusevo, createKamenica, createDojran, createBatinci, createBerovo, createTetovo, createBrod, createResen, createMatka]) {
+  // Makedonski Brod (brod.ts); Resen (resen.ts); Матка (matka.ts); Вевчани (vevcani.ts)
+  for (const make of [createRostuse, createPrilep, createKrusevo, createKamenica, createDojran, createBatinci, createBerovo, createTetovo, createBrod, createResen, createMatka, createVevcani]) {
     const t = L.models ? make(data, terrain, clippingPlanes) : null;
     if (t?.group.children.length) { group.add(t.group); nightGlass.push(...t.nightLit); }
   }

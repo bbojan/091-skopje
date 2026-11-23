@@ -1,10 +1,10 @@
 # Towns to do
 
-**Finished: 15 maps** (14 on the site, v14.0.1, 2026-11-21; 02 Матка built on 2026-11-23 on the branch `city-matka`,
-not yet released): 091 Скопје, 043 Кавадарци, 097 Битола,
+**Finished: 16 maps** (14 on the site, v14.0.1, 2026-11-21; 02 Матка and 046 Вевчани built on 2026-11-23, not yet
+released): 091 Скопје, 043 Кавадарци, 097 Битола,
 096 Охрид (with Струга), 048 Прилеп, 098 Крушево, 042 Ростуше (with Дебар and Маврово),
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
-045 Македонски Брод, 047 Ресен, 02 Матка. Details in the first table below.
+045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
@@ -17,12 +17,12 @@ out where a neighbour already is, `shapes` the full outline of a map that is not
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 29 new maps**, all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 28 new maps**, all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
 |---|---|---|---|---|---|---|
-| Куманово | 1620 | Куманово | | Вевчани | 690 | — |
+| Куманово | 1620 | Куманово | | | | |
 | Велес | 1540 | Велес | | Дебарца | 630 | — |
 | Мариово* | 1170 | — | | Демир Хисар | 620 | Демир Хисар |
 | Ново Село* | 1060 | — | | Свети Николе | 580 | Свети Николе |
@@ -48,7 +48,7 @@ in `scripts/config.ts`, `cutOsm()` in `scripts/osm.ts`, used by `prepare.ts` and
 points and buildings with a corner inside are dropped, roads and rivers split at the edge, areas clipped; download
 tiles wholly inside a cut are skipped), so the corner shows bare relief, as outside a map. The cuts so far:
 Дебарца (Охрид's corner), Демир Хисар (Ресен's), Мариово (Кавадарци's), Вевчани (all of Охрид's
-map: Вевчани is an L around its north-west), Делчево (Берово's and Радовиш's), Радовиш (Делчево's), Кратово (Крива Паланка's).
+map: Вевчани is an L around its north-west; built: Охрид's map and the stepped border edge cut), Делчево (Берово's and Радовиш's), Радовиш (Делчево's), Кратово (Крива Паланка's).
 Гевгелија (Дојран's). Велес, Матка (built: Скопје's and Брод's corners cut), Пелагонија, Скопска Црна Гора, Крива Паланка, Делчево, Мариово, Вевчани, Кораб,
 Куманово and Ново Село are not rectangles with one corner cut but outlines that go around several maps
 (`shapes` in the plan page); in the app they would be their bounding rectangle with those maps cut out.
@@ -84,7 +84,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 13 | Демир Хисар | 620 | Демир Хисар | 11 |
 | 14 | Дебарца | 630 | — | 27 |
 | 15 | Струмица | 690 | Струмица | 4 |
-| 16 | Вевчани | 690 | — | 12 |
+| 16 | ~~Вевчани~~ built (2026-11-23, out of order) | 690 | — | 12 |
 | 17 | Пелагонија* | 730 | — | 21 |
 | 18 | Кратово | 750 | Кратово | 2 |
 | 19 | Делчево | 770 | Делчево | 13 |
@@ -102,7 +102,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 
 \* working names. Next to build: the first row.
 
-## Finished (15 maps; Матка not yet on the site)
+## Finished (16 maps; Матка and Вевчани not yet on the site)
 
 | Map | Also on it | `?city=` | bbox (s, w, n, e) |
 |---|---|---|---|
@@ -121,6 +121,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 045 Македонски Брод | Козјак, Света Петка, Зрзе, Солунска Глава | `brod` | 41.45, 21.12, 41.926, 21.42 |
 | 047 Ресен | the whole of Преспа, Голем Град, Мала Преспа | `resen` | 40.685, 20.845, 41.13, 21.165 |
 | 02 Матка | Св. Андреја, Св. Никола Шишевски, Сарај, Сува Гора | `matka` | 41.725, 21.06, 42.075, 21.385 (Скопје's and Брод's corners cut) |
+| 046 Вевчани | Лабуништа, Подгорци, Белица, Јабланица, Глобочица | `vevcani` | 41.035, 20.47, 41.39, 20.815 (Охрид's map and the steps past the border cut) |
 
 ## Planned maps
 
@@ -263,7 +264,15 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   is left out of this map.
 - **Landmarks:** Слепче, Смилево (the Илинден congress), the Црна's upper valley.
 
-### 12. Вевчани
+### 12. 046 Вевчани — built (2026-11-23, branch `city-vevcani`)
+
+- **Built** on the outline below (the plan page's `shapes`): the bounding rectangle 41.035–41.39 N, 20.47–20.815 E
+  (terrain 1446 × 1977 cells of 20 m, 418–2216 m) with six `cut` rectangles: Охрид's map (41.035–41.205 N,
+  20.615–20.815 E) and the five steps of the west edge past the border. Code **046** and the owner's LinkedIn
+  (asked); in the city menu right after Македонска Каменица (the owner). Raw OSM from Geofabrik (Macedonia +
+  Albania), 19,988 Overture outlines added. Models (src/vevcani.ts): Св. Никола (OSM's untagged outline), four
+  wooden footbridges over the Вевчанска below the springs (widened into water with `waterLines`). Refill: Езеро
+  Глобочица. Not done: the old houses, the springs' pools, Св. Варвара and the other churches (labels only).
 
 - **On it:** Вевчани (springs, the old village), Лабуништа, Подгорци, the
   Albanian side as far as Ростуше's map reaches.

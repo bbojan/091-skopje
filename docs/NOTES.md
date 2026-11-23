@@ -589,6 +589,22 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    scene objects back exactly), Skopje pixel check (0 except 11–13 pixels at the gondola cabins in the three
    overviews). Not checked: phones, firefighting, the race, walking cards one by one, night and snow views.
    Not modelled: the Матка monastery and Св. Ѓорѓија in Кучково (labels and cards only).
+39. **046 Вевчани** (Nov 2026, branch `city-vevcani`, not yet released): Дримкол north and west of Охрид's map (docs/
+   TOWNS_TODO.md, 12): Вевчани with its springs, Лабуништа, Подгорци, Белица, Требеништа, the Јабланица ridge, Езеро
+   Глобочица. The second map on an outline: its bounding rectangle (41.035–41.39 N, 20.47–20.815 E, 29 × 40 km,
+   20 m cells, 418–2216 m) with six `cut` rectangles, Охрид's map and the five steps of the west edge that the plan
+   draws ~2 km past the OSM border. Raw OSM from Geofabrik (Macedonia + Albania extracts): 16,228 features dropped,
+   292 clipped; 19,988 Overture outlines; nothing of the scene inside a cut (checked). Models (`src/vevcani.ts`, after
+   Commons photos): **Св. Никола** on OSM's untagged 34 × 13 m outline (the photos' GPS 20 m from it: a grey ashlar
+   basilica under a hipped tile roof, the bell tower with an open brick belfry, the white two-storey annex; which
+   end is the church was not checked); four **wooden footbridges** over the Вевчанска below the springs
+   (`modelRects` along OSM's river line; the river widened into water with `waterLines`). **Model keys are shared
+   across cities**: the first key, `nikola`, also drew Ростуше's Св. Никола of Маврово (an apse and windows) on
+   Вевчани's outline; renamed `vvnikola` (Матка's keys checked: no clash). In the city menu right after Македонска
+   Каменица (the owner). Badge 046 and the owner's LinkedIn, both asked. Tow banners: „Изворите го спасија
+   Вевчани!“ / „Поздрав од Вевчани!“. Checked: typecheck, build, the map loads with no console errors, Св. Никола and
+   the footbridges looked at, the overview, Skopje pixel check (0 on all nine views). Not checked: phones,
+   firefighting, the race, walking cards one by one, night and snow views.
 
 ## Key decisions (and why)
 
@@ -693,6 +709,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Makedonski Brod | `skopje.bestRace.brod` | none |
 | Best race time in Resen | `skopje.bestRace.resen` | none |
 | Best race time in Матка | `skopje.bestRace.matka` | none |
+| Best race time in Вевчани | `skopje.bestRace.vevcani` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.

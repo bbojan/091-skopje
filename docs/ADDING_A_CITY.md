@@ -350,6 +350,9 @@ Shortcuts and fixes that came out of the third city; reuse them before writing n
 - **A lake a few cells wide** (a reservoir in a canyon on 20 m cells): its draped edge climbs the walls. `waterPad`
   (metres) in the terrain spec lowers the ground round flat lakes to just above the water.
 - **A building that is an OSM multipolygon:** `buildingTags` applies to ways only; use `relationTags`.
+- **Model keys are global:** every city's model file builds whatever keys it knows from `landmarks.models`, on any
+  map. A key another city already uses (Вевчани's first `nikola` drew Ростуше's Маврово church on its outline) needs a
+  prefix of the city's own: `grep -n "M\.<key>" src/*.ts` before choosing one.
 - **A second worktree for the pixel check:** the references live in the page's IndexedDB, so serve the old code and
   the new one one after the other on the same port (one launch entry per worktree), not on two ports.
 
