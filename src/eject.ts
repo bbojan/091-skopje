@@ -55,7 +55,9 @@ export function createEject(o: { scene: THREE.Scene; camera: THREE.PerspectiveCa
   domeGeo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
   domeGeo.scale(1, 0.75, 1);
   const chute = new THREE.Group();
-  const dome = new THREE.Mesh(domeGeo, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }));
+  // a little see-through (the city shows faintly through the canopy); it keeps its ink outline
+  const dome = new THREE.Mesh(domeGeo, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: 0.8, depthWrite: false }));
+  dome.renderOrder = 4;
   dome.castShadow = true;
   const rimY = R * 0.75 * Math.cos(Math.PI / 2.7), rimR = R * Math.sin(Math.PI / 2.7);
   dome.position.y = 6.2 - rimY;
