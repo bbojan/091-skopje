@@ -85,6 +85,7 @@ npm run country      # the whole country at 100 m → public/country.png/.json (
 | `i18n-towns3.ts` | UI texts of Матка and Вевчани, spread into `STR` after `TOWNS2` |
 | `i18n-country.ts` | UI texts of the country view, spread into `STR` after `TOWNS3` |
 | `country.ts` | Country view (Macedonia, first in the city menu): all of Macedonia at 100 m from `public/country.png` (heights, land cover, border), its own scene / camera / controls drawn through the same ink renderer (`renderCountry()` in `main.ts`), zones as a canvas overlay, hover, picking by marching the height grid, badges that open a city; the data is loaded once and kept for the visit (`loadCountry`, meant for the F-15 too) |
+| `countryground.ts` | The country's 100 m terrain around a city map while the F-15 flies: one CPU-built grid following the plane (fine near, ~0.7 km cells at 45 km), sunk below the map inside it, the map's own exaggeration; the flight and the rockets use its height beyond the map's edges. While it shows, the ink's normal pass is not clipped to the map (`ink.setClipping`) |
 | `zones.ts` | The towns plan's zones (finished and planned maps' outlines): one list for the country view and `scripts/towns-map.html` |
 | `i18n.ts` | UI translations (mk, en, sr Cyrillic, hr, sl, sq): `t(key)`, `data-i18n*` attributes in `index.html`, 🌐 picker, auto-detect, `?lang=` |
 | `types.ts` | Shared types: 2D geometry (`Pt`, `Ring`, `Poly`) and the `skopje.json` format (`CityData`) written by `prepare.ts` |

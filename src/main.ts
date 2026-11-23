@@ -21,6 +21,7 @@ import { createMapInput, readPad } from './input.ts';
 import { LANGS, lang, t, applyI18n, setLang, onLangChange, type Key } from './i18n.ts';
 import { CITIES, CITY_IDS, cityFromUrl, urlForCity, type CityId, type CitySpec } from './cities.ts';
 import { loadCountry, createCountryView, type CountryView } from './country.ts';
+import { createCountryGround, type CountryGround } from './countryground.ts';
 import type { CityData, MapMeta, TerrainMeta, Vec3 } from './types.ts';
 
 /** From package.json, injected by vite.config.ts. */
@@ -242,6 +243,45 @@ const nextFrame = () => new Promise<void>((resolve) => {
 
 let loading = false;
 let shadowReady = false;
+/** the map's clipping planes (the ink's normal pass is clipped to them, except while the country's ground shows) */
+let mapPlanes: THREE.Plane[] = [];
+// ---------------- the country's 100 m terrain around the map, while the F-15 flies (src/countryground.ts)
+let cground: CountryGround | null = null;
+let cgroundFor: World | null = null; // the world it was built for (null while loading the data)
+let cgroundLoading = false;
+/** the ground at a scene point: the map's terrain on the map, the country's beyond its edges (when loaded) */
+function groundAt(x: number, z: number): number {
+  const w = world;
+  if (!w) return 0;
+  if (cground && cgroundFor === w && (Math.abs(x) > w.meta.w / 2 || Math.abs(z) > w.meta.h / 2)) return cground.height(x, z);
+  return w.terrain.at(x, z);
+}
+/** show the country's ground around the map (downloaded the first time), or hide it */
+function showCountryGround(on: boolean, x = 0, z = 0): void {
+  const w = world;
+  if (!w) return;
+  if (on && (!cground || cgroundFor !== w)) {
+    if (!cgroundLoading) {
+      cgroundLoading = true;
+      loadCountry(() => {}).then((data) => {
+        cgroundLoading = false;
+        if (world !== w) return; // another map by now: built on the next frame
+        cground = createCountryGround({ data, meta: w.meta, exag: w.spec.terrainExag, mobile: MOBILE });
+        cgroundFor = w;
+        scene.add(cground.mesh);
+      }).catch((e) => { cgroundLoading = false; console.warn('country terrain:', e); });
+    }
+    return;
+  }
+  if (!cground || cgroundFor !== w) return;
+  if (on !== cground.visible) {
+    cground.setVisible(on);
+    ink.setClipping(on ? [] : mapPlanes); // its depth beyond the map is needed for the haze and the ink lines
+    w.flight.setGround(on ? groundAt : null);
+    camDirty = true;
+  }
+  if (on) cground.update(x, z);
+}
 /** how long each step of the last load took, ms (window.__dbg.loadTimes; docs/NOTES.md "Load times") */
 let loadTimes: Record<string, number> = {};
 /** Builds the city in stages behind the loading card; `world` is set when everything exists. */
@@ -287,6 +327,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
     new THREE.Plane(new THREE.Vector3(0, 0, -1), H / 2 + m),
   ];
   ink.setClipping(planes);
+  mapPlanes = planes;
   showProgress('pack', 1);
   await nextFrame();
   mark('yield');
@@ -330,7 +371,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   const flight = createFlight({ scene, camera, terrain, bounds: { hw: W / 2, hh: H / 2 }, signal: abort.signal, banner: { ...spec.banners, code: spec.code } });
   flight.setInvertY(invertPlane);
   ink.skipNormal.push(...flight.flames); // the F-15's afterburner: see-through
-  const rockets = createRockets({ ground: (x, z) => terrain.at(x, z), light: MOBILE });
+  const rockets = createRockets({ ground: groundAt, light: MOBILE });
   scene.add(rockets.group);
   ink.skipNormal.push(...rockets.noInk);
   // firefighting: fires, smoke and water are see-through (no ink lines)
@@ -453,6 +494,8 @@ function disposeTree(root: THREE.Object3D): void {
 function unloadWorld(): void {
   const w = world;
   if (!w) return;
+  if (cground && cgroundFor === w) { cground.setVisible(false); ink.setClipping(mapPlanes); }
+  cground = null; cgroundFor = null; // its mesh goes with the scene below
   resumeWalk = false;
   if (w.flight.active) stopFlight();
   if (w.drive.active) stopDrive();
@@ -800,7 +843,7 @@ function fitShadow(extOverride?: number): void {
 function updateCameraRange(): void {
   const d = camera.position.distanceTo(controls.target);
   camera.near = THREE.MathUtils.clamp(d / 45, 4, 400);
-  camera.far = d * 6 + 20000;
+  camera.far = d * 6 + (cground?.visible ? 70000 : 20000); // the F-15 sees the country's mountains far out
   camera.updateProjectionMatrix();
 }
 
@@ -1049,6 +1092,7 @@ function stopFlight(): void {
   fire.stop();
   flight.setFire(false); // the plane parked on the Square is the usual one
   flight.setJet(false);
+  showCountryGround(false);
   ink.outMat.uniforms.heatOn.value = 0;
   world.rockets.clear();
   soundFx.fire = 0; soundFx.dropping = soundFx.scooping = false;
@@ -1575,6 +1619,7 @@ renderer.setAnimationLoop(() => {
     return;
   }
   if (flight.active) {
+    showCountryGround(flight.jet, flight.pos.x, flight.pos.z);
     flight.update(dt);
     controls.target.copy(flight.pos); // drives shadows, LOD and traffic sizing
     updateCameraRange();

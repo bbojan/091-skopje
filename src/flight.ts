@@ -591,30 +591,35 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
   addEventListener('keyup', onKey(false), { signal });
   addEventListener('blur', () => Object.assign(input, idle), { signal });
 
+  /** the ground under the plane: the map's terrain, or (the F-15) the country's beyond the map's edges */
+  let groundFn: ((x: number, z: number) => number) | null = null;
+  const groundAt = (x: number, z: number) => (groundFn ? groundFn(x, z) : terrain.at(x, z));
+
   /** start a roll (dir 1 right, -1 left) or a loop (1 up and over, -1 nose down and under); false if it cannot start now */
   function startStunt(kind: 'roll' | 'loop', dir: 1 | -1): boolean {
     if (!st.active || stunt) return false;
     if (kind === 'loop' && dir < 0) {
-      const room = st.pos.y - terrain.at(st.pos.x, st.pos.z) - st.floor - 25;
+      const room = st.pos.y - groundAt(st.pos.x, st.pos.z) - st.floor - 25;
       if (room < (2 * st.speed) / LOOP_RATE + 10) { lowT = 1.5; return false; }
     }
     stunt = { kind, dir, a: 0 };
     return true;
   }
 
-  function start(target: THREE.Vector3, yaw: number): void {
+  /** take off over `target` facing `yaw`; `carry` keeps the height above the ground, speed and pitch (the F-15 flying into the next map) */
+  function start(target: THREE.Vector3, yaw: number, carry?: { agl: number; speed: number; pitch: number }): void {
     st.active = true;
     st.yaw = yaw;
-    st.pitch = 0;
+    st.pitch = carry?.pitch ?? 0;
     st.bank = 0;
-    st.speed = craft.speed;
+    st.speed = carry?.speed ?? craft.speed;
     st.floor = floorWant = craft.floor;
     st.side = st.swing = st.aim = st.drop = 0;
     stunt = null;
     lowT = 0;
     aim = falling = false;
     banner.hide();
-    st.pos.set(target.x, Math.max(target.y, terrain.at(target.x, target.z)) + craft.start, target.z);
+    st.pos.set(target.x, carry ? groundAt(target.x, target.z) + carry.agl : Math.max(target.y, groundAt(target.x, target.z)) + craft.start, target.z);
     plane.visible = true;
     forward(fwd);
     camPos.copy(st.pos).addScaledVector(fwd, -craft.back - 8).add(new THREE.Vector3(0, craft.up + 2, 0));
@@ -639,7 +644,7 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     floorWant = craft.floor;
     if (st.active) {
       // switched while flying: up to the new floor, and the speed eases toward the new cruise
-      st.floor = Math.max(st.floor, Math.min(floorWant, st.pos.y - terrain.at(st.pos.x, st.pos.z)));
+      st.floor = Math.max(st.floor, Math.min(floorWant, st.pos.y - groundAt(st.pos.x, st.pos.z)));
     }
   }
 
@@ -673,13 +678,13 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     // ground / ceiling; the floor comes down quickly over water and rises gently after it
     st.floor += THREE.MathUtils.clamp(floorWant - st.floor, -40 * dt, 14 * dt);
     const floor = st.floor, soft = jet ? 120 : 8 + 17 * THREE.MathUtils.clamp((floor - 8) / (MIN_AGL - 8), 0, 1); // 25 m at the normal floor
-    let ground = terrain.at(st.pos.x, st.pos.z);
+    let ground = groundAt(st.pos.x, st.pos.z);
     // the F-15 looks ahead over the terrain: at its speed a ridge 1 s away is 0.4–0.7 km off
     if (jet) {
       const sx = Math.sin(st.yaw), sz = -Math.cos(st.yaw);
-      for (const s of [0.5, 1, 1.8]) ground = Math.max(ground, terrain.at(st.pos.x + sx * st.speed * s, st.pos.z + sz * st.speed * s) - 25 * s);
+      for (const s of [0.5, 1, 1.8]) ground = Math.max(ground, groundAt(st.pos.x + sx * st.speed * s, st.pos.z + sz * st.speed * s) - 25 * s);
     }
-    const under = terrain.at(st.pos.x, st.pos.z);
+    const under = groundAt(st.pos.x, st.pos.z);
     const agl = st.pos.y - ground;
     if (agl < floor + soft) { climb = Math.max(climb, (floor + soft - agl) / soft); if (st.pos.y - under < floor + 5) st.warn = 'low'; }
     if (st.pos.y > craft.maxAlt) climb = Math.min(climb, -0.5);
@@ -712,7 +717,7 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
       st.pos.x = THREE.MathUtils.clamp(st.pos.x, -hw + 60, hw - 60);
       st.pos.z = THREE.MathUtils.clamp(st.pos.z, -hh + 60, hh - 60);
     }
-    st.pos.y = Math.max(st.pos.y, terrain.at(st.pos.x, st.pos.z) + floor * (jet ? 0.5 : 1));
+    st.pos.y = Math.max(st.pos.y, groundAt(st.pos.x, st.pos.z) + floor * (jet ? 0.5 : 1));
 
     plane.position.copy(st.pos);
     plane.rotation.set(st.pitch, -st.yaw, st.bank + roll, 'YXZ');
@@ -755,7 +760,7 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     // in a loop the camera stays level behind the plane and watches it go round
     const camPitch = looping ? Math.sin(st.pitch) * 0.32 : st.pitch;
     const want = st.pos.clone().addScaledVector(flat, -back).add(new THREE.Vector3(0, craft.up + AIM_UP * far - camPitch * 30, 0));
-    const camGround = terrain.at(want.x, want.z) + 12;
+    const camGround = groundAt(want.x, want.z) + 12;
     if (want.y < camGround) want.y = camGround;
     camPos.lerp(want, dt === 0 ? 1 : 1 - Math.exp(-dt * 3.5));
     camera.position.copy(camPos);
@@ -786,6 +791,9 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     /** the F-15 (free flight only): its own speeds, floor and camera; while flying it changes on the spot */
     setJet,
     get jet(): boolean { return jet; },
+    /** the ground beyond the map's edges (the F-15 over the country's terrain); null: the map's terrain everywhere */
+    setGround(fn: ((x: number, z: number) => number) | null): void { groundFn = fn; },
+    get pitch(): number { return st.pitch; },
     /** the plane flies on over an edge where this says yes (a neighbouring map is ready); null: always turn back */
     setEdgeOpen(fn: ((x: number, z: number) => boolean) | null): void { edgeOpen = fn; },
     /** the F-15's afterburner flames, see-through (for the ink's skipNormal) */
@@ -812,7 +820,7 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     get yaw(): number { return st.yaw; },
     get pos(): THREE.Vector3 { return st.pos; },
     get hud() {
-      return { kmh: Math.round(st.speed * 3.6), alt: Math.round(st.pos.y - terrain.at(st.pos.x, st.pos.z)), warn: st.warn, boost: (input.boost || pad.boost) && !(input.slow || pad.slow), slow: input.slow || pad.slow };
+      return { kmh: Math.round(st.speed * 3.6), alt: Math.round(st.pos.y - groundAt(st.pos.x, st.pos.z)), warn: st.warn, boost: (input.boost || pad.boost) && !(input.slow || pad.slow), slow: input.slow || pad.slow };
     },
   };
 }

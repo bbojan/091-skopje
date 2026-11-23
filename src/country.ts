@@ -2,7 +2,7 @@
 // drawn on it (src/zones.ts). A finished map opens with a click; a planned one shows its name and "наскоро".
 // Its own scene, camera and controls, drawn through the same ink renderer as the cities (main.ts swaps it in).
 // The data is downloaded once, the first time the view opens, and stays in memory for the rest of the visit,
-// across city switches (`loadCountry` caches it); the F-15 is meant to reuse it later.
+// across city switches (`loadCountry` caches it); the F-15 reuses it (src/countryground.ts).
 import * as THREE from 'three';
 import { MapControls } from 'three/addons/controls/MapControls.js';
 import { PAL } from './city.ts';
@@ -26,6 +26,17 @@ export interface CountryData {
 
 /** land cover classes, as written by scripts/country.ts */
 const COVER = { none: 0, meadow: 1, field: 2, forest: 3, water: 4, town: 5, rock: 6, vine: 7 } as const;
+
+/** the land cover classes' colours, in the cities' palette (index: class); shared with the F-15's ground */
+export function coverPalette(): THREE.Color[] {
+  const c = (s: string) => new THREE.Color(s);
+  const COL: THREE.Color[] = [];
+  COL[COVER.none] = c(PAL.hill); COL[COVER.meadow] = c(PAL.area.scrub); COL[COVER.field] = c('#dccf8e');
+  COL[COVER.forest] = c(PAL.forest[1]); COL[COVER.water] = c(PAL.area.water); COL[COVER.town] = c('#e9c9b0');
+  COL[COVER.rock] = c('#d9cdb8'); COL[COVER.vine] = c('#b9c16a');
+  return COL;
+}
+export const COVER_WATER = COVER.water;
 
 let cached: Promise<CountryData> | null = null;
 /** Downloads and decodes the country grid once per visit; later calls get the same data. */
@@ -130,10 +141,7 @@ export function createCountryView(o: {
   const gw = Math.floor((nx - 1) / st) + 1, gh = Math.floor((nz - 1) / st) + 1;
   const pos = new Float32Array(gw * gh * 3), col = new Float32Array(gw * gh * 3);
   const c = (s: string) => new THREE.Color(s);
-  const COL: THREE.Color[] = [];
-  COL[COVER.none] = c(PAL.hill); COL[COVER.meadow] = c(PAL.area.scrub); COL[COVER.field] = c('#dccf8e');
-  COL[COVER.forest] = c(PAL.forest[1]); COL[COVER.water] = c(PAL.area.water); COL[COVER.town] = c('#e9c9b0');
-  COL[COVER.rock] = c('#d9cdb8'); COL[COVER.vine] = c('#b9c16a');
+  const COL = coverPalette();
   const paper = c(PAL.paper), snowy = c('#efe9e0'), tmp = new THREE.Color();
   for (let gj = 0; gj < gh; gj++)
     for (let gi = 0; gi < gw; gi++) {
