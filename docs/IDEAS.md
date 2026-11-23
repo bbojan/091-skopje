@@ -78,7 +78,8 @@ Order of work:
 1. **Measure** every finished map: download, and time per preparing step (parse / steps / assemble / bake /
    shaders), memory, on desktop and a phone.
 2. **The F-15** in free flight.
-3. **A 100 m terrain of the whole country**, loaded the first time the F-15 is switched on (below).
+3. **A 100 m terrain of the whole country**: the data exists (built for the country view, `public/country.png`, kept in
+   memory once loaded); what is left is drawing it around the map while the F-15 flies (below).
 4. **Map-to-map flight** for the F-15: prediction, background downloads, indicator, the switch at the edge.
 5. **The fast switch:** low detail first, entry chunks first, shaders kept, far-ground textures later.
 6. Only if the measurements ask for it: preparing part of the next map ahead (desktop), or a binary data format. With both switched off, Скопје stays pixel-identical.
@@ -133,15 +134,14 @@ Order of work:
   30–100 tiles; a new step in the scripts writes one file to `public/`.
 - **Скопје pixel-identical:** nothing changes outside the F-15, so the reference images stay as they are.
 
-### Later: a country view to pick a city (the owner's idea, 2026-11-23; not planned yet)
+### Country view to pick a city — ✅ built (2026-11-23, the owner moved it ahead of the F-15)
 
-- The same 100 m country terrain (heights, шуми, ниви, езера), seen from high above, **with the zones of the towns
-  plan drawn on it** (the outlines from `scripts/towns-map.html`: finished maps solid with their badge, planned ones
-  dashed and pale, as in `docs/towns-map.png`). A click on a finished map opens it; a planned one shows its name and
-  "наскоро".
-- Opened from the city menu (an extra item) and loaded only then, like the F-15 loads it, so nobody else pays for it.
-- Comes after the F-15 work, which builds the terrain it needs. The outlines would move from the plan page into data
-  the app reads (one list for both), so a map built later shows up in the view by itself.
+- Opened by the round Macedonia button right of the `?` (not from the city menu). `src/country.ts`, data
+  `public/country.png` + `.json` (`npm run country`), zones `src/zones.ts`; how it works: "Country view" in
+  [NOTES.md](NOTES.md).
+- Its data is the 100 m country grid planned for the F-15 below (heights, land cover, border), downloaded the first
+  time the view opens and **kept in memory for the rest of the visit** (`loadCountry()` caches it): the F-15 is to
+  reuse it, not download it again. Not done for the F-15 yet: drawing it under and around a city map.
 
 ### Flying from map to map (F-15 only)
 

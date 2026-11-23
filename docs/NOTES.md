@@ -563,7 +563,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    top to bottom (`fitCityMenu()` in `main.ts`, `.city-menu.cols`): as many as the height needs and the width allows,
    measured, then it scrolls. 3 columns at 844 × 390, 2 scrolling at 640 × 300, desktop unchanged. The picker's order
    follows the map: Берово, Тетово, Ресен, Брод, Каменица, Батинци. The towns map (docs/towns-map.png) is drawn by
-   `scripts/towns-map.html`.
+   `scripts/towns-map.html` from the zones in `src/zones.ts`.
 38. **02 Матка** (Nov 2026, branch `city-matka`, not yet released): the land west of Скопје between Тетово's and Брод's
    maps (docs/TOWNS_TODO.md, 20): the Матка canyon with its lake and dam, Св. Андреја, Св. Никола Шишевски, the
    Матка monastery, Пештера Врело, Сарај's villages, Сува Гора, Езеро Треска. **The first map that is not a rectangle**:
@@ -605,6 +605,29 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    Вевчани!“ / „Поздрав од Вевчани!“. Checked: typecheck, build, the map loads with no console errors, Св. Никола and
    the footbridges looked at, the overview, Skopje pixel check (0 on all nine views). Not checked: phones,
    firefighting, the race, walking cards one by one, night and snow views.
+
+## Country view (Nov 2026)
+
+- **What:** the round Macedonia button after the `?` shows the whole country with every map's zone (`src/zones.ts`,
+  the same list as `scripts/towns-map.html`): finished maps solid with their badge (a click opens the city), planned
+  ones dashed, their names with "наскоро" when zoomed in. Escape or ✕ goes back to the map.
+- **Data:** `public/country.png` (4.4 MB) + `country.json`, written by `npm run country` (`scripts/country.ts`):
+  a 2251 × 2004 grid at 100 m over 40.62–42.42 N, 20.40–23.10 E. One RGB PNG: R, G the height in whole metres above
+  `min` (metres, not decimetres: 4.4 instead of 6.9 MB); B the land cover class + 128 inside the border. Heights from
+  Terrarium zoom 11 (224 tiles, the average of four samples per cell), lakes flattened at their 20th-percentile
+  height. Land cover and the border from `data/country_cover.json`, made by `scripts/country_cover.py` (pyosmium,
+  Geofabrik's Macedonia extract, so no land cover outside the border; the neighbours are drawn pale anyway).
+- **Drawing:** its own scene, camera and controls; `renderCountry()` in `main.ts` draws it through the same
+  `InkRenderer` with the city's cloud shadows off, its clipping planes off and the haze scaled to the camera
+  distance, and puts them back after. Relief exaggerated 2.6×, 1 scene unit = 20 m, a grid mesh of every 3rd cell
+  (phones every 4th), vertex colours in the cities' palette; zones and border are a canvas texture (3072 px, phones
+  2048), the hover a zone-id texture. Picking marches the ray over the height grid (no triangle raycast).
+- **Memory:** the data is loaded once (`loadCountry()` caches it) and stays for the visit, across city switches,
+  for the F-15 later; the built view stays too. The city stays built underneath while the view is open.
+- **Measured** (M5 Pro, 1024×768 window, 1536×1152 render): opening from a warm cache 0.19 s including decoding and
+  building; ~3 ms GPU per frame once warmed up, and nothing is drawn once the frame has converged. Skopje after
+  opening and closing: pixel-identical (0 of 4.76 M values differ, clock frozen). Phone layout checked at an emulated
+  375×812: a steeper, further view and the names only, zoomed out.
 
 ## Key decisions (and why)
 
@@ -859,6 +882,8 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 
 ## Not verified yet
 
+- The country view on a real phone (memory with the city built underneath, touch picking and pinch) and on a slow
+  connection (4.4 MB on the first open; the progress card was only seen from a local server).
 - Bitola on a phone (layout, memory with 25,515 buildings) and its load time next to the other
   cities; Манаки's walking and filming only by stepping the simulation in a hidden pane.
 - Real iPhone/iPad — only emulated. Memory limits there: see "A larger map" at the end.

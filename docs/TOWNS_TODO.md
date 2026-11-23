@@ -7,10 +7,12 @@
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
-The map is drawn by [scripts/towns-map.html](../scripts/towns-map.html) (d3 from a CDN; the boxes are typed in
-by hand: move a town from `planned` to `existing` when it is built; `cuts` holds the corners a planned map leaves
-out where a neighbour already is, `shapes` the full outline of a map that is not a rectangle with cut corners,
-`labelAt` where a name goes when the box's middle is not on the map; the line under the map lists overlaps). With `npm run dev` running:
+The map is drawn by [scripts/towns-map.html](../scripts/towns-map.html) (d3 from a CDN). The zones themselves are
+[src/zones.ts](../src/zones.ts), one list with the app's country view: move a town from `PLANNED` to `EXISTING` (and
+add it to `CITY_OF`) when it is built; `CUTS` holds the corners a planned map leaves out where a neighbour already
+is, `SHAPES` the full outline of a map that is not a rectangle with cut corners, `LABEL_AT` where a name goes when
+the box's middle is not on the map; the line under the map lists overlaps. The page imports that file, so it only
+opens through the dev server. With `npm run dev` running:
 
 ```bash
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
@@ -394,7 +396,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 - **On it:** the Pelagonian plain and hills around Крушево and Прилеп: Долнени, Кривогаштани, Житоше, Ропотово,
   Сливје, Тополчани, Чепигово; the road and railway between Прилеп and Велес up to Плетвар.
 - **Name / code:** open (working name Пелагонија).
-- **Extent:** decided with the owner on 2026-11-23, an outline with 90° corners (`shapes` in `scripts/towns-map.html`):
+- **Extent:** decided with the owner on 2026-11-23, an outline with 90° corners (`SHAPES` in `src/zones.ts`):
   w 21.12 (Кичево's and Дебарца's e), e 21.85 (Кавадарци's w), n 41.45 (Брод's s) and 41.462 (Стоби's s), s 41.33 (Демир Хисар's n)
   and 41.31 (Мариово's n); Крушево's and Прилеп's maps are cut out of its south edge. Its rectangle would be
   41.31–41.462 N, 21.12–21.85 E. About 720 km², 20 m cells. No overlaps. With it every part of the country is on a map.
