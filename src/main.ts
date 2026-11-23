@@ -636,7 +636,8 @@ function hideLoader(): void {
 }
 /** Badge, title, help and the city's own menu items (`data-city` in index.html). */
 function applyCityChrome(spec: CitySpec): void {
-  document.title = `${spec.code} ${spec.name}`;
+  titleBase = `${spec.code} ${spec.name}`;
+  document.title = titleBase;
   $<HTMLLinkElement>('favicon').href = spec.icon;
   for (const id of CITY_IDS) document.body.classList.toggle(`city-${id}`, id === spec.id);
   document.body.classList.toggle('no-buses', !spec.buses); // hides 🚌 (the drivable ЈСП bus)
@@ -941,7 +942,7 @@ shareBtn.addEventListener('click', async () => {
   history.replaceState(null, '', hashOwn);
   const url = location.href;
   try {
-    if (MOBILE && navigator.share) { await navigator.share({ title: document.title, url }); return; }
+    if (MOBILE && navigator.share) { await navigator.share({ title: titleBase, url }); return; }
     await navigator.clipboard.writeText(url);
     shareBtn.textContent = t('share.copied');
     setTimeout(() => (shareBtn.textContent = t('share')), 1600);
@@ -971,6 +972,26 @@ smoothBtn.addEventListener('click', () => {
   ink.setMSAA(smoothEdges);
   try { localStorage.setItem('skopje.smooth', smoothEdges ? '1' : '0'); } catch { /* storage unavailable */ }
 });
+// 📈 frames per second in the window's title: on unless switched off, and the choice is saved
+let titleBase = document.title, fpsOn = true, fpsFrames = 0, fpsT = performance.now();
+try { fpsOn = localStorage.getItem('skopje.fps') !== '0'; } catch { /* storage unavailable */ }
+const fpsBtn = $('fps');
+setOn(fpsBtn, fpsOn);
+fpsBtn.addEventListener('click', () => {
+  fpsOn = !fpsOn;
+  setOn(fpsBtn, fpsOn);
+  if (!fpsOn) document.title = titleBase;
+  try { localStorage.setItem('skopje.fps', fpsOn ? '1' : '0'); } catch { /* storage unavailable */ }
+});
+/** counts the frame loop's frames; once a second the title shows them */
+function countFps(): void {
+  fpsFrames++;
+  const now = performance.now();
+  if (now - fpsT < 1000) return;
+  if (fpsOn && !document.hidden) document.title = `${titleBase} · ${Math.round((fpsFrames * 1000) / (now - fpsT))} FPS`;
+  fpsFrames = 0;
+  fpsT = now;
+}
 // less traffic: an option only, never switched on automatically
 let lightTraffic = false;
 try { lightTraffic = localStorage.getItem('skopje.lightTraffic') === '1'; } catch { /* storage unavailable */ }
@@ -1691,6 +1712,7 @@ addEventListener('gamepadconnected', (e) => console.log('gamepad:', e.gamepad.id
 const clock = new THREE.Clock();
 renderer.setAnimationLoop(() => {
   const dt = clock.getDelta();
+  countFps();
   SHARED.uTime.value += dt;
   if (world?.flight.active || world?.drive.active || world?.walk.active || live) governQuality(dt);
   if (countryOpen) {

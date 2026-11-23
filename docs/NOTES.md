@@ -739,6 +739,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Season | `skopje.season` | from the month (Dec–Feb winter, Mar–May spring, Jun–Aug summer, Sep–Nov autumn) |
 | ⚡ Quality | `skopje.quality` | auto (only `high` / `low` are read back) |
 | ✨ Мазни рабови | `skopje.smooth` | on |
+| 📈 FPS во насловот | `skopje.fps` | on (the frame loop's frames per second after the map's name in the window's title) |
 | 💾 Memory saver | `skopje.memorySaver` | on for `MOBILE`, off on desktop |
 | 🚗 Less traffic | `skopje.lightTraffic` | off |
 | 🔊 Sound | `skopje.sound` | on (audio starts with the first click or key press: browsers do not allow it earlier) |
