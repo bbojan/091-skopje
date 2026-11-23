@@ -114,7 +114,16 @@ Order of work:
   | **100 m (chosen)** | **2160 × 1690** | **~7.3 MB** | **~3–4 MB** |
   | 200 m | 1080 × 845 | ~1.8 MB | ~1 MB |
 
-  Optionally one colour texture (forests, fields, lakes) baked from OSM, ~2–4 MB.
+- **Шуми, ниви, езера** (added by the owner): a land-cover grid at the same 100 m, **1 byte per cell, a class**:
+  шума, нива, ливада / пасиште, езеро / вода, населено, гол камен, лозје, so the shader paints them in the map's own
+  palette, and the seasons, snow and burnt tints work on it as on the city maps. About 3.6 MB raw, ~0.5–1 MB
+  compressed (classes compress well), 3.6 MB on the GPU (an 8-bit texture). Lakes (Охридско, Преспанско,
+  Дојранско, the reservoirs) are flat at their water level in the height grid (`waterLevels` as in the city maps),
+  so they read as lakes from far. Source: OSM's area tags only (`landuse`, `natural`, `water`, no buildings or
+  roads) for the whole country, downloaded once by a script in tiles and rasterised there; only the small grid goes
+  to `public/`. If OSM has holes in the countryside, ESA WorldCover (10 m, CC BY 4.0, needs its attribution)
+  could fill them.
+- **Together:** heights ~3–4 MB + land cover ~0.5–1 MB to download, about 15–25 MB of GPU memory, one draw call.
 - **Drawing:** not one big mesh (3.6 M vertices would be ~130 MB): the heights as a **texture** (~7 MB on the GPU)
   read in the vertex shader of a small grid mesh (e.g. 512 × 512), denser near the camera. About 10–20 MB of GPU
   memory and one draw call. Under the current map it is hidden or lowered, so it never fights the detailed terrain.
