@@ -105,8 +105,8 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   02 Батинци (`?city=batinci`, v10.0.0: south of Skopje's map, edge to edge with it), 033 Берово (`?city=berovo`,
   v11.0.0: Пехчево and the whole of Беровско Езеро), 094 Тетово (`?city=tetovo`, v14.0.0: Гостивар, Шар Планина;
   75k buildings, the largest scene), 045 Македонски Брод (`?city=brod`, v14.0.0: Козјак, Света Петка, Зрзе),
-  047 Ресен (`?city=resen`, v14.0.0: the whole of Преспа, its level set by hand), 02 Матка (`?city=matka`: the
-  first map that is not a rectangle, Скопје's and Брод's maps cut out of it), 046 Вевчани (`?city=vevcani`: Охрид's map
+  047 Ресен (`?city=resen`, v14.0.0: the whole of Преспа, its level set by hand), 02 Матка (`?city=matka`, v16.0.0: the
+  first map that is not a rectangle, Скопје's and Брод's maps cut out of it), 046 Вевчани (`?city=vevcani`, v16.0.0: Охрид's map
   cut out of it).
 - A map that is not a rectangle: `cut` rectangles in its `CITIES` entry in `scripts/config.ts` (the neighbours'
   maps); `cutOsm()` in `scripts/osm.ts` removes OSM there for `prepare.ts` and `terrain.ts`, the terrain stays the

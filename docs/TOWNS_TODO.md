@@ -1,7 +1,6 @@
 # Towns to do
 
-**Finished: 16 maps** (14 on the site, v14.0.1, 2026-11-21; 02 Матка and 046 Вевчани built on 2026-11-23, not yet
-released): 091 Скопје, 043 Кавадарци, 097 Битола,
+**Finished: 16 maps, all on the site** (v16.0.0, 2026-11-23; 02 Матка and 046 Вевчани added in it): 091 Скопје, 043 Кавадарци, 097 Битола,
 096 Охрид (with Струга), 048 Прилеп, 098 Крушево, 042 Ростуше (with Дебар and Маврово),
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
 045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. Details in the first table below.
@@ -102,7 +101,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 
 \* working names. Next to build: the first row.
 
-## Finished (16 maps; Матка and Вевчани not yet on the site)
+## Finished (16 maps, all on the site)
 
 | Map | Also on it | `?city=` | bbox (s, w, n, e) |
 |---|---|---|---|
