@@ -127,6 +127,21 @@ for it, more preparing ahead on desktop. With both switched off, Скопје st
     Worker** for the build (workers ran ~7× slower, see [CLAUDE.md](../CLAUDE.md));
   - **done means:** with `PerformanceObserver('longtask')` while flying and preparing, no task over 50 ms from the
     preparing, and the governor never lowers quality because of it, measured on desktop and on a phone.
+- **Preparing is the hard part, not downloading** (my estimate from the code and [NOTES.md](NOTES.md), not measured):
+  a switch means `JSON.parse`, `computeCitySteps` (buildings, roads, trees, parked cars in JS), `assembleCity`
+  (meshes, GPU upload: ~744 MB of built geometry for Скопје, far-ground texture bake per chunk) and maybe shader
+  recompiles. Guess: desktop ~1–2 s small maps, ~2–5 s Скопје / Охрид, ~4–8 s dense ones (Тетово, Битола); phones
+  3–5× that. At 736 m/s, 3 s is 2.2 km of flight, so a 0.3 s fade is not realistic, and the build cannot run ahead
+  while flying (two built maps double the memory; seconds of CPU on the main thread). Agreed with the owner:
+  1. **Low detail first, then the rest:** at the edge show within ~0.5 s only the low-res terrain and the far-ground
+     texture, then add buildings and roads chunk by chunk around the plane (the F-15 flies at 150 m+ and rarely
+     sees close detail). Builds on the memory saver (`stream`), where terrain and draped ground are already built
+     per chunk; buildings are not yet (see "A larger map" in [NOTES.md](NOTES.md)).
+  2. **Entry chunks first:** build in order from where the plane enters, along its heading.
+  3. **Keep the shaders:** the same materials across maps, so no recompiling at a switch.
+  4. **Far-ground textures later:** baked a few at a time after entering.
+  5. **Measure first:** time per step (parse / steps / assemble / bake / shaders) for every finished map, desktop
+     and phone; that shows whether 1–4 are enough.
 - **Later, only if the measurements ask for it:** building part of the next map ahead (`computeCitySteps` a little
   each frame) on desktop only; or a binary city data format (typed arrays, no `JSON.parse`) written by
   `scripts/prepare.ts`, instead of a Worker.
