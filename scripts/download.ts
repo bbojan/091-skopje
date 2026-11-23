@@ -1,7 +1,7 @@
 // Downloads OSM data for the city's BBOX from Overpass in tiles and merges them.
 // Usage: node scripts/download.ts [city]   (default skopje; output: FILES.raw)
 import fs from 'node:fs';
-import { BBOX, CITIES, CITY, FILES } from './config.ts';
+import { BBOX, CITIES, CITY, CUT, FILES } from './config.ts';
 
 const out = FILES.raw;
 const body = fs.readFileSync('data/query.overpassql', 'utf8').replace(/\[bbox:[^\]]*\]/, '');
@@ -26,6 +26,8 @@ for (let i = 0; i < NX; i++)
   for (let j = 0; j < NY; j++) {
     const w = BBOX.w + ((BBOX.e - BBOX.w) * i) / NX, e = BBOX.w + ((BBOX.e - BBOX.w) * (i + 1)) / NX;
     const s = BBOX.s + ((BBOX.n - BBOX.s) * j) / NY, n = BBOX.s + ((BBOX.n - BBOX.s) * (j + 1)) / NY;
+    // a tile wholly inside a cut rectangle (a neighbour's map) has nothing prepare.ts would keep
+    if (CUT.some((c) => s >= c.s && n <= c.n && w >= c.w && e <= c.e)) { console.log(`tile ${i},${j}: in a cut, skipped`); continue; }
     const q = body.replace('[out:json]', `[out:json][bbox:${s},${w},${n},${e}]`);
     if (fs.existsSync(tileFile(i, j))) {
       const els = JSON.parse(fs.readFileSync(tileFile(i, j), 'utf8')) as { type: string; id: number }[];

@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'batinci'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'batinci', 'matka'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -662,6 +662,77 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.dojran',
     bestRaceKey: 'skopje.bestRace.dojran',
     banners: { fire: 'Дојранското Езеро го спаси Дојран!', roll: 'Ајде на дојранска мандра!' },
+  },
+  matka: {
+    id: 'matka', name: 'Матка', code: '02', icon: './favicon-matka.svg',
+    files: { scene: './matka.json', terrainBin: './matka-terrain.bin', terrainJson: './matka-terrain.json' },
+    sceneBytes: 5.6e6,
+    views: {
+      center: { place: 'andrej', ll: [41.95059, 21.29917], d: 420, polar: 0.85, az: 0.2 },
+      mtandrej: { place: 'andrej', ll: [41.95059, 21.29917], d: 110, polar: 1.02, az: 0.5 },
+      mtsisevo: { place: 'sisevo', ll: [41.95186, 21.30419], d: 170, polar: 0.62, az: 0.9 }, // from above: the church stands in thick wood
+      mtlake: { ll: [41.93600, 21.29500], d: 1600, polar: 1.1, az: Math.PI }, // up the canyon from the south, under the clouds
+      mtvrelo: { place: 'vrelo', ll: [41.93016, 21.29227], d: 420, polar: 0.98, az: -0.6 },
+      mtbogorodica: { place: 'bogorodica', ll: [41.96190, 21.29630], d: 260, polar: 0.92, az: 0.3 },
+      mttreska: { place: 'treska', ll: [41.98396, 21.31312], d: 1100, polar: 0.92, az: 0.2 },
+      // the map is an L round Скопје and Брод (their maps are cut out): its wide north part from the south-east
+      overview: { ll: [41.97500, 21.23000], d: 25000, polar: 0.85, az: 0.3 },
+    },
+    districts: [
+      ['Сарај', 41.99992, 21.32820], ['Кондово', 42.01167, 21.31360, 30], ['Љубин', 42.00144, 21.30892, 30],
+      ['Глумово', 41.97973, 21.30445, 30], ['Шишево', 41.97555, 21.31004, 30], ['Долна Матка', 41.96766, 21.30525, 30],
+      ['Горна Матка', 41.96919, 21.28650, 30], ['Арнакија', 41.98701, 21.28860, 30], ['Бојане', 42.00000, 21.19244, 30],
+      ['Буковиќ', 41.97416, 21.23902, 30], ['Ласкарци', 41.97143, 21.21034, 30], ['Семениште', 41.96702, 21.26101, 30],
+      ['Копаница', 42.00699, 21.23849, 30], ['Рашче', 42.02348, 21.25146, 30], ['Горно Свиларе', 42.04360, 21.27920, 30],
+      ['Кучково', 42.05751, 21.30619, 30], ['Јегуновце', 42.07348, 21.12019, 30], ['Желино', 41.98156, 21.06197, 30],
+      ['Церово', 41.99242, 21.13520, 30], ['Групчин', 41.96766, 21.13134, 30], ['Добарце', 41.95476, 21.08909, 30],
+      ['Паничари', 41.95368, 21.21097, 30], ['Мерово', 41.93740, 21.17450, 30], ['Гургурница', 41.84489, 21.10542, 30],
+      ['Растеш', 41.74690, 21.10401, 30], ['Сува Гора', 41.94000, 21.22000, 150], ['Езеро Матка', 41.93800, 21.29600, 0],
+    ],
+    labels: [
+      ['Св. Андреја', 41.95059, 21.29917, 16, 'andrej'],
+      ['Св. Никола Шишевски', 41.95186, 21.30419, 18, 'sisevo'],
+      ['Брана Матка', 41.95235, 21.29882, 12],
+      ['Пештера Врело', 41.93016, 21.29227, 10, 'vrelo'],
+      ['Манастир Матка', 41.96190, 21.29630, 14, 'bogorodica'],
+      ['Езеро Матка', 41.94200, 21.29700, 8],
+      ['Езеро Треска', 41.98396, 21.31312, 8, 'treska'],
+      ['Св. Ѓорѓија', 42.06909, 21.30018, 14, 'gjorgjija'],
+      ['Раса', 41.94068, 21.24636, 20],
+      ['Треска', 41.97200, 21.30700, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Св. Андреја', 41.95059, 21.29917, 60, 'andrej'],
+      ['Езеро Матка', 41.94200, 21.29700, 40],
+      ['Пештера Врело', 41.93016, 21.29227, 50, 'vrelo'],
+      ['Св. Никола Шишевски', 41.95186, 21.30419, 70, 'sisevo'],
+      ['Манастир Матка', 41.96190, 21.29630, 60, 'bogorodica'],
+      ['Езеро Треска', 41.98396, 21.31312, 50, 'treska'],
+      ['Сарај', 41.99992, 21.32820, 60],
+      ['Кучково', 42.05751, 21.30619, 70],
+      ['Бојане', 42.00000, 21.19244, 70],
+      ['Ласкарци', 41.97143, 21.21034, 70],
+      ['Семениште', 41.96702, 21.26101, 70],
+      ['Св. Андреја', 41.95059, 21.29917, 55, 'andrej'],
+    ],
+    spots: [
+      ['ma.andrej', 'Св. Андреја', 41.95059, 21.29917, 50, 'andrej'],
+      ['ma.dam', 'Брана Матка', 41.95235, 21.29882, 50],
+      ['ma.sisevo', 'Св. Никола Шишевски', 41.95186, 21.30419, 50, 'sisevo'],
+      ['ma.vrelo', 'Пештера Врело', 41.93016, 21.29227, 80, 'vrelo'],
+      ['ma.bogorodica', 'Манастир Матка', 41.96190, 21.29630, 60, 'bogorodica'],
+      ['ma.treska', 'Езеро Треска', 41.98396, 21.31312, 200, 'treska'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.95059, 21.29917], near: 3000, far: 9000, min: 0.04, grow: 2.2 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.hills',
+    refillLabel: 'fire.refill.matka',
+    bestRaceKey: 'skopje.bestRace.matka',
+    banners: { fire: 'Треска ја спаси Матка!', roll: 'Поздрав од Матка!' },
   },
   batinci: {
     id: 'batinci', name: 'Батинци', code: '02', icon: './favicon-batinci.svg',

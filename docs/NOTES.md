@@ -564,6 +564,31 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    measured, then it scrolls. 3 columns at 844 × 390, 2 scrolling at 640 × 300, desktop unchanged. The picker's order
    follows the map: Берово, Тетово, Ресен, Брод, Каменица, Батинци. The towns map (docs/towns-map.png) is drawn by
    `scripts/towns-map.html`.
+38. **02 Матка** (Nov 2026, branch `city-matka`, not yet released): the land west of Скопје between Тетово's and Брод's
+   maps (docs/TOWNS_TODO.md, 20): the Матка canyon with its lake and dam, Св. Андреја, Св. Никола Шишевски, the
+   Матка monastery, Пештера Врело, Сарај's villages, Сува Гора, Езеро Треска. **The first map that is not a rectangle**:
+   its bounding rectangle (41.725–42.075 N, 21.06–21.385 E, 27 × 39 km, 20 m cells, 249–2448 m) holds Скопје's west
+   edge (and the strip above it, Скопска Црна Гора's) and Брод's north part, so the city has a `cut` list in
+   `scripts/config.ts`. `cutOsm()` (`scripts/osm.ts`) takes them out of the raw OSM for both `prepare.ts` and
+   `terrain.ts`: nodes and buildings with a corner inside are dropped, lines split at the edge (Liang–Barsky), areas
+   and multipolygon rings clipped to the four convex regions round each rectangle (Sutherland–Hodgman; pieces after
+   the first get ids + k·1e12); Overture outlines with a corner inside are left out; `download.ts` skips tiles wholly
+   inside a cut. The terrain stays the full rectangle, so the corners show bare relief. Checked: no building, area,
+   road or rail of the scene inside a cut; Батинци's scene rebuilt byte-identical (no cut, no change). Raw OSM from
+   Geofabrik (`pbf2overpass.py`, Macedonia + Kosovo; Overpass answered 502/504): 7,298 features dropped and 356
+   clipped; ~1,000 OSM buildings plus 24,683 Overture. **`waterPad`** (new terrain option, 30 m here): Езеро Матка
+   is only 100–200 m wide, a few 20 m cells, and its draped edge climbed the canyon walls in blue facets; higher
+   ground within 30 m of a flat lake (not river surfaces) is now lowered to just above the water. `relationTags`
+   (new in `PREP`): tags for building multipolygons — the hotel „Кањон Матка“ by the dam was guessed at 4 storeys,
+   now 2. Models (`src/matka.ts`, after Commons photos): **Св. Андреја** (1388/89, `byzChurch`, cloisonné, grey
+   metal roofs, tall octagonal drum), **Св. Никола Шишевски** (`byzChurch` with a long lower part under stone slabs;
+   which end carries the drum was not checked), **Брана Матка** (1938, 29.5 m) with `archDam` on OSM's crest line.
+   Badge 02 (as Батинци) and the owner's LinkedIn, both asked. Tow banners: „Треска ја спаси Матка!“ / „Поздрав од
+   Матка!“. Texts in `src/i18n-towns3.ts`. Checked: typecheck, build, the map loads with no console errors, both
+   cut edges and the dam, Св. Андреја, Шишево and the overview looked at, switching away and back (textures and
+   scene objects back exactly), Skopje pixel check (0 except 11–13 pixels at the gondola cabins in the three
+   overviews). Not checked: phones, firefighting, the race, walking cards one by one, night and snow views.
+   Not modelled: the Матка monastery and Св. Ѓорѓија in Кучково (labels and cards only).
 
 ## Key decisions (and why)
 
@@ -667,6 +692,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Tetovo | `skopje.bestRace.tetovo` | none |
 | Best race time in Makedonski Brod | `skopje.bestRace.brod` | none |
 | Best race time in Resen | `skopje.bestRace.resen` | none |
+| Best race time in Матка | `skopje.bestRace.matka` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.

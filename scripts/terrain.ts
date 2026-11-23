@@ -3,8 +3,8 @@
 // minimum) + FILES.terrainJson (public/terrain.* for Skopje)
 import fs from 'node:fs';
 import zlib from 'node:zlib';
-import { BBOX, CITIES, CITY, FILES, proj, unproj, W, H } from './config.ts';
-import { polygonsOf, wayPts, isWater, type OsmJson } from './osm.ts';
+import { BBOX, CITIES, CITY, CUT, FILES, proj, unproj, W, H } from './config.ts';
+import { cutOsm, polygonsOf, wayPts, isWater, type OsmJson } from './osm.ts';
 import { rowCrossings } from '../src/geo.ts';
 import type { Poly, Pt } from '../src/types.ts';
 
@@ -142,7 +142,7 @@ const segDist = (px: number, pz: number, a: Pt, b: Pt) => {
 const fixes = SPEC.flatWater || SPEC.flatSquares?.length || SPEC.flatWays?.length || SPEC.rivers || SPEC.dams?.length || SPEC.points?.length;
 if (fixes) {
   if (!fs.existsSync(FILES.raw)) { console.error(`${FILES.raw} is missing: run \`npm run download -- ${CITY}\` first`); process.exit(1); }
-  const raw = JSON.parse(fs.readFileSync(FILES.raw, 'utf8')) as OsmJson;
+  const raw = cutOsm(JSON.parse(fs.readFileSync(FILES.raw, 'utf8')) as OsmJson, CUT); // bare relief in the cut rectangles
 
   // river channels: lowered along the waterway, full depth within the half width, easing out over
   // 10 m; not within 5–9 m of a road (it crosses on a bridge or a culvert)
@@ -219,6 +219,20 @@ if (fixes) {
               if (ii < 0 || jj < 0 || ii >= nx || jj >= nz || inside.has(q)) continue;
               const lift = level + 0.3 + 0.15 * Math.hypot(di, dj) * CELL / 10;
               if (g[q] < lift) g[q] = lift;
+            }
+          }
+        }
+        // a narrow lake (`waterPad`): the ground just outside it is lowered to just above the water, so the
+        // triangles along its edge stay level instead of carrying the water up the banks
+        if (SPEC.waterPad && el.tags?.water !== 'river' && el.tags?.waterway !== 'riverbank') {
+          const inside = new Set(cells), R = Math.ceil(SPEC.waterPad / CELL);
+          for (const k of cells) {
+            const i = k % nx, j = (k - i) / nx;
+            for (let dj = -R; dj <= R; dj++) for (let di = -R; di <= R; di++) {
+              const ii = i + di, jj = j + dj, q = jj * nx + ii, d = Math.hypot(di, dj) * CELL;
+              if (ii < 0 || jj < 0 || ii >= nx || jj >= nz || inside.has(q) || d > SPEC.waterPad) continue;
+              const top = level + 0.3 + 0.05 * d;
+              if (g[q] > top) g[q] = top;
             }
           }
         }

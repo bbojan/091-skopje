@@ -8,7 +8,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 
 Илустрирана, жива 3Д мапа на Скопје, нацртана од отворените податоци на OpenStreetMap.
 
-More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **097 Битола** (Bitola, the city of consuls under Pelister) **096 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) **098 Крушево** (Kruševo, the town of the Ilinden Uprising) **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) **034 Дојран** (Dojran and the whole of Lake Dojran) **02 Батинци** (Batinci and its surroundings south of Skopje, to Marko's Monastery) **033 Берово** (Berovo, Pehčevo and the whole of Berovo Lake) **094 Тетово** (Tetovo, Gostivar and the Šar Mountains) **045 Македонски Брод** (Makedonski Brod, Lake Kozjak and the Treska) and **047 Ресен** (Resen and the whole of Lake Prespa) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica, https://bbojan.github.io/091-skopje/?city=dojran, https://bbojan.github.io/091-skopje/?city=batinci, https://bbojan.github.io/091-skopje/?city=berovo, https://bbojan.github.io/091-skopje/?city=tetovo, https://bbojan.github.io/091-skopje/?city=brod, https://bbojan.github.io/091-skopje/?city=resen
+More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **097 Битола** (Bitola, the city of consuls under Pelister) **096 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **048 Прилеп** (Prilep under Markovi Kuli) **098 Крушево** (Kruševo, the town of the Ilinden Uprising) **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) **034 Дојран** (Dojran and the whole of Lake Dojran) **02 Батинци** (Batinci and its surroundings south of Skopje, to Marko's Monastery) **033 Берово** (Berovo, Pehčevo and the whole of Berovo Lake) **094 Тетово** (Tetovo, Gostivar and the Šar Mountains) **045 Македонски Брод** (Makedonski Brod, Lake Kozjak and the Treska) **047 Ресен** (Resen and the whole of Lake Prespa) and **02 Матка** (the Matka Canyon and the land west of Skopje) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica, https://bbojan.github.io/091-skopje/?city=dojran, https://bbojan.github.io/091-skopje/?city=batinci, https://bbojan.github.io/091-skopje/?city=berovo, https://bbojan.github.io/091-skopje/?city=tetovo, https://bbojan.github.io/091-skopje/?city=brod, https://bbojan.github.io/091-skopje/?city=resen, https://bbojan.github.io/091-skopje/?city=matka
 
 ## Features
 
@@ -85,6 +85,11 @@ More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš 
 - Hand-built after photos: the Resen Saray (the palace of Niyazi Bey), the churches of St. Peter on Golem Grad and St. George in Kurbinovo
 - Its own places, labels, race route (11 rings), walking info cards; firefighting refills from the lake; no ЈСП buses
 
+**Matka** (`?city=matka`)
+- The Matka Canyon with its lake and dam, Saraj's villages and Suva Gora west of Skopje, on real terrain; the first map that is not a rectangle (Skopje's and Brod's maps are cut out of it)
+- Hand-built after photos: the churches of St. Andrew and St. Nicholas of Šiševo, the Matka arch dam
+- Its own places, labels, race route (12 rings), walking info cards; firefighting refills from Lake Matka or Lake Treska; no ЈСП buses
+
 **Time, weather and seasons**
 - Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, paragliders over Vodno, flowing river
 - Weather: clear, rain (wet streets, puddles, umbrellas), snow, or snow only on Vodno
@@ -148,6 +153,7 @@ npm run download -- berovo && npm run overture -- berovo && npm run terrain -- b
 npm run download -- tetovo && npm run overture -- tetovo && npm run terrain -- tetovo && npm run data -- tetovo
 npm run download -- brod && npm run overture -- brod && npm run terrain -- brod && npm run data -- brod
 npm run download -- resen && npm run overture -- resen && npm run terrain -- resen && npm run data -- resen
+npm run download -- matka && npm run overture -- matka && npm run terrain -- matka && npm run data -- matka
                    # when Overpass is down: scripts/pbf2overpass.py writes data/<city>_raw.json from Geofabrik extracts
 ```
 

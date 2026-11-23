@@ -8,6 +8,7 @@
 
 import { TOWNS } from './i18n-towns.ts';
 import { TOWNS2 } from './i18n-towns2.ts';
+import { TOWNS3 } from './i18n-towns3.ts';
 
 export const LANGS = [
   ['mk', 'Македонски'],
@@ -104,6 +105,7 @@ export const STR = {
     'info.b.lakes': '„Пелистерските очи“ се двете глацијални езера под врвот: Големо Езеро, на околу 2.200 метри, и Мало Езеро.',
     ...TOWNS.mk,
     ...TOWNS2.mk,
+    ...TOWNS3.mk,
   },
 
   en: {
@@ -279,6 +281,7 @@ export const STR = {
     'f.fire.kavadarci': `<b>Firefighting (optional):</b> while flying, press “🔥 Fire” and the plane becomes a yellow Air Tractor firefighting plane. At most two fires burn at a time — a patch of forest, a building or a bus; the smoke shows from afar and the arrow at the top points to the nearest one. Fly over the fire and hold ${K('Space')} (or the 💧 button) to drop water — the white ring on the ground shows where it will land. When the tank is empty, skim low over Tikveš Lake, south-west of the town, to fill it. As soon as one fire is out, another starts somewhere else.`,
     ...TOWNS.en,
     ...TOWNS2.en,
+    ...TOWNS3.en,
   },
 
   sr: {
@@ -454,6 +457,7 @@ export const STR = {
     'f.fire.kavadarci': `<b>Гашење пожара (опционо):</b> у лету притисни „🔥 Пожар“ и авион постаје жути противпожарни „Ер трактор“. Истовремено горе највише два пожара — део шуме, зграда или аутобус; дим се види издалека, а стрелица горе показује ка најближем. Прелети изнад ватре и држи ${K('Space')} (или дугме 💧) да испустиш воду — бели круг на тлу показује где ће пасти. Кад се резервоар испразни, спусти се ниско изнад Тиквешког језера, југозападно од града, да га напуниш. Чим се један пожар угаси, избија други на другом месту.`,
     ...TOWNS.sr,
     ...TOWNS2.sr,
+    ...TOWNS3.sr,
   },
 
   hr: {
@@ -629,6 +633,7 @@ export const STR = {
     'f.fire.kavadarci': `<b>Gašenje požara (neobavezno):</b> u letu pritisni „🔥 Požar” i avion postaje žuti protupožarni „Air Tractor”. Istodobno gore najviše dva požara — dio šume, zgrada ili autobus; dim se vidi izdaleka, a strelica gore pokazuje prema najbližem. Preleti iznad vatre i drži ${K('Space')} (ili tipku 💧) da ispustiš vodu — bijeli krug na tlu pokazuje gdje će pasti. Kad se spremnik isprazni, spusti se nisko iznad Tikveškog jezera, jugozapadno od grada, da ga napuniš. Čim se jedan požar ugasi, izbija drugi na drugom mjestu.`,
     ...TOWNS.hr,
     ...TOWNS2.hr,
+    ...TOWNS3.hr,
   },
 
   sl: {
@@ -804,6 +809,7 @@ export const STR = {
     'f.fire.kavadarci': `<b>Gašenje požarov (neobvezno):</b> med letom pritisni „🔥 Požar“ in letalo postane rumeno gasilsko letalo „Air Tractor“. Hkrati gorita največ dva požara — del gozda, stavba ali avtobus; dim se vidi od daleč, puščica zgoraj pa kaže proti najbližjemu. Preleti ogenj in drži ${K('Space')} (ali gumb 💧), da spustiš vodo — beli krog na tleh kaže, kam bo padla. Ko se rezervoar izprazni, se spusti nizko nad Tikveško jezero jugozahodno od mesta, da ga napolniš. Takoj ko je en požar pogašen, izbruhne drug nekje drugje.`,
     ...TOWNS.sl,
     ...TOWNS2.sl,
+    ...TOWNS3.sl,
   },
 
   sq: {
@@ -979,6 +985,7 @@ export const STR = {
     'f.fire.kavadarci': `<b>Shuarja e zjarreve (opsionale):</b> gjatë fluturimit shtyp „🔥 Zjarr“ dhe aeroplani bëhet një „Air Tractor“ i verdhë zjarrfikës. Digjen më së shumti dy zjarre njëkohësisht — një pjesë pylli, një ndërtesë ose një autobus; tymi duket nga larg, ndërsa shigjeta lart tregon drejt më të afërtit. Fluturo mbi zjarr dhe mbaj shtypur ${K('Space')} (ose butonin 💧) për të lëshuar ujë — rrethi i bardhë në tokë tregon ku do të bjerë. Kur rezervuari zbrazet, zbrit ulët mbi liqenin e Tikveshit, në jugperëndim të qytetit, për ta mbushur. Sapo shuhet një zjarr, ndizet një tjetër diku tjetër.`,
     ...TOWNS.sq,
     ...TOWNS2.sq,
+    ...TOWNS3.sq,
   },
 };
 

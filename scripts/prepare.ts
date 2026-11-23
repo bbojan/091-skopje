@@ -2,10 +2,10 @@
 // Usage: node scripts/prepare.ts [city]   (FILES.raw → FILES.scene; default skopje)
 import fs from 'node:fs';
 
-import { CITY, FILES, lat0, lon0, kx, ky, proj, W, H, type CityName } from './config.ts';
+import { CITY, CUT, inCut, FILES, lat0, lon0, kx, ky, proj, W, H, type CityName } from './config.ts';
 import { obb, PolyGrid } from '../src/geo.ts';
 import { MARKET_OUTLINE } from '../src/market.ts';
-import { wayPts, isClosed, area, centroid, pip, dropLast, polygonsOf, isWater, type OsmElement, type OsmJson, type Tags } from './osm.ts';
+import { cutOsm, wayPts, isClosed, area, centroid, pip, dropLast, polygonsOf, isWater, type OsmElement, type OsmJson, type Tags } from './osm.ts';
 import type { CityData, Flat, Poly, Pt, Ring } from '../src/types.ts';
 
 const inFile = FILES.raw, outFile = FILES.scene;
@@ -13,7 +13,8 @@ if (!fs.existsSync(inFile)) {
   console.error(`${inFile} is missing: run \`npm run download -- ${CITY}\` first`);
   process.exit(1);
 }
-const raw = JSON.parse(fs.readFileSync(inFile, 'utf8')) as OsmJson;
+// a map that is not a rectangle: nothing of OSM inside its neighbours' maps (`cut` in config.ts)
+const raw = cutOsm(JSON.parse(fs.readFileSync(inFile, 'utf8')) as OsmJson, CUT);
 
 const r1 = (v: number) => Math.round(v * 10) / 10;
 const r1p = (p: Pt): Pt => [r1(p[0]), r1(p[1])];
@@ -87,6 +88,8 @@ interface CityPrep {
   extraBuildings?: { tags: Tags; r: [lat: number, lon: number][] }[];
   /** tags added to OSM buildings by way id (e.g. `building:levels` where the guess is wrong) */
   buildingTags?: Record<number, Tags>;
+  /** the same for OSM building relations (multipolygons) by relation id */
+  relationTags?: Record<number, Tags>;
   /** the Vodno gondola (separate small download) */
   aerialway?: string;
   /** outlines of buildings and sites modelled by hand for this city (Bitola: src/bitola.ts), by key → OSM
@@ -481,6 +484,26 @@ const PREP: Record<CityName, CityPrep> = {
       ...[389055598, 1329461769].map((id) => [id, { 'building:levels': '1' }]),
     ]),
   },
+  matka: {
+    old: null,
+    square: [41.95090, 21.29900], // the terrace by Св. Андреја at the dam (no town on this map)
+    landmarks: {},
+    // modelled by hand after photos (src/matka.ts): Св. Андреја and Св. Никола Шишевски on their OSM outlines, the arch
+    // dam of Матка on its crest line
+    models: { andrej: 224495829, sisevo: 1330252487, mdam: 537926854 },
+    placeNames: { lake: 'Езеро Матка' },
+    placeIds: { andrej: 224495829, sisevo: 1330252487, mdam: 537926854, bogorodica: 1329393428, treska: 32463938 },
+    placeNodes: { vrelo: 4236969162, gjorgjija: 470409981 },
+    nodeLL: {
+      4236969162: [41.93016, 21.29227], 470409981: [42.06909, 21.30018], // Пештера Врело, Св. Ѓорѓија in Кучково
+    },
+    tall: [],
+    mid: [],
+    squareBonus: false,
+    maxLevels: 5,
+    // Хотел и ресторан „Кањон Матка“ by the dam: two storeys (photos), not the four the guess gives
+    relationTags: { 19955268: { 'building:levels': '2' } },
+  },
   brod: {
     old: null,
     square: [41.50676, 21.21943], // the paved square by the municipality building in Македонски Брод
@@ -544,6 +567,7 @@ for (const rr of Object.values(CFG.modelRects ?? {})) {
 }
 // buildings OSM lacks join the download as closed ways, so they are read like any other
 for (const el of raw.elements) { const t = CFG.buildingTags?.[el.id]; if (t && el.type === 'way') el.tags = { ...el.tags, ...t }; }
+for (const el of raw.elements) { const t = CFG.relationTags?.[el.id]; if (t && el.type === 'relation') el.tags = { ...el.tags, ...t }; }
 (CFG.extraBuildings ?? []).forEach(({ tags, r }, i) => {
   raw.elements.push({ type: 'way', id: 9e11 + i, tags, geometry: [...r, r[0]].map(([lat, lon]) => ({ lat, lon })) });
 });
@@ -1001,6 +1025,7 @@ if (FILES.overture) {
     const poly: Poly = ob.r.map((ring) => dropLast(toPoly(ring).map(([lon, lat]) => proj(lat, lon))));
     const outer = poly[0];
     if (outer.length < 3 || !inBox(outer, 2)) { dropped.outside++; continue; }
+    if (toPoly(ob.r[0]).some(([lon, lat]) => inCut(lat, lon))) { dropped.outside++; continue; } // a neighbour's map (`cut`)
     const a = Math.abs(area(outer));
     if (a < 6) { dropped.small++; continue; }
     const [cx, cz] = areaCentroid(outer);

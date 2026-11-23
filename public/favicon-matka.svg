@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Матка: the canyon's cliffs, the arch dam across its mouth, the lake behind it, Св. Андреја's drum by the dam -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <g fill="#1f2a44">
+    <path d="M8 90 V22 L18 14 L26 26 L34 40 L38 90 Z"/>
+    <path d="M92 90 V18 L82 12 L74 24 L66 38 L62 90 Z"/>
+    <rect x="45" y="24" width="2" height="5"/>
+    <path d="M41.5 33 Q41.5 29 46 29 Q50.5 29 50.5 33 Z"/>
+    <rect x="42" y="33" width="8" height="9"/>
+    <path d="M38 46 L46 41 L54 46 Z"/>
+    <rect x="39" y="46" width="14" height="6"/>
+  </g>
+  <path d="M34 60 Q50 54 66 60 L64 64 Q50 59 36 64 Z" fill="#7a1f1a"/>
+  <path d="M36 64 Q50 59 64 64 L63 90 H37 Z" fill="#1f2a44" opacity="0.35"/>
+  <g fill="none" stroke="#1f2a44" stroke-width="2" stroke-linecap="round">
+    <path d="M40 72 Q45 70 50 72 T60 72"/>
+    <path d="M40 80 Q45 78 50 80 T60 80"/>
+  </g>
+  <g fill="#f4ede0"><rect x="44" y="35" width="1.6" height="4" rx="0.8"/><rect x="47" y="35" width="1.6" height="4" rx="0.8"/></g>
+</svg>

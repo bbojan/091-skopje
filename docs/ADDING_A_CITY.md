@@ -340,6 +340,19 @@ Shortcuts and fixes that came out of the third city; reuse them before writing n
 - **View azimuth:** `az` 0 puts the camera south of the target, π/2 east, −π/2 west. A view from the shore across a
   15 km lake shows only water: look from the water toward the shore instead.
 
+## What Матка added
+
+- **A map that is not a rectangle:** the plan's outline goes round finished maps. Download, terrain and chunks stay the
+  bounding rectangle; list the neighbours' parts of it as `cut` rectangles in the city's entry in `scripts/config.ts`.
+  `cutOsm()` (`scripts/osm.ts`) then drops points and buildings with a corner inside, splits lines and clips areas at
+  the edge, for both `prepare.ts` and `terrain.ts`; Overture outlines inside are left out and `download.ts` skips tiles
+  wholly inside. Check the scene afterwards: nothing of `buildings`, `areas`, `roads`, `rails` inside a cut.
+- **A lake a few cells wide** (a reservoir in a canyon on 20 m cells): its draped edge climbs the walls. `waterPad`
+  (metres) in the terrain spec lowers the ground round flat lakes to just above the water.
+- **A building that is an OSM multipolygon:** `buildingTags` applies to ways only; use `relationTags`.
+- **A second worktree for the pixel check:** the references live in the page's IndexedDB, so serve the old code and
+  the new one one after the other on the same port (one launch entry per worktree), not on two ports.
+
 ## Checklist
 
 - [ ] `scripts/config.ts`: `CITIES.<id>` (bbox, tiles, files)

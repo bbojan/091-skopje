@@ -4,6 +4,8 @@
 // the CITY environment variable, else Skopje.
 import type { Pt } from '../src/types.ts';
 
+export interface Box { s: number; w: number; n: number; e: number }
+
 export interface CityFiles {
   /** raw Overpass download (not in git) */
   raw: string;
@@ -27,6 +29,9 @@ export interface TerrainSpec {
   /** water levels given by hand (metres above sea) by OSM id, where the DEM holds an older, lower lake than OSM's
    *  shoreline (Дојранско Езеро: 139 m in the DEM, the ground at OSM's shore ≈ 145 m); the shore is lifted above it */
   waterLevels?: Record<number, number>;
+  /** metres round each flat lake (not river surfaces) where higher ground is lowered to just above the water: a lake a few cells wide
+   *  (Матка's, in its canyon) otherwise drapes its edge up the walls */
+  waterPad?: number;
   /** squares (OSM `name`) made flat at their middle height, blended into the ground around them */
   flatSquares?: string[];
   /** OSM ways (pitches…) made flat the same way, at the given height (metres above sea) or their middle height,
@@ -208,13 +213,32 @@ export const CITIES = {
     // 20 m outside OSM's outline is 843.5 m (median of 452 points): the water at 842.5 m. Мала Преспа stays at 848 m
     terrain: { cell: 20, smooth: 1, flatWater: true, waterLevels: { 2905510: 842.5 }, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
-} satisfies Record<string, { bbox: { s: number; w: number; n: number; e: number }; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec }>;
+  // Матка: the land west of Скопје between Тетово's and Брод's maps (docs/TOWNS_TODO.md, 20): Матка's canyon, lake and
+  // dam, Св. Андреј, Св. Никола Шишевски, Водно's west side, Сарај's villages. The first map that is not a rectangle:
+  // its outline goes round Скопје (and the strip above it, Скопска Црна Гора's) and Брод, so those corners of the
+  // bounding rectangle are `cut` (no OSM features there; the terrain stays the full rectangle)
+  matka: {
+    bbox: { s: 41.725, w: 21.06, n: 42.075, e: 21.385 },
+    tiles: [6, 7] as [number, number],
+    files: { raw: 'data/matka_raw.json', scene: 'public/matka.json', terrainBin: 'public/matka-terrain.bin', terrainJson: 'public/matka-terrain.json', overture: 'data/matka_overture.json' },
+    cut: [
+      { s: 41.955, w: 21.33, n: 42.075, e: 21.385 }, // Скопје (to 42.055) and Скопска Црна Гора's strip above it
+      { s: 41.725, w: 21.12, n: 41.926, e: 21.385 }, // Македонски Брод
+    ],
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
+} satisfies Record<string, { bbox: Box; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec; cut?: Box[] }>;
+
 export type CityName = keyof typeof CITIES;
 const isCity = (s: string | undefined): s is CityName => !!s && s in CITIES;
 
 export const CITY: CityName = process.argv.slice(2).find(isCity) ?? (isCity(process.env.CITY) ? process.env.CITY : 'skopje');
 export const FILES: CityFiles = CITIES[CITY].files;
 export const BBOX = CITIES[CITY].bbox;
+/** the rectangles a map leaves out (`cut`): its neighbours' maps inside its bounding rectangle */
+export const CUT: Box[] = (CITIES[CITY] as { cut?: Box[] }).cut ?? [];
+/** whether a point lies in one of the cut rectangles */
+export const inCut = (lat: number, lon: number): boolean => CUT.some((c) => lat > c.s && lat < c.n && lon > c.w && lon < c.e);
 export const lat0 = (BBOX.s + BBOX.n) / 2;
 export const lon0 = (BBOX.w + BBOX.e) / 2;
 const R = 6378137;

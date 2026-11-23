@@ -1,9 +1,10 @@
 # Towns to do
 
-**Finished: 14 maps on the site** (v14.0.1, 2026-11-21): 091 Скопје, 043 Кавадарци, 097 Битола,
+**Finished: 15 maps** (14 on the site, v14.0.1, 2026-11-21; 02 Матка built on 2026-11-23 on the branch `city-matka`,
+not yet released): 091 Скопје, 043 Кавадарци, 097 Битола,
 096 Охрид (with Струга), 048 Прилеп, 098 Крушево, 042 Ростуше (with Дебар and Маврово),
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
-045 Македонски Брод, 047 Ресен. Details in the first table below.
+045 Македонски Брод, 047 Ресен, 02 Матка. Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
@@ -16,7 +17,7 @@ out where a neighbour already is, `shapes` the full outline of a map that is not
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 30 new maps**, all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 29 new maps**, all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -27,7 +28,7 @@ towns on it):
 | Ново Село* | 1060 | — | | Свети Николе | 580 | Свети Николе |
 | Новаци* | 1060 | — | | Крива Паланка | 570 | Крива Паланка |
 | Кичево | 1030 | Кичево | | Гевгелија | 510 | Гевгелија, Богданци |
-| Скопска Црна Гора* | 1010 | — | | Матка* | 500 | — |
+| Скопска Црна Гора* | 1010 | — | | | | |
 | Стоби* | 940 | — | | Валандово | 410 | Валандово |
 | Радовиш | 900 | Радовиш | | Пробиштип | 380 | Пробиштип |
 | Штип | 820 | Штип | | Неготино | 370 | Неготино |
@@ -42,11 +43,13 @@ maps are Брод and Ресен (about 1320 km² each); areas include the parts
 
 **Cut corners.** Where two maps would overlap, the newer map leaves the corner out (an outline with 90° corners).
 In the app a map is still one rectangle (download tiles, terrain grid, chunks): when such a map is built, its
-terrain stays the full rectangle and `prepare.ts` drops every OSM feature in the cut rectangles (a `cut` list in
-`scripts/config.ts`, to add then), so the corner shows bare relief, as outside a map. The cuts so far:
+terrain stays the full rectangle and every OSM feature in the cut rectangles is cut away (`cut` in a city's entry
+in `scripts/config.ts`, `cutOsm()` in `scripts/osm.ts`, used by `prepare.ts` and `terrain.ts`; first used by Матка:
+points and buildings with a corner inside are dropped, roads and rivers split at the edge, areas clipped; download
+tiles wholly inside a cut are skipped), so the corner shows bare relief, as outside a map. The cuts so far:
 Дебарца (Охрид's corner), Демир Хисар (Ресен's), Мариово (Кавадарци's), Вевчани (all of Охрид's
 map: Вевчани is an L around its north-west), Делчево (Берово's and Радовиш's), Радовиш (Делчево's), Кратово (Крива Паланка's).
-Гевгелија (Дојран's). Велес, Матка, Пелагонија, Скопска Црна Гора, Крива Паланка, Делчево, Мариово, Вевчани, Кораб,
+Гевгелија (Дојран's). Велес, Матка (built: Скопје's and Брод's corners cut), Пелагонија, Скопска Црна Гора, Крива Паланка, Делчево, Мариово, Вевчани, Кораб,
 Куманово and Ново Село are not rectangles with one corner cut but outlines that go around several maps
 (`shapes` in the plan page); in the app they would be their bounding rectangle with those maps cut out.
 
@@ -74,7 +77,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 6 | Кораб* | 370 | — | 18 |
 | 7 | Пробиштип | 380 | Пробиштип | 28 |
 | 8 | Валандово | 410 | Валандово | 29 |
-| 9 | Матка* | 500 | — | 20 |
+| 9 | ~~Матка*~~ built (2026-11-23, out of order) | 500 | — | 20 |
 | 10 | Гевгелија | 510 | Гевгелија, Богданци | 30 |
 | 11 | Крива Паланка | 570 | Крива Паланка | 26 |
 | 12 | Свети Николе | 580 | Свети Николе | 22 |
@@ -99,7 +102,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 
 \* working names. Next to build: the first row.
 
-## Finished (14 maps, all on the site)
+## Finished (15 maps; Матка not yet on the site)
 
 | Map | Also on it | `?city=` | bbox (s, w, n, e) |
 |---|---|---|---|
@@ -117,6 +120,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 094 Тетово | Гостивар, Вруток, Шар Планина | `tetovo` | 41.725, 20.72, 42.075, 21.06 |
 | 045 Македонски Брод | Козјак, Света Петка, Зрзе, Солунска Глава | `brod` | 41.45, 21.12, 41.926, 21.42 |
 | 047 Ресен | the whole of Преспа, Голем Град, Мала Преспа | `resen` | 40.685, 20.845, 41.13, 21.165 |
+| 02 Матка | Св. Андреја, Св. Никола Шишевски, Сарај, Сува Гора | `matka` | 41.725, 21.06, 42.075, 21.385 (Скопје's and Брод's corners cut) |
 
 ## Planned maps
 
@@ -354,7 +358,15 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   About 37 × 7.5 km; almost all Albania. Could instead be added to Ростуше's map by moving its w edge.
 - **Landmarks:** the Црн Дрим valley, the border villages.
 
-### 20. Матка (name open)
+### 20. 02 Матка — built (2026-11-23, branch `city-matka`)
+
+- **Built** as planned: the bounding rectangle 41.725–42.075 N, 21.06–21.385 E (terrain 1348 × 1950 cells of 20 m,
+  249–2448 m: Јакупица's north ridge lies in Брод's cut), with two `cut` rectangles: Скопје plus the strip above it
+  (41.955–42.075 N, 21.33–21.385 E) and Брод (41.725–41.926 N, 21.12–21.385 E); Батинци lies just outside the
+  rectangle. Code **02** and the owner's LinkedIn (asked). Raw OSM from Geofabrik (`pbf2overpass.py`; Overpass
+  answered 502/504), 24,683 Overture outlines added to ~1,000 OSM buildings. Models (src/matka.ts): Св. Андреја,
+  Св. Никола Шишевски, the Матка arch dam. New terrain option `waterPad` (the lake is only a few cells wide in its
+  canyon). Not done: Св. Ѓорѓија in Кучково and the Матка monastery as models (generic buildings and labels).
 
 - **On it:** Матка (canyon, lake, dam, Св. Андреј), Водно's west side, Сарај's villages west of Скопје, the land
   between Тетово's and Брод's maps.
