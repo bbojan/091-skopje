@@ -256,6 +256,8 @@ let hopFiles: { id: CityId; files: MapFiles } | null = null;
 let hopCarry: { lat: number; lon: number; yaw: number; agl: number; speed: number; pitch: number; input: Record<string, number | boolean> } | null = null;
 /** the map straight ahead (the HUD chip), refreshed once a second */
 let hopAhead: Ahead | null = null;
+/** every map the prediction sees ahead (desktop: also ±45°), downloading or not: the radar marks the waiting ones */
+let hopSeen = new Set<CityId>();
 let hopCheck = 0;
 const BUILD_S = MOBILE ? 15 : 5; // a guess at building a map, s (docs/NOTES.md "Load times per step": 1–5 s desktop)
 let hopping = false;
@@ -268,6 +270,8 @@ function radarState(id: CityId): MapState {
   if (id === city.id && !hopTarget) return 'current';
   if (prefetch.has(id)) return 'ready';
   if (prefetch.loading(id)) return 'downloading'; // ahead of the plane: quieter than entering
+  if (prefetch.queued(id)) return 'queued'; // next in line after the running download
+  if (hopSeen.has(id)) return 'waiting'; // ahead, too far to start yet
   return 'open';
 }
 function drawRadar(f: Flight, meta: MapMeta): void {
@@ -297,6 +301,7 @@ function hopPredict(w: World): void {
     if (k === 0) hopAhead = a;
     if (a && !found.some((b) => b.id === a.id)) found.push(a);
   });
+  hopSeen = new Set(found.map((a) => a.id));
   // a download starts when the edge is closer than twice (download + build)
   const want = found.filter((a) => a.eta < 2 * (prefetch.seconds(a.id) + BUILD_S)).sort((a, b) => a.eta - b.eta).map((a) => a.id);
   prefetch.want(want);
@@ -1333,6 +1338,7 @@ function stopFlight(): void {
   flight.setJet(false);
   showCountryGround(false);
   hopAhead = null;
+  hopSeen = new Set();
   $('fly-next').hidden = true;
   if (!hopping) { prefetch.want([]); if (MOBILE) prefetch.clear(); } // landed: no more downloads (a phone frees the files)
   ink.outMat.uniforms.heatOn.value = 0;
@@ -1957,7 +1963,7 @@ renderer.setAnimationLoop(() => {
       hopUpdate(dt, world);
       if (!world) return; // the switch has begun: the old map is gone, the transit draws from the next frame
     }
-    else if (hopAhead) { hopAhead = null; prefetch.want([]); $('fly-next').hidden = true; }
+    else if (hopAhead) { hopAhead = null; hopSeen = new Set(); prefetch.want([]); $('fly-next').hidden = true; }
     updateRockets(dt, flight);
     traffic.update(dt, camera, controls.target);
     clouds.update(dt);
