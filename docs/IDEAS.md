@@ -78,7 +78,7 @@ Order of work:
 1. **Measure** every finished map: download, and time per preparing step (parse / steps / assemble / bake /
    shaders), memory, on desktop and a phone.
 2. **The F-15** in free flight.
-3. **A 100 m terrain of the whole country**, always seen (below).
+3. **A 100 m terrain of the whole country**, loaded the first time the F-15 is switched on (below).
 4. **Map-to-map flight** for the F-15: prediction, background downloads, indicator, the switch at the edge.
 5. **The fast switch:** low detail first, entry chunks first, shaders kept, far-ground textures later.
 6. Only if the measurements ask for it: preparing part of the next map ahead (desktop), or a binary data format. With both switched off, Скопје stays pixel-identical.
@@ -100,10 +100,12 @@ Order of work:
 - Phones: the same chip, same sticks. Strings in 6 languages (`src/i18n.ts`, then `npm run strings`); a row in
   the settings table in [NOTES.md](NOTES.md) if the choice is saved.
 
-### A 100 m terrain of the whole country (decided with the owner, 2026-11-23)
+### A 100 m terrain of the whole country, for the F-15 (decided with the owner, 2026-11-23)
 
-- **One low-detail terrain for all of Macedonia**, always on screen: beyond the current map's edges the mountains
-  of the whole country go on, instead of haze. For the F-15 it is the "low detail first" of the fast switch: at
+- **One low-detail terrain for all of Macedonia, for the F-15 only:** downloaded the **first time the F-15 is
+  switched on** (not at page load, so the first visit and the map, walking, bus and the usual plane cost nothing
+  more), kept for the rest of the visit, and drawn only while the F-15 flies. Beyond the current map's edges the
+  mountains of the whole country go on, instead of haze. For the F-15 it is the "low detail first" of the fast switch: at
   the edge the neighbour's relief is already there, only buildings and roads are left to build.
 - **Size** (rectangle ~216 × 169 km around the country, 2 bytes per cell as in `terrain.bin`; estimates):
 
@@ -129,8 +131,7 @@ Order of work:
   memory and one draw call. Under the current map it is hidden or lowered, so it never fights the detailed terrain.
 - **Data:** the same AWS Terrarium tiles as `scripts/terrain.ts`, zoom 10–11 (~57–115 m per pixel here), about
   30–100 tiles; a new step in the scripts writes one file to `public/`.
-- **Скопје pixel-identical:** views that see a map's edge change (relief instead of haze), so either a switch
-  (off = today) or new reference images taken on purpose. Decide when building it.
+- **Скопје pixel-identical:** nothing changes outside the F-15, so the reference images stay as they are.
 
 ### Flying from map to map (F-15 only)
 
