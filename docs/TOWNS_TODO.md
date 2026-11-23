@@ -474,6 +474,8 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
 ### 30. Гевгелија
 
 - **On it:** Гевгелија, Богданци, Негорци, Смоквица, the Vardar to the Greek border, the Богданци wind farm.
+- **UI name:** Гевгелија, Богданци (the map's two towns, as Охрид, Струга; decided 2026-11-23): `name` in `CITIES`;
+  the id stays `gevgelija`, the zone name Гевгелија.
 - **Code:** open (phone code 034). `?city=gevgelija`.
 - **Extent:** split off Струмица by the owner on 2026-11-23: n 41.25 (Валандово's s), s ~41.10 (the Greek border: check
   in OSM), w 22.32 (Демир Капија's e), e 22.66 (Дојран's w). About 470 km², 20 m cells.
