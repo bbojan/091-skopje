@@ -136,7 +136,7 @@ Order of work:
 
 ### Country view to pick a city — ✅ built (2026-11-23, the owner moved it ahead of the F-15)
 
-- Opened by the round Macedonia button right of the `?` (not from the city menu). `src/country.ts`, data
+- Opened by Macedonia, first in the city menu (a tile as tall as four cities; at first a round button right of the `?`). `src/country.ts`, data
   `public/country.png` + `.json` (`npm run country`), zones `src/zones.ts`; how it works: "Country view" in
   [NOTES.md](NOTES.md).
 - Its data is the 100 m country grid planned for the F-15 below (heights, land cover, border), downloaded the first

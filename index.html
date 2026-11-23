@@ -23,9 +23,6 @@
                      background: var(--ink); color: #fff8ec; cursor: pointer; font: inherit; font-size: 17px; font-weight: 700; display: grid; place-items: center;
                      border: 2px solid #fff8ec; box-shadow: 0 0 0 1.5px var(--ink), 2px 3px 0 rgba(43, 29, 22, 0.4); }
       .title .hint:hover { background: var(--wine); }
-      /* the Macedonia button right of the ?: opens the country view (src/country.ts) */
-      .title .hint.mk { left: calc(100% + 54px); padding: 0; }
-      .title .hint.mk svg { width: 22px; height: 22px; fill: currentColor; }
       .city-menu { position: absolute; left: -1.5px; top: calc(100% + 8px); display: flex; flex-direction: column; gap: 6px; min-width: calc(100% + 3px); box-sizing: border-box;
                    padding: 18px 10px; background: var(--linen); border: 1.5px solid var(--indigo); border-radius: 12px; box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); }
       .city-menu[hidden] { display: none; }
@@ -42,6 +39,9 @@
       .city-menu button:focus-visible { outline: 2px solid var(--wine); outline-offset: 2px; }
       .city-menu button[aria-checked="true"] { background: var(--indigo); color: var(--linen-hi); }
       .city-menu button[aria-checked="true"]::after { content: '✓'; margin-left: auto; padding-left: 10px; }
+      /* Macedonia, first in the city list and as tall as four cities (--row: a city's height, set by fitCityMenu()): opens the country view (src/country.ts) */
+      .city-menu .country-tile { flex: none; height: calc(4 * var(--row, 37px) + 18px); flex-direction: column; justify-content: center; gap: 4px; padding: 8px 10px; text-align: center; }
+      .country-tile svg { flex: 1 1 0; min-height: 0; width: 100%; fill: currentColor; }
       .city-menu .code { font-size: 12px; padding: 4px 5px 3px; border-radius: 6px; box-shadow: 1.5px 1.5px 0 var(--ink); }
       /* menu items and help paragraphs that belong to one city only */
       body:not(.city-skopje) [data-city="skopje"], body:not(.city-kavadarci) [data-city="kavadarci"], body:not(.city-bitola) [data-city="bitola"],
@@ -391,7 +391,7 @@
     <div class="title" id="city-box">
       <button class="city-btn" id="city-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="city-menu" title="Избери град" data-i18n-title="city.pick"><span class="h1"><span class="code city-code">091</span><span class="city-name">Скопје</span><span class="caret" aria-hidden="true">▼</span></span></button>
       <button class="hint" id="logo" type="button" aria-haspopup="dialog" aria-controls="help" title="За апликацијата и контроли" data-i18n-title="logo.title" aria-label="За апликацијата и контроли" data-i18n-aria="logo.title">?</button>
-      <button class="hint mk" id="country-btn" type="button" title="Македонија: сите мапи" data-i18n-title="country.open" aria-label="Македонија: сите мапи" data-i18n-aria="country.open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1.0 13.1L1.9 14.4L1.3 15.2L1.5 16.4L2.2 17.9L2.9 18.1L3.4 20.0L5.2 19.8L5.5 20.7L8.4 20.5L9.2 19.9L10.7 20.5L11.5 19.7L12.4 19.8L13.4 17.9L14.7 17.2L15.3 17.6L16.0 17.1L17.0 17.6L19.2 17.7L19.9 16.9L20.4 17.3L20.7 15.3L22.4 15.0L22.3 11.8L23.0 10.8L21.9 9.0L21.6 7.3L18.7 6.0L16.7 3.3L14.7 4.2L13.7 3.7L13.3 4.2L12.9 3.9L11.6 4.9L9.5 4.4L8.0 6.5L6.7 5.2L3.9 6.6L3.3 9.1L1.9 9.1L2.0 10.0L1.5 10.7L1.9 12.4Z"/></svg></button>
+      <button class="country-tile" id="country-btn" type="button" role="menuitem" title="Македонија: сите мапи" data-i18n-title="country.open" aria-label="Македонија: сите мапи" data-i18n-aria="country.open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1.0 13.1L1.9 14.4L1.3 15.2L1.5 16.4L2.2 17.9L2.9 18.1L3.4 20.0L5.2 19.8L5.5 20.7L8.4 20.5L9.2 19.9L10.7 20.5L11.5 19.7L12.4 19.8L13.4 17.9L14.7 17.2L15.3 17.6L16.0 17.1L17.0 17.6L19.2 17.7L19.9 16.9L20.4 17.3L20.7 15.3L22.4 15.0L22.3 11.8L23.0 10.8L21.9 9.0L21.6 7.3L18.7 6.0L16.7 3.3L14.7 4.2L13.7 3.7L13.3 4.2L12.9 3.9L11.6 4.9L9.5 4.4L8.0 6.5L6.7 5.2L3.9 6.6L3.3 9.1L1.9 9.1L2.0 10.0L1.5 10.7L1.9 12.4Z"/></svg><span data-i18n="country.title">Македонија</span></button>
       <div class="city-menu" id="city-menu" role="menu" aria-label="Град" data-i18n-aria="city.menu" hidden></div>
     </div>
     <div id="country-ui" hidden>

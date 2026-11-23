@@ -608,7 +608,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 
 ## Country view (Nov 2026)
 
-- **What:** the round Macedonia button after the `?` shows the whole country with every map's zone (`src/zones.ts`,
+- **What:** Macedonia, first in the city menu (a tile as tall as four cities, `.country-tile`), shows the whole country with every map's zone (`src/zones.ts`,
   the same list as `scripts/towns-map.html`): finished maps solid with their badge (a click opens the city), planned
   ones dashed, their names with "наскоро" when zoomed in. Escape or ✕ goes back to the map.
 - **Data:** `public/country.png` (4.4 MB) + `country.json`, written by `npm run country` (`scripts/country.ts`):

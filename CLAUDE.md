@@ -83,7 +83,7 @@ npm run country      # the whole country at 100 m → public/country.png/.json (
 | `i18n-towns2.ts` | UI texts of Tetovo, Makedonski Brod and Resen, spread into `STR` after `TOWNS` |
 | `i18n-towns3.ts` | UI texts of Матка and Вевчани, spread into `STR` after `TOWNS2` |
 | `i18n-country.ts` | UI texts of the country view, spread into `STR` after `TOWNS3` |
-| `country.ts` | Country view (the Macedonia button after the `?`): all of Macedonia at 100 m from `public/country.png` (heights, land cover, border), its own scene / camera / controls drawn through the same ink renderer (`renderCountry()` in `main.ts`), zones as a canvas overlay, hover, picking by marching the height grid, badges that open a city; the data is loaded once and kept for the visit (`loadCountry`, meant for the F-15 too) |
+| `country.ts` | Country view (Macedonia, first in the city menu): all of Macedonia at 100 m from `public/country.png` (heights, land cover, border), its own scene / camera / controls drawn through the same ink renderer (`renderCountry()` in `main.ts`), zones as a canvas overlay, hover, picking by marching the height grid, badges that open a city; the data is loaded once and kept for the visit (`loadCountry`, meant for the F-15 too) |
 | `zones.ts` | The towns plan's zones (finished and planned maps' outlines): one list for the country view and `scripts/towns-map.html` |
 | `i18n.ts` | UI translations (mk, en, sr Cyrillic, hr, sl, sq): `t(key)`, `data-i18n*` attributes in `index.html`, 🌐 picker, auto-detect, `?lang=` |
 | `types.ts` | Shared types: 2D geometry (`Pt`, `Ring`, `Poly`) and the `skopje.json` format (`CityData`) written by `prepare.ts` |
@@ -98,7 +98,7 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
 
 ## Cities
 
-- The round Macedonia button after the `?` opens the country view (`src/country.ts`): every map's zone on the whole
+- Macedonia, the first item of the city menu (a tile as tall as four cities), opens the country view (`src/country.ts`): every map's zone on the whole
   country; a finished map's badge opens it. A new map: move it from `PLANNED` to `EXISTING` in `src/zones.ts`.
   The city stays built underneath, so Skopje is pixel-identical after closing it (checked).
 - The badge at the top left (`091 Скопје ▾`) is the city picker (the tab icon follows: `icon` in `CITIES`,

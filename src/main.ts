@@ -467,6 +467,8 @@ for (const id of CITY_IDS) {
   b.addEventListener('click', () => { setCityMenu(false); void switchCity(id); });
   cityList.append(b);
 }
+// Macedonia first, as tall as four cities (CSS: .country-tile): the country view
+cityList.prepend($('country-btn'));
 function setCityMenu(open: boolean): void {
   cityMenu.hidden = !open;
   cityBtn.setAttribute('aria-expanded', String(open));
@@ -478,6 +480,8 @@ function setCityMenu(open: boolean): void {
 function fitCityMenu(): void {
   if (cityMenu.hidden) return;
   cityMenu.style.setProperty('--top', `${cityBtn.getBoundingClientRect().bottom + 8}px`);
+  const row = cityList.querySelector<HTMLElement>('[data-city-id]')?.offsetHeight;
+  if (row) cityList.style.setProperty('--row', `${row}px`);
 }
 addEventListener('resize', fitCityMenu);
 cityBtn.addEventListener('click', (e) => { e.stopPropagation(); setCityMenu(cityMenu.hidden === true); });
@@ -1312,7 +1316,7 @@ function renderCountry(v: CountryView): void {
   u.hazeRange.value.copy(haze);
   ink.normalMat.clippingPlanes = clip;
 }
-$('country-btn').addEventListener('click', () => void openCountry());
+$('country-btn').addEventListener('click', () => { setCityMenu(false); void openCountry(); });
 $('country-close').addEventListener('click', closeCountry);
 addEventListener('keydown', (e) => { if (countryOpen && e.code === 'Escape' && !document.querySelector('dialog[open]')) closeCountry(); });
 // hover and click on the canvas (a click is a press without dragging)
