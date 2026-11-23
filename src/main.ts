@@ -255,6 +255,8 @@ let hopAhead: Ahead | null = null;
 let hopCheck = 0;
 const BUILD_S = MOBILE ? 15 : 5; // a guess at building a map, s (docs/NOTES.md "Load times per step": 1–5 s desktop)
 let hopping = false;
+/** the F-15 flying on over the country's ground while the next map builds (the old map's plane and coordinates) */
+let transit: { flight: Flight; ground: CountryGround; abort: AbortController; meta: MapMeta } | null = null;
 const latLonOf = (w: World, x: number, z: number): [number, number] => [w.meta.lat0 - z / w.meta.ky, w.meta.lon0 + x / w.meta.kx];
 /** the F-15 may fly on over the edge here: a finished map lies ahead, or under it already */
 function edgeOpen(x: number, z: number): boolean {
@@ -299,12 +301,33 @@ async function hop(id: CityId): Promise<void> {
   hopCarry = { lat, lon, yaw: f.yaw, agl: p.y - groundAt(p.x, p.z), speed: f.speed, pitch: f.pitch, input: { ...f.input } };
   hopFiles = { id, files };
   const fade = $('hop-fade');
-  fade.classList.add('on');
   document.body.classList.add('hop'); // the loader shows small (name and bar only)
-  await new Promise((r) => setTimeout(r, 260));
+  if (cground && cgroundFor === w && cground.visible) {
+    // fly on over the country's ground while the next map builds in time slices (no fade)
+    const ground = cground;
+    transit = { flight: f, ground, abort: w.abort, meta: w.meta };
+    f.setGround((x, z) => ground.height(x, z));
+    f.setEdgeOpen(() => true);
+  } else {
+    fade.classList.add('on');
+    await new Promise((r) => setTimeout(r, 260));
+  }
   try {
     await switchCity(id);
+    if (transit && world?.spec.id === id) await warmUp(world, transit);
   } finally {
+    const tr = transit;
+    if (tr) {
+      // where the plane is now, in the old map's coordinates, carried into the new one
+      transit = null;
+      const tf = tr.flight, tp = tf.pos;
+      hopCarry = { lat: tr.meta.lat0 - tp.z / tr.meta.ky, lon: tr.meta.lon0 + tp.x / tr.meta.kx, yaw: tf.yaw, agl: tp.y - tr.ground.height(tp.x, tp.z), speed: tf.speed, pitch: tf.pitch, input: { ...tf.input } };
+      for (const o of [tf.plane, tr.ground.mesh]) { scene.remove(o); disposeTree(o); }
+      const fl = new Set<THREE.Object3D>(tf.flames);
+      for (let i = ink.skipNormal.length - 1; i >= 0; i--) if (fl.has(ink.skipNormal[i])) ink.skipNormal.splice(i, 1);
+      tr.abort.abort();
+      ink.setClipping(mapPlanes);
+    }
     const c = hopCarry;
     hopCarry = null;
     hopping = false;
@@ -316,6 +339,63 @@ async function hop(id: CityId): Promise<void> {
     fade.classList.remove('on');
     document.body.classList.remove('hop');
   }
+}
+/**
+ * The new map's first frame would upload all of its geometry to the GPU at once (~0.6 s for Скопје): done during
+ * the transit instead, a few meshes per frame drawn into a tiny target from where the plane will come in.
+ */
+async function warmUp(w: World, tr: NonNullable<typeof transit>): Promise<void> {
+  const f = tr.flight, p = f.pos, m = w.meta;
+  const lat = tr.meta.lat0 - p.z / tr.meta.ky, lon = tr.meta.lon0 + p.x / tr.meta.kx;
+  const x = (lon - m.lon0) * m.kx, z = -(lat - m.lat0) * m.ky, dx = Math.sin(f.yaw), dz = -Math.cos(f.yaw);
+  const y = w.terrain.at(x, z) + (p.y - tr.ground.height(p.x, p.z));
+  const cam = new THREE.PerspectiveCamera(70, camera.aspect, 4, 30000);
+  cam.position.set(x - dx * 60, y + 15, z - dz * 60);
+  cam.lookAt(x + dx * 900, y - 250, z + dz * 900);
+  cam.updateMatrixWorld();
+  w.city.updateLOD(cam);
+  const keep = new Set<THREE.Object3D>([f.plane, tr.ground.mesh, ...SCENE_BASE]);
+  const tops = scene.children.filter((o) => !keep.has(o));
+  const items = tops.flatMap((o) => (o === w.city.group ? o.children : [o]));
+  const was = new Map<THREE.Object3D, boolean>();
+  for (const o of [...tops, ...items]) was.set(o, o.visible);
+  const rt = new THREE.WebGLRenderTarget(32, 32);
+  const kept = [...keep].filter((o) => o.visible);
+  let t0 = performance.now();
+  for (let i = 0; i < items.length; i++) {
+    if (!was.get(items[i])) continue; // not drawn now (another level of detail): uploaded when it is needed
+    for (const o of was.keys()) o.visible = false;
+    for (const o of kept) o.visible = false;
+    w.city.group.visible = true;
+    items[i].visible = true;
+    renderer.setRenderTarget(rt);
+    renderer.render(scene, cam);
+    renderer.setRenderTarget(null);
+    for (const [o, v] of was) o.visible = v;
+    for (const o of kept) o.visible = true;
+    if (performance.now() - t0 > 10) { await nextFrame(); t0 = performance.now(); }
+  }
+  rt.dispose();
+}
+/** a frame of the transit: the old plane flies on over the country's ground; the new map, still building in the
+ *  scene in its own coordinates, is hidden meanwhile */
+function transitFrame(dt: number): void {
+  const tr = transit!, f = tr.flight;
+  f.update(dt);
+  tr.ground.update(f.pos.x, f.pos.z);
+  controls.target.copy(f.pos);
+  camera.near = 4; camera.far = 90000; camera.updateProjectionMatrix();
+  heatHaze(f);
+  const h = f.hud;
+  flyStats.textContent = `${h.kmh} ${t('u.kmh')} · ${h.alt} ${t('u.m')}`;
+  if (soundOn) sound.update(dt, { mode: 'fly', speed: THREE.MathUtils.clamp((h.kmh - 662) / 1988, 0, 1), tractor: false, jet: true, burner: THREE.MathUtils.clamp((h.kmh - 1325) / 1325, 0, 1), dropping: false, scooping: false, fire: 0, rain: wxNow.rain, night: timeNow.night, near: 0 });
+  const shown = new Set<THREE.Object3D>([f.plane, tr.ground.mesh, sun.target, ...SCENE_BASE]);
+  const hidden = scene.children.filter((o) => !shown.has(o) && o.visible);
+  for (const o of hidden) o.visible = false;
+  ink.setClipping([]);
+  ink.reset();
+  ink.render(scene, camera, true);
+  for (const o of hidden) o.visible = true;
 }
 /** every frame while the F-15 flies: predict, and switch once the plane is over the next map */
 function hopUpdate(dt: number, w: World): void {
@@ -371,14 +451,19 @@ function showCountryGround(on: boolean, x = 0, z = 0): void {
 }
 /** how long each step of the last load took, ms (window.__dbg.loadTimes; docs/NOTES.md "Load times") */
 let loadTimes: Record<string, number> = {};
+/** how long taking the last map apart took, ms (__dbg.loadUnload) */
+let loadUnload = 0;
+/** the longest single piece of each step (main-thread work between two frames), ms: __dbg.loadMax */
+let loadMax: Record<string, number> = {};
 /** Builds the city in stages behind the loading card; `world` is set when everything exists. */
 async function loadCity(spec: CitySpec): Promise<void> {
   loading = true;
   showLoader(spec);
   const t0 = performance.now();
   loadTimes = {};
+  loadMax = {};
   let tMark = t0;
-  const mark = (k: string) => { const n = performance.now(); loadTimes[k] = Math.round((loadTimes[k] ?? 0) + n - tMark); tMark = n; };
+  const mark = (k: string) => { const n = performance.now(); loadTimes[k] = Math.round((loadTimes[k] ?? 0) + n - tMark); loadMax[k] = Math.max(loadMax[k] ?? 0, Math.round(n - tMark)); tMark = n; };
   showProgress('download', 0);
   // the F-15 flying in: the files were downloaded while it flew (src/hop.ts)
   const pre = hopFiles?.id === spec.id ? hopFiles.files : null;
@@ -406,7 +491,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   // build on the main thread in stages, letting the progress bar repaint between them
   // (a background worker gets throttled to a fraction of this speed)
   const terrain = new Terrain(tm, new Uint16Array(tb), spec.terrainExag);
-  const steps = computeCitySteps(data, terrain, { density: MOBILE ? 0.5 : 1, stream: memorySaver, treeThin: spec.treeThin, vineyards: spec.vineyards, vineShare: spec.vineShare });
+  const steps = computeCitySteps(data, terrain, { density: MOBILE ? 0.5 : 1, stream: memorySaver, treeThin: spec.treeThin, vineyards: spec.vineyards, vineShare: spec.vineShare, sliceMs: transit ? 12 : undefined });
   let desc: CityDesc;
   for (;;) {
     const r = steps.next();
@@ -521,8 +606,9 @@ async function loadCity(spec: CitySpec): Promise<void> {
   // memory saver: build the detailed ground around the first view before showing it
   for (let i = 0; i < 400; i++) { city.updateLOD(camera); if (!city.streamPending) break; await nextFrame(); }
   mark('stream');
-  // the first frame compiles the shaders
-  ink.render(scene, camera, false);
+  // the first frame compiles the shaders (the F-15 flying in: compiled without drawing, the camera is the old map's)
+  if (transit) renderer.compile(scene, camera);
+  else ink.render(scene, camera, false);
   renderer.getContext().finish();
   ink.reset();
   mark('shaders');
@@ -594,20 +680,23 @@ function disposeTree(root: THREE.Object3D): void {
 function unloadWorld(): void {
   const w = world;
   if (!w) return;
-  if (cground && cgroundFor === w) { cground.setVisible(false); ink.setClipping(mapPlanes); }
+  // the F-15 flying into the next map: its plane and the country's ground stay and fly on (transit) until it is built
+  const keep = transit?.flight === w.flight ? new Set<THREE.Object3D>([w.flight.plane, transit.ground.mesh]) : null;
+  if (cground && cgroundFor === w && !keep) { cground.setVisible(false); ink.setClipping(mapPlanes); }
   cground = null; cgroundFor = null; // its mesh goes with the scene below
   resumeWalk = false;
-  if (w.flight.active) stopFlight();
+  if (w.flight.active && !keep) stopFlight();
   if (w.drive.active) stopDrive();
   if (w.walk.active) stopWalk();
   w.fire.stop();
   closePopups();
-  world = null; // the frame loop draws nothing from here on
-  w.abort.abort();
+  world = null; // the frame loop draws nothing from here on (but the transit)
+  if (!keep) w.abort.abort(); // the transit keeps the flight's keys until it ends
   w.labels.dispose();
   w.city.dispose();
-  for (const o of [...scene.children]) if (!SCENE_BASE.has(o)) { scene.remove(o); disposeTree(o); }
+  for (const o of [...scene.children]) if (!SCENE_BASE.has(o) && !keep?.has(o)) { scene.remove(o); disposeTree(o); }
   ink.skipNormal.length = 0;
+  if (keep) ink.skipNormal.push(...w.flight.flames);
   renderer.renderLists.dispose();
   clearTimeout(hashTimer);
   hashMoved = false;
@@ -624,7 +713,9 @@ async function switchCity(id: CityId, push = true): Promise<void> {
   if (loading) { queuedCity = id; return; }
   if (id === city.id && world) return;
   city = CITIES[id];
+  const tu = performance.now();
   unloadWorld();
+  loadUnload = Math.round(performance.now() - tu);
   try { await loadCity(city); } catch (e) { loadFailed(e); return; }
   if (queuedCity && queuedCity !== city.id) { const next = queuedCity; queuedCity = null; await switchCity(next, false); }
   queuedCity = null;
@@ -1147,17 +1238,18 @@ function updateRockets(dt: number, flight: Flight): void {
 const heatA = new THREE.Vector3(), heatB = new THREE.Vector3();
 function heatHaze(flight: Flight): void {
   const u = ink.outMat.uniforms;
-  const burn = THREE.MathUtils.clamp((flight.hud.kmh - 1325) / 1325, 0, 1);
+  // three levels: slow (Ctrl, 662 km/h) faint, cruise (1325) light, turbo (2650) strong; eased in between
+  const kmh = flight.hud.kmh, lerp3 = (a: number, b: number, c: number) => (kmh <= 1325 ? a + (b - a) * THREE.MathUtils.clamp((kmh - 662) / 663, 0, 1) : b + (c - b) * THREE.MathUtils.clamp((kmh - 1325) / 1325, 0, 1));
   flight.plane.updateMatrixWorld();
   flight.plane.localToWorld(heatA.set(0, 0.15, 12.6));
-  flight.plane.localToWorld(heatB.set(0, 0.15, 12.6 + 22 + 95 * burn));
+  flight.plane.localToWorld(heatB.set(0, 0.15, 12.6 + lerp3(12, 22, 85)));
   const d = camera.position.distanceTo(heatA);
   camera.updateMatrixWorld(); // moved by the flight this frame
   heatA.project(camera); heatB.project(camera);
   if (heatA.z > 1 || heatB.z > 1) return; // behind the camera
-  u.heatOn.value = 0.55 + 1.65 * burn; // turbo: the afterburner shimmers much more
+  u.heatOn.value = lerp3(0.3, 0.6, 1.5);
   u.heatT.value = SHARED.uTime.value;
-  u.heatR.value = (2.4 + 2.8 * burn) / (d * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  u.heatR.value = lerp3(1.8, 2.4, 4.4) / (d * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
   u.heatA.value.set((heatA.x + 1) / 2, (heatA.y + 1) / 2);
   u.heatB.value.set((heatB.x + 1) / 2, (heatB.y + 1) / 2);
   u.heatAsp.value = camera.aspect;
@@ -1609,6 +1701,7 @@ renderer.setAnimationLoop(() => {
     }
     return;
   }
+  if (transit) { transitFrame(dt); return; } // the F-15 flies on while the next map builds
   controls.update();
   if (!world) return; // set at the end of loading: everything exists
   const { flight, drive, walk, game, terrain, city, traffic, clouds, birds, gliders, precip, landmarks, labels } = world;
@@ -1845,6 +1938,6 @@ renderer.setAnimationLoop(() => {
   ink.render(scene, camera, live);
 });
 
-window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, switchCity, get cityId() { return city.id; }, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; }, get country() { return country; }, get loadTimes() { return loadTimes; } };
+window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, switchCity, get cityId() { return city.id; }, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; }, get country() { return country; }, get loadTimes() { return loadTimes; }, get loadMax() { return loadMax; }, get loadUnload() { return loadUnload; } };
 
 loadCity(city).catch(loadFailed);

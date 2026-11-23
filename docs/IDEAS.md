@@ -82,7 +82,12 @@ Order of work:
    memory once loaded); what is left is drawing it around the map while the F-15 flies (below). ✅ built (`src/countryground.ts`).
 4. **Map-to-map flight** for the F-15: prediction, background downloads, indicator, the switch at the edge. ✅ built (`src/hop.ts`;
    the switch rebuilds the whole map behind a fade and the small loader: Скопје → Батинци ~1.5 s on desktop).
-5. **The fast switch:** low detail first, entry chunks first, shaders kept, far-ground textures later.
+5. **The fast switch:** low detail first, entry chunks first, shaders kept, far-ground textures later. ✅ first version
+   (2026-11-23): the plane flies on over the country's terrain while the next map builds (the *transit*: the old
+   plane and ground stay, the new map is hidden until done), `trees` / `pack` are time-sliced (`sliceMs`, the same
+   result), shaders compiled without drawing, and the GPU upload done a few meshes per frame from where the plane
+   comes in. Скопје → Батинци: frames go on through the ~1.4 s build, every step's longest slice ≤ 90 ms; one pause
+   of ~270 ms is left at the end (one large mesh uploaded at once). Not done: building chunks around the plane first.
 6. Only if the measurements ask for it: preparing part of the next map ahead (desktop), or a binary data format. With both switched off, Скопје stays pixel-identical.
 
 ### F-15 Eagle (free flight only)

@@ -616,6 +616,9 @@ export interface CityOptions {
   vineyards?: number;
   /** the share of those plots that are vineyards, the rest fields (CitySpec.vineShare; default 0.52) */
   vineShare?: number;
+  /** the F-15 flying in: the long stages (trees, pack) yield whenever this many ms have passed, so frames go on
+   *  between slices; the result is the same (unset: one yield per stage) */
+  sliceMs?: number;
 }
 /** Trees in green areas (forest above all) at full density within `near` m of `ll`, thinning out
  *  smoothly to the share `min` at `far` m and beyond, drawn up to `grow` times larger there. */
@@ -1254,6 +1257,10 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   }
 
   yield 'cars';
+  // time slices for the F-15 flying in (opts.sliceMs): checked every 256 steps of the long loops below
+  const sliceMs = opts.sliceMs ?? 0;
+  let sliceT = performance.now(), sliceN = 0;
+  const due = () => sliceMs > 0 && (++sliceN & 255) === 0 && performance.now() - sliceT > sliceMs;
   // ---------------- trees
   const addTree = (list: 'trees' | 'cyp', x: number, z: number, r: number, v: number) => chunk(x, z)[list].push([x, z, r, v]);
   const placeOk = (x: number, z: number, d: number) =>
@@ -1280,6 +1287,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   for (let i = 0; i < data.trees.length; i += 2) {
     const x = data.trees[i], z = data.trees[i + 1];
     if (inside(x, z, 3) && !bGrid.hit(x, z) && occupied.tryAdd(x, z, 3)) addTree('trees', x, z, 2.6 + rndT() * 1.6, rndT());
+    if (due()) { yield 'trees'; sliceT = performance.now(); }
   }
   // Kavadarci: plane trees along the Луда Мара's promenades
   if (canal) for (const [x, z] of canalTrees(canal)) if (placeOk(x, z, 4)) addTree('trees', x, z, 2.6 + rndT() * 1.2, rndT());
@@ -1307,6 +1315,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
       for (let k = 0; k + 1 < cross.length; k += 2) {
         const sx0 = Math.max(cross[k], x0), sx1 = Math.min(cross[k + 1], x1);
         for (let x = sx0 + rr() * step * 0.5; x < sx1; x += step) {
+          if (due()) { yield 'trees'; sliceT = performance.now(); }
           if (rr() > prob) continue;
           const px = Math.min(Math.max(x + (rr() - 0.5) * step * 0.9, cross[k] + 0.6), cross[k + 1] - 0.6);
           const pz = z + (rr() - 0.5) * step * 0.6;
@@ -1353,6 +1362,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
   const ri = mulberry32(4242);
   for (let x = -halfW + 6; x < halfW - 6; x += 7)
     for (let z = -halfH + 6; z < halfH - 6; z += 7) {
+      if (due()) { yield 'trees'; sliceT = performance.now(); }
       if (ri() > 0.3 * density) continue;
       const px = x + (ri() - 0.5) * 6, pz = z + (ri() - 0.5) * 6;
       // only next to buildings: tested first, so open country (forest, the lake) skips the costly polygon tests
@@ -1415,6 +1425,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
       carCount += c.cars.length;
     }
     out.push(d);
+    if (sliceMs > 0 && performance.now() - sliceT > sliceMs) { yield 'trees'; sliceT = performance.now(); } // still labelled trees: 'pack' ends it
   }
   yield 'pack';
   return {

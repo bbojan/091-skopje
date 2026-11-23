@@ -232,4 +232,6 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   in docs/NOTES.md, `scripts/browser/`); measure GPU time
   with `EXT_disjoint_timer_query_webgl2` (hidden panes throttle rAF/timers).
 - Keep load yielding with `nextFrame()` (works in hidden tabs); don't move the build
-  into a Web Worker — workers ran ~7× slower (background throttling).
+  into a Web Worker — workers ran ~7× slower (background throttling). The F-15 flying into a map builds it with
+  `sliceMs` (the long stages yield every ~12 ms, same result) while the old plane flies on (`transit` in `main.ts`).
+  `__dbg.loadTimes` / `loadMax` / `loadUnload`: per step total, longest slice, unloading.

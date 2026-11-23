@@ -245,7 +245,7 @@ export class InkRenderer {
             float k = heatOn * smoothstep(r, 0.0, d) * (1.0 - 0.75 * h) * smoothstep(0.0, 0.06, h);
             vec2 w = vec2(sin(p.y * 260.0 - heatT * 33.0 + p.x * 80.0) + 0.5 * sin(p.x * 410.0 + heatT * 47.0),
                           cos(p.x * 230.0 + heatT * 29.0 - p.y * 90.0) + 0.5 * cos(p.y * 380.0 - heatT * 41.0));
-            uv += w * k * heatR * 0.12;
+            uv += w * k * heatR * 0.03; // a few pixels: ~1.5 slow, ~4 cruise, ~16 with turbo (1319 px tall)
           }
           vec3 col = texture2D(tSrc, uv).rgb;
           col += (hash(floor(gl_FragCoord.xy * 0.5)) - 0.5) * 0.014;
