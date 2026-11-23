@@ -851,7 +851,8 @@ setTimeout(() => console.log(gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6, 'ms
 
 ## Backlog / ideas
 
-- Towns still to build (planned 2026-11-21): [TOWNS_TODO.md](TOWNS_TODO.md).
+- Towns still to build (planned 2026-11-21, redrawn 2026-11-23 so the whole country is covered, no overlaps):
+  [TOWNS_TODO.md](TOWNS_TODO.md).
 - Memory saver (done): draped ground + detailed terrain are built per chunk near the camera
   (`lazy.ground/terrainHi`, `makeLOD`), on by default on phones. At the Square view a phone
   keeps 37 of 204 chunks = 213 MB instead of 568 MB; the overview keeps none.

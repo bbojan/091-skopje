@@ -8,14 +8,49 @@
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
 The map is drawn by [scripts/towns-map.html](../scripts/towns-map.html) (d3 from a CDN; the boxes are typed in
-by hand: move a town from `planned` to `existing` when it is built). With `npm run dev` running:
+by hand: move a town from `planned` to `existing` when it is built; `cuts` holds the corners a planned map leaves
+out where a neighbour already is, `shapes` the full outline of a map that is not a rectangle with cut corners,
+`labelAt` where a name goes when the box's middle is not on the map; the line under the map lists overlaps). With `npm run dev` running:
 
 ```bash
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 11 new maps** (5 shared, 6 single) **and Скопје widened** (east, west, north, with Матка), planned with the owner on 2026-11-21
-(14 maps then; Тетово, Брод and Ресен are built). Кратово is next in the list. How to build one: [ADDING_A_CITY.md](ADDING_A_CITY.md).
+**To do: 28 new maps**, all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+towns on it):
+
+| Map | ~km² | Towns | | Map | ~km² | Towns |
+|---|---|---|---|---|---|---|
+| Мариово* | 2700 | — | | Кораб* | 740 | — |
+| Матка* | 2210 | — | | Пелагонија* | 730 | — |
+| Куманово | 1790 | Куманово | | Струмица | 690 | Струмица |
+| Велес | 1540 | Велес | | Дебарца | 630 | — |
+| Вевчани | 1350 | — | | Демир Хисар | 620 | Демир Хисар |
+| Делчево | 1310 | Делчево | | Свети Николе | 580 | Свети Николе |
+| Ново Село* | 1190 | — | | Гевгелија | 470 | Гевгелија, Богданци |
+| Кичево | 1030 | Кичево | | Валандово | 410 | Валандово |
+| Крива Паланка | 1000 | Крива Паланка | | Пробиштип | 380 | Пробиштип |
+| Стоби* | 940 | — | | Неготино | 370 | Неготино |
+| Радовиш | 900 | Радовиш | | Виница | 340 | Виница |
+| Штип | 820 | Штип | | Голо Брдо* | 280 | — |
+| Демир Капија | 820 | Демир Капија | | Меџитлија* | 230 | — |
+| Кратово | 750 | Кратово | | Кочани | 190 | Кочани |
+
+\* working names. Only Гевгелија holds two towns now (Богданци is next to it). For comparison, the largest finished
+maps are Брод and Ресен (about 1320 km² each).
+
+**Cut corners.** Where two maps would overlap, the newer map leaves the corner out (an outline with 90° corners).
+In the app a map is still one rectangle (download tiles, terrain grid, chunks): when such a map is built, its
+terrain stays the full rectangle and `prepare.ts` drops every OSM feature in the cut rectangles (a `cut` list in
+`scripts/config.ts`, to add then), so the corner shows bare relief, as outside a map. The cuts so far:
+Дебарца (Охрид's corner), Демир Хисар (Ресен's), Ново Село (Радовиш's), Мариово (Кавадарци's), Вевчани (all of Охрид's
+map: Вевчани is an L around its north-west), Делчево (Берово's and Радовиш's), Радовиш (Делчево's), Кратово (Крива Паланка's).
+Велес, Матка and Пелагонија are not rectangles with one corner cut but outlines that go around several maps
+(`shapes` in the plan page); in the app they would be their bounding rectangle with those maps cut out.
+
+Planned with the owner on 2026-11-21 and redrawn on 2026-11-23, when every part of the country got a map and the
+widened Скопје was given up for the Матка map. Кратово is next in the list. How to build one:
+[ADDING_A_CITY.md](ADDING_A_CITY.md).
 
 Coordinates are approximate, written from memory while planning: **check every point in OSM before
 drawing a bbox**. Badge codes are the owner's own choice, not always the phone code (Bitola 097,
@@ -63,54 +98,51 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 
 ### 2. Кратово
 
-- **On it:** Кратово, Пробиштип, Злетово (Лесновски манастир between them).
+- **On it:** Кратово, Кратовска Река, the crater's hills up to the border.
 - **Code:** open (phone codes 031 / 032). `?city=kratovo`.
-- **Extent:** Kratovo 42.08 N 22.18 E, Probištip 41.995 N 22.18 E, Лесново 42.03 N 22.25 E.
-  Draft: s ~41.94, w ~22.08, n ~42.13, e ~22.30. s 41.94 meets the Штип map.
-- **Landmarks:** the town in its volcanic crater, medieval towers, stone bridges; Лесново monastery.
+- **Extent:** Kratovo 42.08 N 22.18 E. Decided with the owner on 2026-11-23: s 42.04 (Пробиштип's n), w 22.062
+  (Куманово's e), e 22.495 (Каменица's w), n ~42.36 (the border: check in OSM). **Cut corner** 42.125–42.36 N,
+  22.25–22.495 E: the Крива Паланка map. The first Кратово map also held Пробиштип (split off as 28), Крива Паланка
+  (26) and reached over Каменица to Делчево. About 750 km², 20 m cells.
+- **Landmarks:** the town in its volcanic crater, medieval towers, stone bridges.
 
 ### 3. Штип
 
-- **On it:** Штип, Кочани, Радовиш, Виница (at the east edge).
+- **On it:** Штип, Карбинци, the Брегалница from Штип toward Кочани's plain, Лакавица.
 - **Name / code:** open (likely Штип, `?city=stip`).
-- **Extent:** Štip 41.74 N 22.19 E, Kočani 41.92 N 22.41 E, Radoviš 41.64 N 22.46 E,
-  Vinica 41.88 N 22.51 E. Draft: s ~41.60, w ~22.12, n ~41.94, e ~22.56 (about 43 × 38 km), 20 m cells.
-  n 41.94 meets Кратово; s 41.60 meets Неготино.
-- **Landmarks:** Исар and Св. Архангел Михаил, Безистен, the Брегалница; Кочани's rice fields (painted like
-  Kavadarci's vineyards, `farmMask`), clock tower; Радовиш's centre; Виничко Кале (terracotta icons).
+- **Extent:** Štip 41.74 N 22.19 E. On 2026-11-23 the owner split the first Штип map (which also held Кочани,
+  Виница and Радовиш) in three: Штип keeps the west, s 41.60, w 22.062 (as Неготино's w), n 41.945 (Пробиштип's s),
+  e 22.32 (Кочани's and Радовиш's w). About 38 × 21 km, 20 m cells. n meets Пробиштип, s Неготино and Струмица.
+- **Landmarks:** Исар and Св. Архангел Михаил, Безистен, the Брегалница and its bridges.
 
 ### 4. Струмица
 
-- **On it:** Струмица, Валандово, Гевгелија (Богданци falls inside too).
+- **On it:** Струмица, Водоча, Вељуса, Банско, the Струмица plain west of Ново Село's map.
 - **Name / code:** open (likely Струмица, `?city=strumica`).
-- **Extent:** Strumica 41.44 N 22.64 E, Valandovo 41.32 N 22.56 E, Gevgelija 41.14 N 22.50 E,
-  Bogdanci 41.20 N 22.57 E. Draft: s ~41.10, w ~22.40, n ~41.50, e 22.66–22.75 (about 44 km tall), 20 m cells.
-- **Open:** east edge. e = 22.66 is edge to edge with Дојран but leaves out Колешино waterfall (22.81);
-  further east overlaps Дојран's map.
-- **Landmarks:** Царевите кули, Водоча and Вељуса monasteries (`byzChurch`), Колешино if inside;
-  the Vardar plain at Гевгелија, the Богданци wind farm.
+- **Extent:** Strumica 41.44 N 22.64 E (close to the east edge). Decided with the owner on 2026-11-23: s 41.38
+  (Валандово's n), w 22.32 (Неготино's and Демир Капија's e), n 41.60 (Штип's and Радовиш's s), e 22.66 (Ново Село's w).
+  The first Струмица map reached down to the Greek border; Валандово (29) and Гевгелија (30) were split off.
+  About 690 km², 20 m cells.
+- **Landmarks:** Царевите кули, Водоча and Вељуса monasteries (`byzChurch`).
 
 ### 5. Неготино
 
-- **On it:** Неготино, Демир Капија, Криволак.
+- **On it:** Неготино, Криволак, the Вардар between Градско's plain and Демир Капија, vineyards.
 - **Name / code:** open (likely Неготино, `?city=negotino`).
-- **Extent:** Negotino 41.48 N 22.09 E, Demir Kapija 41.41 N 22.24 E, Krivolak ~41.53 N ~22.08 E.
-  Draft: s ~41.36, w 22.00–22.062, n ~41.60, e ~22.32 (about 27 × 23 km). n 41.60 meets Штип.
-- **Open:** west edge. w = 22.062 is edge to edge with Кавадарци but puts Неготино at the very edge;
-  further west overlaps Кавадарци's map.
-- **Landmarks:** the Демир Капија gorge (the Vardar between cliffs), vineyards (`vineyards` / `vineShare`),
-  Попова Кула winery, the Vardar and the railway.
+- **Extent:** Negotino 41.48 N 22.09 E (close to the west edge). Decided with the owner on 2026-11-23: w 22.062
+  (Кавадарци's e), e 22.32 (Струмица's w), n 41.60 (Штип's s), s ~41.445 (Демир Капија's n: the first Неготино map
+  reached the Greek border and was split). About 370 km², 20 m cells.
+- **Landmarks:** vineyards (`vineyards` / `vineShare`), the Vardar and the railway.
 
 ### 6. Куманово
 
-- **On it:** Куманово, Глажња lake (above Липково), Скачковце.
+- **On it:** Куманово, Глажња lake (above Липково), Скачковце, Кокино, Старо Нагоричане.
 - **Code:** open (phone code 031). `?city=kumanovo`.
-- **Extent:** Kumanovo 42.13 N 21.71 E, Глажња ~42.20 N ~21.58 E, Скачковце (find in OSM; widen the box
-  to take it in). Draft: s ~42.08, w ~21.50, n ~42.25, e ~21.78. Skopje's map ends at n 42.055 today; once
-  Скопје is widened north (below), make the two meet instead of overlapping.
-- **Open:** Кокино (42.26 N 21.96 E) and Старо Нагоричане (42.20 N 21.83 E) are east of the box;
-  including them makes the map much wider.
-- **Landmarks:** Св. Никола; the lake and its dam (`waterLevels` if needed).
+- **Extent:** decided with the owner on 2026-11-23: n ~42.36 (the Serbian border: check in OSM), e 22.062 (Кратово's w),
+  s 42.00 (Велес's and Свети Николе's n), w 21.525 (Скопје's e). A plain rectangle now: Свети Николе (22) and the
+  part with Петровец, Катланово and the airport (to Велес, 15) were taken off its south. About 1800 km², 20 m cells.
+- **Landmarks:** Св. Никола; the lake and its dam (`waterLevels` if needed); Кокино's observatory,
+  Старо Нагоричане's Св. Ѓорѓи.
 
 ### 7. 047 Ресен — built (v14.0.0)
 
@@ -133,17 +165,21 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
   the phone code, the owner may choose another. Overlaps Батинци's south-west corner a little (mountains).
 
 - **On it:** Македонски Брод, the whole of Козјак lake and Света Петка lake (Треска), Солунска Глава
-  (Јакупица), Зрзе monastery. **Not Матка** (decided): Матка goes on the widened Скопје map.
+  (Јакупица), Зрзе monastery. **Not Матка** (decided): Матка goes on its own map (20).
 - **Name / code:** open (`?city=brod`).
 - **Extent:** Brod 41.51 N 21.22 E, Солунска Глава ~41.70 N ~21.38 E, Зрзе ~41.47 N ~21.35 E,
   Козјак dam ~41.87–41.90 N, Света Петка lake just below Матка (all to check). Draft: s ~41.45, w ~21.12,
   e ~21.42, n just past Света Петка's dam (about 50 × 25 km), 20 m cells. The north edge should meet the
-  widened Скопје map's south edge, between Света Петка and Матка.
+  Матка map's south edge (it does, at 41.926).
   e above 21.385 overlaps Батинци's north-east corner; Крушево's n is 41.405, Прилеп's w 21.49.
 - **Landmarks:** Зрзе on its cliff, the Козјак and Света Петка dams, Пешна cave and Брод on the Треска,
   Солунска Глава's summit.
 
-### 9. Скопје widened (east, west, north)
+### 9. Скопје widened (east, west, north) — replaced by the Матка map (20) and Куманово (6)
+
+- **Replaced** (2026-11-23): the land around Скопје now goes to the planned Матка and Куманово maps, so Скопје
+  keeps its extent and stays the pixel-checked reference. The notes below are kept for the record.
+
 
 - **What:** the existing 091 Скопје map grows east, west and north. **Матка** (canyon, lake, dam,
   Св. Андреј, ~41.95 N 21.30 E) comes onto it.
@@ -157,31 +193,238 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
   every view, so the pixel check needs a new baseline taken on purpose, and the saved camera links,
   views and labels need checking. Ask the owner before starting.
 
-### Maps of their own
+### 10. Кичево
 
-Each gets a map of its own (decided); codes open.
+- **On it:** Кичево, Пречиста monastery, Другово, the Треска's upper valley, Бигла's north side.
+- **Code:** open (phone code 045). `?city=kicevo`.
+- **Extent:** w 20.815 (Ростуше's e), e 21.12 (Брод's w), n 41.725 (Тетово's s), s ~41.36 (Пресека, the pass to
+  Охрид: check in OSM). The first Кичево map reached down to Ресен; on 2026-11-23 the owner split its south part off
+  as Дебарца (27). About 1030 km², 20 m cells. No overlaps.
+- **Landmarks:** Пречиста, the town centre, the Треска's upper valley.
 
-| Town | ~Centre | Neighbours to keep in mind | Notes |
-|---|---|---|---|
-| Велес | 41.72 N 21.79 E | — | Св. Пантелејмон, clock tower, Vardar bridges, the town on its slopes |
-| Свети Николе | 41.87 N 21.94 E | — | Овче Поле |
-| Кичево | 41.51 N 20.96 E | Брод map to the east | Пречиста monastery |
-| Демир Хисар | 41.22 N 21.20 E | between Битола (n 41.085) and Крушево (s 41.33) | Слепче, Смилево |
-| Делчево | 41.97 N 22.77 E | just east of Каменица (e 22.71): can be edge to edge | Голак |
-| Крива Паланка | 42.20 N 22.33 E | north-east of Кратово (n ~42.13) | Осогово monastery |
+### 11. Демир Хисар
+
+- **On it:** Демир Хисар, Слепче monastery, Смилево, the hills down to Битола's map and the edge of Пелагонија
+  below Крушево.
+- **Code:** open (phone code 047). `?city=demirhisar`.
+- **Extent:** **edge to edge** (decided with the owner on 2026-11-23): w 21.12 (Дебарца's e), e 21.40 (Битола's e and
+  Мариово's w; first 21.49, trimmed so the two do not overlap), n 41.33 (Крушево's s), s 41.085 (Битола's n).
+  About 23 × 27 km, 20 m cells.
+  **Cut corner** (decided 2026-11-23): Ресен's north-east corner (41.085–41.13 N, 21.12–21.165 E, about 5 × 3.7 km)
+  is left out of this map.
+- **Landmarks:** Слепче, Смилево (the Илинден congress), the Црна's upper valley.
+
+### 12. Вевчани
+
+- **On it:** Вевчани (springs, the old village), Лабуништа, Подгорци, the
+  Albanian side as far as Ростуше's map reaches.
+- **Code:** open (phone code 046). `?city=vevcani`.
+- **Extent:** **edge to edge** (decided with the owner on 2026-11-23): n 41.39 (Ростуше's s), e 20.815 (Кичево's and Дебарца's w),
+  w 20.40 (Голо Брдо's w; first 20.49, moved so the border west of Вевчани is surely inside), s 40.885 (Охрид's s: extended down west of Охрид, the Albanian shore of the lake).
+  **Cut corner:** Охрид's map (40.885–41.205 N, 20.615–20.815 E) is left out, so the map is an L: about 35 × 21 km
+  above Охрид and an 18 km wide strip down its west side. 20 m cells. No overlaps.
+- **Landmarks:** Вевчански извори (springs and wooden bridges), Св. Никола, the old houses; the Јабланица ridge.
+
+### 13. Делчево
+
+- **On it:** Делчево, Голак, the Брегалница's upper valley, the hills between Каменица and Берово up to the
+  Bulgarian border.
+- **Code:** open (phone code 033). `?city=delcevo`.
+- **Extent:** decided with the owner on 2026-11-23: e ~23.02 (the Bulgarian border: check in OSM), w 22.71
+  (Каменица's and Крива Паланка's e, edge to edge), n ~42.20 (up to the Bulgarian border, Осогово: check in OSM), s 41.65 (Ново Село's n): it reaches down east of Берово to the border.
+  **Cut corner:** 41.65–41.778 N, 22.71–22.94 E (Берово's map and, west of it, Радовиш's) is left out, so the map is
+  an L. About 47 × 26 km plus a 7 × 14 km strip, 20 m cells.
+- **Landmarks:** the town on the Брегалница, Голак, the Делчево–Бадино border crossing.
+
+### 14. Ново Село (name open)
+
+- **On it:** Ново Село, Смоларски водопад, Колешино waterfall, Босилово, the Беласица ridge, Огражден's south slopes.
+- **Name / code:** open (working name Ново Село; phone code 034).
+- **Extent:** decided with the owner on 2026-11-23: n 41.65 (Берово's s), s 41.27 (Дојран's n), w 22.66 (Струмица's and Валандово's e),
+  e ~23.02 (the Bulgarian and Greek border: check in OSM). About 42 × 30 km, 20 m cells. **Cut corner**
+  (decided 2026-11-23): Радовиш's south-east corner (41.60–41.65 N, 22.66–22.82 E, about 5.5 × 13 km) stays on
+  Радовиш's map and is left out of this one.
+  This settles Струмица's open east edge: Колешино (22.81) is here.
+- **Landmarks:** Смолари and Колешино waterfalls, the Струмица river to the border, Беласица's beech forests.
+
+### 15. Велес
+
+- **On it:** Велес, Чашка, Младост lake, the Вардар through Велес and the Тополка; north of it Петровец, Катланово
+  and Скопје's airport (from the first Куманово map).
+- **Code:** open (phone code 043). `?city=veles`.
+- **Extent:** decided with the owner on 2026-11-23, an outline with 90° corners (`shapes` in the plan page):
+  s 41.62 (Стоби's n), w 21.42 (Брод's e), e 22.062 (Штип's w) up to 41.80 (Свети Николе's s), then west of 21.75 up to
+  42.00 (Свети Николе's n, Куманово's s), around Батинци (its e 21.545 and n 41.955, Скопје's e 21.525) and below
+  Батинци at 41.875. Its rectangle would be 41.62–42.00 N, 21.42–22.062 E. The first Велес map reached down to
+  Кавадарци (split off as Стоби, 25). About 1560 km², 20 m cells. No overlaps.
+- **Landmarks:** Св. Пантелејмон, the clock tower, the Vardar bridges, the town on its slopes; Катланска Бања.
+
+### 16. Мариово (name open)
+
+- **On it:** Мариово (Витолиште, Мемориште, Скочивир, Старавина), Кајмакчалан and the Нице front, the Црна's gorge,
+  Тиквешко Езеро's upper end, Пелагонија's south-east corner.
+- **Name / code:** open (working name Мариово).
+- **Extent:** decided with the owner on 2026-11-23: n 41.31 (Прилеп's s), s ~40.85 (past the Greek border
+  everywhere, as low as the border dips near Кајмакчалан: check in OSM), w 21.40 (Битола's e), e 22.062 (Демир Капија's w).
+  About 51 × 55 km, 20 m cells.
+  **Cut corner** (decided 2026-11-23): Кавадарци's south-west corner (41.25–41.31 N, 21.85–22.062 E, about 7 × 18 km)
+  is left out of this map.
+  Демир Хисар was trimmed to e 21.40 to meet it.
+- **Landmarks:** Кајмакчалан's chapel at the summit, the Црна in its canyon, Мариово's stone villages.
+
+### 17. Меџитлија (name open)
+
+- **On it:** the strip of Пелагонија under Битола's map down to the Greek border: Меџитлија and its crossing,
+  Кременица, Лажец; across the border the first villages of the Florina plain.
+- **Name / code:** open (working name Меџитлија).
+- **Extent:** decided with the owner on 2026-11-23: n 40.955 (Битола's s), s ~40.85 (as Мариово), w 21.165 (Ресен's e),
+  e 21.40 (Мариово's w). About 12 × 20 km. The border runs through it (~40.91): its south half is Greece.
+  It could also be added to Битола's map instead of being a map of its own.
+- **Landmarks:** the border crossing, the fields, Пелистер's eastern foot.
+
+### 18. Кораб (name open)
+
+- **On it:** Кораб (the highest peak, 2764 m) and its waterfall, Јеловјане, the border ridge of Шар Планина west of
+  Тетово's map, the upper Радика.
+- **Name / code:** open (working name Кораб).
+- **Extent:** decided with the owner on 2026-11-23: s 41.725 (Ростуше's n), n 42.075 (Тетово's n), w 20.49 (Ростуше's w),
+  e 20.72 (Тетово's w). About 39 × 19 km, 20 m cells; much of the west is Albania and Kosovo. No overlaps.
+- **Landmarks:** Кораб's summit, Корабски водопад, high pastures and sheepfolds.
+
+### 19. Голо Брдо (name open)
+
+- **On it:** the strip west of Ростуше along the border: the bend of the border by Дебар, the Црн Дрим below
+  Дебарско Езеро, Пешкопија and Голо Брдо on the Albanian side.
+- **Name / code:** open (working name Голо Брдо).
+- **Extent:** decided with the owner on 2026-11-23: n 41.725 and s 41.39 (as Ростуше), e 20.49 (Ростуше's w), w ~20.40.
+  About 37 × 7.5 km; almost all Albania. Could instead be added to Ростуше's map by moving its w edge.
+- **Landmarks:** the Црн Дрим valley, the border villages.
+
+### 20. Матка (name open)
+
+- **On it:** everything between Тетово, Скопје, Брод and the Kosovo border: Матка (canyon, lake, dam, Св. Андреј),
+  Водно's west side, Сарај, Скопска Црна Гора, Блаце, the Лепенец, the strip above Тетово's map to the border.
+- **Name / code:** open (working name Матка).
+- **Extent:** decided with the owner on 2026-11-23. Not a rectangle but an outline with 90° corners (`shapes` in
+  `scripts/towns-map.html`): n ~42.30 (the border: check in OSM), e 21.525 (Куманово's w) down to 42.055, then along Скопје's n and w (21.33)
+  and s (41.955), Батинци's w (21.385), Брод's n (41.926) and w (21.12) to 41.725 (Кичево's n), west to 21.06 and up
+  Тетово's e to its n (42.075), then west to 20.72. About 1000 km², 20 m cells. No overlaps.
+  In the app its rectangle would be 41.725–42.30 N, 20.72–21.525 E with four maps cut out of it.
+- **Instead of widening Скопје** (9, above): this map takes the land the widened Скопје would have taken, so the
+  reference map stays as it is.
+- **Landmarks:** Матка, Св. Андреј, Св. Никола Шишевски, the Матка dam; Скопска Црна Гора's villages.
+
+### 21. Пелагонија (name open)
+
+- **On it:** the Pelagonian plain and hills around Крушево and Прилеп: Долнени, Кривогаштани, Житоше, Ропотово,
+  Сливје, Тополчани, Чепигово; the road and railway between Прилеп and Велес up to Плетвар.
+- **Name / code:** open (working name Пелагонија).
+- **Extent:** decided with the owner on 2026-11-23, an outline with 90° corners (`shapes` in `scripts/towns-map.html`):
+  w 21.12 (Кичево's and Дебарца's e), e 21.85 (Кавадарци's w), n 41.45 (Брод's s) and 41.462 (Стоби's s), s 41.33 (Демир Хисар's n)
+  and 41.31 (Мариово's n); Крушево's and Прилеп's maps are cut out of its south edge. Its rectangle would be
+  41.31–41.462 N, 21.12–21.85 E. About 720 km², 20 m cells. No overlaps. With it every part of the country is on a map.
+- **Landmarks:** the plain's villages and fields (`farmMask` as in Битола), Плетвар pass.
+
+### 22. Свети Николе
+
+- **On it:** Свети Николе, Овче Поле, Ерџелија, Амзабегово, the Светиниколска Река.
+- **Code:** open (phone code 032). `?city=svetinikole`.
+- **Extent:** decided with the owner on 2026-11-23, cut out of Куманово's map: s 41.80 (Велес's n), n 42.00
+  (Куманово's s), w 21.75 (Велес's), e 22.062 (Штип's and Пробиштип's w). About 22 × 26 km, 20 m cells. No overlaps.
+- **Landmarks:** the town centre and its church, Овче Поле's fields (`farmMask`), the hills toward Штип.
+
+### 23. Кочани
+
+- **On it:** Кочани and its rice fields, Облешево, Зрновци, Кочанско Езеро (Гратче) at the north edge.
+- **Code:** open (phone code 033). `?city=kocani`.
+- **Extent:** split off Штип by the owner on 2026-11-23: s 41.80 (Радовиш's n), n 41.945 (Пробиштип's s), w 22.32 (Штип's e),
+  e 22.46 (Виница's w; Виница was split off the same day). About 190 km², 20 m cells. Кочани (41.92) is near the north
+  edge.
+- **Landmarks:** the rice fields (painted like Kavadarci's vineyards, `farmMask`), Кочани's clock tower, the Брегалница.
+
+### 24. Радовиш
+
+- **On it:** Радовиш, Конче, Плачковица's south side, the hills east to Берово's map.
+- **Code:** open (phone code 032). `?city=radovis`.
+- **Extent:** split off Штип by the owner on 2026-11-23: s 41.60 (Струмица's n), n 41.80 (Кочани's and Виница's s), w 22.32
+  (Штип's e), e 22.82 (Берово's w). **Cut corner** 41.778–41.80 N, 22.71–22.82 E (Делчево's). About 22 × 42 km,
+  20 m cells.
+- **Landmarks:** Радовиш's centre and clock tower, Св. Тројца, Плачковица.
+
+### 25. Стоби (name open)
+
+- **On it:** Стоби, Градско, Росоман, the Вардар from Градско to Кавадарци's map, the Црна's mouth.
+- **Name / code:** open (working name Стоби).
+- **Extent:** split off Велес by the owner on 2026-11-23: n 41.62 (Велес's s), s 41.462 (Кавадарци's n), w 21.42 (Брод's e
+  and, below 41.45, Пелагонија's n step), e 22.062 (Неготино's w). About 940 km², 20 m cells. No overlaps.
+- **Landmarks:** Стоби's ruins (theatre, basilicas, mosaics: Хераклеа's theatre and canvases in `bitola.ts` can
+  serve), Градско's Vardar bridge.
+
+### 26. Крива Паланка
+
+- **On it:** Крива Паланка, Осоговски манастир, Ранковце, the Крива Река up to the border at Деве Баир.
+- **Code:** open (phone code 031). `?city=krivapalanka`.
+- **Extent:** split off Кратово by the owner on 2026-11-23: s 42.125 (Каменица's n), n ~42.36 (the border: check in OSM),
+  w 22.25 (Кратово's), e 22.71 (Делчево's w). About 990 km², 20 m cells. No overlaps.
+- **Landmarks:** Осоговски манастир above the town, the old bazaar, the Деве Баир crossing.
+
+### 27. Дебарца
+
+- **On it:** Дебарца: Белчишта, Слатино, Издеглавје, Белчишко Блато, the road from Пресека down toward Охрид;
+  the mountains south-east to Ресен's map. Требеништа (20.79 E), in the municipality too, is just west of 20.815,
+  on the Вевчани map.
+- **Code:** open (phone code 046). `?city=debarca`.
+- **Extent:** split off Кичево by the owner on 2026-11-23: n ~41.36 (Пресека), s 41.13 (Ресен's n), w 20.815 (Вевчани's e),
+  e 21.12 (Демир Хисар's w). **Cut corner:** Охрид's north-east corner (41.13–41.205 N, 20.815–20.845 E, about
+  8 × 2.5 km) is left out. About 630 km², 20 m cells. No overlaps.
+- **Landmarks:** Белчишко Блато, the villages of the plain, Пресека.
+
+### 28. Пробиштип
+
+- **On it:** Пробиштип, Злетово, Лесновски манастир, the Злетовска Река.
+- **Code:** open (phone code 032). `?city=probistip`.
+- **Extent:** split off Кратово by the owner on 2026-11-23: s 41.945 (Штип's and Кочани's n), n ~42.04 (between the two
+  towns: check in OSM), w 22.062 (Свети Николе's and Куманово's e), e 22.495 (Каменица's w). About 380 km², 20 m cells.
+- **Landmarks:** Лесново monastery, Злетово's mines, Пробиштип's centre.
+
+### 29. Валандово
+
+- **On it:** Валандово, Јосифово, Пиперево, the Анска Река, the Vardar at Удово.
+- **Code:** open (phone code 034). `?city=valandovo`.
+- **Extent:** split off Струмица by the owner on 2026-11-23: n 41.38 (Струмица's s), s 41.25 (Гевгелија's n), w 22.32
+  (Демир Капија's e), e 22.66 (Ново Село's and Дојран's w). About 410 km², 20 m cells.
+- **Landmarks:** Isar near Марвинци, the pomegranate and fig orchards.
+
+### 30. Гевгелија
+
+- **On it:** Гевгелија, Богданци, Негорци, Смоквица, the Vardar to the Greek border, the Богданци wind farm.
+- **Code:** open (phone code 034). `?city=gevgelija`.
+- **Extent:** split off Струмица by the owner on 2026-11-23: n 41.25 (Валандово's s), s ~41.10 (the Greek border: check
+  in OSM), w 22.32 (Демир Капија's e), e 22.66 (Дојран's w). About 470 km², 20 m cells.
+- **Landmarks:** the Vardar plain, Негорски Бањи, the wind farm, the border crossing at Богородица.
+
+### 31. Демир Капија
+
+- **On it:** Демир Капија and its gorge, Кожув, the Vardar from the gorge south toward Удово, Попова Кула winery.
+- **Code:** open (phone code 043). `?city=demirkapija`.
+- **Extent:** split off Неготино by the owner on 2026-11-23: n ~41.445 (Неготино's s), s ~41.10 (the Greek border: check
+  in OSM), w 22.062 (Кавадарци's and Мариово's e), e 22.32 (Валандово's and Гевгелија's w). About 820 km², 20 m cells.
+- **Landmarks:** the Демир Капија gorge (the Vardar between cliffs), Кожув, Попова Кула.
+
+### 32. Виница
+
+- **On it:** Виница, Виничко Кале (the terracotta icons), Блатец, Истибања, the hills toward Делчево.
+- **Code:** open (phone code 033). `?city=vinica`.
+- **Extent:** split off Кочани by the owner on 2026-11-23: w 22.46 (Кочани's e), e 22.71 (Делчево's w), s 41.80 (Радовиш's n),
+  n 41.945 (Каменица's s). About 340 km², 20 m cells.
+- **Landmarks:** Виничко Кале, the town centre.
 
 ## Not placed yet
 
-- **Градско and Стоби** (Roman and early Christian city, ~41.55 N 21.97 E): between Велес and Неготино.
-  Either widen Неготино's map west or stretch Велес's south-east.
-- **Вевчани** (~41.24 N 20.59 E): about 2 km west of Охрид's map (w 20.615); widen Охрид's map or leave it.
-- **Росоман** (~41.52 N 21.95 E): just north of Кавадарци's map (n 41.462).
-- **Кокино** (megalithic observatory, ~42.26 N 21.96 E) and **Старо Нагоричане**: east of the Куманово box;
-  widen Куманово's map or leave them out.
-- **Смоларски водопад** and **Ново Село** (~41.37 N 22.94 E): east of the Струмица map, south of Берово's.
-- **Дебарца** (Белчишта, ~41.30 N 20.83 E, Пештани's hills): a gap between Охрид (n 41.205), Ростуше
-  (s 41.39) and Кичево.
-- **Pelagonia between Прилеп and Крушево** (Долнени, Кривогаштани): villages, a gap between the two maps.
+- Nothing: with the Пелагонија map (21) and Вевчани's w at 20.40 every part of the country is on a finished or
+  planned map. Checked on 2026-11-23 in the plan page: a grid of points every 0.005° (about 500 m) inside the
+  country's outline (world-atlas 1:50m, coarse) found none outside the maps, and no two maps overlap. Edges drawn
+  "to the border" are approximate and get checked in OSM when each map is built.
 
-Other municipality seats (Лозово, Чашка, Ранковце, Василево, Босилово, Ново Село, Конче, …) are villages;
-most fall on one of the maps above.
+Other municipality seats (Лозово, Чашка, Ранковце, Василево, Босилово, Конче, …) are villages; all fall on one of
+the maps above.
