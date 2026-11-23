@@ -69,7 +69,13 @@ in [NOTES.md](NOTES.md)); everything else is an idea, not planned yet.
 - Real ЈСП bus routes with line numbers and stops (✅ red ЈСП buses and a drivable
   double-decker exist; no routes or stops yet)
 
-## Planned with the owner (2026-11-23): F-15 Eagle and flying from map to map
+## Planned with the owner (2026-11-23): F-15 Eagle and flying from map to map — ✅ built in v26.0.0
+
+What was built, with the owner's additions (rockets, heat shimmer, sonic boom, contrails, afterburner kick,
+ejection by parachute, radar, the F-15 tile, FPS in the title): "F-15 and flying from map to map" in
+[NOTES.md](NOTES.md). Still open from this plan: phones measured; building the chunks round the plane first; a binary
+data format (only if needed).
+
 
 Two plans that go together: the F-15 crosses a small map in seconds, so it needs the neighbouring maps ready.
 Map-to-map flight is for the F-15 only (decided by the owner on 2026-11-23, after first wanting it in every mode).

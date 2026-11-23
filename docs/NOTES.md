@@ -606,6 +606,16 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    Вевчани!“ / „Поздрав од Вевчани!“. Checked: typecheck, build, the map loads with no console errors, Св. Никола and
    the footbridges looked at, the overview, Skopje pixel check (0 on all nine views). Not checked: phones,
    firefighting, the race, walking cards one by one, night and snow views.
+40. **v26.0.0** (2026-11-23, branch `f15`): **the F-15 Eagle and flying from map to map** (the plan in
+   [IDEAS.md](IDEAS.md), with the owner's additions while it was built). The version jumps by ten majors at the
+   owner's wish. Everything is in "F-15 and flying from map to map" below. In short: load times measured on every
+   map; the F-15 in free flight (1325 / 2650 km/h, rockets, heat shimmer, sonic boom, contrails, afterburner kick,
+   ejection by parachute into walk mode); Ctrl slows either plane to a quarter of its top speed; the country's 100 m
+   terrain drawn round the map while it flies; the next map downloaded ahead and switched at the edge while the jet
+   flies on over the country; a radar of Macedonia (desktop); the F-15 tile beside Macedonia in the city menu;
+   FPS in the window's title (a switch turns it off). Skopje pixel-identical (checked after every rendering change:
+   0 except 1–4 pixels at the gondola cabins in the overviews). Not checked: phones and tablets, the live site's
+   download times.
 
 ## Country view (Nov 2026)
 
@@ -623,12 +633,104 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
   distance, and puts them back after. Relief exaggerated 2.6×, 1 scene unit = 20 m, a grid mesh of every 3rd cell
   (phones every 4th), vertex colours in the cities' palette; zones and border are a canvas texture (3072 px, phones
   2048), the hover a zone-id texture. Picking marches the ray over the height grid (no triangle raycast).
-- **Memory:** the data is loaded once (`loadCountry()` caches it) and stays for the visit, across city switches,
-  for the F-15 later; the built view stays too. The city stays built underneath while the view is open.
+- **Memory:** the data is loaded once (`loadCountry()` caches it) and stays for the visit, across city switches;
+  the F-15 reuses it (the country round the map, the radar); the built view stays too. The city stays built underneath while the view is open.
 - **Measured** (M5 Pro, 1024×768 window, 1536×1152 render): opening from a warm cache 0.19 s including decoding and
   building; ~3 ms GPU per frame once warmed up, and nothing is drawn once the frame has converged. Skopje after
   opening and closing: pixel-identical (0 of 4.76 M values differ, clock frozen). Phone layout checked at an emulated
   375×812: a steeper, further view and the names only, zoomed out.
+
+## F-15 and flying from map to map (Nov 2026, v26.0.0)
+
+Built in phases on branch `f15`, one commit each (the plan: [IDEAS.md](IDEAS.md), "Planned with the owner").
+
+### The F-15 (free flight only) — `src/flight.ts`
+- **✈ F-15** chip on the flight HUD, or the drawn F-15 beside Macedonia in the city menu (`takeOffF15()`: straight
+  into F-15 mode on the current map, after the map is built if it is loading). Saved as `skopje.jet`. Трка and
+  Пожар switch it off and bring back their own plane; while it flies their chips are hidden; pad Start toggles it.
+- **Model:** grey, true size ×1.25 (19.4 m long), radome, bubble canopy, boxy intakes, swept wing with sun
+  roundels, stabilators, two fins canted outward with the flag, two nozzles; afterburner flames (additive cones,
+  `ink.skipNormal`).
+- **Flight (`JET` in `flight.ts`):** 368 m/s (1325 km/h), 736 with turbo (2650), turn 0.75 rad/s; floor 150 m
+  over the ground, looking 0.5–1.8 s ahead over the terrain (`soft` 120 m); ceiling 5200 m; chase camera 58 m back,
+  14 m up. At an edge with no finished map ahead it turns back in a wide arc (margin 1.5 × speed / turn rate).
+  Temporal accumulation does not smear: flight resets it every frame (`ink.reset()`).
+- **Ctrl** (pad LT outside firefighting) holds either plane at a quarter of its top speed (F-15 662 km/h, the usual
+  plane 126 km/h).
+- **Sound (`sound.ts`):** the jet's roar, rumble, whine and afterburner hiss instead of the propeller; `launch`,
+  `boom`, `sonic`, `kick` signals.
+- **Rockets (`src/rockets.ts`; Space, pad X, 🚀):** a pair from under the wings every 0.32 s while held, at plane
+  speed + 420 m/s, 10 in the air at most; smoke trails, an exhaust glow; on the ground a flash, a fireball, sparks
+  and a smoke cloud (billboards in the fire's drawn style, lifted so the ground does not cut them). Effects only.
+  Known: ink lines of things behind the smoke draw over it (the normal pass leaves the see-through effects out; the
+  fire's smoke does the same).
+- **Heat shimmer (`post.ts`, output pass `heat*` uniforms):** a ripple along the exhaust plume on screen; 0 = the
+  picture untouched. Three levels: slow ~1.5 px, cruise ~4 px, turbo ~16 px (at 1319 px tall), flaring after a
+  sonic boom.
+- **Sonic boom:** crossing Mach 1 (343 m/s) or Mach 2 while speeding up (out of Ctrl-slow, or into turbo; cruise
+  is already supersonic): a translucent vapour cone for ~0.9 s, a double boom.
+- **Contrails:** from both wingtips above 600 m over the ground, soft white billboards every 7 m.
+- **Afterburner kick:** pressing turbo widens and lengthens the flames for ~1 s, shakes the camera, plays a roar.
+- **Ejection — the jet's action (`src/eject.ts`; the 🪂 Катапулт chip, X, pad Y):** the seat fires the pilot up,
+  falls away after 1.1 s, the parachute opens (flat red and yellow gores, 80 % opaque, the lines gathered at two
+  links and risers down to rings on the pilot's shoulders); ← → turn, ↑ glides faster; quick high up, ~7 m/s near
+  the ground (~19 s from 300 m). The empty jet noses into the ground and blows up. On landing walk mode starts
+  there (just inside the map if beyond it). Esc ends it as a normal exit. The pilot: olive suit, harness, white
+  helmet with a visor and a red stripe.
+
+### The country around the map — `src/countryground.ts`
+- While the F-15 flies, the country view's 100 m grid (`loadCountry()`, downloaded once per visit) is drawn round
+  the map: one grid mesh of 161² vertices (phones 121²) following the plane, ~100 m cells near it and ~0.7 km at
+  45 km, rebuilt on the CPU when the plane has moved 600 m (2.4 ms for the normals; a few ms in all). Inside the map
+  it sinks below the map's terrain; heights × the map's `terrainExag`. The flight's floor and the rockets use it
+  beyond the edges (`groundAt()` in `main.ts`). The camera sees 70 km. While it shows, the ink's normal pass is not
+  clipped to the map (otherwise its depth is missing and everything beyond the map is hazed).
+
+### From map to map — `src/hop.ts`, `hop()` / `transit` in `main.ts`
+- **Prediction, once a second:** `lookAhead()` walks along the heading in 400 m steps to 4 km past the edge and
+  names the first point that has left this map's own outline and lies on another finished one (`mapAt` / `inMap`
+  over the zones of `src/zones.ts`, so maps cut out of another one count). Desktop also looks ±45°. The edge check
+  in the flight (`edgeOpen()`) does the same on the spot, so a take-off near an edge does not turn back.
+- **Downloads:** `createPrefetch()`: one at a time, `fetch(…, { priority: 'low' })`, raw bytes only (no
+  `JSON.parse` while flying), paused while frames average over 22 ms; started when the time to the edge is under
+  2 × (estimated download + build time, 5 s desktop / 15 s phones); up to 3 maps / 80 MB kept (phones 1 / 20 MB),
+  the unwanted and the oldest dropped first.
+- **HUD chip:** `→ Батинци ░░░░` (ahead, not downloading yet), `▓▓░░` while downloading, `✓` ready.
+- **The switch:** over the next map (and out of this one's outline) with its files ready: the map is taken apart
+  but the plane and the country's ground stay and fly on (the *transit*: keys, sound, HUD, radar go on); the next
+  map builds hidden, with `computeCitySteps(…, { sliceMs: 12 })` (the trees and pack stages yield every ~12 ms, the
+  same result), shaders compiled without drawing, then its meshes uploaded to the GPU a few per frame from where
+  the plane will come in (`warmUp()`); then the flight is carried over by lat / lon (height above the ground, speed,
+  pitch, keys held). Address and back / forward change as for any switch. Without the country data loaded it falls
+  back to a short fade and the small loader.
+- **Measured (desktop, dev server):** Скопје → Батинци builds in ~1.4 s with frames going on; every step's longest
+  slice ≤ 90 ms (`__dbg.loadMax`); unloading 4 ms (`__dbg.loadUnload`); one ~270 ms pause left at the end of the
+  warm-up (one large mesh uploaded at once). Before the warm-up the first frame of the new map froze ~0.6 s.
+- Not done from the plan: building the chunks round the plane first; a binary data format.
+
+### Radar — `src/radar.ts` (desktop only)
+- Top left of the flight HUD in F-15 mode, 200 px; hidden on phones and tablets (`body.mobile`) and in windows
+  under 860 × 560. Macedonia at 4× the country view's zoom (~54 km across), heading up, N on the rim; prerendered
+  once from the country grid (land cover, hill shade) with a grey veil over everything that cannot be flown into yet
+  (planned maps, beyond the border) and the planned outlines dashed.
+- The finished maps' states, no legend (the names say it): current — thick indigo edge; **waiting** (ahead, too far
+  to start) — thin dashed blue edge; **queued** (after the running download) — firmer dashed blue edge, faint tint,
+  `⋯`; **downloading** — sky blue tint, a thick blue line tracing the edge as far as the download has come with a
+  dot at its tip, `↓40%`; **entering** (being built) — orange, pulsing, a running yellow dashed edge, `90%`;
+  **ready** — green, `✓`.
+
+### Also in v26.0.0
+- **Load times** (`__dbg.loadTimes`, `loadMax`, `loadUnload`): every map measured, the table above in "Measured
+  numbers". Trees are half to three quarters of every load.
+- **📈 FPS in the window's title** (⚙ → 🎨 Графика, on by default, `skopje.fps`); sharing a link uses the plain title.
+- **City menu:** Macedonia takes 70 % of its row, the drawn F-15 the right 30 %.
+- Strings for all of it in 6 languages (`npm run strings`: 487, none missing).
+
+### Not verified yet
+- Phones and tablets: the sticks with the F-15, 🚀 and 🪂 placement, the 20 MB budget, build times (guessed 3–5×).
+- The live site: real download times, so how early the waiting / downloading states show.
+- The shimmer strengths only measured from the shader; the vapour cone and contrails only looked at by night and day
+  over Скопје.
 
 ## Key decisions (and why)
 

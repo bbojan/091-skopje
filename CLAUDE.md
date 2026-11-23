@@ -121,6 +121,9 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   047 Ресен (`?city=resen`, v14.0.0: the whole of Преспа, its level set by hand), 02 Матка (`?city=matka`, v16.0.0: the
   first map that is not a rectangle, Скопје's and Брод's maps cut out of it), 046 Вевчани (`?city=vevcani`, v16.0.0: Охрид's map
   cut out of it).
+- The F-15 (v26.0.0) flies from map to map: the next map downloaded ahead, switched at the edge while the jet flies on
+  over the country's terrain (`src/hop.ts`, `src/countryground.ts`, `transit` in `main.ts`); every new finished map
+  in `src/zones.ts` widens the flight. All of it: "F-15 and flying from map to map" in docs/NOTES.md.
 - A map that is not a rectangle: `cut` rectangles in its `CITIES` entry in `scripts/config.ts` (the neighbours'
   maps); `cutOsm()` in `scripts/osm.ts` removes OSM there for `prepare.ts` and `terrain.ts`, the terrain stays the
   full rectangle (bare relief in the corners).
