@@ -8,6 +8,7 @@
     "terrain": "node scripts/terrain.ts",
     "overture": "node scripts/overture.ts",
     "data": "node scripts/prepare.ts",
+    "country": "node scripts/country.ts",
     "strings": "node scripts/strings.ts",
     "dev": "vite --port 5173",
     "typecheck": "tsc -p tsconfig.json && tsc -p scripts/tsconfig.json",

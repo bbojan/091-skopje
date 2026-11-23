@@ -23,6 +23,9 @@
                      background: var(--ink); color: #fff8ec; cursor: pointer; font: inherit; font-size: 17px; font-weight: 700; display: grid; place-items: center;
                      border: 2px solid #fff8ec; box-shadow: 0 0 0 1.5px var(--ink), 2px 3px 0 rgba(43, 29, 22, 0.4); }
       .title .hint:hover { background: var(--wine); }
+      /* the Macedonia button right of the ?: opens the country view (src/country.ts) */
+      .title .hint.mk { left: calc(100% + 54px); padding: 0; }
+      .title .hint.mk svg { width: 22px; height: 22px; fill: currentColor; }
       .city-menu { position: absolute; left: -1.5px; top: calc(100% + 8px); display: flex; flex-direction: column; gap: 6px; min-width: calc(100% + 3px); box-sizing: border-box;
                    padding: 18px 10px; background: var(--linen); border: 1.5px solid var(--indigo); border-radius: 12px; box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); }
       .city-menu[hidden] { display: none; }
@@ -110,6 +113,36 @@
       .city-menu.me-menu svg { width: 15px; height: 15px; fill: #0a66c2; margin-left: auto; padding-left: 6px; }
       .attr { background: rgba(251, 246, 238, 0.85); padding: 2px 8px; border-radius: 6px;  position: fixed; right: 12px; bottom: 10px; font-size: 11px; opacity: 0.7; }
       .attr a { color: inherit; }
+
+      /* the country view: the map of Macedonia with every map's zone (src/country.ts) */
+      body.country .bar, body.country #labels, body.country .me, body.country #loader, body.country .attr span[data-city] { display: none !important; }
+      #country-ui[hidden] { display: none; }
+      #country-ui { position: fixed; inset: 0; pointer-events: none; }
+      #country-labels { position: absolute; inset: 0; overflow: hidden; }
+      .cz { position: absolute; left: 0; top: 0; white-space: nowrap; pointer-events: auto; font: inherit; }
+      .cz[hidden] { display: none; }
+      .cz.done { display: flex; align-items: center; gap: 7px; padding: 4px 10px 4px 5px; font-size: 15px; font-weight: 700; color: var(--indigo); cursor: pointer;
+                 background: var(--linen-hi); border: 1.5px solid var(--indigo); border-radius: 8px; box-shadow: 2px 2px 0 rgba(31, 42, 68, 0.3); }
+      .cz.done .code { font-size: 11px; padding: 3px 4px 2px; border-radius: 5px; box-shadow: 1.5px 1.5px 0 var(--ink); }
+      .cz.done:hover, .cz.done.hover { background: #fff; z-index: 2; }
+      .cz.done:focus-visible { outline: 2px solid var(--wine); outline-offset: 2px; }
+      .cz.soon { font-size: 12.5px; font-style: italic; color: var(--indigo); opacity: 0.62; text-shadow: 0 0 3px var(--linen-hi), 0 0 3px var(--linen-hi), 0 0 6px var(--linen-hi); }
+      .cz.soon.hover { opacity: 1; }
+      .cz.soon.hover::after { content: ' · ' attr(data-soon); }
+      .cz-head { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); text-align: center; padding: 14px 24px 12px; background: var(--linen); color: var(--indigo);
+                 border: 1.5px solid var(--indigo); border-radius: 12px; box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); white-space: nowrap; }
+      .cz-head::before { content: ''; position: absolute; left: 6px; right: 6px; top: 3px; height: 10px; background: var(--stitch) repeat-x center; }
+      .cz-head h2 { margin: 4px 0 0; font-size: 22px; letter-spacing: 0.04em; }
+      .cz-head p { margin: 2px 0 0; font-size: 13.5px; font-style: italic; color: var(--wine); }
+      .cz-close { position: absolute; right: 18px; top: 18px; width: 40px; height: 40px; border-radius: 50%; pointer-events: auto; cursor: pointer; font: inherit; font-size: 18px; font-weight: 700;
+                  background: var(--indigo); color: var(--linen-hi); border: 2px solid var(--linen-hi); box-shadow: 0 0 0 1.5px var(--indigo), 2px 3px 0 rgba(31, 42, 68, 0.4); }
+      .cz-close:hover { background: var(--wine); }
+      .cz-load { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 14px 22px; background: var(--linen); color: var(--indigo); font-weight: 700;
+                 border: 1.5px solid var(--indigo); border-radius: 12px; min-width: 220px; text-align: center; }
+      .cz-load[hidden] { display: none; }
+      .cz-load .track { margin-top: 10px; height: 6px; border-radius: 3px; background: rgba(31, 42, 68, 0.15); overflow: hidden; }
+      .cz-load .track div { height: 100%; width: 0; background: var(--wine); transition: width 0.2s; }
+      @media (max-width: 560px) { .cz-head { top: auto; bottom: 34px; } .cz.done { font-size: 13px; } }
 
       /* place labels */
       #labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
@@ -356,7 +389,14 @@
     <div class="title" id="city-box">
       <button class="city-btn" id="city-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="city-menu" title="Избери град" data-i18n-title="city.pick"><span class="h1"><span class="code city-code">091</span><span class="city-name">Скопје</span><span class="caret" aria-hidden="true">▼</span></span></button>
       <button class="hint" id="logo" type="button" aria-haspopup="dialog" aria-controls="help" title="За апликацијата и контроли" data-i18n-title="logo.title" aria-label="За апликацијата и контроли" data-i18n-aria="logo.title">?</button>
+      <button class="hint mk" id="country-btn" type="button" title="Македонија: сите мапи" data-i18n-title="country.open" aria-label="Македонија: сите мапи" data-i18n-aria="country.open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1.0 13.1L1.9 14.4L1.3 15.2L1.5 16.4L2.2 17.9L2.9 18.1L3.4 20.0L5.2 19.8L5.5 20.7L8.4 20.5L9.2 19.9L10.7 20.5L11.5 19.7L12.4 19.8L13.4 17.9L14.7 17.2L15.3 17.6L16.0 17.1L17.0 17.6L19.2 17.7L19.9 16.9L20.4 17.3L20.7 15.3L22.4 15.0L22.3 11.8L23.0 10.8L21.9 9.0L21.6 7.3L18.7 6.0L16.7 3.3L14.7 4.2L13.7 3.7L13.3 4.2L12.9 3.9L11.6 4.9L9.5 4.4L8.0 6.5L6.7 5.2L3.9 6.6L3.3 9.1L1.9 9.1L2.0 10.0L1.5 10.7L1.9 12.4Z"/></svg></button>
       <div class="city-menu" id="city-menu" role="menu" aria-label="Град" data-i18n-aria="city.menu" hidden></div>
+    </div>
+    <div id="country-ui" hidden>
+      <div id="country-labels"></div>
+      <div class="cz-head"><h2 data-i18n="country.title">Македонија</h2><p data-i18n="country.hint">Избери мапа</p></div>
+      <button class="cz-close" id="country-close" type="button" title="Назад кон мапата" data-i18n-title="country.back" aria-label="Назад кон мапата" data-i18n-aria="country.back">✕</button>
+      <div class="cz-load" id="country-load" hidden><span data-i18n="country.loading">Се вчитува Македонија…</span><div class="track"><div id="country-load-bar"></div></div></div>
     </div>
     <dialog class="help" id="help" aria-labelledby="help-title">
       <div class="inner">

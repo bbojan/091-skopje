@@ -19,6 +19,7 @@ import { createLabels } from './labels.ts';
 import { createMapInput, readPad } from './input.ts';
 import { LANGS, lang, t, applyI18n, setLang, onLangChange, type Key } from './i18n.ts';
 import { CITIES, CITY_IDS, cityFromUrl, urlForCity, type CityId, type CitySpec } from './cities.ts';
+import { loadCountry, createCountryView, type CountryView } from './country.ts';
 import type { CityData, MapMeta, TerrainMeta, Vec3 } from './types.ts';
 
 /** From package.json, injected by vite.config.ts. */
@@ -1238,8 +1239,96 @@ $('logo').addEventListener('click', () => help.showModal());
 $('help-close').addEventListener('click', () => help.close());
 help.addEventListener('click', (e) => { if (e.target === help) help.close(); });
 
+// ---------------- the country view: Macedonia with every map's zone (src/country.ts); the 🇲🇰 button after the ?
+// Its data is downloaded the first time and stays in memory (and so does the built view) for the rest of the visit.
+// The city stays built underneath; only the scene drawn through the ink renderer changes while it is open.
+let country: CountryView | null = null;
+let countryOpen = false, countryBusy = false;
+const countryUi = $('country-ui'), countryLoad = $('country-load'), countryBar = $('country-load-bar');
+async function openCountry(): Promise<void> {
+  if (countryOpen || countryBusy || loading) return;
+  resumeWalk = false;
+  if (world?.flight.active) stopFlight();
+  if (world?.drive.active) stopDrive();
+  if (world?.walk.active) stopWalk();
+  closePopups();
+  setCityMenu(false);
+  countryOpen = true;
+  document.body.classList.add('country');
+  countryUi.hidden = false;
+  controls.enabled = false;
+  if (!country) {
+    countryBusy = true;
+    countryLoad.hidden = false;
+    try {
+      const data = await loadCountry((f) => (countryBar.style.width = `${Math.round(f * 100)}%`));
+      await nextFrame();
+      country = createCountryView({
+        data, dom: renderer.domElement, labels: $('country-labels'), mobile: MOBILE,
+        codeOf: (id) => CITIES[id].code,
+        onPick: (z) => { if (z.city) { closeCountry(); void switchCity(z.city); } },
+      });
+      country.home();
+      markSoon();
+    } catch (e) {
+      console.error(e);
+      countryBusy = false;
+      countryLoad.hidden = true;
+      closeCountry();
+      status.textContent = t('error') + (e instanceof Error ? e.message : String(e));
+      return;
+    }
+    countryBusy = false;
+    countryLoad.hidden = true;
+    if (!countryOpen) return; // closed while it loaded
+  }
+  country.resize();
+  country.controls.enabled = true;
+  country.dirty = true;
+  renderer.shadowMap.needsUpdate = true; // the country's sun
+}
+function closeCountry(): void {
+  if (!countryOpen) return;
+  countryOpen = false;
+  document.body.classList.remove('country');
+  countryUi.hidden = true;
+  if (country) { country.controls.enabled = false; country.setHover(null); }
+  renderer.domElement.style.cursor = '';
+  controls.enabled = true;
+  fitShadow(); // the city's shadow map again
+  camDirty = true;
+  ink.reset();
+}
+/** Draws the country through the ink renderer; the composite's city settings (clouds, haze, clipping) put back after. */
+function renderCountry(v: CountryView): void {
+  const u = ink.compMat.uniforms;
+  const shade = u.cloudShade.value as number, haze = (u.hazeRange.value as THREE.Vector2).clone(), clip = ink.normalMat.clippingPlanes;
+  u.cloudShade.value = 0; // the clouds belong to the city's coordinates
+  u.hazeRange.value.set(16000, 60000);
+  ink.normalMat.clippingPlanes = [];
+  ink.render(v.scene, v.camera, false);
+  u.cloudShade.value = shade;
+  u.hazeRange.value.copy(haze);
+  ink.normalMat.clippingPlanes = clip;
+}
+$('country-btn').addEventListener('click', () => void openCountry());
+$('country-close').addEventListener('click', closeCountry);
+addEventListener('keydown', (e) => { if (countryOpen && e.code === 'Escape' && !document.querySelector('dialog[open]')) closeCountry(); });
+// hover and click on the canvas (a click is a press without dragging)
+let czDown: [number, number] | null = null;
+renderer.domElement.addEventListener('pointermove', (e) => { if (countryOpen && country && e.pointerType === 'mouse' && !e.buttons) country.setHover(country.zoneAt(e.clientX, e.clientY)); });
+renderer.domElement.addEventListener('pointerdown', (e) => { czDown = countryOpen ? [e.clientX, e.clientY] : null; });
+renderer.domElement.addEventListener('pointerup', (e) => {
+  if (!countryOpen || !country || !czDown || Math.hypot(e.clientX - czDown[0], e.clientY - czDown[1]) > 6) return;
+  const z = country.zoneAt(e.clientX, e.clientY);
+  if (z?.city) { closeCountry(); void switchCity(z.city); } else country.setHover(z); // a planned map: its name with "наскоро"; a touch shows it too
+});
+addEventListener('resize', () => country?.resize());
+const markSoon = () => document.querySelectorAll<HTMLElement>('.cz.soon').forEach((el) => (el.dataset.soon = t('country.soon')));
+onLangChange(markSoon);
+
 // keyboard + gamepad navigation on the map (flight has its own controls)
-const mapInput = createMapInput({ controls, camera, invertY: () => invertY, isActive: () => !!world && !world.flight.active && !world.drive.active && !world.walk.active && !document.querySelector('dialog[open]') });
+const mapInput = createMapInput({ controls, camera, invertY: () => invertY, isActive: () => !!world && !countryOpen && !world.flight.active && !world.drive.active && !world.walk.active && !document.querySelector('dialog[open]') });
 const padPrev = { a: false, b: false, x: false, y: false, start: false, flick: false };
 let padHintShown = false;
 addEventListener('gamepadconnected', (e) => console.log('gamepad:', e.gamepad.id, e.gamepad.mapping === 'standard' ? 'standard' : 'not mapped by the browser: ignored'));
@@ -1249,6 +1338,14 @@ renderer.setAnimationLoop(() => {
   const dt = clock.getDelta();
   SHARED.uTime.value += dt;
   if (world?.flight.active || world?.drive.active || world?.walk.active || live) governQuality(dt);
+  if (countryOpen) {
+    if (country) {
+      country.update();
+      if (country.dirty) { country.dirty = false; ink.reset(); }
+      if (!ink.converged) renderCountry(country);
+    }
+    return;
+  }
   controls.update();
   if (!world) return; // set at the end of loading: everything exists
   const { flight, drive, walk, game, terrain, city, traffic, clouds, birds, gliders, precip, landmarks, labels } = world;
@@ -1475,6 +1572,6 @@ renderer.setAnimationLoop(() => {
   ink.render(scene, camera, live);
 });
 
-window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, switchCity, get cityId() { return city.id; }, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; } };
+window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, switchCity, get cityId() { return city.id; }, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; }, get country() { return country; } };
 
 loadCity(city).catch(loadFailed);

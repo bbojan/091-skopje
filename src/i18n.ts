@@ -9,6 +9,7 @@
 import { TOWNS } from './i18n-towns.ts';
 import { TOWNS2 } from './i18n-towns2.ts';
 import { TOWNS3 } from './i18n-towns3.ts';
+import { COUNTRY } from './i18n-country.ts';
 
 export const LANGS = [
   ['mk', 'Македонски'],
@@ -106,6 +107,7 @@ export const STR = {
     ...TOWNS.mk,
     ...TOWNS2.mk,
     ...TOWNS3.mk,
+    ...COUNTRY.mk,
   },
 
   en: {
@@ -282,6 +284,7 @@ export const STR = {
     ...TOWNS.en,
     ...TOWNS2.en,
     ...TOWNS3.en,
+    ...COUNTRY.en,
   },
 
   sr: {
@@ -458,6 +461,7 @@ export const STR = {
     ...TOWNS.sr,
     ...TOWNS2.sr,
     ...TOWNS3.sr,
+    ...COUNTRY.sr,
   },
 
   hr: {
@@ -634,6 +638,7 @@ export const STR = {
     ...TOWNS.hr,
     ...TOWNS2.hr,
     ...TOWNS3.hr,
+    ...COUNTRY.hr,
   },
 
   sl: {
@@ -810,6 +815,7 @@ export const STR = {
     ...TOWNS.sl,
     ...TOWNS2.sl,
     ...TOWNS3.sl,
+    ...COUNTRY.sl,
   },
 
   sq: {
@@ -986,6 +992,7 @@ export const STR = {
     ...TOWNS.sq,
     ...TOWNS2.sq,
     ...TOWNS3.sq,
+    ...COUNTRY.sq,
   },
 };
 

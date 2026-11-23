@@ -2,10 +2,10 @@
 // Usage: node scripts/terrain.ts [city]. Output: FILES.terrainBin (Uint16, decimetres above the
 // minimum) + FILES.terrainJson (public/terrain.* for Skopje)
 import fs from 'node:fs';
-import zlib from 'node:zlib';
 import { BBOX, CITIES, CITY, CUT, FILES, proj, unproj, W, H } from './config.ts';
 import { cutOsm, polygonsOf, wayPts, isWater, type OsmJson } from './osm.ts';
 import { rowCrossings } from '../src/geo.ts';
+import { decodePNG } from './png.ts';
 import type { Poly, Pt } from '../src/types.ts';
 
 const Z = 15;
@@ -18,41 +18,6 @@ const lat2y = (lat: number) => {
   const r = (lat * Math.PI) / 180;
   return ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * 2 ** Z;
 };
-
-// Minimal PNG decoder (8-bit RGB/RGBA, non-interlaced)
-function decodePNG(buf: Buffer): { w: number; h: number; bpp: number; data: Buffer } {
-  let p = 8, w = 0, h = 0, ct = 0;
-  const idat: Buffer[] = [];
-  while (p < buf.length) {
-    const len = buf.readUInt32BE(p), type = buf.toString('ascii', p + 4, p + 8);
-    const data = buf.subarray(p + 8, p + 8 + len);
-    if (type === 'IHDR') { w = data.readUInt32BE(0); h = data.readUInt32BE(4); ct = data[9]; if (data[8] !== 8 || data[12]) throw new Error('unsupported png'); }
-    else if (type === 'IDAT') idat.push(data);
-    else if (type === 'IEND') break;
-    p += 12 + len;
-  }
-  const bpp = ct === 6 ? 4 : ct === 2 ? 3 : 0;
-  if (!bpp) throw new Error('png colour type ' + ct);
-  const raw = zlib.inflateSync(Buffer.concat(idat));
-  const out = Buffer.alloc(w * h * bpp);
-  const stride = w * bpp;
-  for (let y = 0; y < h; y++) {
-    const f = raw[y * (stride + 1)];
-    const src = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
-    const row = out.subarray(y * stride, (y + 1) * stride);
-    const prev = y ? out.subarray((y - 1) * stride, y * stride) : null;
-    for (let i = 0; i < stride; i++) {
-      const a = i >= bpp ? row[i - bpp] : 0, b = prev ? prev[i] : 0, c = prev && i >= bpp ? prev[i - bpp] : 0;
-      let v = src[i];
-      if (f === 1) v += a;
-      else if (f === 2) v += b;
-      else if (f === 3) v += (a + b) >> 1;
-      else if (f === 4) { const pp = a + b - c, pa = Math.abs(pp - a), pb = Math.abs(pp - b), pc = Math.abs(pp - c); v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c; }
-      row[i] = v & 255;
-    }
-  }
-  return { w, h, bpp, data: out };
-}
 
 const x0 = Math.floor(lon2x(BBOX.w)), x1 = Math.floor(lon2x(BBOX.e));
 const y0 = Math.floor(lat2y(BBOX.n)), y1 = Math.floor(lat2y(BBOX.s));
