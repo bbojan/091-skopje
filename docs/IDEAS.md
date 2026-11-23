@@ -72,9 +72,9 @@ in [NOTES.md](NOTES.md)); everything else is an idea, not planned yet.
 ## Planned with the owner (2026-11-23): F-15 Eagle and flying from map to map
 
 Two plans that go together: the F-15 crosses a small map in seconds, so it needs the neighbouring maps ready.
-Map-to-map flight works in every flight mode; the F-15 itself is for free flight only.
-Order of work: (1) measure, (2) map-to-map flight with the usual plane, (3) the F-15 on top, (4) only if the
-measurements ask for it, more preparing ahead on desktop. With both switched off, Скопје stays pixel-identical.
+Map-to-map flight is for the F-15 only (decided by the owner on 2026-11-23, after first wanting it in every mode).
+Order of work: (1) measure, (2) the F-15, (3) map-to-map flight for the F-15, (4) only if the measurements ask
+for it, more preparing ahead on desktop. With both switched off, Скопје stays pixel-identical.
 
 ### F-15 Eagle (free flight only)
 
@@ -93,21 +93,18 @@ measurements ask for it, more preparing ahead on desktop. With both switched off
 - Phones: the same chip, same sticks. Strings in 6 languages (`src/i18n.ts`, then `npm run strings`); a row in
   the settings table in [NOTES.md](NOTES.md) if the choice is saved.
 
-### Flying from map to map (every flight mode: free flight, F-15, Трка, Пожар)
+### Flying from map to map (F-15 only)
 
 - **Not two built maps at once** (too much memory, iOS Safari): the neighbouring maps' **files are downloaded in
   the background** (`<city>.json` + terrain, 3–25 MB each) and, **at the edge, the map switches quickly** with the
   files already there. The plane flies on: same heading, speed and height above the ground, carried over through
   latitude / longitude (every map has its own origin). Address and back / forward change as today; settings stay.
-- **In every flight mode** (changed by the owner the same day): free flight, F-15, Пожар and Трка.
-  - **Пожар:** the Air Tractor flies on with its water and the count of fires put out; the fires of the old map
-    are gone and new ones spawn in the new map (from its land-cover grid), burnt patches are cleared as today.
-  - **Трка:** the course (rings over landmarks) belongs to one map, so leaving it ends the race without a record
-    (a short message), and the plane flies on in the new map, where a race can start again.
+- **Only while flying the F-15** (so only in free flight): the usual plane, Трка and Пожар stay on one map and
+  turn back at the edge as today.
 - **Prediction**, once a second: from position, heading and speed, the time to the edge and the map the plane will
   enter (neighbours from the `bbox`es in `scripts/config.ts` and the towns plan). A download starts when the time to
   the edge is under twice (download + build time), so the F-15 starts earlier. A neighbour that is not built yet
-  (planned only): nothing to download; at the edge the plane turns back.
+  (planned only): nothing to download; at the edge the F-15 turns back.
 - **How many maps are kept ready:**
 
   | | Desktop | Phone (`MOBILE`) |
