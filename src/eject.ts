@@ -13,9 +13,10 @@ export function createEject(o: { scene: THREE.Scene; camera: THREE.PerspectiveCa
   group.visible = false;
   o.scene.add(group);
 
-  // the pilot: olive flight suit, white helmet, dark visor
+  // the pilot (feet at the origin, ~1.8 m, facing -z): olive flight suit, dark harness with chest and leg straps,
+  // white helmet with a dark visor and a red stripe, boots; the knees a little bent, the hands up on the risers
   const pilot = new THREE.Group();
-  const suit = M('#5d6643'), skin = M('#f1ece4'), dark = M('#2f2622');
+  const suit = M('#5d6643'), suitDark = M('#4a5236'), strap = M('#2b2622'), helmet = M('#f1ece4'), visor = M('#1f2a44'), stripe = M('#d8322a'), boot = M('#2f2622'), metal = M('#c9c4c0');
   const add = (g: THREE.Group, geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) => {
     const m = new THREE.Mesh(geo, mat);
     m.position.set(x, y, z);
@@ -23,19 +24,45 @@ export function createEject(o: { scene: THREE.Scene; camera: THREE.PerspectiveCa
     g.add(m);
     return m;
   };
-  add(pilot, new THREE.CylinderGeometry(0.26, 0.3, 0.8, 10), suit, 0, 0.95, 0);
-  add(pilot, new THREE.SphereGeometry(0.19, 12, 10), skin, 0, 1.53, 0);
-  add(pilot, new THREE.BoxGeometry(0.26, 0.09, 0.1), dark, 0, 1.53, -0.15);
+  /** a limb: a capsule of radius r from a to b */
+  const limb = (a: [number, number, number], b: [number, number, number], r: number, mat: THREE.Material) => {
+    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), len = A.distanceTo(B);
+    const m = new THREE.Mesh(new THREE.CapsuleGeometry(r, Math.max(0.01, len - 2 * r), 4, 10), mat);
+    m.position.copy(A).add(B).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.sub(A).normalize());
+    m.castShadow = true;
+    pilot.add(m);
+    return m;
+  };
+  // the risers come down to the shoulder rings (RING), the hands hold them a little higher (HAND)
+  const RING: [number, number, number] = [0.2, 1.43, -0.02], HAND: [number, number, number] = [0.27, 1.9, -0.06];
   for (const s of [-1, 1]) {
-    add(pilot, new THREE.BoxGeometry(0.15, 0.62, 0.17), suit, s * 0.13, 0.3, 0);
-    const arm = add(pilot, new THREE.BoxGeometry(0.12, 0.6, 0.13), suit, s * 0.36, 1.2, 0);
-    arm.rotation.z = -s * 2.6; // hands up on the risers
+    add(pilot, new THREE.BoxGeometry(0.12, 0.09, 0.27), boot, s * 0.11, 0.045, -0.05);           // boot
+    limb([s * 0.11, 0.1, -0.02], [s * 0.11, 0.5, 0.06], 0.065, suit);                           // shin
+    limb([s * 0.11, 0.5, 0.06], [s * 0.12, 0.9, -0.06], 0.085, suit);                           // thigh, knee a little forward
+    const loop = add(pilot, new THREE.TorusGeometry(0.095, 0.018, 6, 14), strap, s * 0.12, 0.78, -0.02); // leg loop
+    loop.rotation.x = Math.PI / 2;
+    limb([s * 0.2, 1.42, 0], [s * 0.25, 1.66, -0.04], 0.052, suit);                              // upper arm
+    limb([s * 0.25, 1.66, -0.04], [HAND[0] * s, HAND[1], HAND[2]], 0.045, suit);                 // forearm
+    add(pilot, new THREE.SphereGeometry(0.05, 8, 6), boot, HAND[0] * s, HAND[1], HAND[2]);       // glove
+    add(pilot, new THREE.BoxGeometry(0.05, 0.42, 0.04), strap, s * 0.1, 1.24, -0.15);            // shoulder strap, front
+    add(pilot, new THREE.TorusGeometry(0.03, 0.01, 5, 10), metal, RING[0] * s, RING[1], RING[2]); // the riser ring
   }
+  add(pilot, new THREE.BoxGeometry(0.34, 0.2, 0.22), suitDark, 0, 0.98, 0);                     // pelvis
+  const torso = add(pilot, new THREE.CapsuleGeometry(0.15, 0.3, 4, 12), suit, 0, 1.24, 0);      // torso
+  torso.scale.set(1.25, 1, 0.9);
+  add(pilot, new THREE.BoxGeometry(0.38, 0.05, 0.3), strap, 0, 1.2, 0);                         // chest strap
+  add(pilot, new THREE.BoxGeometry(0.36, 0.06, 0.28), strap, 0, 0.92, 0);                       // waist strap
+  add(pilot, new THREE.BoxGeometry(0.1, 0.08, 0.04), metal, 0, 1.2, -0.15);                     // the buckle
+  add(pilot, new THREE.CylinderGeometry(0.05, 0.055, 0.08, 8), suit, 0, 1.47, 0);               // neck
+  add(pilot, new THREE.SphereGeometry(0.135, 14, 10), helmet, 0, 1.6, 0);                       // helmet
+  add(pilot, new THREE.BoxGeometry(0.2, 0.08, 0.06), visor, 0, 1.6, -0.115);                   // visor
+  add(pilot, new THREE.BoxGeometry(0.03, 0.02, 0.24), stripe, 0, 1.735, 0);                    // red stripe over the top
   group.add(pilot);
   // the seat, under the pilot until it falls away
   const seat = new THREE.Group();
-  add(seat, new THREE.BoxGeometry(0.7, 0.16, 0.7), dark, 0, 0.55, 0.05);
-  add(seat, new THREE.BoxGeometry(0.7, 1.15, 0.16), dark, 0, 1.1, 0.38);
+  add(seat, new THREE.BoxGeometry(0.7, 0.16, 0.7), strap, 0, 0.55, 0.05);
+  add(seat, new THREE.BoxGeometry(0.7, 1.15, 0.16), strap, 0, 1.1, 0.38);
   const burner = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.6, 10, 1, true).translate(0, -0.8, 0), new THREE.MeshBasicMaterial({ color: '#ffb347', transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
   burner.rotation.x = Math.PI; // pointing down
   burner.position.set(0, 0.35, 0.05);
@@ -61,10 +88,17 @@ export function createEject(o: { scene: THREE.Scene; camera: THREE.PerspectiveCa
   dome.castShadow = true;
   const rimY = R * 0.75 * Math.cos(Math.PI / 2.7), rimR = R * Math.sin(Math.PI / 2.7);
   dome.position.y = 6.2 - rimY;
-  const lines: number[] = [];
-  for (let k = 0; k < 8; k++) {
-    const a = (k / 8) * Math.PI * 2;
-    lines.push(0, 1.45, 0, Math.cos(a) * rimR, 6.2, Math.sin(a) * rimR);
+  // rigging: on each side the lines from half the canopy's rim gather at a confluence link, and one riser goes
+  // from there down to the ring on that shoulder
+  const lines: number[] = [], LINES = 16;
+  for (const sd of [-1, 1]) {
+    const cx = sd * 0.34, cy = 2.75;
+    lines.push(sd * RING[0], RING[1], RING[2], cx, cy, 0); // the riser
+    for (let k = 0; k < LINES; k++) {
+      const a = (k / LINES) * Math.PI * 2, x = Math.cos(a) * rimR, z = Math.sin(a) * rimR;
+      if ((x >= 0 ? 1 : -1) !== sd) continue;
+      lines.push(cx, cy, 0, x, 6.2, z);
+    }
   }
   const lineGeo = new THREE.BufferGeometry();
   lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(lines, 3));
@@ -132,7 +166,7 @@ export function createEject(o: { scene: THREE.Scene; camera: THREE.PerspectiveCa
     pilot.position.copy(st.pos);
     pilot.rotation.set(sway, -st.yaw, open ? 0 : Math.sin(st.t * 9) * 0.3, 'YXZ');
     chute.position.copy(st.pos);
-    chute.rotation.set(sway * 0.6, -st.yaw, 0, 'YXZ');
+    chute.rotation.set(sway, -st.yaw, 0, 'YXZ'); // the same swing as the pilot: the risers stay on the rings
     seat.position.copy(st.seatPos);
     seat.rotation.set(open ? st.t * 2 : 0, -st.yaw, 0, 'YXZ');
     // camera: behind and a little above the pilot, the canopy in the picture
