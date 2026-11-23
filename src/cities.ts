@@ -428,7 +428,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Бигорски е спасен!', roll: 'Ајде на Галичка свадба!' },
   },
   prilep: {
-    id: 'prilep', name: 'Прилеп', code: '048', icon: './favicon-prilep.svg',
+    id: 'prilep', name: 'Прилеп', code: '098', icon: './favicon-prilep.svg',
     files: { scene: './prilep.json', terrainBin: './prilep-terrain.bin', terrainJson: './prilep-terrain.json' },
     sceneBytes: 4.4e6,
     views: {
@@ -490,7 +490,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Крале Марко го спаси Прилеп!', roll: 'Ај на Пивофест!' },
   },
   krusevo: {
-    id: 'krusevo', name: 'Крушево', code: '098', icon: './favicon-krusevo.svg',
+    id: 'krusevo', name: 'Крушево', code: '048', icon: './favicon-krusevo.svg',
     files: { scene: './krusevo.json', terrainBin: './krusevo-terrain.bin', terrainJson: './krusevo-terrain.json' },
     sceneBytes: 1.5e6,
     views: {

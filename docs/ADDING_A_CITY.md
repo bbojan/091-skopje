@@ -42,7 +42,10 @@ Decide:
   drawn only as a line is not an area. Check the areas' sizes after step 4: Kavadarci's "lake"
   (Катунишко Езеро) turned out to be a 100 m pond, but the northern arm of Тиквешко Езеро reached
   into the box and became the refill.
-- **The badge code.** The town's old telephone code, like 091 for Skopje and 043 for Kavadarci.
+- **The badge code.** Old codes first: the plan is the table in "Badge codes" in
+  [TOWNS_TODO.md](TOWNS_TODO.md) (every map, built and planned). The town that owned an old (Yugoslav-era) code
+  gets it (091 Скопје, 097 Битола, 098 Прилеп); every other map in that old group takes its town's new area code
+  (043 Кавадарци, 048 Крушево), shared where it has to be. Confirm the code with the owner when the map is started.
 
 ## 2. Extent and files: `scripts/config.ts`
 
