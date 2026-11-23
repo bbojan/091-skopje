@@ -196,6 +196,7 @@ export function createCountryView(o: {
   g2.stroke();
   const overlay = new THREE.CanvasTexture(ov);
   overlay.colorSpace = THREE.SRGBColorSpace;
+  overlay.flipY = false; // canvas row 0 is the north edge, as v = 0 in the shader (and in the zone ids)
   overlay.anisotropy = 8;
 
   // zone ids per texel (exact, by point-in-polygon), for the hover highlight and for picking
