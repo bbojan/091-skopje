@@ -78,9 +78,10 @@ Order of work:
 1. **Measure** every finished map: download, and time per preparing step (parse / steps / assemble / bake /
    shaders), memory, on desktop and a phone.
 2. **The F-15** in free flight.
-3. **Map-to-map flight** for the F-15: prediction, background downloads, indicator, the switch at the edge.
-4. **The fast switch:** low detail first, entry chunks first, shaders kept, far-ground textures later.
-5. Only if the measurements ask for it: preparing part of the next map ahead (desktop), or a binary data format. With both switched off, Скопје stays pixel-identical.
+3. **A 100 m terrain of the whole country**, always seen (below).
+4. **Map-to-map flight** for the F-15: prediction, background downloads, indicator, the switch at the edge.
+5. **The fast switch:** low detail first, entry chunks first, shaders kept, far-ground textures later.
+6. Only if the measurements ask for it: preparing part of the next map ahead (desktop), or a binary data format. With both switched off, Скопје stays pixel-identical.
 
 ### F-15 Eagle (free flight only)
 
@@ -98,6 +99,29 @@ Order of work:
   the plane turns back in a wide arc. Crossing times with turbo: Крушево ~14 s, Скопје ~22 s, Брод ~34 s.
 - Phones: the same chip, same sticks. Strings in 6 languages (`src/i18n.ts`, then `npm run strings`); a row in
   the settings table in [NOTES.md](NOTES.md) if the choice is saved.
+
+### A 100 m terrain of the whole country (decided with the owner, 2026-11-23)
+
+- **One low-detail terrain for all of Macedonia**, always on screen: beyond the current map's edges the mountains
+  of the whole country go on, instead of haze. For the F-15 it is the "low detail first" of the fast switch: at
+  the edge the neighbour's relief is already there, only buildings and roads are left to build.
+- **Size** (rectangle ~216 × 169 km around the country, 2 bytes per cell as in `terrain.bin`; estimates):
+
+  | Cell | Grid | Raw | gzip / PNG |
+  |---|---|---|---|
+  | 10 m (as Скопје) | 21600 × 16900 | ~730 MB | far too much |
+  | 50 m | 4320 × 3380 | ~29 MB | ~12–16 MB |
+  | **100 m (chosen)** | **2160 × 1690** | **~7.3 MB** | **~3–4 MB** |
+  | 200 m | 1080 × 845 | ~1.8 MB | ~1 MB |
+
+  Optionally one colour texture (forests, fields, lakes) baked from OSM, ~2–4 MB.
+- **Drawing:** not one big mesh (3.6 M vertices would be ~130 MB): the heights as a **texture** (~7 MB on the GPU)
+  read in the vertex shader of a small grid mesh (e.g. 512 × 512), denser near the camera. About 10–20 MB of GPU
+  memory and one draw call. Under the current map it is hidden or lowered, so it never fights the detailed terrain.
+- **Data:** the same AWS Terrarium tiles as `scripts/terrain.ts`, zoom 10–11 (~57–115 m per pixel here), about
+  30–100 tiles; a new step in the scripts writes one file to `public/`.
+- **Скопје pixel-identical:** views that see a map's edge change (relief instead of haze), so either a switch
+  (off = today) or new reference images taken on purpose. Decide when building it.
 
 ### Flying from map to map (F-15 only)
 
@@ -140,8 +164,8 @@ Order of work:
   recompiles. Guess: desktop ~1–2 s small maps, ~2–5 s Скопје / Охрид, ~4–8 s dense ones (Тетово, Битола); phones
   3–5× that. At 736 m/s, 3 s is 2.2 km of flight, so a 0.3 s fade is not realistic, and the build cannot run ahead
   while flying (two built maps double the memory; seconds of CPU on the main thread). Agreed with the owner:
-  1. **Low detail first, then the rest:** at the edge show within ~0.5 s only the low-res terrain and the far-ground
-     texture, then add buildings and roads chunk by chunk around the plane (the F-15 flies at 150 m+ and rarely
+  1. **Low detail first, then the rest:** at the edge show within ~0.5 s only the low-res terrain (the 100 m country
+     terrain, already on screen) and the far-ground texture, then add buildings and roads chunk by chunk around the plane (the F-15 flies at 150 m+ and rarely
      sees close detail). Builds on the memory saver (`stream`), where terrain and draped ground are already built
      per chunk; buildings are not yet (see "A larger map" in [NOTES.md](NOTES.md)).
   2. **Entry chunks first:** build in order from where the plane enters, along its heading.
