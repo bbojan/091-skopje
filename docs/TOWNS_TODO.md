@@ -26,8 +26,8 @@ towns on it):
 | Мариово* | 1170 | — | | Демир Хисар | 620 | Демир Хисар |
 | Ново Село* | 1060 | — | | Свети Николе | 580 | Свети Николе |
 | Новаци* | 1060 | — | | Крива Паланка | 570 | Крива Паланка |
-| Кичево | 1030 | Кичево | | Матка* | 530 | — |
-| Скопска Црна Гора* | 970 | — | | Гевгелија | 510 | Гевгелија, Богданци |
+| Кичево | 1030 | Кичево | | Гевгелија | 510 | Гевгелија, Богданци |
+| Скопска Црна Гора* | 1010 | — | | Матка* | 500 | — |
 | Стоби* | 940 | — | | Валандово | 410 | Валандово |
 | Радовиш | 900 | Радовиш | | Пробиштип | 380 | Пробиштип |
 | Штип | 820 | Штип | | Неготино | 370 | Неготино |
@@ -74,8 +74,8 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 6 | Кораб* | 370 | — | 18 |
 | 7 | Пробиштип | 380 | Пробиштип | 28 |
 | 8 | Валандово | 410 | Валандово | 29 |
-| 9 | Гевгелија | 510 | Гевгелија, Богданци | 30 |
-| 10 | Матка* | 530 | — | 20 |
+| 9 | Матка* | 500 | — | 20 |
+| 10 | Гевгелија | 510 | Гевгелија, Богданци | 30 |
 | 11 | Крива Паланка | 570 | Крива Паланка | 26 |
 | 12 | Свети Николе | 580 | Свети Николе | 22 |
 | 13 | Демир Хисар | 620 | Демир Хисар | 11 |
@@ -85,14 +85,14 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 17 | Пелагонија* | 730 | — | 21 |
 | 18 | Кратово | 750 | Кратово | 2 |
 | 19 | Делчево | 770 | Делчево | 13 |
-| 20 | Демир Капија | 820 | Демир Капија | 31 |
-| 21 | Штип | 820 | Штип | 3 |
+| 20 | Штип | 820 | Штип | 3 |
+| 21 | Демир Капија | 820 | Демир Капија | 31 |
 | 22 | Радовиш | 900 | Радовиш | 24 |
 | 23 | Стоби* | 940 | — | 25 |
-| 24 | Скопска Црна Гора* | 970 | — | 33 |
+| 24 | Скопска Црна Гора* | 1010 | — | 33 |
 | 25 | Кичево | 1030 | Кичево | 10 |
-| 26 | Новаци* | 1060 | — | 34 |
-| 27 | Ново Село* | 1060 | — | 14 |
+| 26 | Ново Село* | 1060 | — | 14 |
+| 27 | Новаци* | 1060 | — | 34 |
 | 28 | Мариово* | 1170 | — | 16 |
 | 29 | Велес | 1540 | Велес | 15 |
 | 30 | Куманово | 1620 | Куманово | 6 |
@@ -360,9 +360,9 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   between Тетово's and Брод's maps.
 - **Name / code:** open (working name Матка).
 - **Extent:** decided with the owner on 2026-11-23, an outline with 90° corners (`shapes` in the plan page):
-  n 42.075 (Тетово's n; Скопска Црна Гора's s), e 21.525 (Куманово's w) down to 42.055, then along Скопје's n and
-  w (21.33) and s (41.955), Батинци's w (21.385), Брод's n (41.926) and w (21.12) to 41.725 (Кичево's n), west to
-  21.06 and up Тетово's e. Its rectangle would be 41.725–42.075 N, 21.06–21.525 E. The first Матка map also
+  n 42.075 (Тетово's n; Скопска Црна Гора's s) to Скопје's w (21.33; the strip above Скопје went to Скопска
+  Црна Гора on 2026-11-23), down Скопје's w and along its s (41.955), Батинци's w (21.385), Брод's n (41.926) and w (21.12) to 41.725 (Кичево's n), west to
+  21.06 and up Тетово's e. Its rectangle would be 41.725–42.075 N, 21.06–21.385 E. The first Матка map also
   reached north to the Kosovo border; its north half was split off as Скопска Црна Гора (33). About 540 km²,
   20 m cells. No overlaps.
 - **Instead of widening Скопје** (9, above): this map and Скопска Црна Гора take the land the widened Скопје
@@ -483,10 +483,11 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 - **On it:** Скопска Црна Гора (Чучер, Бањане, Кучевиште), Блаце and the Лепенец at the Kosovo border, the strip
   above Тетово's map to the border.
 - **Name / code:** open (working name Скопска Црна Гора).
-- **Extent:** split off Матка by the owner on 2026-11-23: s 42.075 (Матка's, Скопје's and Тетово's n side), e 21.525
+- **Extent:** split off Матка by the owner on 2026-11-23: s 42.075 (Матка's and Тетово's n) and, above Скопје
+  (21.33–21.525 E), 42.055 (Скопје's n: the strip right above Скопје is on this map, decided the same day), e 21.525
   (Куманово's w). Trimmed to the Kosovo border the same day, an outline with 90° corners (`shapes`) about 2 km
   past OSM's border (relation 53293): w 20.72 (Кораб's e), the n edge stepping from 42.10 (west) to 42.30 (east).
-  Its rectangle would be 42.075–42.30 N, 20.72–21.525 E. Check the border crossing at Блаце when it is built.
+  Its rectangle would be 42.055–42.30 N, 20.72–21.525 E. Check the border crossing at Блаце when it is built.
 - **Landmarks:** Св. Никола at Кучевиште, Скопска Црна Гора's villages, the Блаце crossing.
 
 ### 34. Новаци (name open)
