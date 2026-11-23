@@ -281,8 +281,11 @@ export function createCountryView(o: {
     controls.target.set(0, 60, UH * 0.02);
     // the whole box in view: its width, or its (tilted) depth on a tall screen
     const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const d = Math.max(UW / camera.aspect, UH * 0.85) / (2 * tan) * 1.04;
-    camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(new THREE.Spherical(d, 0.55, 0)));
+    // a tall screen looks down more steeply (the tilted near edge would spread wider than the screen) and keeps a margin
+    const tall = camera.aspect < 1;
+    const d = Math.max(UW / camera.aspect, UH * 0.85) / (2 * tan) * (tall ? 1.16 : 1.04);
+    controls.maxDistance = Math.max(UW * 2.6, d * 1.25); // a phone held upright needs to stand further back
+    camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(new THREE.Spherical(d, tall ? 0.3 : 0.55, 0)));
     controls.update();
     view.dirty = true;
   }
@@ -338,7 +341,7 @@ export function createCountryView(o: {
     el.addEventListener('pointerleave', () => setHover(null));
     o.labels.append(el);
     const [x, zz] = toScene(...z.at);
-    return { z, el, at: new THREE.Vector3(x, groundY(x, zz) + 30, zz) };
+    return { z, el, at: new THREE.Vector3(x, groundY(x, zz) + 30, zz), x: 0, y: 0, w: 0, h: 0 };
   });
   const sp = new THREE.Vector3();
   function update(): void {
@@ -353,11 +356,28 @@ export function createCountryView(o: {
     camera.updateProjectionMatrix();
     const W = innerWidth, H = innerHeight;
     const showSoon = d < UW * 1.35; // the planned names only when zoomed in a little
+    // a narrow screen seen from far: the finished maps by name only, small (the full badges would cover the map)
+    const compact = W < 560 && d > UW * 2;
+    if (o.labels.classList.contains('compact') !== compact) { o.labels.classList.toggle('compact', compact); for (const l of labels) l.w = 0; }
     for (const l of labels) {
       sp.copy(l.at).project(camera);
       const vis = sp.z < 1 && Math.abs(sp.x) < 1.05 && Math.abs(sp.y) < 1.05 && (l.z.city !== undefined || showSoon);
       l.el.hidden = !vis;
-      if (vis) l.el.style.transform = `translate(${((sp.x + 1) / 2) * W}px, ${((1 - sp.y) / 2) * H}px) translate(-50%, -50%)`;
+      l.x = ((sp.x + 1) / 2) * W; l.y = ((1 - sp.y) / 2) * H;
+      if (vis && !l.w) { l.w = l.el.offsetWidth; l.h = l.el.offsetHeight; } // measured once, the first time it shows
+    }
+    // badges that would cover each other (Скопје, Матка, Батинци side by side): each one goes below the one it
+    // overlaps, top to bottom; a planned name under a badge is left out
+    const placed: { x: number; y: number; w: number; h: number }[] = [];
+    const hits = (a: { x: number; y: number; w: number; h: number }) => placed.find((b) => Math.abs(a.x - b.x) < (a.w + b.w) / 2 + 3 && Math.abs(a.y - b.y) < (a.h + b.h) / 2 + 2);
+    for (const l of labels.filter((l) => l.z.city && !l.el.hidden).sort((a, b) => a.y - b.y)) {
+      for (let k = 0, b = hits(l); b && k < 6; k++, b = hits(l)) l.y = b.y + (b.h + l.h) / 2 + 2;
+      placed.push(l);
+    }
+    for (const l of labels) {
+      if (l.el.hidden) continue;
+      if (!l.z.city && hits(l)) { l.el.hidden = true; continue; }
+      l.el.style.transform = `translate(${l.x}px, ${l.y}px) translate(-50%, -50%)`;
     }
   }
   return Object.assign(view, { scene, camera, controls });

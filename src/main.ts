@@ -1304,7 +1304,8 @@ function renderCountry(v: CountryView): void {
   const u = ink.compMat.uniforms;
   const shade = u.cloudShade.value as number, haze = (u.hazeRange.value as THREE.Vector2).clone(), clip = ink.normalMat.clippingPlanes;
   u.cloudShade.value = 0; // the clouds belong to the city's coordinates
-  u.hazeRange.value.set(16000, 60000);
+  const d = v.camera.position.distanceTo(v.controls.target);
+  u.hazeRange.value.set(d * 1.2, d * 4); // a light haze toward the far edge, at any zoom
   ink.normalMat.clippingPlanes = [];
   ink.render(v.scene, v.camera, false);
   u.cloudShade.value = shade;

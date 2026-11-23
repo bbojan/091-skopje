@@ -120,10 +120,12 @@
       #country-ui { position: fixed; inset: 0; pointer-events: none; }
       #country-labels { position: absolute; inset: 0; overflow: hidden; }
       .cz { position: absolute; left: 0; top: 0; white-space: nowrap; pointer-events: auto; font: inherit; }
-      .cz[hidden] { display: none; }
+      .cz[hidden] { display: none !important; } /* .cz.done sets display: flex */
       .cz.done { display: flex; align-items: center; gap: 7px; padding: 4px 10px 4px 5px; font-size: 15px; font-weight: 700; color: var(--indigo); cursor: pointer;
                  background: var(--linen-hi); border: 1.5px solid var(--indigo); border-radius: 8px; box-shadow: 2px 2px 0 rgba(31, 42, 68, 0.3); }
       .cz.done .code { font-size: 11px; padding: 3px 4px 2px; border-radius: 5px; box-shadow: 1.5px 1.5px 0 var(--ink); }
+      .compact .cz.done { padding: 2px 6px; font-size: 11.5px; border-radius: 6px; box-shadow: 1.5px 1.5px 0 rgba(31, 42, 68, 0.3); }
+      .compact .cz.done .code { display: none; }
       .cz.done:hover, .cz.done.hover { background: #fff; z-index: 2; }
       .cz.done:focus-visible { outline: 2px solid var(--wine); outline-offset: 2px; }
       .cz.soon { font-size: 12.5px; font-style: italic; color: var(--indigo); opacity: 0.62; text-shadow: 0 0 3px var(--linen-hi), 0 0 3px var(--linen-hi), 0 0 6px var(--linen-hi); }
