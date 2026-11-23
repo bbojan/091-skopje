@@ -133,6 +133,16 @@ Order of work:
   30–100 tiles; a new step in the scripts writes one file to `public/`.
 - **Скопје pixel-identical:** nothing changes outside the F-15, so the reference images stay as they are.
 
+### Later: a country view to pick a city (the owner's idea, 2026-11-23; not planned yet)
+
+- The same 100 m country terrain (heights, шуми, ниви, езера), seen from high above, **with the zones of the towns
+  plan drawn on it** (the outlines from `scripts/towns-map.html`: finished maps solid with their badge, planned ones
+  dashed and pale, as in `docs/towns-map.png`). A click on a finished map opens it; a planned one shows its name and
+  "наскоро".
+- Opened from the city menu (an extra item) and loaded only then, like the F-15 loads it, so nobody else pays for it.
+- Comes after the F-15 work, which builds the terrain it needs. The outlines would move from the plan page into data
+  the app reads (one list for both), so a map built later shows up in the view by itself.
+
 ### Flying from map to map (F-15 only)
 
 - **Not two built maps at once** (too much memory, iOS Safari): the neighbouring maps' **files are downloaded in
