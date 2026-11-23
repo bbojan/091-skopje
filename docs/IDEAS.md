@@ -68,3 +68,67 @@ in [NOTES.md](NOTES.md)); everything else is an idea, not planned yet.
 - VR / AR view on phones
 - Real ЈСП bus routes with line numbers and stops (✅ red ЈСП buses and a drivable
   double-decker exist; no routes or stops yet)
+
+## Planned with the owner (2026-11-23): F-15 Eagle and flying from map to map
+
+Two plans that go together: the F-15 crosses a small map in seconds, so it needs the neighbouring maps ready.
+Order of work: (1) measure, (2) map-to-map flight with the usual plane, (3) the F-15 on top, (4) only if the
+measurements ask for it, more preparing ahead on desktop. With both switched off, Скопје stays pixel-identical.
+
+### F-15 Eagle (free flight only)
+
+- A chip **✈ F-15** on the flight HUD next to 🏁 Трка and 🔥 Пожар, **only in free flight**: Трка and Пожар hide
+  it and bring back their own plane (the usual one, the Air Tractor); while the F-15 flies, their chips are hidden.
+  So the F-15 never sets a race record.
+- **Speed:** 1325 km/h (368 m/s) normally, 2650 km/h (736 m/s) with turbo; today 198 / 504 km/h (`SPEED`, `BOOST`
+  in `src/flight.ts`).
+- **Model:** hand-built like the Air Tractor: grey, twin tails, two engines, afterburner flames with turbo.
+  **Sound:** a jet engine instead of the propeller (`src/sound.ts`).
+- **What the speed asks for:** a higher floor (about 150 m above the ground instead of 38, with a longer look
+  ahead over the terrain); a camera further back and a longer view range (`updateCameraRange()`); a check that the
+  temporal anti-aliasing (`post.ts`) does not smear at that speed (turn it off for the F-15 if it does); the turn
+  rate (0.75 rad/s gives a ~1 km circle at 736 m/s) tried on the small maps; at a map edge with no built neighbour
+  the plane turns back in a wide arc. Crossing times with turbo: Крушево ~14 s, Скопје ~22 s, Брод ~34 s.
+- Phones: the same chip, same sticks. Strings in 6 languages (`src/i18n.ts`, then `npm run strings`); a row in
+  the settings table in [NOTES.md](NOTES.md) if the choice is saved.
+
+### Flying from map to map (free flight and F-15 only, not Трка or Пожар)
+
+- **Not two built maps at once** (too much memory, iOS Safari): the neighbouring maps' **files are downloaded in
+  the background** (`<city>.json` + terrain, 3–25 MB each) and, **at the edge, the map switches quickly** with the
+  files already there. The plane flies on: same heading, speed and height above the ground, carried over through
+  latitude / longitude (every map has its own origin). Address and back / forward change as today; settings stay.
+- **Prediction**, once a second: from position, heading and speed, the time to the edge and the map the plane will
+  enter (neighbours from the `bbox`es in `scripts/config.ts` and the towns plan). A download starts when the time to
+  the edge is under twice (download + build time), so the F-15 starts earlier. A neighbour that is not built yet
+  (planned only): nothing to download; at the edge the plane turns back.
+- **How many maps are kept ready:**
+
+  | | Desktop | Phone (`MOBILE`) |
+  |---|---|---|
+  | Maps ready | up to **3**: straight ahead, ahead-left and ahead-right (±45°), by time to the edge | 1, straight ahead |
+  | What is kept | raw files only (no parsing) | raw files only |
+  | Budget | about 80 MB | about 20 MB (a bigger map is downloaded but not kept) |
+  | Dropped | the oldest when a fourth comes, or one the heading turns more than ~90° away from | a turn of more than ~45° |
+
+- **Indicator:** one chip next to the speed: `→ Батинци ▓▓▓░` while downloading, `→ Батинци ✓` when ready, hidden
+  when no neighbour lies ahead. Strings in 6 languages.
+- **The switch at the edge:** a short fade into the sky's haze (~0.3 s), the build with the files already there,
+  then back; HUD and engine sound go on. If the build is slow, the loader shows small (city name and bar only).
+- **Keep the main thread free:**
+  - while flying, only `fetch` → `ArrayBuffer` (network and gzip are off the main thread); **no `JSON.parse` while
+    flying** (Тетово's 16 MB would block for hundreds of ms): the JSON is parsed at the switch, under the fade;
+  - one download at a time, low priority (`fetch(…, { priority: 'low' })`), paused when the frame-time governor
+    sees slow frames; the prediction is a few multiplications a second;
+  - the build at the switch stays time-sliced with `nextFrame()`, sky and HUD drawn between slices; **no Web
+    Worker** for the build (workers ran ~7× slower, see [CLAUDE.md](../CLAUDE.md));
+  - **done means:** with `PerformanceObserver('longtask')` while flying and preparing, no task over 50 ms from the
+    preparing, and the governor never lowers quality because of it, measured on desktop and on a phone.
+- **Later, only if the measurements ask for it:** building part of the next map ahead (`computeCitySteps` a little
+  each frame) on desktop only; or a binary city data format (typed arrays, no `JSON.parse`) written by
+  `scripts/prepare.ts`, instead of a Worker.
+- **Step 1, measure first:** download and build time and memory of every finished map, desktop and phone; the
+  thresholds above come from that.
+- Neighbours that can be flown between today: Скопје–Батинци–Брод, Тетово–Ростуше, Охрид–Ресен–Битола, and
+  Крушево / Прилеп next to Брод's south edge (gaps between some of them until the planned maps are built: see
+  [TOWNS_TODO.md](TOWNS_TODO.md)). Every new map from the towns plan widens the flight.
