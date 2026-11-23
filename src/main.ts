@@ -1275,13 +1275,26 @@ $('fly-again').addEventListener('click', () => { flyResult.hidden = true; startR
 $('fly-free').addEventListener('click', () => { race = false; saveGames(); applyRace(); });
 const lastShadowAt = new THREE.Vector3(1e9, 0, 0);
 // the F-15's rockets: fired while the trigger is held, blasts heard by distance
-const rFwd = new THREE.Vector3(), rRight = new THREE.Vector3();
+const rFwd = new THREE.Vector3(), rRight = new THREE.Vector3(), rTip = new THREE.Vector3();
+const rTips: (THREE.Vector3 | null)[] = [null, null]; // last frame's wingtips while leaving contrails
 function updateRockets(dt: number, flight: Flight): void {
   if (!world) return;
   const { rockets } = world;
   if (!flight.jet && !rockets.busy) return;
   flight.axes(rFwd, rRight);
   rockets.update(dt, flight.shooting, { pos: flight.pos, fwd: rFwd, right: rRight, speed: flight.speed });
+  if (flight.jet) {
+    if (flight.takeSonic()) sound.play('sonic'); // Mach 1 or 2 crossed: the boom (the vapour cone is the flight's)
+    // contrails from the wingtips when flying high above the ground
+    const high = flight.hud.alt > 600;
+    flight.plane.updateMatrixWorld();
+    for (const [i, x] of [[0, -8.2], [1, 8.2]] as const) {
+      const tip = flight.plane.localToWorld(rTip.set(x, 0.15, 5.8));
+      const prev = rTips[i];
+      if (high && prev) rockets.contrail(i, prev, tip);
+      if (high) (rTips[i] ??= new THREE.Vector3()).copy(tip); else rTips[i] = null;
+    }
+  }
   if (rockets.events.launched) sound.play('launch');
   for (const b of rockets.events.booms) sound.play('boom', THREE.MathUtils.clamp(1 - camera.position.distanceTo(b) / 6000, 0.15, 1));
 }
@@ -1298,7 +1311,7 @@ function heatHaze(flight: Flight): void {
   camera.updateMatrixWorld(); // moved by the flight this frame
   heatA.project(camera); heatB.project(camera);
   if (heatA.z > 1 || heatB.z > 1) return; // behind the camera
-  u.heatOn.value = lerp3(0.3, 0.6, 1.5);
+  u.heatOn.value = lerp3(0.3, 0.6, 1.5) * (1 + 1.6 * flight.sonic); // flares just after the sonic boom
   u.heatT.value = SHARED.uTime.value;
   u.heatR.value = lerp3(1.8, 2.4, 4.4) / (d * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
   u.heatA.value.set((heatA.x + 1) / 2, (heatA.y + 1) / 2);

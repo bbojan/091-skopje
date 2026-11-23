@@ -286,7 +286,7 @@ function plate(pts: [number, number][], thick: number, y: number): THREE.Extrude
   g.translate(0, y + thick, 0);
   return g;
 }
-function buildF15(): { group: THREE.Group; flames: THREE.Mesh[] } {
+function buildF15(): { group: THREE.Group; flames: THREE.Mesh[]; cone: THREE.Mesh } {
   const g = new THREE.Group();
   const M = (color: THREE.ColorRepresentation) => new THREE.MeshLambertMaterial({ color });
   const grey = M(F15_GREY), dark = M(F15_DARK), glass = M('#2c3a4d'), black = M('#3a3836'), steel = M('#c9c4c0');
@@ -358,8 +358,21 @@ function buildF15(): { group: THREE.Group; flames: THREE.Mesh[] } {
       flames.push(m);
     }
   }
+  // the vapour cone at Mach 1 / Mach 2: a white shell around the middle of the jet, opening backward, shown briefly
+  // brightest at its open rim, fading to nothing toward the tip (a canvas gradient as the alpha map)
+  const ac = document.createElement('canvas');
+  ac.width = 4; ac.height = 64;
+  const ag = ac.getContext('2d')!, grad = ag.createLinearGradient(0, 0, 0, 64);
+  grad.addColorStop(0, '#000'); grad.addColorStop(0.55, '#333'); grad.addColorStop(0.92, '#fff'); grad.addColorStop(1, '#888');
+  ag.fillStyle = grad; ag.fillRect(0, 0, 4, 64);
+  const alphaMap = new THREE.CanvasTexture(ac);
+  const coneMat = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, alphaMap });
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(6, 10, 40, 1, true).translate(0, -5, 0).rotateX(-Math.PI / 2), coneMat); // tip forward
+  cone.position.set(0, 0.4, -2.5);
+  cone.visible = false;
+  g.add(cone);
   g.scale.setScalar(1.25);
-  return { group: g, flames };
+  return { group: g, flames, cone };
 }
 
 // ---------------------------------------------------------------- tow banner
@@ -560,6 +573,9 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
   let stunt: { kind: 'roll' | 'loop'; dir: number; a: number } | null = null;
   let lowT = 0; // seconds the "too low" warning stays after a refused loop
   let clockT = 0;
+  const MACH = 343; // m/s
+  let sonicT = 0;   // seconds since the vapour cone showed (it fades over ~0.9 s)
+  let sonicNew = false; // crossed Mach 1 or 2 this frame: the boom (main.ts plays it)
 
   const keymap: Record<string, FlightKey> = {
     ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
@@ -706,7 +722,8 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     }
     if (looping) turn = 0;
 
-    st.speed += ((slow ? craft.boost * SLOW : boosting ? craft.boost : craft.speed) - st.speed) * (1 - Math.exp(-dt * 1.6));
+    const dSpeed = ((slow ? craft.boost * SLOW : boosting ? craft.boost : craft.speed) - st.speed) * (1 - Math.exp(-dt * 1.6));
+    st.speed += dSpeed;
     st.yaw += turn * craft.turn * dt * (0.8 + 0.2 * Math.min(2, craft.speed / st.speed));
     st.bank += (-turn * 0.65 - st.bank) * (1 - Math.exp(-dt * 3));
     if (!looping) st.pitch += (climb * 0.32 - st.pitch) * (1 - Math.exp(-dt * 2.2));
@@ -725,6 +742,17 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     cessna.prop.rotation.z += spin;
     tractor.prop.rotation.z += spin;
     if (jet) {
+      // Mach 1 or Mach 2 crossed while speeding up: the vapour cone, the boom
+      const before = st.speed - dSpeed;
+      if ((before < MACH && st.speed >= MACH) || (before < 2 * MACH && st.speed >= 2 * MACH)) { sonicT = 0.001; sonicNew = true; }
+      if (sonicT > 0) {
+        sonicT += dt;
+        const f = Math.max(0, 1 - sonicT / 0.9);
+        eagle.cone.visible = f > 0;
+        (eagle.cone.material as THREE.MeshBasicMaterial).opacity = 0.85 * f;
+        eagle.cone.scale.set(1 + 0.4 * (1 - f), 1 + 0.4 * (1 - f), 1 + 0.8 * (1 - f));
+        if (f <= 0) sonicT = 0;
+      }
       // afterburner: grows in with turbo, flickers a little
       const burn = THREE.MathUtils.clamp((st.speed - craft.speed) / (craft.boost - craft.speed), 0, 1);
       eagle.flames.forEach((f, i) => { f.visible = burn > 0.05; f.scale.set(1, 1, burn * (0.85 + 0.15 * Math.sin(clockT * 40 + i))); });
@@ -796,8 +824,12 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     get pitch(): number { return st.pitch; },
     /** the plane flies on over an edge where this says yes (a neighbouring map is ready); null: always turn back */
     setEdgeOpen(fn: ((x: number, z: number) => boolean) | null): void { edgeOpen = fn; },
-    /** the F-15's afterburner flames, see-through (for the ink's skipNormal) */
-    flames: eagle.flames,
+    /** the F-15's afterburner flames and vapour cone, see-through (for the ink's skipNormal) */
+    flames: [...eagle.flames, eagle.cone] as THREE.Mesh[],
+    /** true once after Mach 1 or Mach 2 was crossed speeding up (the boom); reading it clears it */
+    takeSonic(): boolean { const v = sonicNew; sonicNew = false; return v; },
+    /** 1 just after the boom, fading to 0 (the exhaust shimmer flares) */
+    get sonic(): number { return sonicT > 0 ? Math.max(0, 1 - sonicT / 0.9) : 0; },
     /** a fire is close ahead, or water is in the air: the camera pulls back to show where it lands */
     setAim(near: boolean, waterFalling: boolean, y: number): void { aim = near; falling = waterFalling; aimY = y; },
     /** lowest height above the ground; null = the normal one (lower lets the plane skim water) */

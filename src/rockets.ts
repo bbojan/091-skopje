@@ -12,7 +12,8 @@ const MAX_ROCKETS = 10; // in the air at once
 const ADD_SPEED = 420;  // m/s on top of the plane's
 const LIFE = 7;         // seconds before a rocket that hit nothing is gone
 const TRAIL_STEP = 16;  // metres between trail puffs
-const N_PUFF = 1600, N_GLOW = 240;
+const N_PUFF = 1600, N_GLOW = 240, N_SOFT = 1400;
+const CONTRAIL_STEP = 7; // metres between contrail puffs
 
 /** billboards: position, size, colour + alpha, seed per instance */
 function billboards(n: number, frag: string, blending: THREE.Blending) {
@@ -63,6 +64,18 @@ const PUFF_FRAG = /* glsl */ `
     gl_FragColor = vec4(vCol.rgb * mix(0.82, 1.06, lit), a);
     #include <colorspace_fragment>
   }`;
+// a soft round puff with no edge, blended normally (contrails: a smooth line of them reads as one trail)
+const SOFT_FRAG = /* glsl */ `
+  varying vec2 vC;
+  varying vec4 vCol;
+  ${INK}
+  void main() {
+    gInk = vec4(0.0);
+    float a = (1.0 - smoothstep(0.2, 1.0, length(vC))) * vCol.a;
+    if (a < 0.01) discard;
+    gl_FragColor = vec4(vCol.rgb, a);
+    #include <colorspace_fragment>
+  }`;
 // a soft glow, added to the colour (flash, exhaust)
 const GLOW_FRAG = /* glsl */ `
   varying vec2 vC;
@@ -88,15 +101,17 @@ interface Rocket { p: THREE.Vector3; v: THREE.Vector3; age: number; trail: numbe
 const C = (s: string) => new THREE.Color(s);
 const SMOKE_W = C('#efe9df'), SMOKE_G = C('#b9b2aa'), SMOKE_D = C('#6f6a66'), SOOT = C('#4b4440');
 const FIRE_Y = C('#fff1b0'), FIRE_O = C('#ffa53a'), FIRE_R = C('#d8462a');
-const GLOW_O = C('#ffb45a'), GLOW_W = C('#fff4d8');
+const GLOW_O = C('#ffb45a'), GLOW_W = C('#fff4d8'), CONTRAIL = C('#ffffff');
 
 export function createRockets(o: { ground: (x: number, z: number) => number; light?: boolean }) {
   const group = new THREE.Group();
   const puffs = billboards(N_PUFF, PUFF_FRAG, THREE.NormalBlending);
   const glows = billboards(N_GLOW, GLOW_FRAG, THREE.AdditiveBlending);
+  const softs = billboards(N_SOFT, SOFT_FRAG, THREE.NormalBlending);
   puffs.mesh.renderOrder = 5;
+  softs.mesh.renderOrder = 5;
   glows.mesh.renderOrder = 6;
-  group.add(puffs.mesh, glows.mesh);
+  group.add(puffs.mesh, softs.mesh, glows.mesh);
 
   // rocket bodies: white with a red nose and dark fins, 3 m long, nose toward -z
   const body = new THREE.CylinderGeometry(0.16, 0.16, 2.4, 8).rotateX(Math.PI / 2);
@@ -107,6 +122,7 @@ export function createRockets(o: { ground: (x: number, z: number) => number; lig
 
   const parts: Particle[] = [];
   const glowParts: Particle[] = [];
+  const softParts: Particle[] = [];
   const rockets: Rocket[] = [];
   let cool = 0;
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1), Z = new THREE.Vector3(0, 0, -1), d = new THREE.Vector3();
@@ -188,6 +204,7 @@ export function createRockets(o: { ground: (x: number, z: number) => number; lig
     bodies.instanceMatrix.needsUpdate = noses.instanceMatrix.needsUpdate = true;
     step(parts, puffs, dt);
     step(glowParts, glows, dt);
+    step(softParts, softs, dt);
   }
 
   const col = new THREE.Color();
@@ -218,14 +235,31 @@ export function createRockets(o: { ground: (x: number, z: number) => number; lig
     if (n) { b.pos.needsUpdate = b.col.needsUpdate = true; b.pos.addUpdateRange(0, n * 4); b.col.addUpdateRange(0, n * 4); }
   }
 
+  /** a contrail behind a wingtip from `a` to `b` (last frame's and this frame's tip): white puffs that linger */
+  const contrailLeft = new Map<number, number>();
+  function contrail(key: number, a: THREE.Vector3, b: THREE.Vector3): void {
+    const len = a.distanceTo(b);
+    let left = (contrailLeft.get(key) ?? 0) + len;
+    for (; left > CONTRAIL_STEP; left -= CONTRAIL_STEP) {
+      const t = 1 - (left - CONTRAIL_STEP) / Math.max(len, 1e-3);
+      emit(softParts, N_SOFT, { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t, life: 2.6 + rnd() * 0.6, s0: 0.7, s1: 3.2, c0: CONTRAIL, c1: CONTRAIL, a: 0.55 });
+    }
+    contrailLeft.set(key, left);
+  }
+  /** a blast anywhere (the F-15 itself crashing after an ejection); `big` adds two more around it */
+  function blast(x: number, y: number, z: number, big = false): void {
+    explode(x, y, z);
+    if (big) { explode(x + 8, y, z - 6); explode(x - 7, y + 2, z + 7); }
+  }
+
   function clear(): void {
-    rockets.length = parts.length = glowParts.length = 0;
+    rockets.length = parts.length = glowParts.length = softParts.length = 0;
     bodies.count = noses.count = 0;
-    puffs.geo.instanceCount = glows.geo.instanceCount = 0;
+    puffs.geo.instanceCount = glows.geo.instanceCount = softs.geo.instanceCount = 0;
     cool = 0;
   }
 
-  return { group, noInk: [puffs.mesh, glows.mesh], update, clear, events, get busy(): boolean { return rockets.length + parts.length + glowParts.length > 0; } };
+  return { group, noInk: [puffs.mesh, softs.mesh, glows.mesh], update, clear, events, contrail, blast, get busy(): boolean { return rockets.length + parts.length + glowParts.length + softParts.length > 0; } };
 }
 
 export type Rockets = ReturnType<typeof createRockets>;
