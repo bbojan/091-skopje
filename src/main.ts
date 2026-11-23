@@ -1285,6 +1285,7 @@ function updateRockets(dt: number, flight: Flight): void {
   rockets.update(dt, flight.shooting, { pos: flight.pos, fwd: rFwd, right: rRight, speed: flight.speed });
   if (flight.jet) {
     if (flight.takeSonic()) sound.play('sonic'); // Mach 1 or 2 crossed: the boom (the vapour cone is the flight's)
+    if (flight.takeKick()) sound.play('kick'); // turbo pressed: the afterburner's roar
     // contrails from the wingtips when flying high above the ground
     const high = flight.hud.alt > 600;
     flight.plane.updateMatrixWorld();

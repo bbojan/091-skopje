@@ -576,6 +576,9 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
   const MACH = 343; // m/s
   let sonicT = 0;   // seconds since the vapour cone showed (it fades over ~0.9 s)
   let sonicNew = false; // crossed Mach 1 or 2 this frame: the boom (main.ts plays it)
+  let kickT = 0;        // the afterburner's kick: 1 when turbo is pressed, fading over ~1 s
+  let kickNew = false;  // turbo pressed this frame: the roar (main.ts plays it)
+  let wasBoosting = false;
 
   const keymap: Record<string, FlightKey> = {
     ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
@@ -742,6 +745,9 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     cessna.prop.rotation.z += spin;
     tractor.prop.rotation.z += spin;
     if (jet) {
+      // turbo pressed: the afterburner kicks in (longer flames, a shake, a roar)
+      if (boosting && !wasBoosting) { kickT = 1; kickNew = true; }
+      kickT = Math.max(0, kickT - dt * 1.1);
       // Mach 1 or Mach 2 crossed while speeding up: the vapour cone, the boom
       const before = st.speed - dSpeed;
       if ((before < MACH && st.speed >= MACH) || (before < 2 * MACH && st.speed >= 2 * MACH)) { sonicT = 0.001; sonicNew = true; }
@@ -755,7 +761,12 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
       }
       // afterburner: grows in with turbo, flickers a little
       const burn = THREE.MathUtils.clamp((st.speed - craft.speed) / (craft.boost - craft.speed), 0, 1);
-      eagle.flames.forEach((f, i) => { f.visible = burn > 0.05; f.scale.set(1, 1, burn * (0.85 + 0.15 * Math.sin(clockT * 40 + i))); });
+      const kick = kickT * kickT; // eases out
+      eagle.flames.forEach((f, i) => {
+        f.visible = burn > 0.05 || kick > 0.02;
+        const w = 1 + 0.35 * kick;
+        f.scale.set(w, w, Math.max(burn, kick) * (1 + 1.1 * kick) * (0.85 + 0.15 * Math.sin(clockT * 40 + i)));
+      });
       clockT += dt;
     }
     // after a roll or a loop with the Air Tractor: the stunt banner for a few seconds, the camera
@@ -795,6 +806,15 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     look.copy(st.pos).addScaledVector(looping ? flat : fwd, (jet ? 45 : 30) + 100 * Math.max(1, h / 75) * ahead - 12 * below - 72 * st.side); // the banner: toward its middle
     look.y -= 0.42 * h * ahead + (0.5 * h + 16) * below;
     camera.lookAt(look);
+    // the afterburner's kick shakes the camera for a moment
+    if (jet && kickT > 0) {
+      const a = 0.9 * kickT * kickT;
+      camera.position.x += (Math.random() - 0.5) * a;
+      camera.position.y += (Math.random() - 0.5) * a;
+      camera.position.z += (Math.random() - 0.5) * a;
+      camera.rotateZ((Math.random() - 0.5) * 0.012 * kickT);
+    }
+    wasBoosting = boosting;
   }
 
   return {
@@ -828,6 +848,8 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     flames: [...eagle.flames, eagle.cone] as THREE.Mesh[],
     /** true once after Mach 1 or Mach 2 was crossed speeding up (the boom); reading it clears it */
     takeSonic(): boolean { const v = sonicNew; sonicNew = false; return v; },
+    /** true once after turbo was pressed in the F-15 (the afterburner's roar); reading it clears it */
+    takeKick(): boolean { const v = kickNew; kickNew = false; return v; },
     /** 1 just after the boom, fading to 0 (the exhaust shimmer flares) */
     get sonic(): number { return sonicT > 0 ? Math.max(0, 1 - sonicT / 0.9) : 0; },
     /** a fire is close ahead, or water is in the air: the camera pulls back to show where it lands */

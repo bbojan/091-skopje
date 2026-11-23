@@ -24,7 +24,7 @@ export interface SoundScene {
   /** how close the view is to the ground: 0 the overview … 1 street level */
   near: number;
 }
-export type SoundEvent = 'ding' | 'pop' | 'finish' | 'alarm' | 'out' | 'bark' | 'launch' | 'boom' | 'sonic';
+export type SoundEvent = 'ding' | 'pop' | 'finish' | 'alarm' | 'out' | 'bark' | 'launch' | 'boom' | 'sonic' | 'kick';
 
 export function createSound() {
   let ctx: AudioContext | null = null;
@@ -155,6 +155,7 @@ export function createSound() {
     else if (ev === 'alarm') { for (const k of [0, 0.42]) { tone(740, t + k, 0.15, 'square', 0.09); tone(988, t + k + 0.18, 0.15, 'square', 0.09); } }
     else if (ev === 'launch') { burst(t, 0.45, 0.32 * vol, 2400, 'highpass'); tone(900, t, 0.35, 'sawtooth', 0.05 * vol, 260); }
     else if (ev === 'boom') { burst(t, 1.3, 0.75 * vol, 160, 'lowpass'); burst(t, 0.25, 0.4 * vol, 900); tone(70, t, 0.9, 'sine', 0.5 * vol, 32); }
+    else if (ev === 'kick') { burst(t, 1.4, 0.7, 90, 'lowpass'); burst(t, 0.9, 0.35, 380); tone(48, t, 1.1, 'sawtooth', 0.12, 75); }
     else if (ev === 'sonic') { for (const k of [0, 0.13]) { burst(t + k, 0.9, 0.85, 110, 'lowpass'); burst(t + k, 0.12, 0.5, 700); tone(55, t + k, 0.6, 'sine', 0.45, 30); } }
     else if (ev === 'bark') { for (const k of [0, 0.27]) { tone(380, t + k, 0.11, 'sawtooth', 0.32, 170); burst(t + k, 0.09, 0.3, 900); } }
   }
