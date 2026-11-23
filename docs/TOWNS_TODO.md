@@ -58,8 +58,95 @@ widened Скопје was given up for the Матка map. The order to build the
 [ADDING_A_CITY.md](ADDING_A_CITY.md).
 
 Coordinates are approximate, written from memory while planning: **check every point in OSM before
-drawing a bbox**. Badge codes are the owner's own choice, not always the phone code (Bitola 097,
-Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
+drawing a bbox**. Badge codes: the plan is in "Badge codes" below (old codes first); the owner confirms
+each one when its map is started.
+
+## Badge codes: old codes first (plan of 2026-11-23, to be checked by the owner)
+
+The badge shows a phone code. **Old codes first:** the town that owned an old (Yugoslav-era) code gets it; every
+other map in that old group gets its town's new code (today's area code); where that new code is also taken, the
+maps share it or the owner picks a third number. 43 maps do not fit into 11 old and 12 new codes, so some codes
+are shared. Within a shared group the owner may give a free number to the map whose town never had a code of
+its own.
+
+**Old codes** (the owner's list, 2026-11-23): 091 Скопје · 0901 Куманово, Кратово, Крива Паланка · 092 Штип,
+Пробиштип, Свети Николе · 0902 Струмица, Валандово, Радовиш · 0903 Кочани, Виница, Делчево, Берово, Пехчево ·
+093 Т. Велес, Кавадарци, Гевгелија, Дојран · 094 Тетово, Гостивар, Маврово · 095 Кичево, Македонски Брод,
+Неготино (?) · 096 Охрид, Струга, Ресен, Дебар · 097 Битола, Демир Хисар · 098 Прилеп, Крушево.
+
+**New codes** ([Wikipedia](https://mk.wikipedia.org/wiki/Повикувачки_броеви_во_Македонија)): 02 Скопје,
+Арачиново, Чучер-Сандево, Илинден, Петровец, Сопиште, Студеничани, Зелениково · 031 Куманово, Липково, Кратово,
+Крива Паланка, Ранковце, Старо Нагоричане · 032 Штип, Пробиштип, Радовиш, Свети Николе, Конче, Карбинци, Лозово ·
+033 Кочани, Делчево, Берово, Пехчево, Виница, Македонска Каменица, Зрновци, Чешиново-Облешево · 034 Струмица,
+Валандово, Василево, Босилово, Ново Село, Дојран, Богданци, Гевгелија · 042 Гостивар, Врапчиште, Маврово и
+Ростуше · 043 Велес, Кавадарци, Неготино, Демир Капија, Чашка, Градско, Росоман · 044 Тетово, Јегуновце,
+Боговиње, Брвеница, Теарце, Желино · 045 Кичево, Македонски Брод, Пласница · 046 Охрид, Струга, Вевчани, Дебрца,
+Дебар, Центар Жупа · 047 Битола, Ресен, Новаци, Могила, Демир Хисар · 048 Прилеп, Крушево, Кривогаштани, Долнени.
+
+| Map | Old | New | Badge (plan) | Note |
+|---|---|---|---|---|
+| Скопје ✓ | **091** | 02 | **091** | as now |
+| Матка ✓ | 091 | 02 | 02 | as now; shares 02 |
+| Батинци ✓ | 091 | 02 | 02 | as now; shares 02 |
+| Скопска Црна Гора | 091 | 02 | 02 | shares 02 |
+| Куманово | **0901** | 031 | **0901** | |
+| Кратово | 0901 | 031 | 031 | shares 031 |
+| Крива Паланка | 0901 | 031 | 031 | shares 031 |
+| Штип | **092** | 032 | **092** | |
+| Пробиштип | 092 | 032 | 032 | shares 032 |
+| Свети Николе | 092 | 032 | 032 | shares 032 |
+| Радовиш | 0902 | 032 | 032 | shares 032 |
+| Струмица | **0902** | 034 | **0902** | |
+| Валандово | 0902 | 034 | 034 | shares 034 |
+| Ново Село | 0902 | 034 | 034 | shares 034 |
+| Кочани | **0903** | 033 | **0903** | |
+| Каменица ✓ | 0903 | 033 | 033 | as now; shares 033 |
+| Берово, Пехчево ✓ | 0903 | 033 | 033 | as now; shares 033 |
+| Виница | 0903 | 033 | 033 | shares 033 |
+| Делчево | 0903 | 033 | 033 | shares 033 |
+| Велес | **093** | 043 | **093** | |
+| Кавадарци ✓ | 093 | 043 | 043 | as now; shares 043 |
+| Демир Капија | 093 / 095 | 043 | 043 | shares 043; not on the old list |
+| Стоби | 093 | 043 | 043 | shares 043 |
+| Неготино | 095 (?) | 043 | 043 | shares 043 |
+| Дојран ✓ | 093 | 034 | 034 | as now; shares 034 |
+| Гевгелија, Богданци | 093 | 034 | 034 | shares 034 |
+| Тетово, Гостивар ✓ | **094** | 044 / 042 | **094** | as now |
+| Ростуше, Дебар, Маврово ✓ | 094 / 096 | 042 / 046 | 042 | as now |
+| Кораб | 094 / 096 | 042 / 046 | 042 or 046 | shares either |
+| Кичево | **095** | 045 | **095** | |
+| Брод ✓ | 095 | 045 | 045 | as now |
+| Охрид, Струга ✓ | **096** | 046 | **096** | as now |
+| Ресен ✓ | 096 | 047 | 047 | as now; shares 047 |
+| Вевчани ✓ | 096 | 046 | 046 | as now; shares 046 |
+| Дебарца | 096 | 046 | 046 | shares 046 |
+| Голо Брдо | 096 | 046 | 046 | shares 046 |
+| Битола ✓ | **097** | 047 | **097** | as now |
+| Демир Хисар | 097 | 047 | 047 | shares 047 |
+| Новаци | 097 | 047 | 047 | shares 047 |
+| Меџитлија | 097 | 047 | 047 | shares 047 |
+| Прилеп ✓ | **098** | 048 | **098** | **change** (now 048) |
+| Крушево ✓ | 098 | 048 | **048** | **change** (now 098) |
+| Мариово | 098 | 048 | 048 | shares 048 |
+
+**Shared codes:** 02 Матка, Батинци, Скопска Црна Гора · 031 Кратово, Крива Паланка · 032 Пробиштип, Свети Николе,
+Радовиш · 033 Каменица, Берово, Виница, Делчево · 034 Дојран, Гевгелија, Валандово, Ново Село · 043 Кавадарци,
+Неготино, Демир Капија, Стоби · 046 Вевчани, Дебарца, Голо Брдо (and Кораб with 046) · 047 Ресен, Демир Хисар,
+Новаци, Меџитлија · 048 Крушево, Мариово. Codes of one map only: the 11 old codes, 042 Ростуше (unless Кораб
+takes it), 045 Брод.
+
+**Maps on more than one code** (the badge follows the main town): Ростуше, Дебар, Маврово (Маврово 094 / Дебар
+096; new: 042 / 046 with Центар Жупа); Мариово (mostly Прилеп's 098, parts of Кавадарци's 093 and Битола's 097);
+Демир Хисар (097, Кривогаштани 098 / 048 since the Пелагонија split); Кичево (095, the strip round Крушево 098);
+Стоби (093, Долнени's north edge 098); Демир Капија (093 / 095); Кораб (094 / 096). New codes only: Велес (043
+with Петровец, Илинден, Зелениково 02 and Лозово 032), Куманово (031 with Арачиново 02), Штип (032 with
+Чешиново-Облешево 033), Струмица (034 with Конче 032), Матка (02 with Желино 044 at its west edge).
+Municipality seats placed on the maps from memory: check them.
+
+**To check (owner):** Неготино 095 (next to Кавадарци's 093 it looks like a typo); the maps the old list does not
+name were given their area town's code (Каменица, Батинци, Матка, Скопска Црна Гора, Ново Село, Демир Капија,
+Стоби, Новаци, Меџитлија, Дебарца, Голо Брдо, Мариово, Богданци); Прилеп 098 / Крушево 048 is a change on the
+site (badge, `code` in `CITIES`, help, favicon if it shows the code).
 
 ## Build order: quick wins first
 
