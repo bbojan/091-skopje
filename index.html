@@ -312,6 +312,13 @@
         .title { left: 12px; top: 12px; padding: 6px 10px 7px; }
         .title .h1 { font-size: 22px; gap: 8px; }
         .title .code { font-size: 14px; padding: 5px 6px 4px; }
+        /* long names: the badge stops before the ? and the LinkedIn button; a map's other towns go on a smaller
+           second line, and a long single name ("Македонска Каменица") wraps. The menu keeps its own width. */
+        .title { max-width: calc(100vw - 150px); box-sizing: border-box; }
+        .title .city-name { white-space: normal; line-height: 1.05; min-width: 0; }
+        .title .city-name .more { display: block; font-size: 14px; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+        .title .city-name .sep { display: none; }
+        .city-menu { width: max-content; max-width: calc(100vw - 24px); }
         .me { right: 12px; top: 12px; height: 40px; box-sizing: border-box; }
         .me-main { padding: 0 8px 0 11px; }
         .me-more { padding: 0 10px 0 7px; }

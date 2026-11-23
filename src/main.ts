@@ -383,7 +383,18 @@ function applyCityChrome(spec: CitySpec): void {
   for (const id of CITY_IDS) document.body.classList.toggle(`city-${id}`, id === spec.id);
   document.body.classList.toggle('no-buses', !spec.buses); // hides 🚌 (the drivable ЈСП bus)
   document.querySelectorAll<HTMLElement>('.city-code').forEach((el) => (el.textContent = spec.code));
-  document.querySelectorAll<HTMLElement>('.city-name').forEach((el) => (el.textContent = spec.name));
+  // a map with more towns ("Ростуше, Дебар, Маврово"): the first town, then the others in their own span, which
+  // narrow screens put on a smaller second line (CSS: .city-name .more)
+  const [first, ...more] = spec.name.split(', ');
+  document.querySelectorAll<HTMLElement>('.city-name').forEach((el) => {
+    el.textContent = first;
+    if (!more.length) return;
+    const m = document.createElement('span');
+    m.className = 'more';
+    m.innerHTML = '<span class="sep">, </span>';
+    m.append(more.join(', '));
+    el.append(m);
+  });
   cityMenu.querySelectorAll<HTMLElement>('[data-city-id]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.cityId === spec.id)));
   weatherBtn.textContent = weatherLabel();
 }
