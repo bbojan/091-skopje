@@ -465,7 +465,7 @@ function showCountryGround(on: boolean, x = 0, z = 0): void {
       loadCountry(() => {}).then((data) => {
         cgroundLoading = false;
         if (world !== w) return; // another map by now: built on the next frame
-        cground = createCountryGround({ data, meta: w.meta, exag: w.spec.terrainExag, mobile: MOBILE });
+        cground = createCountryGround({ data, meta: w.meta, exag: w.spec.terrainExag, base: w.terrain.min, mobile: MOBILE });
         if (!radar && !MOBILE) radar = createRadar({ data, canvas: $<HTMLCanvasElement>('radar') }); // desktop only: no room on phones
         cgroundFor = w;
         scene.add(cground.mesh);
@@ -2085,6 +2085,6 @@ renderer.setAnimationLoop(() => {
   ink.render(scene, camera, live);
 });
 
-window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, switchCity, get cityId() { return city.id; }, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; }, get country() { return country; }, get loadTimes() { return loadTimes; }, get loadMax() { return loadMax; }, get loadUnload() { return loadUnload; }, get radar() { return radar; } };
+window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, switchCity, get cityId() { return city.id; }, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; }, get country() { return country; }, get loadTimes() { return loadTimes; }, get loadMax() { return loadMax; }, get loadUnload() { return loadUnload; }, get radar() { return radar; }, get cground() { return cground; } };
 
 loadCity(city).catch(loadFailed);

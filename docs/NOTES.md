@@ -682,7 +682,10 @@ Built in phases on branch `f15`, one commit each (the plan: [IDEAS.md](IDEAS.md)
 - While the F-15 flies, the country view's 100 m grid (`loadCountry()`, downloaded once per visit) is drawn round
   the map: one grid mesh of 161² vertices (phones 121²) following the plane, ~100 m cells near it and ~0.7 km at
   45 km, rebuilt on the CPU when the plane has moved 600 m (2.4 ms for the normals; a few ms in all). Inside the map
-  it sinks below the map's terrain; heights × the map's `terrainExag`. The flight's floor and the rockets use it
+  it sinks 25–425 m below the map's terrain. Heights: (country height − the map's `min`) × the map's `terrainExag`,
+  because a map's terrain stores its heights above its own lowest point (`min` in `*-terrain.json`). Without the
+  `min` the country stood that much too high (Охрид 686 m, Ростуше 486 m) and covered the map; fixed after v26.0.0.
+  Measured on all 16 maps: the two agree on average (0 m), at worst ±22 m (the 100 m grid against 10–20 m cells). The flight's floor and the rockets use it
   beyond the edges (`groundAt()` in `main.ts`). The camera sees 70 km. While it shows, the ink's normal pass is not
   clipped to the map (otherwise its depth is missing and everything beyond the map is hazed).
 

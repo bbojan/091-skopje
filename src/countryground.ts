@@ -3,7 +3,8 @@
 // per visit). One grid mesh follows the plane, fine near it (about one 100 m cell) and coarse far out
 // (~0.7 km at 45 km), rebuilt on the CPU when the plane has moved on: real geometry, so the ink's normal pass
 // sees it. Inside the current map the grid sinks below the map's own terrain. Heights use the map's own
-// exaggeration (`terrainExag`), so they meet the map's terrain at its edges.
+// exaggeration (`terrainExag`) above the map's own lowest point (`base`: a map's terrain stores its heights above
+// that, `min` in its terrain JSON), so they meet the map's terrain at its edges.
 import * as THREE from 'three';
 import { coverPalette, COVER_WATER, type CountryData } from './country.ts';
 import { PAL } from './city.ts';
@@ -12,8 +13,8 @@ import type { MapMeta } from './types.ts';
 const R = 45000;   // reach from the plane, m
 const SNAP = 600;  // the grid moves in steps this long (no swimming of the near vertices between steps)
 
-export function createCountryGround(o: { data: CountryData; meta: MapMeta; exag: number; mobile: boolean }) {
-  const { data, meta, exag } = o;
+export function createCountryGround(o: { data: CountryData; meta: MapMeta; exag: number; base: number; mobile: boolean }) {
+  const { data, meta, exag, base } = o;
   const cm = data.meta, { nx, nz, cell } = cm;
   const hw = meta.w / 2, hh = meta.h / 2;
   // city scene metres → country grid cells: both are linear in lon / lat
@@ -26,7 +27,7 @@ export function createCountryGround(o: { data: CountryData; meta: MapMeta; exag:
     const gx = ax * x + bx, gz = az * z + bz;
     const i = Math.floor(gx), j = Math.floor(gz), fx = gx - i, fz = gz - j;
     const h = (hAt(i, j) * (1 - fx) + hAt(i + 1, j) * fx) * (1 - fz) + (hAt(i, j + 1) * (1 - fx) + hAt(i + 1, j + 1) * fx) * fz;
-    return h * exag;
+    return (h - base) * exag;
   }
   function coverAt(x: number, z: number): number {
     const i = Math.round(ax * x + bx), j = Math.round(az * z + bz);
@@ -74,11 +75,12 @@ export function createCountryGround(o: { data: CountryData; meta: MapMeta; exag:
         let y = height(X, Z);
         // inside the map: below its own terrain (deeper further in), so only the map's ground shows
         const inside = Math.min(hw - Math.abs(X), hh - Math.abs(Z));
-        if (inside > 0) y -= 4 + Math.min(400, inside);
+        // (25 m at least: the 100 m grid stands up to ~22 m above the map's own 10–20 m terrain here and there)
+        if (inside > 0) y -= 25 + Math.min(400, inside);
         pos[v * 3] = X; pos[v * 3 + 1] = y; pos[v * 3 + 2] = Z;
         const cv = coverAt(X, Z);
         tmp.copy(COL[cv] ?? COL[0]);
-        if (cv !== COVER_WATER) tmp.lerp(snowy, THREE.MathUtils.smoothstep(y / exag, 1900, 2500) * 0.7); // bare high peaks
+        if (cv !== COVER_WATER) tmp.lerp(snowy, THREE.MathUtils.smoothstep(y / exag + base, 1900, 2500) * 0.7); // bare high peaks
         if (!insideAt(X, Z)) tmp.lerp(paper, 0.45); // beyond the border: pale, as in the country view
         col[v * 3] = tmp.r; col[v * 3 + 1] = tmp.g; col[v * 3 + 2] = tmp.b;
       }
