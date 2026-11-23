@@ -162,6 +162,13 @@
       /* loading card */
       #loader { position: fixed; inset: 0; display: grid; place-items: center; background: var(--paper); z-index: 20; transition: opacity 0.6s ease; }
       #loader[hidden] { display: none; }
+      /* the F-15 flying into the next map: a short fade into the haze, the loader small (name and bar only) */
+      #hop-fade { position: fixed; inset: 0; background: var(--paper); opacity: 0; pointer-events: none; z-index: 19; transition: opacity 0.25s ease; }
+      #hop-fade.on { opacity: 1; }
+      body.hop #loader { background: transparent; place-items: start center; }
+      body.hop #loader .foot { display: none; }
+      body.hop #loader .card { margin-top: 18vh; transform: scale(0.75); }
+      #fly-next[hidden] { display: none; }
       #loader.done { opacity: 0; pointer-events: none; }
       #loader .card { width: min(360px, calc(100vw - 48px)); text-align: center; }
       #loader .foot { position: absolute; left: 16px; right: 16px; bottom: 14px; margin: 0; text-align: center; font-size: 12.5px; line-height: 1.5; opacity: 0.8; }
@@ -765,6 +772,7 @@
       <div class="fly-top">
         <span class="chip" id="fly-stats">0 км/ч · 0 м</span>
         <span class="chip warn" id="fly-warn"></span>
+        <span class="chip jet-only" id="fly-next" hidden></span>
         <button class="chip fly-only" id="fly-race">🏁 Трка</button>
         <button class="chip fly-only" id="fly-fire">🔥 Пожар</button>
         <button class="chip fly-only" id="fly-jet">✈ F-15</button>
@@ -823,6 +831,7 @@
       <div class="fly-keys chip" data-i18n="walk.keys">WASD одење · глушец гледање · E акција · Shift трчање · V поглед · C лик · Esc излез</div>
     </div>
     <div id="status"></div>
+    <div id="hop-fade" aria-hidden="true"></div>
     <div id="loader" role="status" aria-live="polite">
       <div class="card">
         <span class="h1"><span class="code city-code">091</span><span class="city-name">Скопје</span></span>

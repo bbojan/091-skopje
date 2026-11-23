@@ -22,6 +22,7 @@ import { LANGS, lang, t, applyI18n, setLang, onLangChange, type Key } from './i1
 import { CITIES, CITY_IDS, cityFromUrl, urlForCity, type CityId, type CitySpec } from './cities.ts';
 import { loadCountry, createCountryView, type CountryView } from './country.ts';
 import { createCountryGround, type CountryGround } from './countryground.ts';
+import { createPrefetch, lookAhead, mapAt, inMap, type Ahead, type MapFiles } from './hop.ts';
 import type { CityData, MapMeta, TerrainMeta, Vec3 } from './types.ts';
 
 /** From package.json, injected by vite.config.ts. */
@@ -243,6 +244,92 @@ const nextFrame = () => new Promise<void>((resolve) => {
 
 let loading = false;
 let shadowReady = false;
+// ---------------- the F-15 from map to map (src/hop.ts): the maps ahead downloaded while it flies, switched at the edge
+const prefetch = createPrefetch(MOBILE ? { maxMaps: 1, budget: 20e6 } : { maxMaps: 3, budget: 80e6 });
+/** the next map's downloaded files, for loadCity */
+let hopFiles: { id: CityId; files: MapFiles } | null = null;
+/** the flight carried into the next map: where (lat / lon), heading, height above the ground, speed, pitch, keys held */
+let hopCarry: { lat: number; lon: number; yaw: number; agl: number; speed: number; pitch: number; input: Record<string, number | boolean> } | null = null;
+/** the map straight ahead (the HUD chip), refreshed once a second */
+let hopAhead: Ahead | null = null;
+let hopCheck = 0;
+const BUILD_S = MOBILE ? 15 : 5; // a guess at building a map, s (docs/NOTES.md "Load times per step": 1–5 s desktop)
+let hopping = false;
+const latLonOf = (w: World, x: number, z: number): [number, number] => [w.meta.lat0 - z / w.meta.ky, w.meta.lon0 + x / w.meta.kx];
+/** the F-15 may fly on over the edge here: a finished map lies ahead, or under it already */
+function edgeOpen(x: number, z: number): boolean {
+  const w = world;
+  if (!w || !w.flight.jet) return false;
+  const [lat, lon] = latLonOf(w, x, z);
+  if (!inMap(w.spec.id, lat, lon)) return !!mapAt(lat, lon, w.spec.id);
+  return !!hopAhead;
+}
+/** once a second while the F-15 flies: the maps ahead (desktop: also ±45°), downloaded in time */
+function hopPredict(w: World): void {
+  const f = w.flight, p = f.pos;
+  const yaws = MOBILE ? [f.yaw] : [f.yaw, f.yaw - Math.PI / 4, f.yaw + Math.PI / 4];
+  const found: Ahead[] = [];
+  yaws.forEach((y, k) => {
+    const a = lookAhead(w.meta, w.spec.id, p.x, p.z, y, Math.max(f.speed, 300));
+    if (k === 0) hopAhead = a;
+    if (a && !found.some((b) => b.id === a.id)) found.push(a);
+  });
+  // a download starts when the edge is closer than twice (download + build)
+  const want = found.filter((a) => a.eta < 2 * (prefetch.seconds(a.id) + BUILD_S)).sort((a, b) => a.eta - b.eta).map((a) => a.id);
+  prefetch.want(want);
+}
+/** the HUD chip: the map ahead, its download, ✓ when ready; hidden when nothing lies ahead */
+function hopChip(): void {
+  const el = $('fly-next');
+  const a = hopAhead;
+  el.hidden = !a;
+  if (!a) return;
+  const pr = prefetch.progress(a.id), n = Math.round(pr * 4);
+  setText('fly-next', `→ ${CITIES[a.id].name.split(', ')[0]} ${pr >= 1 ? '✓' : '▓'.repeat(n) + '░'.repeat(4 - n)}`);
+}
+/** the plane has left this map for a finished one whose files are here: switch, the flight carried over */
+async function hop(id: CityId): Promise<void> {
+  const w = world;
+  if (!w || hopping || loading) return;
+  const files = prefetch.take(id);
+  if (!files) return;
+  hopping = true;
+  const f = w.flight, p = f.pos;
+  const [lat, lon] = latLonOf(w, p.x, p.z);
+  hopCarry = { lat, lon, yaw: f.yaw, agl: p.y - groundAt(p.x, p.z), speed: f.speed, pitch: f.pitch, input: { ...f.input } };
+  hopFiles = { id, files };
+  const fade = $('hop-fade');
+  fade.classList.add('on');
+  document.body.classList.add('hop'); // the loader shows small (name and bar only)
+  await new Promise((r) => setTimeout(r, 260));
+  try {
+    await switchCity(id);
+  } finally {
+    const c = hopCarry;
+    hopCarry = null;
+    hopping = false;
+    if (c && world && world.spec.id === id) {
+      const m = world.meta, x = (c.lon - m.lon0) * m.kx, z = -(c.lat - m.lat0) * m.ky;
+      startFlight(new THREE.Vector3(x, 0, z), c.yaw, c);
+      Object.assign(world.flight.input, c.input); // keys still held (turbo, a turn)
+    }
+    fade.classList.remove('on');
+    document.body.classList.remove('hop');
+  }
+}
+/** every frame while the F-15 flies: predict, and switch once the plane is over the next map */
+function hopUpdate(dt: number, w: World): void {
+  hopCheck -= dt;
+  if (hopCheck <= 0) { hopCheck = 1; hopPredict(w); }
+  prefetch.pause(perf.avg > 1 / 45); // slow frames: no new download meanwhile
+  hopChip();
+  const p = w.flight.pos, [lat, lon] = latLonOf(w, p.x, p.z);
+  if (inMap(w.spec.id, lat, lon)) return;
+  const id = mapAt(lat, lon, w.spec.id);
+  if (!id) return;
+  if (prefetch.has(id)) void hop(id);
+  else if (prefetch.progress(id) === 0) prefetch.want([id]); // over the next map already: get it now
+}
 /** the map's clipping planes (the ink's normal pass is clipped to them, except while the country's ground shows) */
 let mapPlanes: THREE.Plane[] = [];
 // ---------------- the country's 100 m terrain around the map, while the F-15 flies (src/countryground.ts)
@@ -293,14 +380,26 @@ async function loadCity(spec: CitySpec): Promise<void> {
   let tMark = t0;
   const mark = (k: string) => { const n = performance.now(); loadTimes[k] = Math.round((loadTimes[k] ?? 0) + n - tMark); tMark = n; };
   showProgress('download', 0);
-  const terrainP = Promise.all([
-    fetch(spec.files.terrainJson).then((r) => r.json() as Promise<TerrainMeta>),
-    fetch(spec.files.terrainBin).then((r) => r.arrayBuffer()),
-  ]);
-  const data = await fetchJSON<CityData>(spec.files.scene, (f) => showProgress('download', f * 0.95), spec.sceneBytes, () => mark('download'));
-  mark('parse');
-  const [tm, tb] = await terrainP;
-  mark('download');
+  // the F-15 flying in: the files were downloaded while it flew (src/hop.ts)
+  const pre = hopFiles?.id === spec.id ? hopFiles.files : null;
+  hopFiles = null;
+  let data: CityData, tm: TerrainMeta, tb: ArrayBuffer;
+  if (pre) {
+    const dec = new TextDecoder();
+    data = JSON.parse(dec.decode(pre.scene)) as CityData;
+    tm = JSON.parse(dec.decode(pre.terrainJson)) as TerrainMeta;
+    tb = pre.terrainBin;
+    mark('parse');
+  } else {
+    const terrainP = Promise.all([
+      fetch(spec.files.terrainJson).then((r) => r.json() as Promise<TerrainMeta>),
+      fetch(spec.files.terrainBin).then((r) => r.arrayBuffer()),
+    ]);
+    data = await fetchJSON<CityData>(spec.files.scene, (f) => showProgress('download', f * 0.95), spec.sceneBytes, () => mark('download'));
+    mark('parse');
+    [tm, tb] = await terrainP;
+    mark('download');
+  }
   showProgress('download', 1);
   await nextFrame();
   mark('yield');
@@ -1064,16 +1163,17 @@ function heatHaze(flight: Flight): void {
 }
 const planeVel = new THREE.Vector3();
 let waterPct = -1;
-function startFlight(at?: THREE.Vector3, yaw?: number): void {
+function startFlight(at?: THREE.Vector3, yaw?: number, carry?: { agl: number; speed: number; pitch: number }): void {
   if (!world || world.flight.active || world.drive.active || world.walk.active) return;
   controls.enabled = false;
   world.flight.setFire(fireOn); // before the start: the camera begins at the right height
   world.flight.setJet(jetOn && !race && !fireOn);
+  world.flight.setEdgeOpen(edgeOpen);
   if (race) startRace();
   else {
     // free flight from where the camera is, facing the way it looked (or from the parked plane)
     const az = Math.atan2(camera.position.x - controls.target.x, camera.position.z - controls.target.z);
-    world.flight.start(at ?? controls.target, yaw ?? -az);
+    world.flight.start(at ?? controls.target, yaw ?? -az, carry);
   }
   document.body.classList.add('flying');
   resetSticks();
@@ -1093,6 +1193,9 @@ function stopFlight(): void {
   flight.setFire(false); // the plane parked on the Square is the usual one
   flight.setJet(false);
   showCountryGround(false);
+  hopAhead = null;
+  $('fly-next').hidden = true;
+  if (!hopping) { prefetch.want([]); if (MOBILE) prefetch.clear(); } // landed: no more downloads (a phone frees the files)
   ink.outMat.uniforms.heatOn.value = 0;
   world.rockets.clear();
   soundFx.fire = 0; soundFx.dropping = soundFx.scooping = false;
@@ -1693,7 +1796,8 @@ renderer.setAnimationLoop(() => {
       }
     }
     $('fly-boost').classList.toggle('on', h.boost);
-    if (flight.jet) heatHaze(flight);
+    if (flight.jet) { heatHaze(flight); hopUpdate(dt, world); }
+    else if (hopAhead) { hopAhead = null; prefetch.want([]); $('fly-next').hidden = true; }
     updateRockets(dt, flight);
     traffic.update(dt, camera, controls.target);
     clouds.update(dt);

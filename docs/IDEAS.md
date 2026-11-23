@@ -80,7 +80,8 @@ Order of work:
 2. **The F-15** in free flight. ✅ built (2026-11-23, branch `f15`), with rockets and an exhaust shimmer (asked by the owner while it was built).
 3. **A 100 m terrain of the whole country**: the data exists (built for the country view, `public/country.png`, kept in
    memory once loaded); what is left is drawing it around the map while the F-15 flies (below). ✅ built (`src/countryground.ts`).
-4. **Map-to-map flight** for the F-15: prediction, background downloads, indicator, the switch at the edge.
+4. **Map-to-map flight** for the F-15: prediction, background downloads, indicator, the switch at the edge. ✅ built (`src/hop.ts`;
+   the switch rebuilds the whole map behind a fade and the small loader: Скопје → Батинци ~1.5 s on desktop).
 5. **The fast switch:** low detail first, entry chunks first, shaders kept, far-ground textures later.
 6. Only if the measurements ask for it: preparing part of the next map ahead (desktop), or a binary data format. With both switched off, Скопје stays pixel-identical.
 
