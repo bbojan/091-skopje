@@ -267,7 +267,7 @@ function radarState(id: CityId): MapState {
   if (id === hopTarget) return 'loading'; // being built
   if (id === city.id && !hopTarget) return 'current';
   if (prefetch.has(id)) return 'ready';
-  if (prefetch.loading(id)) return 'loading';
+  if (prefetch.loading(id)) return 'downloading'; // ahead of the plane: quieter than entering
   return 'open';
 }
 function drawRadar(f: Flight, meta: MapMeta): void {
@@ -1991,6 +1991,6 @@ renderer.setAnimationLoop(() => {
   ink.render(scene, camera, live);
 });
 
-window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, switchCity, get cityId() { return city.id; }, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; }, get country() { return country; }, get loadTimes() { return loadTimes; }, get loadMax() { return loadMax; }, get loadUnload() { return loadUnload; } };
+window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, switchCity, get cityId() { return city.id; }, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; }, get country() { return country; }, get loadTimes() { return loadTimes; }, get loadMax() { return loadMax; }, get loadUnload() { return loadUnload; }, get radar() { return radar; } };
 
 loadCity(city).catch(loadFailed);

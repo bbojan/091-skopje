@@ -2,13 +2,15 @@
 // turning with the plane (its heading up). Built from the country view's grid (land cover, relief) and the towns
 // plan's zones: the finished maps in their colours, everything the F-15 cannot fly into yet darker and greyed
 // (planned maps, beyond the border), the map being downloaded or built pulsing, the ones ready in green, the
-// current one outlined; the names say how far a download is (%) or that it is ready (✓). A 2D canvas in the flight HUD, drawn every frame while the F-15 flies.
+// current one outlined. A map downloading ahead (before the plane gets there) is quieter: a pale line traces its
+// edge as far as the download has come, and its name says ↓ and the %; entering a map (being built) pulses orange
+// with its %; ready ones say ✓. A 2D canvas in the flight HUD, drawn every frame while the F-15 flies.
 import { coverPalette, type CountryData } from './country.ts';
 import { ZONES } from './zones.ts';
 import type { CityId } from './cities.ts';
 
 /** what the radar shows about a finished map */
-export type MapState = 'current' | 'ready' | 'loading' | 'open';
+export type MapState = 'current' | 'ready' | 'loading' | 'downloading' | 'open';
 
 const SPAN = 54000;   // metres across the radar
 const BASE = 0.5;     // the prerendered country image at half the grid's resolution (200 m per pixel)
@@ -67,6 +69,15 @@ export function createRadar(o: { data: CountryData; canvas: HTMLCanvasElement })
   veil.width = veil.height = 0;
 
   const finished = ZONES.filter((z) => z.city);
+  // each outline's length (base pixels), for the download's progress traced along it
+  const perimeter = finished.map((z) => {
+    let L = 0;
+    for (let i = 0; i < z.ring.length; i++) {
+      const [ax, ay] = z.ring[i], [bx, by] = z.ring[(i + 1) % z.ring.length];
+      L += Math.hypot(gx(bx) - gx(ax), gy(by) - gy(ay));
+    }
+    return L;
+  });
   const ctx = o.canvas.getContext('2d')!;
   let size = 0;
 
@@ -102,6 +113,14 @@ export function createRadar(o: { data: CountryData; canvas: HTMLCanvasElement })
         ctx.setLineDash([7 / k, 5 / k]); ctx.lineDashOffset = (-time * 30) / k;
         ctx.strokeStyle = `rgb(${YELLOW})`; ctx.lineWidth = 3.5 / k; ctx.stroke();
         ctx.setLineDash([]);
+      } else if (s === 'downloading') {
+        // quiet: a faint dashed edge, and a pale line running round it as far as the download has come
+        ctx.setLineDash([3 / k, 4 / k]);
+        ctx.strokeStyle = 'rgba(250, 246, 238, 0.45)'; ctx.lineWidth = 1.5 / k; ctx.stroke();
+        const L = perimeter[i], p = Math.max(0.02, progressOf(z.city!));
+        ctx.setLineDash([L * p, L]); ctx.lineDashOffset = 0;
+        ctx.strokeStyle = 'rgba(250, 246, 238, 0.95)'; ctx.lineWidth = 2.5 / k; ctx.stroke();
+        ctx.setLineDash([]);
       } else if (s === 'ready') { ctx.fillStyle = `rgba(${GREEN}, 0.38)`; ctx.fill(); ctx.strokeStyle = `rgb(${GREEN})`; ctx.lineWidth = 3 / k; ctx.stroke(); }
       else if (s === 'current') { ctx.strokeStyle = INDIGO; ctx.lineWidth = 4 / k; ctx.stroke(); }
       else { ctx.strokeStyle = 'rgba(31, 42, 68, 0.6)'; ctx.lineWidth = 1.4 / k; ctx.stroke(); }
@@ -112,14 +131,14 @@ export function createRadar(o: { data: CountryData; canvas: HTMLCanvasElement })
     ctx.textBaseline = 'middle';
     finished.forEach((z, i) => {
       const s = states[i], x = gx(z.at[1]), y = gy(z.at[0]);
-      const text = s === 'loading' ? `${z.name} ${Math.round(progressOf(z.city!) * 100)}%` : s === 'ready' ? `${z.name} ✓` : z.name;
+      const text = s === 'loading' ? `${z.name} ${Math.round(progressOf(z.city!) * 100)}%` : s === 'downloading' ? `${z.name} ↓${Math.round(progressOf(z.city!) * 100)}%` : s === 'ready' ? `${z.name} ✓` : z.name;
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(yaw);
       ctx.lineWidth = 3.5 * dpr / k;
       ctx.strokeStyle = s === 'loading' ? 'rgba(60, 26, 0, 0.9)' : 'rgba(244, 237, 224, 0.9)';
       ctx.strokeText(text, 0, 0);
-      ctx.fillStyle = s === 'loading' ? `rgb(${YELLOW})` : s === 'ready' ? '#1d5a2a' : INDIGO;
+      ctx.fillStyle = s === 'loading' ? `rgb(${YELLOW})` : s === 'ready' ? '#1d5a2a' : s === 'downloading' ? '#4a5470' : INDIGO;
       ctx.fillText(text, 0, 0);
       ctx.restore();
     });
