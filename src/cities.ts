@@ -367,7 +367,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Охридската пастрмка го спаси градот!', roll: 'Ајде на Канео!' },
   },
   rostuse: {
-    id: 'rostuse', name: 'Ростуше', code: '042', icon: './favicon-rostuse.svg',
+    id: 'rostuse', name: 'Ростуше, Дебар, Маврово', code: '042', icon: './favicon-rostuse.svg',
     files: { scene: './rostuse.json', terrainBin: './rostuse-terrain.bin', terrainJson: './rostuse-terrain.json' },
     sceneBytes: 5e6,
     views: {
