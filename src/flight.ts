@@ -8,6 +8,12 @@ import type { Bounds, Vec3 } from './types.ts';
 const SPEED = 55, BOOST = 140; // m/s
 const TURN = 0.75; // rad/s at full input
 const MIN_AGL = 38, MAX_ALT = 1500;
+/** what differs between the usual plane and the F-15 (1325 km/h, 2650 with turbo) */
+interface Craft { speed: number; boost: number; turn: number; floor: number; maxAlt: number; start: number; back: number; up: number }
+const PROP: Craft = { speed: SPEED, boost: BOOST, turn: TURN, floor: MIN_AGL, maxAlt: MAX_ALT, start: 230, back: 62, up: 20 };
+const JET: Craft = { speed: 368, boost: 736, turn: 0.75, floor: 150, maxAlt: 5200, start: 420, back: 58, up: 14 };
+/** Ctrl held: this share of the top speed (both planes) */
+const SLOW = 0.25;
 const ROLL_TIME = 1.1, LOOP_RATE = 1.7; // stunts: seconds for one roll, rad/s around a loop (3.7 s; 32 m radius at cruise)
 const AIM_UP = 90, AIM_BACK = 88; // how much higher and further back the chase camera goes to show where the water lands
 const SWING = 0.62;     // how far the camera swings to the side to read the banner, rad
@@ -266,6 +272,96 @@ function buildAirTractor(): { group: THREE.Group; prop: THREE.Group } {
   return { group: g, prop };
 }
 
+// ---------------------------------------------------------------- F-15 Eagle
+// Grey twin-engine fighter at true size (19.4 m long, 13 m span), nose toward -z: radome, bubble canopy,
+// boxy intakes beside the cockpit, a swept wing, stabilators and two fins canted outward, two nozzles
+// with afterburner flames that show with turbo. The flames are see-through: `flames` goes to the ink's skipNormal.
+const F15_GREY = '#9aa5b1', F15_DARK = '#7d8996';
+/** a flat plate drawn from the top, (x, z) points, `thick` metres high, its underside at y */
+function plate(pts: [number, number][], thick: number, y: number): THREE.ExtrudeGeometry {
+  const sh = new THREE.Shape();
+  pts.forEach(([x, z], i) => (i ? sh.lineTo(x, z) : sh.moveTo(x, z)));
+  const g = new THREE.ExtrudeGeometry(sh, { depth: thick, bevelEnabled: false });
+  g.rotateX(Math.PI / 2); // shape y → world z, extrusion → world -y
+  g.translate(0, y + thick, 0);
+  return g;
+}
+function buildF15(): { group: THREE.Group; flames: THREE.Mesh[] } {
+  const g = new THREE.Group();
+  const M = (color: THREE.ColorRepresentation) => new THREE.MeshLambertMaterial({ color });
+  const grey = M(F15_GREY), dark = M(F15_DARK), glass = M('#2c3a4d'), black = M('#3a3836'), steel = M('#c9c4c0');
+  const add = (mesh: THREE.Mesh) => { mesh.castShadow = true; g.add(mesh); return mesh; };
+  const lathe = (pts: [number, number][], mat: THREE.Material, sx: number, sy: number, at: Vec3, seg = 16) => {
+    const geo = new THREE.LatheGeometry(pts.map(([r, t]) => new THREE.Vector2(r, t)), seg);
+    geo.rotateX(Math.PI / 2);
+    geo.scale(sx, sy, 1);
+    geo.translate(...at);
+    return add(new THREE.Mesh(geo, mat));
+  };
+  // nose and forward fuselage (radius, distance from the tip)
+  lathe([[0.001, 0], [0.22, 0.6], [0.45, 1.6], [0.66, 2.8], [0.8, 3.9], [0.88, 5.0], [0.9, 5.6]], grey, 1, 0.95, [0, 0.35, -9.7]);
+  lathe([[0.001, 0], [0.12, 0.25], [0.15, 0.5]], dark, 1, 1, [0, 0.35, -9.75]); // dark radome tip
+  // bubble canopy over the cockpit
+  const canopy = new THREE.Mesh(new THREE.SphereGeometry(1, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), glass);
+  canopy.scale.set(0.55, 0.62, 2.1);
+  canopy.position.set(0, 0.95, -5.3);
+  add(canopy);
+  // centre body and the spine behind the canopy
+  add(new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.25, 10.6), grey)).position.set(0, 0.25, 1.2);
+  add(new THREE.Mesh(sideExtrude(outline([[-4.2, 0.8], [-3.2, 1.25], [3.5, 1.05], [6.4, 0.85], [6.4, 0.7], [-4.2, 0.7]]), 1.2), grey));
+  // intakes either side, dark mouths
+  for (const side of [-1, 1]) {
+    add(new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.45, 6.6), grey)).position.set(side * 1.55, 0.05, -1.0);
+    add(new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.3, 0.1), black)).position.set(side * 1.55, 0.05, -4.32);
+    // engines and nozzles
+    lathe([[0.62, 0], [0.64, 4.5], [0.58, 7.2]], dark, 1, 1, [side * 0.72, 0.1, 2.2]);
+    lathe([[0.58, 0], [0.54, 0.5], [0.5, 0.95], [0.001, 0.95]], black, 1, 1, [side * 0.72, 0.1, 9.4], 14);
+  }
+  // wing: swept leading edge, cropped tip; Macedonian sun roundels on top
+  const roundel = new THREE.MeshLambertMaterial({ map: roundelTex() });
+  for (const side of [-1, 1]) {
+    const wing: [number, number][] = [[1.2, -2.6], [6.55, 3.6], [6.55, 5.3], [1.2, 6.6]];
+    add(new THREE.Mesh(plate(wing.map(([x, z]) => [side * x, z]), 0.24, 0.0), grey));
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(0.62, 28), roundel);
+    disc.rotation.x = -Math.PI / 2;
+    disc.position.set(side * 4.3, 0.25, 3.8);
+    g.add(disc);
+    // stabilator
+    add(new THREE.Mesh(plate([[1.1, 6.9], [4.0, 9.1], [4.0, 10.3], [1.1, 10.0]].map(([x, z]) => [side * x, z] as [number, number]), 0.14, 0.05), grey));
+    // fin, canted outward, with the flag
+    const fin = new THREE.Group();
+    fin.add(new THREE.Mesh(sideExtrude(outline([[5.6, 0], [9.7, 0], [10.1, 3.35], [8.7, 3.4]]), 0.16), grey));
+    fin.children[0].castShadow = true;
+    const flagM = new THREE.MeshLambertMaterial({ map: flagTex() });
+    const f = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.5), flagM);
+    f.position.set(side * 0.09, 2.0, 8.9);
+    f.rotation.y = side * Math.PI / 2;
+    fin.add(f);
+    fin.position.set(side * 1.45, 0.75, 0);
+    fin.rotation.z = -side * 0.27;
+    g.add(fin);
+  }
+  // pitot and a small dark belly fairing
+  add(between([0, 0.35, -9.7], [0, 0.35, -10.6], 0.03, steel));
+  add(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.35, 4.5), dark)).position.set(0, -0.45, 0.5);
+  // afterburner flames: two cones of glow behind the nozzles, shown with turbo
+  const flameMat = new THREE.MeshBasicMaterial({ color: '#ffb347', transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false });
+  const coreMat = new THREE.MeshBasicMaterial({ color: '#fff1c4', transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
+  const flames: THREE.Mesh[] = [];
+  for (const side of [-1, 1]) {
+    for (const [r, len, mat] of [[0.56, 6.5, flameMat], [0.34, 3.4, coreMat]] as const) {
+      const geo = new THREE.ConeGeometry(r, len, 14, 1, true).translate(0, len / 2, 0).rotateX(Math.PI / 2); // base at the nozzle, tip toward +z
+      const m = new THREE.Mesh(geo, mat);
+      m.position.set(side * 0.72, 0.1, 10.0);
+      m.visible = false;
+      g.add(m);
+      flames.push(m);
+    }
+  }
+  g.scale.setScalar(1.25);
+  return { group: g, flames };
+}
+
 // ---------------------------------------------------------------- tow banner
 // A linen banner towed behind the plane after a fire is out. The cloth is a chain of
 // points dragged behind the tail and moved on the CPU: a shader-only wave would not be
@@ -430,19 +526,23 @@ export interface FlightOptions {
   banner: BannerTexts;
 }
 
-type FlightKey = 'left' | 'right' | 'up' | 'down' | 'boost' | 'drop';
+type FlightKey = 'left' | 'right' | 'up' | 'down' | 'boost' | 'drop' | 'slow' | 'shoot';
 
 export function createFlight({ scene, camera, terrain, bounds, signal, banner: bannerTexts }: FlightOptions) {
   // one group holds both aircraft; the firefighting mode shows the Air Tractor
   const plane = new THREE.Group();
-  const cessna = buildPlane(), tractor = buildAirTractor();
-  tractor.group.visible = false;
-  plane.add(cessna.group, tractor.group);
+  const cessna = buildPlane(), tractor = buildAirTractor(), eagle = buildF15();
+  tractor.group.visible = eagle.group.visible = false;
+  plane.add(cessna.group, tractor.group, eagle.group);
   plane.visible = false;
   scene.add(plane);
   const banner = createBanner(scene, bannerTexts);
 
   let invertY = false;
+  let jet = false;           // the F-15 (free flight only)
+  let craft = PROP;
+  /** set by main.ts while the F-15 may fly on into a neighbouring map: no turning back at that edge */
+  let edgeOpen: ((x: number, z: number) => boolean) | null = null;
   let fire = false;          // firefighting: the Air Tractor, Space drops water
   let aim = false;           // a fire is near: show where the water would land
   let falling = false;       // water is in the air: show where it lands
@@ -450,20 +550,22 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
   let floorWant = MIN_AGL;   // lowest height above the ground (lower over water, to scoop)
   const st = { active: false, pos: new THREE.Vector3(), yaw: 0, pitch: 0, bank: 0, speed: SPEED, warn: '' as FlightWarning, floor: MIN_AGL, aim: 0, drop: 0, side: 0, swing: 0 };
   // digital input (keys, on-screen buttons): 0/1
-  const input = { left: 0, right: 0, up: 0, down: 0, boost: false, drop: false };
-  const pad = { turn: 0, climb: 0, boost: false, drop: false }; // analog gamepad input, set each frame
+  const input = { left: 0, right: 0, up: 0, down: 0, boost: false, drop: false, slow: false, shoot: false };
+  const pad = { turn: 0, climb: 0, boost: false, drop: false, slow: false, shoot: false }; // analog gamepad input, set each frame
   const camPos = new THREE.Vector3(), look = new THREE.Vector3();
   const fwd = new THREE.Vector3(), tail = new THREE.Vector3();
-  const idle = { left: 0, right: 0, up: 0, down: 0, boost: false, drop: false };
+  const idle = { left: 0, right: 0, up: 0, down: 0, boost: false, drop: false, slow: false, shoot: false };
   // a stunt in progress: a roll (dir 1 right, -1 left) or a loop (dir 1 pulling up and over
   // backwards, -1 nose down and under); `a` is how far through it is, 0…1
   let stunt: { kind: 'roll' | 'loop'; dir: number; a: number } | null = null;
   let lowT = 0; // seconds the "too low" warning stays after a refused loop
+  let clockT = 0;
 
   const keymap: Record<string, FlightKey> = {
     ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
     ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down',
     ShiftLeft: 'boost', ShiftRight: 'boost', Space: 'boost',
+    ControlLeft: 'slow', ControlRight: 'slow',
   };
   // stunt keys: Q / E roll left / right; F loops up and over, R nose down and under, the
   // other way round with "invert up/down" on (the same rule as the map's F / R tilt)
@@ -481,7 +583,8 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     if (!k) return;
     e.preventDefault();
     if (fire && e.code === 'Space') k = 'drop';
-    if (k === 'boost' || k === 'drop') input[k] = down;
+    if (jet && e.code === 'Space') k = 'shoot'; // the F-15: rockets
+    if (k === 'boost' || k === 'drop' || k === 'slow' || k === 'shoot') input[k] = down;
     else input[k] = down ? 1 : 0;
   };
   addEventListener('keydown', onKey(true), { signal });
@@ -504,17 +607,17 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     st.yaw = yaw;
     st.pitch = 0;
     st.bank = 0;
-    st.speed = SPEED;
-    st.floor = floorWant = MIN_AGL;
+    st.speed = craft.speed;
+    st.floor = floorWant = craft.floor;
     st.side = st.swing = st.aim = st.drop = 0;
     stunt = null;
     lowT = 0;
     aim = falling = false;
     banner.hide();
-    st.pos.set(target.x, Math.max(target.y, terrain.at(target.x, target.z)) + 230, target.z);
+    st.pos.set(target.x, Math.max(target.y, terrain.at(target.x, target.z)) + craft.start, target.z);
     plane.visible = true;
     forward(fwd);
-    camPos.copy(st.pos).addScaledVector(fwd, -70).add(new THREE.Vector3(0, 22, 0));
+    camPos.copy(st.pos).addScaledVector(fwd, -craft.back - 8).add(new THREE.Vector3(0, craft.up + 2, 0));
     camera.position.copy(camPos);
     update(0);
   }
@@ -524,6 +627,20 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     stunt = null;
     banner.hide();
     Object.assign(input, idle);
+  }
+
+  function setJet(on: boolean): void {
+    if (on && fire) return; // one plane at a time: firefighting keeps the Air Tractor
+    jet = on;
+    craft = on ? JET : PROP;
+    eagle.group.visible = on;
+    cessna.group.visible = !on && !fire;
+    if (!on) for (const f of eagle.flames) f.visible = false;
+    floorWant = craft.floor;
+    if (st.active) {
+      // switched while flying: up to the new floor, and the speed eases toward the new cruise
+      st.floor = Math.max(st.floor, Math.min(floorWant, st.pos.y - terrain.at(st.pos.x, st.pos.z)));
+    }
   }
 
   function forward(v: THREE.Vector3): THREE.Vector3 {
@@ -536,13 +653,16 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     dt = Math.min(dt, 0.05);
     let turn = THREE.MathUtils.clamp(input.right - input.left + pad.turn, -1, 1);
     let climb = THREE.MathUtils.clamp(input.up - input.down + pad.climb, -1, 1) * (invertY ? -1 : 1);
-    const boosting = input.boost || pad.boost;
+    const slow = input.slow || pad.slow;
+    const boosting = (input.boost || pad.boost) && !slow;
     st.warn = '';
 
-    // keep inside the map: steer back toward the centre near the edges
+    // keep inside the map: steer back toward the centre near the edges. The F-15 needs room for its
+    // wide turn (~1 km radius with turbo), and flies on where main.ts has a neighbouring map ready.
     const { hw, hh } = bounds;
-    const m = 450;
-    if (Math.abs(st.pos.x) > hw - m || Math.abs(st.pos.z) > hh - m) {
+    const m = jet ? Math.min(1.5 * st.speed / craft.turn, 0.35 * Math.min(hw, hh)) : 450;
+    const open = !!edgeOpen && edgeOpen(st.pos.x, st.pos.z);
+    if (!open && (Math.abs(st.pos.x) > hw - m || Math.abs(st.pos.z) > hh - m)) {
       const want = Math.atan2(-st.pos.x, st.pos.z);
       let diff = want - st.yaw;
       diff = Math.atan2(Math.sin(diff), Math.cos(diff));
@@ -552,11 +672,17 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
 
     // ground / ceiling; the floor comes down quickly over water and rises gently after it
     st.floor += THREE.MathUtils.clamp(floorWant - st.floor, -40 * dt, 14 * dt);
-    const floor = st.floor, soft = 8 + 17 * THREE.MathUtils.clamp((floor - 8) / (MIN_AGL - 8), 0, 1); // 25 m at the normal floor
-    const ground = terrain.at(st.pos.x, st.pos.z);
+    const floor = st.floor, soft = jet ? 120 : 8 + 17 * THREE.MathUtils.clamp((floor - 8) / (MIN_AGL - 8), 0, 1); // 25 m at the normal floor
+    let ground = terrain.at(st.pos.x, st.pos.z);
+    // the F-15 looks ahead over the terrain: at its speed a ridge 1 s away is 0.4–0.7 km off
+    if (jet) {
+      const sx = Math.sin(st.yaw), sz = -Math.cos(st.yaw);
+      for (const s of [0.5, 1, 1.8]) ground = Math.max(ground, terrain.at(st.pos.x + sx * st.speed * s, st.pos.z + sz * st.speed * s) - 25 * s);
+    }
+    const under = terrain.at(st.pos.x, st.pos.z);
     const agl = st.pos.y - ground;
-    if (agl < floor + soft) { climb = Math.max(climb, (floor + soft - agl) / soft); if (agl < floor + 5) st.warn = 'low'; }
-    if (st.pos.y > MAX_ALT) climb = Math.min(climb, -0.5);
+    if (agl < floor + soft) { climb = Math.max(climb, (floor + soft - agl) / soft); if (st.pos.y - under < floor + 5) st.warn = 'low'; }
+    if (st.pos.y > craft.maxAlt) climb = Math.min(climb, -0.5);
     if (lowT > 0) { lowT -= dt; st.warn = st.warn || 'low'; }
 
     // stunts: a loop flies a full circle in the vertical plane (no steering meanwhile),
@@ -575,22 +701,30 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     }
     if (looping) turn = 0;
 
-    st.speed += ((boosting ? BOOST : SPEED) - st.speed) * (1 - Math.exp(-dt * 1.6));
-    st.yaw += turn * TURN * dt * (0.8 + 0.2 * (SPEED / st.speed));
+    st.speed += ((slow ? craft.boost * SLOW : boosting ? craft.boost : craft.speed) - st.speed) * (1 - Math.exp(-dt * 1.6));
+    st.yaw += turn * craft.turn * dt * (0.8 + 0.2 * Math.min(2, craft.speed / st.speed));
     st.bank += (-turn * 0.65 - st.bank) * (1 - Math.exp(-dt * 3));
     if (!looping) st.pitch += (climb * 0.32 - st.pitch) * (1 - Math.exp(-dt * 2.2));
 
     forward(fwd);
     st.pos.addScaledVector(fwd, st.speed * dt);
-    st.pos.x = THREE.MathUtils.clamp(st.pos.x, -hw + 60, hw - 60);
-    st.pos.z = THREE.MathUtils.clamp(st.pos.z, -hh + 60, hh - 60);
-    st.pos.y = Math.max(st.pos.y, ground + floor);
+    if (!open) {
+      st.pos.x = THREE.MathUtils.clamp(st.pos.x, -hw + 60, hw - 60);
+      st.pos.z = THREE.MathUtils.clamp(st.pos.z, -hh + 60, hh - 60);
+    }
+    st.pos.y = Math.max(st.pos.y, terrain.at(st.pos.x, st.pos.z) + floor * (jet ? 0.5 : 1));
 
     plane.position.copy(st.pos);
     plane.rotation.set(st.pitch, -st.yaw, st.bank + roll, 'YXZ');
     const spin = dt * (boosting ? 60 : 35);
     cessna.prop.rotation.z += spin;
     tractor.prop.rotation.z += spin;
+    if (jet) {
+      // afterburner: grows in with turbo, flickers a little
+      const burn = THREE.MathUtils.clamp((st.speed - craft.speed) / (craft.boost - craft.speed), 0, 1);
+      eagle.flames.forEach((f, i) => { f.visible = burn > 0.05; f.scale.set(1, 1, burn * (0.85 + 0.15 * Math.sin(clockT * 40 + i))); });
+      clockT += dt;
+    }
     // after a roll or a loop with the Air Tractor: the stunt banner for a few seconds, the camera
     // out to the side as for a fire put out (which keeps its own banner if that one is flying)
     if (stunted && !(banner.visible && banner.text === 0)) {
@@ -615,17 +749,17 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     // from higher up the camera has to stand further off to keep the plane and that place in one picture
     const ahead = st.aim * (1 - st.drop), below = st.aim * st.drop, h = THREE.MathUtils.clamp(st.pos.y - aimY, 20, 190);
     const far = st.aim * Math.max(1, h / 75);
-    const back = 62 + (st.speed - SPEED) * 0.12 + 46 * st.side + AIM_BACK * far;
+    const back = craft.back + Math.max(0, st.speed - craft.speed) * (jet ? 0.03 : 0.12) + 46 * st.side + AIM_BACK * far;
     const camYaw = st.yaw - SWING * st.side;
     const flat = new THREE.Vector3(Math.sin(camYaw), 0, -Math.cos(camYaw));
     // in a loop the camera stays level behind the plane and watches it go round
     const camPitch = looping ? Math.sin(st.pitch) * 0.32 : st.pitch;
-    const want = st.pos.clone().addScaledVector(flat, -back).add(new THREE.Vector3(0, 20 + AIM_UP * far - camPitch * 30, 0));
+    const want = st.pos.clone().addScaledVector(flat, -back).add(new THREE.Vector3(0, craft.up + AIM_UP * far - camPitch * 30, 0));
     const camGround = terrain.at(want.x, want.z) + 12;
     if (want.y < camGround) want.y = camGround;
     camPos.lerp(want, dt === 0 ? 1 : 1 - Math.exp(-dt * 3.5));
     camera.position.copy(camPos);
-    look.copy(st.pos).addScaledVector(looping ? flat : fwd, 30 + 100 * Math.max(1, h / 75) * ahead - 12 * below - 72 * st.side); // the banner: toward its middle
+    look.copy(st.pos).addScaledVector(looping ? flat : fwd, (jet ? 45 : 30) + 100 * Math.max(1, h / 75) * ahead - 12 * below - 72 * st.side); // the banner: toward its middle
     look.y -= 0.42 * h * ahead + (0.5 * h + 16) * below;
     camera.lookAt(look);
   }
@@ -644,14 +778,22 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     /** firefighting mode: the Air Tractor, and Space drops water */
     setFire(on: boolean): void {
       fire = on;
-      cessna.group.visible = !on;
+      if (on) setJet(false);
+      cessna.group.visible = !on && !jet;
       tractor.group.visible = on;
-      if (!on) { input.drop = false; aim = falling = false; floorWant = MIN_AGL; banner.hide(); }
+      if (!on) { input.drop = false; aim = falling = false; floorWant = craft.floor; banner.hide(); }
     },
+    /** the F-15 (free flight only): its own speeds, floor and camera; while flying it changes on the spot */
+    setJet,
+    get jet(): boolean { return jet; },
+    /** the plane flies on over an edge where this says yes (a neighbouring map is ready); null: always turn back */
+    setEdgeOpen(fn: ((x: number, z: number) => boolean) | null): void { edgeOpen = fn; },
+    /** the F-15's afterburner flames, see-through (for the ink's skipNormal) */
+    flames: eagle.flames,
     /** a fire is close ahead, or water is in the air: the camera pulls back to show where it lands */
     setAim(near: boolean, waterFalling: boolean, y: number): void { aim = near; falling = waterFalling; aimY = y; },
     /** lowest height above the ground; null = the normal one (lower lets the plane skim water) */
-    setFloor(agl: number | null): void { floorWant = agl ?? MIN_AGL; },
+    setFloor(agl: number | null): void { floorWant = agl ?? craft.floor; },
     /** tow the banner for a while; the camera swings out at first so it can be read */
     celebrate(): void {
       banner.show(9, tail.copy(st.pos).addScaledVector(fwd, -7.5), fwd);
@@ -661,11 +803,16 @@ export function createFlight({ scene, camera, terrain, bounds, signal, banner: b
     /** velocity, m/s */
     velocity(out: THREE.Vector3): THREE.Vector3 { return forward(out).multiplyScalar(st.speed); },
     get dropping(): boolean { return fire && (input.drop || pad.drop); },
+    /** the F-15's trigger is held (rockets) */
+    get shooting(): boolean { return jet && (input.shoot || pad.shoot); },
+    get speed(): number { return st.speed; },
+    /** the plane's nose direction and its right wing, for the rockets */
+    axes(fwdOut: THREE.Vector3, rightOut: THREE.Vector3): void { forward(fwdOut); rightOut.set(Math.cos(st.yaw), 0, Math.sin(st.yaw)); },
     get active(): boolean { return st.active; },
     get yaw(): number { return st.yaw; },
     get pos(): THREE.Vector3 { return st.pos; },
     get hud() {
-      return { kmh: Math.round(st.speed * 3.6), alt: Math.round(st.pos.y - terrain.at(st.pos.x, st.pos.z)), warn: st.warn, boost: input.boost || pad.boost };
+      return { kmh: Math.round(st.speed * 3.6), alt: Math.round(st.pos.y - terrain.at(st.pos.x, st.pos.z)), warn: st.warn, boost: (input.boost || pad.boost) && !(input.slow || pad.slow), slow: input.slow || pad.slow };
     },
   };
 }

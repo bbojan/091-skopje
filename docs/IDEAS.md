@@ -76,8 +76,8 @@ Map-to-map flight is for the F-15 only (decided by the owner on 2026-11-23, afte
 Order of work:
 
 1. **Measure** every finished map: download, and time per preparing step (parse / steps / assemble / bake /
-   shaders), memory, on desktop and a phone.
-2. **The F-15** in free flight.
+   shaders), memory, on desktop and a phone. ✅ desktop (table in [NOTES.md](NOTES.md), "Load times per step"); phone not yet.
+2. **The F-15** in free flight. ✅ built (2026-11-23, branch `f15`), with rockets and an exhaust shimmer (asked by the owner while it was built).
 3. **A 100 m terrain of the whole country**: the data exists (built for the country view, `public/country.png`, kept in
    memory once loaded); what is left is drawing it around the map while the F-15 flies (below).
 4. **Map-to-map flight** for the F-15: prediction, background downloads, indicator, the switch at the edge.

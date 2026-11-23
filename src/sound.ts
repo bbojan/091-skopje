@@ -1,5 +1,5 @@
 // Optional sound, off by default. Everything is synthesised with Web Audio (no audio
-// files): engine and propeller, wind, rain, the water drop, fire, birds by day and
+// files): engine and propeller, the F-15's jet, wind, rain, the water drop, fire, birds by day and
 // crickets at night, plus short signals (ring, balloon, new fire, fire out, bark).
 // The audio graph is only built the first time sound is switched on, from a click or a
 // key press (browsers do not start audio without one).
@@ -11,6 +11,10 @@ export interface SoundScene {
   speed: number;
   /** the firefighting plane: a turbine whine on top of the propeller */
   tractor: boolean;
+  /** the F-15: a jet's roar and whine instead of the propeller */
+  jet: boolean;
+  /** the F-15's afterburner, 0…1 */
+  burner: number;
   dropping: boolean;
   scooping: boolean;
   /** the nearest fire: 0 far away … 1 right at it */
@@ -20,7 +24,7 @@ export interface SoundScene {
   /** how close the view is to the ground: 0 the overview … 1 street level */
   near: number;
 }
-export type SoundEvent = 'ding' | 'pop' | 'finish' | 'alarm' | 'out' | 'bark';
+export type SoundEvent = 'ding' | 'pop' | 'finish' | 'alarm' | 'out' | 'bark' | 'launch' | 'boom';
 
 export function createSound() {
   let ctx: AudioContext | null = null;
@@ -102,6 +106,10 @@ export function createSound() {
       rain: band('highpass', 2200),
       water: band('bandpass', 1100, 0.6),
       roar: band('lowpass', 320),
+      // the F-15: a broad roar, a deep rumble, and the afterburner's crackling hiss
+      jetRoar: band('bandpass', 900, 0.4),
+      jetRumble: band('lowpass', 140),
+      burn: band('highpass', 1600, 0.5),
     };
   }
 
@@ -136,8 +144,8 @@ export function createSound() {
     notes.forEach((f, i) => tone(f, t + i * step, i === notes.length - 1 ? last : step * 1.6, 'triangle', vol));
   };
 
-  /** a short signal */
-  function play(ev: SoundEvent): void {
+  /** a short signal; `vol` scales the rockets' sounds (a far blast is quieter) */
+  function play(ev: SoundEvent, vol = 1): void {
     if (!on || !ctx || !g) return;
     const t = ctx.currentTime + 0.02;
     if (ev === 'ding') { tone(880, t, 0.5, 'sine', 0.34); tone(1320, t + 0.07, 0.6, 'sine', 0.25); }
@@ -145,6 +153,8 @@ export function createSound() {
     else if (ev === 'finish') melody([523, 659, 784, 1047, 1319], 0.13, 0.32, 0.9);
     else if (ev === 'out') melody([659, 784, 988, 1319], 0.11, 0.32, 0.7);
     else if (ev === 'alarm') { for (const k of [0, 0.42]) { tone(740, t + k, 0.15, 'square', 0.09); tone(988, t + k + 0.18, 0.15, 'square', 0.09); } }
+    else if (ev === 'launch') { burst(t, 0.45, 0.32 * vol, 2400, 'highpass'); tone(900, t, 0.35, 'sawtooth', 0.05 * vol, 260); }
+    else if (ev === 'boom') { burst(t, 1.3, 0.75 * vol, 160, 'lowpass'); burst(t, 0.25, 0.4 * vol, 900); tone(70, t, 0.9, 'sine', 0.5 * vol, 32); }
     else if (ev === 'bark') { for (const k of [0, 0.27]) { tone(380, t + k, 0.11, 'sawtooth', 0.32, 170); burst(t + k, 0.09, 0.3, 900); } }
   }
 
@@ -154,19 +164,24 @@ export function createSound() {
     const t = ctx.currentTime;
     const set = (p: AudioParam, v: number, tc = 0.12) => p.setTargetAtTime(v, t, tc);
     const fly = s.mode === 'fly', drive = s.mode === 'drive', outside = s.mode === 'map' || s.mode === 'walk';
+    const jet = fly && s.jet, prop = fly && !s.jet;
     // engine
     const f = fly ? (s.tractor ? 84 + 30 * s.speed : 62 + 26 * s.speed) : 38 + 55 * s.speed;
     set(g.eng1.frequency, f);
     set(g.eng2.frequency, f / 2);
     set(g.engLp.frequency, fly ? 420 + 500 * s.speed : 260 + 300 * s.speed);
-    set(g.engGain.gain, fly ? (s.tractor ? 0.085 : 0.105) : drive ? 0.06 + 0.06 * s.speed : 0);
+    set(g.engGain.gain, prop ? (s.tractor ? 0.085 : 0.105) : drive ? 0.06 + 0.06 * s.speed : 0);
     set(g.beat.frequency, fly ? (s.tractor ? 16 : 11) + 9 * s.speed : 6 + 10 * s.speed);
     set(g.beatDepth.gain, fly ? (s.tractor ? 0.22 : 0.34) : 0.1);
-    set(g.whine.frequency, 1150 + 500 * s.speed);
-    set(g.whineGain.gain, fly && s.tractor ? 0.016 : 0);
+    set(g.whine.frequency, jet ? 2300 + 900 * s.speed : 1150 + 500 * s.speed);
+    set(g.whineGain.gain, (prop && s.tractor) || jet ? (jet ? 0.012 : 0.016) : 0);
+    set(g.jetRoar.filter.frequency, 700 + 600 * s.speed);
+    set(g.jetRoar.gain.gain, jet ? 0.16 + 0.08 * s.speed : 0, 0.25);
+    set(g.jetRumble.gain.gain, jet ? 0.22 + 0.12 * s.burner : 0, 0.25);
+    set(g.burn.gain.gain, jet ? 0.07 * s.burner : 0, 0.2);
     // air rushing past, rain
     set(g.wind.filter.frequency, 500 + 700 * s.speed);
-    set(g.wind.gain.gain, fly ? 0.05 + 0.09 * s.speed : 0);
+    set(g.wind.gain.gain, prop ? 0.05 + 0.09 * s.speed : jet ? 0.04 + 0.05 * s.speed : 0);
     set(g.rain.gain.gain, 0.15 * s.rain * (outside ? 0.4 + 0.6 * s.near : 1));
     // water: the drop hisses, scooping rumbles lower
     set(g.water.filter.frequency, s.scooping && !s.dropping ? 650 : 1100);

@@ -228,13 +228,26 @@ export class InkRenderer {
     });
 
     this.outMat = new THREE.ShaderMaterial({
-      uniforms: { tSrc: { value: null } },
+      // heat: the F-15's exhaust shimmer, a ripple along a screen-space segment from the nozzles (heatA)
+      // back along the plume (heatB); off (heatOn 0) the picture is untouched
+      uniforms: { tSrc: { value: null }, heatOn: { value: 0 }, heatT: { value: 0 }, heatR: { value: 0.02 }, heatA: { value: new THREE.Vector2() }, heatB: { value: new THREE.Vector2() }, heatAsp: { value: 1 } },
       vertexShader: FS_VERT,
       fragmentShader: /* glsl */ `
         uniform sampler2D tSrc; varying vec2 vUv;
+        uniform float heatOn, heatT, heatR, heatAsp; uniform vec2 heatA, heatB;
         float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
         void main() {
-          vec3 col = texture2D(tSrc, vUv).rgb;
+          vec2 uv = vUv;
+          if (heatOn > 0.0) {
+            vec2 asp = vec2(heatAsp, 1.0), p = vUv * asp, a = heatA * asp, ab = heatB * asp - a;
+            float h = clamp(dot(p - a, ab) / max(dot(ab, ab), 1e-8), 0.0, 1.0);
+            float d = length(p - a - ab * h), r = heatR * (0.7 + 1.3 * h); // the plume widens behind the plane
+            float k = heatOn * smoothstep(r, 0.0, d) * (1.0 - 0.75 * h) * smoothstep(0.0, 0.06, h);
+            vec2 w = vec2(sin(p.y * 260.0 - heatT * 33.0 + p.x * 80.0) + 0.5 * sin(p.x * 410.0 + heatT * 47.0),
+                          cos(p.x * 230.0 + heatT * 29.0 - p.y * 90.0) + 0.5 * cos(p.y * 380.0 - heatT * 41.0));
+            uv += w * k * heatR * 0.12;
+          }
+          vec3 col = texture2D(tSrc, uv).rgb;
           col += (hash(floor(gl_FragCoord.xy * 0.5)) - 0.5) * 0.014;
           gl_FragColor = vec4(max(col, 0.0), 1.0);
           #include <colorspace_fragment>

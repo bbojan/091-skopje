@@ -746,6 +746,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | 🌐 Language | `skopje.lang` | the browser's first regional language (never English by itself), else Macedonian; `?lang=` in the link wins over everything |
 | 🏁 Race / free flight | `skopje.race` | free flight |
 | 🔥 Firefighting | `skopje.fire` | off (race and firefighting exclude each other; if both are saved, the race wins) |
+| ✈ F-15 (free flight) | `skopje.jet` | off (the race and firefighting switch it off; saved with either of them on, they win) |
 | Invert Y (walking look, the map's tilt: F / R keys and the pad's right stick; ⚙ → 🎮 Управување) | `skopje.invertY` | off |
 | Invert Y in flight (climb / dive and the F / R loops; ⚙ → 🎮 Управување) | `skopje.invertYPlane` | on |
 | Best race time | `skopje.bestRace` | none |
