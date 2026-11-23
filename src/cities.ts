@@ -296,7 +296,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Манаки го сними спасувањето!', roll: 'Ај на Широк Сокак!' },
   },
   ohrid: {
-    id: 'ohrid', name: 'Охрид', code: '096', icon: './favicon-ohrid.svg',
+    id: 'ohrid', name: 'Охрид, Струга', code: '096', icon: './favicon-ohrid.svg',
     files: { scene: './ohrid.json', terrainBin: './ohrid-terrain.bin', terrainJson: './ohrid-terrain.json' },
     sceneBytes: 9.4e6,
     views: {
@@ -852,7 +852,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Маркова Река го спаси Батинци!', roll: 'Поздрав од Батинци!' },
   },
   berovo: {
-    id: 'berovo', name: 'Берово', code: '033', icon: './favicon-berovo.svg',
+    id: 'berovo', name: 'Берово, Пехчево', code: '033', icon: './favicon-berovo.svg',
     files: { scene: './berovo.json', terrainBin: './berovo-terrain.bin', terrainJson: './berovo-terrain.json' },
     sceneBytes: 1.8e6,
     views: {
@@ -912,7 +912,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Беровско Езеро го спаси Берово!', roll: 'Поздрав од Малешево!' },
   },
   tetovo: {
-    id: 'tetovo', name: 'Тетово', code: '094', icon: './favicon-tetovo.svg',
+    id: 'tetovo', name: 'Тетово, Гостивар', code: '094', icon: './favicon-tetovo.svg',
     files: { scene: './tetovo.json', terrainBin: './tetovo-terrain.bin', terrainJson: './tetovo-terrain.json' },
     sceneBytes: 16e6,
     views: {
