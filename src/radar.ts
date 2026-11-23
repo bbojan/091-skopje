@@ -2,8 +2,8 @@
 // turning with the plane (its heading up). Built from the country view's grid (land cover, relief) and the towns
 // plan's zones: the finished maps in their colours, everything the F-15 cannot fly into yet darker and greyed
 // (planned maps, beyond the border), the map being downloaded or built pulsing, the ones ready in green, the
-// current one outlined. A map downloading ahead (before the plane gets there) is quieter: a pale line traces its
-// edge as far as the download has come, and its name says ↓ and the %; entering a map (being built) pulses orange
+// current one outlined. A map downloading ahead (before the plane gets there) is sky blue: a light tint and a thick
+// line tracing its edge as far as the download has come (a bright dot at its tip), its name with ↓ and the %; entering a map (being built) pulses orange
 // with its %; ready ones say ✓. A 2D canvas in the flight HUD, drawn every frame while the F-15 flies.
 import { coverPalette, type CountryData } from './country.ts';
 import { ZONES } from './zones.ts';
@@ -14,7 +14,7 @@ export type MapState = 'current' | 'ready' | 'loading' | 'downloading' | 'open';
 
 const SPAN = 54000;   // metres across the radar
 const BASE = 0.5;     // the prerendered country image at half the grid's resolution (200 m per pixel)
-const INDIGO = '#1f2a44', ORANGE = '255, 122, 24', YELLOW = '255, 214, 64', GREEN = '64, 190, 90';
+const INDIGO = '#1f2a44', ORANGE = '255, 122, 24', YELLOW = '255, 214, 64', GREEN = '64, 190, 90', BLUE = '70, 170, 255';
 
 export function createRadar(o: { data: CountryData; canvas: HTMLCanvasElement }) {
   const { meta, height, cover, inside } = o.data;
@@ -114,13 +114,28 @@ export function createRadar(o: { data: CountryData; canvas: HTMLCanvasElement })
         ctx.strokeStyle = `rgb(${YELLOW})`; ctx.lineWidth = 3.5 / k; ctx.stroke();
         ctx.setLineDash([]);
       } else if (s === 'downloading') {
-        // quiet: a faint dashed edge, and a pale line running round it as far as the download has come
-        ctx.setLineDash([3 / k, 4 / k]);
-        ctx.strokeStyle = 'rgba(250, 246, 238, 0.45)'; ctx.lineWidth = 1.5 / k; ctx.stroke();
-        const L = perimeter[i], p = Math.max(0.02, progressOf(z.city!));
+        // its own colour (sky blue, not the orange of entering): a light tint, the edge, and a thick line running
+        // round it as far as the download has come, a bright dot at its tip
+        ctx.fillStyle = `rgba(${BLUE}, ${0.16 + 0.06 * pulse})`; ctx.fill();
+        ctx.setLineDash([4 / k, 4 / k]);
+        ctx.strokeStyle = `rgba(${BLUE}, 0.55)`; ctx.lineWidth = 2 / k; ctx.stroke();
+        const L = perimeter[i], p = Math.max(0.03, progressOf(z.city!));
         ctx.setLineDash([L * p, L]); ctx.lineDashOffset = 0;
-        ctx.strokeStyle = 'rgba(250, 246, 238, 0.95)'; ctx.lineWidth = 2.5 / k; ctx.stroke();
+        ctx.strokeStyle = `rgb(${BLUE})`; ctx.lineWidth = 4.5 / k; ctx.stroke();
         ctx.setLineDash([]);
+        // the tip: walk the outline to the progress point
+        let left = L * p;
+        for (let e = 0; e < z.ring.length; e++) {
+          const [ax, ay] = z.ring[e], [bx, by] = z.ring[(e + 1) % z.ring.length];
+          const x0 = gx(ax), y0 = gy(ay), x1 = gx(bx), y1 = gy(by), seg = Math.hypot(x1 - x0, y1 - y0);
+          if (left <= seg) {
+            const f = seg ? left / seg : 0;
+            ctx.beginPath(); ctx.arc(x0 + (x1 - x0) * f, y0 + (y1 - y0) * f, (4 + 1.5 * pulse) / k, 0, Math.PI * 2);
+            ctx.fillStyle = '#eaf6ff'; ctx.fill(); ctx.strokeStyle = `rgb(${BLUE})`; ctx.lineWidth = 2 / k; ctx.stroke();
+            break;
+          }
+          left -= seg;
+        }
       } else if (s === 'ready') { ctx.fillStyle = `rgba(${GREEN}, 0.38)`; ctx.fill(); ctx.strokeStyle = `rgb(${GREEN})`; ctx.lineWidth = 3 / k; ctx.stroke(); }
       else if (s === 'current') { ctx.strokeStyle = INDIGO; ctx.lineWidth = 4 / k; ctx.stroke(); }
       else { ctx.strokeStyle = 'rgba(31, 42, 68, 0.6)'; ctx.lineWidth = 1.4 / k; ctx.stroke(); }
@@ -136,9 +151,9 @@ export function createRadar(o: { data: CountryData; canvas: HTMLCanvasElement })
       ctx.translate(x, y);
       ctx.rotate(yaw);
       ctx.lineWidth = 3.5 * dpr / k;
-      ctx.strokeStyle = s === 'loading' ? 'rgba(60, 26, 0, 0.9)' : 'rgba(244, 237, 224, 0.9)';
+      ctx.strokeStyle = s === 'loading' ? 'rgba(60, 26, 0, 0.9)' : s === 'downloading' ? 'rgba(10, 30, 60, 0.9)' : 'rgba(244, 237, 224, 0.9)';
       ctx.strokeText(text, 0, 0);
-      ctx.fillStyle = s === 'loading' ? `rgb(${YELLOW})` : s === 'ready' ? '#1d5a2a' : s === 'downloading' ? '#4a5470' : INDIGO;
+      ctx.fillStyle = s === 'loading' ? `rgb(${YELLOW})` : s === 'ready' ? '#1d5a2a' : s === 'downloading' ? '#8fd0ff' : INDIGO;
       ctx.fillText(text, 0, 0);
       ctx.restore();
     });
