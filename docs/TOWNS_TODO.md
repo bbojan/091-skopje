@@ -51,12 +51,53 @@ map: Вевчани is an L around its north-west), Делчево (Берово
 (`shapes` in the plan page); in the app they would be their bounding rectangle with those maps cut out.
 
 Planned with the owner on 2026-11-21 and redrawn on 2026-11-23, when every part of the country got a map and the
-widened Скопје was given up for the Матка map. Кратово is next in the list. How to build one:
+widened Скопје was given up for the Матка map. The order to build them is below (quick wins first). How to build one:
 [ADDING_A_CITY.md](ADDING_A_CITY.md).
 
 Coordinates are approximate, written from memory while planning: **check every point in OSM before
 drawing a bbox**. Badge codes are the owner's own choice, not always the phone code (Bitola 097,
 Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
+
+## Build order: quick wins first
+
+Decided with the owner on 2026-11-23: the smallest maps first, so a new map reaches the site often. Area is the
+main cost of a map (terrain, download, build time); the order can still change when a map's data turns out
+bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 MB). Ties keep the map with a town first.
+
+| # | Map | ~km² | Towns | Section |
+|---|---|---|---|---|
+| 1 | Кочани | 190 | Кочани | 23 |
+| 2 | Меџитлија* | 230 | — | 17 |
+| 3 | Голо Брдо* | 280 | — | 19 |
+| 4 | Виница | 340 | Виница | 32 |
+| 5 | Неготино | 370 | Неготино | 5 |
+| 6 | Кораб* | 370 | — | 18 |
+| 7 | Пробиштип | 380 | Пробиштип | 28 |
+| 8 | Валандово | 410 | Валандово | 29 |
+| 9 | Гевгелија | 510 | Гевгелија, Богданци | 30 |
+| 10 | Матка* | 530 | — | 20 |
+| 11 | Крива Паланка | 570 | Крива Паланка | 26 |
+| 12 | Свети Николе | 580 | Свети Николе | 22 |
+| 13 | Демир Хисар | 620 | Демир Хисар | 11 |
+| 14 | Дебарца | 630 | — | 27 |
+| 15 | Струмица | 690 | Струмица | 4 |
+| 16 | Вевчани | 690 | — | 12 |
+| 17 | Пелагонија* | 730 | — | 21 |
+| 18 | Кратово | 750 | Кратово | 2 |
+| 19 | Делчево | 770 | Делчево | 13 |
+| 20 | Демир Капија | 820 | Демир Капија | 31 |
+| 21 | Штип | 820 | Штип | 3 |
+| 22 | Радовиш | 900 | Радовиш | 24 |
+| 23 | Стоби* | 940 | — | 25 |
+| 24 | Скопска Црна Гора* | 970 | — | 33 |
+| 25 | Кичево | 1030 | Кичево | 10 |
+| 26 | Новаци* | 1060 | — | 34 |
+| 27 | Ново Село* | 1060 | — | 14 |
+| 28 | Мариово* | 1170 | — | 16 |
+| 29 | Велес | 1540 | Велес | 15 |
+| 30 | Куманово | 1620 | Куманово | 6 |
+
+\* working names. Next to build: the first row.
 
 ## Finished (14 maps, all on the site)
 
