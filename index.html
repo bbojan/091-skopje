@@ -221,6 +221,9 @@
       body.mobile .radar { display: none !important; }
       @media (max-width: 860px), (max-height: 560px) { .radar { display: none !important; } }
       body.jet .nojet { display: none !important; }
+      #fly-eject { cursor: pointer; font-family: inherit; color: var(--ink); }
+      /* under the parachute: only the arrows (steering) and the exit stay */
+      body.ejected #fly-boost, body.ejected #fly-rocket, body.ejected #fly-eject, body.ejected #fly-jet, body.ejected #fly-next, body.ejected .radar, body.ejected .fly-keys { display: none !important; }
       /* the up/down hints follow the "invert up/down in flight" switch (on: ↑ dives) */
       body.plane-inv .pnorm, body:not(.plane-inv) .pinv { display: none !important; }
       body.firefighting .nofire { display: none !important; }
@@ -530,6 +533,7 @@
           <tr><td data-i18n="f.slow"><kbd>Ctrl</kbd></td><td data-i18n="f.slowD">Бавно: четвртина од најголемата брзина (држи)</td></tr>
           <tr><td data-i18n="f.jet">✈ F-15</td><td data-i18n="f.jetD">Млазниот ловец F-15 Eagle наместо авионот: 1325 км/ч, со Shift 2650 км/ч (само во слободен лет, не во трката и гаснењето пожар)</td></tr>
           <tr><td data-i18n="f.rockets"><kbd>Space</kbd> (F-15)</td><td data-i18n="f.rocketsD">Ракети: пар од под крилата, пак и пак додека држиш (F-15; на палката X, на телефон 🚀)</td></tr>
+          <tr><td data-i18n="f.eject"><kbd>X</kbd> (F-15)</td><td data-i18n="f.ejectD">🪂 Катапулт: пилотот излетува од F-15 и слетува со падобран (стрелките го водат), а на земја продолжува пешки; авионот паѓа (на палката Y)</td></tr>
           <tr><td data-i18n="f.phone">На телефон</td><td data-i18n="f.phoneD">Држи ги стрелките на екранот, а допри „БРЗО“ за да го вклучиш или исклучиш забрзувањето</td></tr>
           <tr><td data-i18n="f.esc"><kbd>Esc</kbd> или „Излез“</td><td data-i18n="f.escD">Назад на мапата</td></tr>
         </table>
@@ -792,6 +796,7 @@
         <button class="chip fly-only" id="fly-race">🏁 Трка</button>
         <button class="chip fly-only" id="fly-fire">🔥 Пожар</button>
         <button class="chip fly-only" id="fly-jet">✈ F-15</button>
+        <button class="chip fly-only jet-only" id="fly-eject" data-i18n="fly.eject">🪂 Катапулт</button>
         <span class="chip game-only" id="fly-game"></span>
         <button class="chip snd" aria-label="Звук" data-i18n-aria="a.sound">🔇</button>
         <button class="chip" id="fly-exit" data-i18n="fly.exit">✕ Излез</button>
@@ -824,8 +829,8 @@
       <div class="fly-keys chip drive-only" data-i18n="drive.keys">← → волан · ↑ гас · ↓ сопирачка/назад · Esc излез</div>
       <div class="fly-keys chip fly-only nofire nojet pnorm" data-i18n="fly.keys">← → свртување · ↑ ↓ нагоре/надолу · Q E F R акробации · Shift брзо · Ctrl бавно · Esc излез</div>
       <div class="fly-keys chip fly-only nofire nojet pinv" data-i18n="fly.keys.inv">← → свртување · ↑ ↓ надолу/нагоре · Q E F R акробации · Shift брзо · Ctrl бавно · Esc излез</div>
-      <div class="fly-keys chip fly-only jet-only pnorm" data-i18n="jet.keys">← → свртување · ↑ ↓ нагоре/надолу · Q E F R акробации · Space ракети · Shift брзо · Ctrl бавно · Esc излез</div>
-      <div class="fly-keys chip fly-only jet-only pinv" data-i18n="jet.keys.inv">← → свртување · ↑ ↓ надолу/нагоре · Q E F R акробации · Space ракети · Shift брзо · Ctrl бавно · Esc излез</div>
+      <div class="fly-keys chip fly-only jet-only pnorm" data-i18n="jet.keys">← → свртување · ↑ ↓ нагоре/надолу · Q E F R акробации · Space ракети · Shift брзо · Ctrl бавно · X катапулт · Esc излез</div>
+      <div class="fly-keys chip fly-only jet-only pinv" data-i18n="jet.keys.inv">← → свртување · ↑ ↓ надолу/нагоре · Q E F R акробации · Space ракети · Shift брзо · Ctrl бавно · X катапулт · Esc излез</div>
       <div class="fly-keys chip fly-only fire-only pnorm" data-i18n="fire.keys">← → свртување · ↑ ↓ нагоре/надолу · Q E F R акробации · Space вода · Shift брзо · Ctrl бавно · Esc излез</div>
       <div class="fly-keys chip fly-only fire-only pinv" data-i18n="fire.keys.inv">← → свртување · ↑ ↓ надолу/нагоре · Q E F R акробации · Space вода · Shift брзо · Ctrl бавно · Esc излез</div>
     </div>

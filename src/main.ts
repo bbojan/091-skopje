@@ -14,6 +14,7 @@ import { createWalk, type Walk, type WalkAction } from './walk.ts';
 import { createGame, fmtTime, type Game } from './game.ts';
 import { createFireMode, WATER_FLOOR, type FireMode } from './fire.ts';
 import { createRockets, type Rockets } from './rockets.ts';
+import { createEject, type Eject } from './eject.ts';
 import { createLandmarks, landmarkFootprints, landmarkGround } from './landmarks.ts';
 import { createSound } from './sound.ts';
 import { createLabels } from './labels.ts';
@@ -168,6 +169,8 @@ interface World {
   fire: FireMode;
   /** the F-15's rockets */
   rockets: Rockets;
+  /** the F-15's pilot ejecting, under the parachute */
+  eject: Eject;
   flight: Flight;
   drive: Drive;
   walk: Walk;
@@ -588,6 +591,8 @@ async function loadCity(spec: CitySpec): Promise<void> {
   const rockets = createRockets({ ground: groundAt, light: MOBILE });
   scene.add(rockets.group);
   ink.skipNormal.push(...rockets.noInk);
+  const eject = createEject({ scene, camera, ground: groundAt });
+  ink.skipNormal.push(...eject.noInk);
   // firefighting: fires, smoke and water are see-through (no ink lines)
   const fire = createFireMode({
     terrain, bounds: { hw: W / 2, hh: H / 2 }, areas: data.areas, buildings: data.buildings, light: MOBILE,
@@ -609,7 +614,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
     hooks: { nearestBus: traffic.nearestBus, startOro: traffic.startOro, stopOro: traffic.stopOro, scatter: traffic.scatter, startle: birds.startle },
   });
   walk.setInvertY(invertY);
-  world = { spec, abort, terrain, meta, city, traffic, clouds, birds, gliders, lamps, precip, landmarks, labels, game, fire, rockets, flight, drive, walk, planeSpot };
+  world = { spec, abort, terrain, meta, city, traffic, clouds, birds, gliders, lamps, precip, landmarks, labels, game, fire, rockets, eject, flight, drive, walk, planeSpot };
   mark('extras'); // traffic, lamps, landmarks, labels, games, vehicles
   console.log('city ready in', Math.round(performance.now() - t0), 'ms', city.stats, traffic.counts);
 
@@ -1274,6 +1279,71 @@ fireBtn.addEventListener('click', () => {
 $('fly-again').addEventListener('click', () => { flyResult.hidden = true; startRace(); });
 $('fly-free').addEventListener('click', () => { race = false; saveGames(); applyRace(); });
 const lastShadowAt = new THREE.Vector3(1e9, 0, 0);
+// ---------------- the F-15's action: the pilot ejects (src/eject.ts); the empty jet flies into the ground
+/** the empty jet after the ejection: falling until it hits the ground */
+let crash: { vel: THREE.Vector3; spin: number } | null = null;
+const crashQ = new THREE.Quaternion(), FWD = new THREE.Vector3(0, 0, -1), crashDir = new THREE.Vector3();
+function ejectPilot(): void {
+  if (!world?.flight.active || !world.flight.jet || world.eject.active || transit) return;
+  const f = world.flight, vel = f.velocity(new THREE.Vector3());
+  world.eject.start(f.pos, vel, f.yaw);
+  crash = { vel, spin: 0 };
+  for (const m of f.flames) m.visible = false;
+  hopAhead = null; hopSeen = new Set(); prefetch.want([]); $('fly-next').hidden = true;
+  ink.outMat.uniforms.heatOn.value = 0;
+  document.body.classList.add('ejected');
+  sound.play('launch');
+}
+$('fly-eject').addEventListener('click', ejectPilot);
+addEventListener('keydown', (e) => { if (e.code === 'KeyX' && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey && world?.flight.jet) ejectPilot(); });
+/** a frame under the parachute: the pilot drifts down (arrows steer), the jet crashes; on the ground: walk */
+function ejectFrame(dt: number, w: World): void {
+  const f = w.flight, e = w.eject;
+  showCountryGround(true, e.pos.x, e.pos.z);
+  const steer = { x: f.input.right - f.input.left + f.pad.turn, y: f.input.up - f.input.down + f.pad.climb };
+  const r = e.update(dt, steer);
+  if (crash) {
+    const c = crash, p = f.plane.position;
+    c.vel.y -= 9.8 * dt;
+    c.vel.multiplyScalar(Math.exp(-dt * 0.15));
+    p.addScaledVector(c.vel, dt);
+    c.spin += dt * 1.6;
+    crashQ.setFromUnitVectors(FWD, crashDir.copy(c.vel).normalize());
+    f.plane.quaternion.copy(crashQ);
+    f.plane.rotateZ(c.spin);
+    const g = groundAt(p.x, p.z);
+    if (p.y <= g + 2) {
+      w.rockets.blast(p.x, g, p.z, true);
+      f.plane.visible = false;
+      crash = null;
+    }
+  }
+  w.rockets.update(dt, false, null);
+  for (const b of w.rockets.events.booms) sound.play('boom', THREE.MathUtils.clamp(1 - camera.position.distanceTo(b) / 6000, 0.25, 1));
+  controls.target.copy(e.pos);
+  camera.near = 0.5; camera.far = 70000; camera.updateProjectionMatrix();
+  w.city.updateLOD(camera);
+  if (e.pos.distanceTo(lastShadowAt) > 60) { fitShadow(500); lastShadowAt.copy(e.pos); }
+  setText('fly-stats', `🪂 ${e.agl} ${t('u.m')}`);
+  if (flyWarn.textContent) flyWarn.textContent = '';
+  w.traffic.update(dt, camera, controls.target);
+  w.clouds.update(dt);
+  w.birds.update(dt);
+  w.gliders.update(dt);
+  w.landmarks.update(dt);
+  w.precip.update(dt, camera, controls.target);
+  ink.reset();
+  ink.render(scene, camera, true);
+  if (r === 'landed') {
+    // on the ground: walk from here (just inside the map if the parachute came down beyond its edge)
+    const m = w.meta, p = e.pos.clone();
+    p.x = THREE.MathUtils.clamp(p.x, -m.w / 2 + 40, m.w / 2 - 40);
+    p.z = THREE.MathUtils.clamp(p.z, -m.h / 2 + 40, m.h / 2 - 40);
+    p.y = w.terrain.at(p.x, p.z);
+    stopFlight();
+    startWalk(p);
+  }
+}
 // the F-15's rockets: fired while the trigger is held, blasts heard by distance
 const rFwd = new THREE.Vector3(), rRight = new THREE.Vector3(), rTip = new THREE.Vector3();
 const rTips: (THREE.Vector3 | null)[] = [null, null]; // last frame's wingtips while leaving contrails
@@ -1349,6 +1419,9 @@ function stopFlight(): void {
   flight.stop();
   fire.stop();
   flight.setFire(false); // the plane parked on the Square is the usual one
+  if (world.eject.active) world.eject.stop();
+  crash = null;
+  document.body.classList.remove('ejected');
   flight.setJet(false);
   showCountryGround(false);
   hopAhead = null;
@@ -1776,7 +1849,7 @@ renderer.setAnimationLoop(() => {
   if (soundOn) {
     const fly = flight.active, bus = drive.active;
     sound.update(dt, {
-      mode: fly ? 'fly' : bus ? 'drive' : walk.active ? 'walk' : 'map',
+      mode: fly && world.eject.active ? 'walk' : fly ? 'fly' : bus ? 'drive' : walk.active ? 'walk' : 'map', // under the parachute: the outdoors, no engine
       speed: fly ? (flight.jet ? THREE.MathUtils.clamp((flight.hud.kmh - 662) / 1988, 0, 1) : THREE.MathUtils.clamp((flight.hud.kmh - 198) / 306, 0, 1)) : bus ? Math.min(1, drive.kmh / 70) : 0,
       tractor: fireOn,
       jet: fly && flight.jet, burner: fly && flight.jet ? THREE.MathUtils.clamp((flight.hud.kmh - 1325) / 1325, 0, 1) : 0,
@@ -1815,7 +1888,7 @@ renderer.setAnimationLoop(() => {
       }
       if (pad.b && !padPrev.b) stopFlight();
       if (pad.x && !padPrev.x && !flight.jet) raceBtn.click(); // race on/off (the F-15: X fires rockets)
-      if (pad.y && !padPrev.y) fireBtn.click(); // firefighting on/off
+      if (pad.y && !padPrev.y) { if (flight.jet) ejectPilot(); else fireBtn.click(); } // the F-15: eject; otherwise firefighting on/off
       if (pad.start && !padPrev.start && race) { flyResult.hidden = true; startRace(); } // restart race
       else if (pad.start && !padPrev.start && !fireOn) jetBtn.click(); // free flight: the F-15 on/off
     } else if (pad.y && !padPrev.y) startFlight();
@@ -1895,6 +1968,7 @@ renderer.setAnimationLoop(() => {
     ink.render(scene, camera, true);
     return;
   }
+  if (flight.active && world.eject.active) { ejectFrame(dt, world); return; }
   if (flight.active) {
     showCountryGround(flight.jet, flight.pos.x, flight.pos.z);
     flight.update(dt);
