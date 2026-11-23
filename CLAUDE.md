@@ -101,7 +101,7 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
 
 ## Cities
 
-- Macedonia, the first item of the city menu (a tile as tall as four cities), opens the country view (`src/country.ts`): every map's zone on the whole
+- Macedonia, the first item of the city menu (a tile as tall as four cities, 70 % of the row; the drawn ✈ F-15 beside it takes off on the current map in F-15 mode, `takeOffF15()` in `main.ts`), opens the country view (`src/country.ts`): every map's zone on the whole
   country; a finished map's badge opens it. A new map: move it from `PLANNED` to `EXISTING` in `src/zones.ts`.
   The city stays built underneath, so Skopje is pixel-identical after closing it (checked).
 - The badge at the top left (`091 Скопје ▾`) is the city picker (the tab icon follows: `icon` in `CITIES`,

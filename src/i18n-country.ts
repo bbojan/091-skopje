@@ -6,6 +6,7 @@ export const COUNTRY = {
   },
   en: {
     'country.open': 'Macedonia: all the maps',
+    'f15.open': 'Take off in the F-15 over this map',
     'country.title': 'Macedonia',
     'country.hint': 'Choose a map',
     'country.back': 'Back to the map',
@@ -14,6 +15,7 @@ export const COUNTRY = {
   },
   sr: {
     'country.open': 'Македонија: све мапе',
+    'f15.open': 'Полети са F-15 изнад ове мапе',
     'country.title': 'Македонија',
     'country.hint': 'Изабери мапу',
     'country.back': 'Назад на мапу',
@@ -22,6 +24,7 @@ export const COUNTRY = {
   },
   hr: {
     'country.open': 'Makedonija: sve karte',
+    'f15.open': 'Poleti F-15-icom iznad ove karte',
     'country.title': 'Makedonija',
     'country.hint': 'Odaberi kartu',
     'country.back': 'Natrag na kartu',
@@ -30,6 +33,7 @@ export const COUNTRY = {
   },
   sl: {
     'country.open': 'Makedonija: vsi zemljevidi',
+    'f15.open': 'Vzleti z F-15 nad tem zemljevidom',
     'country.title': 'Makedonija',
     'country.hint': 'Izberi zemljevid',
     'country.back': 'Nazaj na zemljevid',
@@ -38,6 +42,7 @@ export const COUNTRY = {
   },
   sq: {
     'country.open': 'Maqedonia: të gjitha hartat',
+    'f15.open': 'Ngrihu me F-15 mbi këtë hartë',
     'country.title': 'Maqedonia',
     'country.hint': 'Zgjidh një hartë',
     'country.back': 'Kthehu te harta',

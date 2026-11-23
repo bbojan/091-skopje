@@ -532,6 +532,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   status.textContent = '';
   hideLoader();
   loading = false;
+  if (f15Pending && !queuedCity) setTimeout(takeOffF15, 0);
 }
 
 // ---------------- cities: the badge at the top left picks one; the choice lives in the address (?city=)
@@ -651,8 +652,8 @@ for (const id of CITY_IDS) {
   b.addEventListener('click', () => { setCityMenu(false); void switchCity(id); });
   cityList.append(b);
 }
-// Macedonia first, as tall as four cities (CSS: .country-tile): the country view
-cityList.prepend($('country-btn'));
+// Macedonia first, as tall as four cities (CSS: .country-tile): the country view; beside it the F-15 (.f15-tile)
+cityList.prepend($('country-row'));
 function setCityMenu(open: boolean): void {
   cityMenu.hidden = !open;
   cityBtn.setAttribute('aria-expanded', String(open));
@@ -1561,6 +1562,19 @@ function renderCountry(v: CountryView): void {
   ink.normalMat.clippingPlanes = clip;
 }
 $('country-btn').addEventListener('click', () => { setCityMenu(false); void openCountry(); });
+// the F-15 tile: straight into free flight in the F-15 over the current map (once it is built)
+let f15Pending = false;
+function takeOffF15(): void {
+  if (!world || loading) { f15Pending = true; return; }
+  f15Pending = false;
+  if (countryOpen) closeCountry();
+  if (world.drive.active) stopDrive();
+  if (world.walk.active) { resumeWalk = false; stopWalk(); }
+  race = false; fireOn = false; jetOn = true;
+  saveGames(); applyRace(); applyFire();
+  if (world.flight.active) applyJet(); else startFlight();
+}
+$('f15-btn').addEventListener('click', () => { setCityMenu(false); takeOffF15(); });
 $('country-close').addEventListener('click', closeCountry);
 addEventListener('keydown', (e) => { if (countryOpen && e.code === 'Escape' && !document.querySelector('dialog[open]')) closeCountry(); });
 // hover and click on the canvas (a click is a press without dragging)
