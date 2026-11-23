@@ -16,17 +16,17 @@ out where a neighbour already is, `shapes` the full outline of a map that is not
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 28 new maps**, all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 29 new maps**, all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
 |---|---|---|---|---|---|---|
-| Мариово* | 2700 | — | | Кораб* | 740 | — |
-| Матка* | 2210 | — | | Пелагонија* | 730 | — |
+| Мариово* | 2700 | — | | Пелагонија* | 730 | — |
 | Куманово | 1790 | Куманово | | Струмица | 690 | Струмица |
-| Велес | 1540 | Велес | | Дебарца | 630 | — |
-| Вевчани | 1350 | — | | Демир Хисар | 620 | Демир Хисар |
-| Делчево | 1310 | Делчево | | Свети Николе | 580 | Свети Николе |
+| Скопска Црна Гора* | 1680 | — | | Дебарца | 630 | — |
+| Велес | 1540 | Велес | | Демир Хисар | 620 | Демир Хисар |
+| Вевчани | 1350 | — | | Свети Николе | 580 | Свети Николе |
+| Делчево | 1310 | Делчево | | Матка* | 530 | — |
 | Ново Село* | 1190 | — | | Гевгелија | 470 | Гевгелија, Богданци |
 | Кичево | 1030 | Кичево | | Валандово | 410 | Валандово |
 | Крива Паланка | 1000 | Крива Паланка | | Пробиштип | 380 | Пробиштип |
@@ -35,8 +35,9 @@ towns on it):
 | Штип | 820 | Штип | | Голо Брдо* | 280 | — |
 | Демир Капија | 820 | Демир Капија | | Меџитлија* | 230 | — |
 | Кратово | 750 | Кратово | | Кочани | 190 | Кочани |
+| Кораб* | 740 | — | |  | |  |
 
-\* working names. Only Гевгелија holds two towns now (Богданци is next to it). For comparison, the largest finished
+\* working names. Скопска Црна Гора is about two thirds Kosovo. Only Гевгелија holds two towns now (Богданци is next to it). For comparison, the largest finished
 maps are Брод and Ресен (about 1320 km² each).
 
 **Cut corners.** Where two maps would overlap, the newer map leaves the corner out (an outline with 90° corners).
@@ -302,17 +303,18 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 
 ### 20. Матка (name open)
 
-- **On it:** everything between Тетово, Скопје, Брод and the Kosovo border: Матка (canyon, lake, dam, Св. Андреј),
-  Водно's west side, Сарај, Скопска Црна Гора, Блаце, the Лепенец, the strip above Тетово's map to the border.
+- **On it:** Матка (canyon, lake, dam, Св. Андреј), Водно's west side, Сарај's villages west of Скопје, the land
+  between Тетово's and Брод's maps.
 - **Name / code:** open (working name Матка).
-- **Extent:** decided with the owner on 2026-11-23. Not a rectangle but an outline with 90° corners (`shapes` in
-  `scripts/towns-map.html`): n ~42.30 (the border: check in OSM), e 21.525 (Куманово's w) down to 42.055, then along Скопје's n and w (21.33)
-  and s (41.955), Батинци's w (21.385), Брод's n (41.926) and w (21.12) to 41.725 (Кичево's n), west to 21.06 and up
-  Тетово's e to its n (42.075), then west to 20.72. About 1000 km², 20 m cells. No overlaps.
-  In the app its rectangle would be 41.725–42.30 N, 20.72–21.525 E with four maps cut out of it.
-- **Instead of widening Скопје** (9, above): this map takes the land the widened Скопје would have taken, so the
-  reference map stays as it is.
-- **Landmarks:** Матка, Св. Андреј, Св. Никола Шишевски, the Матка dam; Скопска Црна Гора's villages.
+- **Extent:** decided with the owner on 2026-11-23, an outline with 90° corners (`shapes` in the plan page):
+  n 42.075 (Тетово's n; Скопска Црна Гора's s), e 21.525 (Куманово's w) down to 42.055, then along Скопје's n and
+  w (21.33) and s (41.955), Батинци's w (21.385), Брод's n (41.926) and w (21.12) to 41.725 (Кичево's n), west to
+  21.06 and up Тетово's e. Its rectangle would be 41.725–42.075 N, 21.06–21.525 E. The first Матка map also
+  reached north to the Kosovo border; its north half was split off as Скопска Црна Гора (33). About 540 km²,
+  20 m cells. No overlaps.
+- **Instead of widening Скопје** (9, above): this map and Скопска Црна Гора take the land the widened Скопје
+  would have taken, so the reference map stays as it is.
+- **Landmarks:** Матка, Св. Андреј, Св. Никола Шишевски, the Матка dam.
 
 ### 21. Пелагонија (name open)
 
@@ -418,6 +420,16 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 - **Extent:** split off Кочани by the owner on 2026-11-23: w 22.46 (Кочани's e), e 22.71 (Делчево's w), s 41.80 (Радовиш's n),
   n 41.945 (Каменица's s). About 340 km², 20 m cells.
 - **Landmarks:** Виничко Кале, the town centre.
+
+### 33. Скопска Црна Гора (name open)
+
+- **On it:** Скопска Црна Гора (Чучер, Бањане, Кучевиште), Блаце and the Лепенец at the Kosovo border, the strip
+  above Тетово's map to the border.
+- **Name / code:** open (working name Скопска Црна Гора).
+- **Extent:** split off Матка by the owner on 2026-11-23: s 42.075 (Матка's, Скопје's and Тетово's n side), n ~42.30
+  (the Kosovo border: check in OSM), w 20.72 (Кораб's e), e 21.525 (Куманово's w). About 1670 km², but only about
+  560 km² of it is in the country (the rest is Kosovo): the n and w edges could come in when it is built.
+- **Landmarks:** Св. Никола at Кучевиште, Скопска Црна Гора's villages, the Блаце crossing.
 
 ## Not placed yet
 
