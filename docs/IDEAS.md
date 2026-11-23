@@ -73,8 +73,14 @@ in [NOTES.md](NOTES.md)); everything else is an idea, not planned yet.
 
 Two plans that go together: the F-15 crosses a small map in seconds, so it needs the neighbouring maps ready.
 Map-to-map flight is for the F-15 only (decided by the owner on 2026-11-23, after first wanting it in every mode).
-Order of work: (1) measure, (2) the F-15, (3) map-to-map flight for the F-15, (4) only if the measurements ask
-for it, more preparing ahead on desktop. With both switched off, Скопје stays pixel-identical.
+Order of work:
+
+1. **Measure** every finished map: download, and time per preparing step (parse / steps / assemble / bake /
+   shaders), memory, on desktop and a phone.
+2. **The F-15** in free flight.
+3. **Map-to-map flight** for the F-15: prediction, background downloads, indicator, the switch at the edge.
+4. **The fast switch:** low detail first, entry chunks first, shaders kept, far-ground textures later.
+5. Only if the measurements ask for it: preparing part of the next map ahead (desktop), or a binary data format. With both switched off, Скопје stays pixel-identical.
 
 ### F-15 Eagle (free flight only)
 
@@ -116,8 +122,9 @@ for it, more preparing ahead on desktop. With both switched off, Скопје st
 
 - **Indicator:** one chip next to the speed: `→ Батинци ▓▓▓░` while downloading, `→ Батинци ✓` when ready, hidden
   when no neighbour lies ahead. Strings in 6 languages.
-- **The switch at the edge:** a short fade into the sky's haze (~0.3 s), the build with the files already there,
-  then back; HUD and engine sound go on. If the build is slow, the loader shows small (city name and bar only).
+- **The switch at the edge:** a short fade into the sky's haze, then within ~0.5 s the new map's low-res terrain
+  and far-ground texture, and the rest built chunk by chunk around the plane (see "Preparing" below); HUD and engine
+  sound go on. If even the low-detail step is slow, the loader shows small (city name and bar only).
 - **Keep the main thread free:**
   - while flying, only `fetch` → `ArrayBuffer` (network and gzip are off the main thread); **no `JSON.parse` while
     flying** (Тетово's 16 MB would block for hundreds of ms): the JSON is parsed at the switch, under the fade;
@@ -145,8 +152,6 @@ for it, more preparing ahead on desktop. With both switched off, Скопје st
 - **Later, only if the measurements ask for it:** building part of the next map ahead (`computeCitySteps` a little
   each frame) on desktop only; or a binary city data format (typed arrays, no `JSON.parse`) written by
   `scripts/prepare.ts`, instead of a Worker.
-- **Step 1, measure first:** download and build time and memory of every finished map, desktop and phone; the
-  thresholds above come from that.
 - Neighbours that can be flown between today: Скопје–Батинци–Брод, Тетово–Ростуше, Охрид–Ресен–Битола, and
   Крушево / Прилеп next to Брод's south edge (gaps between some of them until the planned maps are built: see
   [TOWNS_TODO.md](TOWNS_TODO.md)). Every new map from the towns plan widens the flight.
