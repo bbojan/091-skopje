@@ -21,21 +21,21 @@ towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
 |---|---|---|---|---|---|---|
-| Куманово | 1790 | Куманово | | Кораб* | 740 | — |
-| Мариово* | 1640 | — | | Пелагонија* | 730 | — |
-| Велес | 1540 | Велес | | Струмица | 690 | Струмица |
-| Вевчани | 1350 | — | | Дебарца | 630 | — |
-| Делчево | 1310 | Делчево | | Демир Хисар | 620 | Демир Хисар |
-| Ново Село* | 1190 | — | | Свети Николе | 580 | Свети Николе |
-| Скопска Црна Гора* | 1180 | — | | Матка* | 530 | — |
-| Новаци* | 1060 | — | | Гевгелија | 470 | Гевгелија, Богданци |
-| Кичево | 1030 | Кичево | | Валандово | 410 | Валандово |
-| Крива Паланка | 1000 | Крива Паланка | | Пробиштип | 380 | Пробиштип |
-| Стоби* | 940 | — | | Неготино | 370 | Неготино |
-| Радовиш | 900 | Радовиш | | Виница | 340 | Виница |
-| Штип | 820 | Штип | | Голо Брдо* | 280 | — |
-| Демир Капија | 820 | Демир Капија | | Меџитлија* | 230 | — |
-| Кратово | 750 | Кратово | | Кочани | 190 | Кочани |
+| Куманово | 1620 | Куманово | | Вевчани | 690 | — |
+| Велес | 1540 | Велес | | Дебарца | 630 | — |
+| Мариово* | 1170 | — | | Демир Хисар | 620 | Демир Хисар |
+| Ново Село* | 1060 | — | | Свети Николе | 580 | Свети Николе |
+| Новаци* | 1060 | — | | Крива Паланка | 570 | Крива Паланка |
+| Кичево | 1030 | Кичево | | Матка* | 530 | — |
+| Скопска Црна Гора* | 970 | — | | Гевгелија | 510 | Гевгелија, Богданци |
+| Стоби* | 940 | — | | Валандово | 410 | Валандово |
+| Радовиш | 900 | Радовиш | | Пробиштип | 380 | Пробиштип |
+| Штип | 820 | Штип | | Неготино | 370 | Неготино |
+| Демир Капија | 820 | Демир Капија | | Кораб* | 370 | — |
+| Делчево | 770 | Делчево | | Виница | 340 | Виница |
+| Кратово | 750 | Кратово | | Голо Брдо* | 280 | — |
+| Пелагонија* | 730 | — | | Меџитлија* | 230 | — |
+| Струмица | 690 | Струмица | | Кочани | 190 | Кочани |
 
 \* working names. Only Гевгелија holds two towns now (Богданци is next to it). For comparison, the largest finished
 maps are Брод and Ресен (about 1320 km² each); areas include the parts across the borders.
@@ -44,9 +44,10 @@ maps are Брод and Ресен (about 1320 km² each); areas include the parts
 In the app a map is still one rectangle (download tiles, terrain grid, chunks): when such a map is built, its
 terrain stays the full rectangle and `prepare.ts` drops every OSM feature in the cut rectangles (a `cut` list in
 `scripts/config.ts`, to add then), so the corner shows bare relief, as outside a map. The cuts so far:
-Дебарца (Охрид's corner), Демир Хисар (Ресен's), Ново Село (Радовиш's), Мариово (Кавадарци's), Вевчани (all of Охрид's
+Дебарца (Охрид's corner), Демир Хисар (Ресен's), Мариово (Кавадарци's), Вевчани (all of Охрид's
 map: Вевчани is an L around its north-west), Делчево (Берово's and Радовиш's), Радовиш (Делчево's), Кратово (Крива Паланка's).
-Велес, Матка and Пелагонија are not rectangles with one corner cut but outlines that go around several maps
+Гевгелија (Дојран's). Велес, Матка, Пелагонија, Скопска Црна Гора, Крива Паланка, Делчево, Мариово, Вевчани, Кораб,
+Куманово and Ново Село are not rectangles with one corner cut but outlines that go around several maps
 (`shapes` in the plan page); in the app they would be their bounding rectangle with those maps cut out.
 
 Planned with the owner on 2026-11-21 and redrawn on 2026-11-23, when every part of the country got a map and the
@@ -142,6 +143,8 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 - **Extent:** decided with the owner on 2026-11-23: n ~42.36 (the Serbian border: check in OSM), e 22.062 (Кратово's w),
   s 42.00 (Велес's and Свети Николе's n), w 21.525 (Скопје's e). A plain rectangle now: Свети Николе (22) and the
   part with Петровец, Катланово and the airport (to Велес, 15) were taken off its south. About 1800 km², 20 m cells.
+  **Trimmed to the border** (2026-11-23): the n edge steps between 42.28 and 42.36, about 2 km past the OSM border
+  with Serbia.
 - **Landmarks:** Св. Никола; the lake and its dam (`waterLevels` if needed); Кокино's observatory,
   Старо Нагоричане's Св. Ѓорѓи.
 
@@ -224,6 +227,8 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
   w 20.40 (Голо Брдо's w; first 20.49, moved so the border west of Вевчани is surely inside), s 40.885 (Охрид's s: extended down west of Охрид, the Albanian shore of the lake).
   **Cut corner:** Охрид's map (40.885–41.205 N, 20.615–20.815 E) is left out, so the map is an L: about 35 × 21 km
   above Охрид and an 18 km wide strip down its west side. 20 m cells. No overlaps.
+  **Trimmed to the border** (2026-11-23): the w edge steps between 20.47 and 20.57, about 2 km past the OSM border
+  with Albania, and the strip west of Охрид ends at 41.035 (south of it the shore is Albania).
 - **Landmarks:** Вевчански извори (springs and wooden bridges), Св. Никола, the old houses; the Јабланица ridge.
 
 ### 13. Делчево
@@ -235,6 +240,8 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
   (Каменица's and Крива Паланка's e, edge to edge), n ~42.20 (up to the Bulgarian border, Осогово: check in OSM), s 41.65 (Ново Село's n): it reaches down east of Берово to the border.
   **Cut corner:** 41.65–41.778 N, 22.71–22.94 E (Берово's map and, west of it, Радовиш's) is left out, so the map is
   an L. About 47 × 26 km plus a 7 × 14 km strip, 20 m cells.
+  **Trimmed to the border** (2026-11-23): the n edge is 42.10 and the e edge steps from 22.84 (north) to 23.045
+  (beside Берово), about 2 km past the OSM border with Bulgaria.
 - **Landmarks:** the town on the Брегалница, Голак, the Делчево–Бадино border crossing.
 
 ### 14. Ново Село (name open)
@@ -246,6 +253,9 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
   (decided 2026-11-23): Радовиш's south-east corner (41.60–41.65 N, 22.66–22.82 E, about 5.5 × 13 km) stays on
   Радовиш's map and is left out of this one.
   This settles Струмица's open east edge: Колешино (22.81) is here.
+  **Trimmed to the border** (2026-11-23): the e edge steps between 22.99 and 23.01 and the south-east corner below
+  41.32 comes in to 22.87, about 2 km past the OSM border with Bulgaria and Greece; Радовиш's corner is part of the
+  outline.
 - **Landmarks:** Смолари and Колешино waterfalls, the Струмица river to the border, Беласица's beech forests.
 
 ### 15. Велес
@@ -269,6 +279,8 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
   border everywhere: check in OSM), w 21.65 (Новаци's e: the first Мариово map reached west to Битола and was split,
   34), e 22.062 (Демир Капија's w). **Cut corner** (decided 2026-11-23): Кавадарци's south-west corner (41.25–41.31 N,
   21.85–22.062 E) is left out. About 1650 km², 20 m cells; its south is Greece.
+  **Trimmed to the border** (2026-11-23): the s edge steps from 41.11 (east) down to 40.87 (west), about 2 km past
+  the OSM border with Greece.
 - **Landmarks:** Кајмакчалан's chapel at the summit, the Црна in its canyon, Мариово's stone villages.
 
 ### 17. Меџитлија (name open)
@@ -288,6 +300,8 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 - **Name / code:** open (working name Кораб).
 - **Extent:** decided with the owner on 2026-11-23: s 41.725 (Ростуше's n), n 42.075 (Тетово's n), w 20.49 (Ростуше's w),
   e 20.72 (Тетово's w). About 39 × 19 km, 20 m cells; much of the west is Albania and Kosovo. No overlaps.
+  **Trimmed to the border** (2026-11-23): only 41.725–41.925 N is left (north of it, west of Тетово, is Kosovo and
+  Albania), the w edge stepping from 20.49 to 20.54, about 2 km past the OSM border.
 - **Landmarks:** Кораб's summit, Корабски водопад, high pastures and sheepfolds.
 
 ### 19. Голо Брдо (name open)
@@ -366,6 +380,8 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 - **Code:** open (phone code 031). `?city=krivapalanka`.
 - **Extent:** split off Кратово by the owner on 2026-11-23: s 42.125 (Каменица's n), n ~42.36 (the border: check in OSM),
   w 22.25 (Кратово's), e 22.71 (Делчево's w). About 990 km², 20 m cells. No overlaps.
+  **Trimmed to the border** (2026-11-23): an outline with 90° corners about 2 km past the OSM border (Serbia and
+  Bulgaria): n steps down from 42.38 (west) to 42.16, and east of 22.60 nothing is left above Каменица.
 - **Landmarks:** Осоговски манастир above the town, the old bazaar, the Деве Баир crossing.
 
 ### 27. Дебарца
@@ -401,6 +417,8 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 - **Code:** open (phone code 034). `?city=gevgelija`.
 - **Extent:** split off Струмица by the owner on 2026-11-23: n 41.25 (Валандово's s), s ~41.10 (the Greek border: check
   in OSM), w 22.32 (Демир Капија's e), e 22.66 (Дојран's w). About 470 km², 20 m cells.
+  **Widened** (2026-11-23): e 22.75 below 41.15 (a strip south of Дојран's map the OSM border showed), with
+  Дојран's map as a **cut corner**.
 - **Landmarks:** the Vardar plain, Негорски Бањи, the wind farm, the border crossing at Богородица.
 
 ### 31. Демир Капија
@@ -425,10 +443,9 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
   above Тетово's map to the border.
 - **Name / code:** open (working name Скопска Црна Гора).
 - **Extent:** split off Матка by the owner on 2026-11-23: s 42.075 (Матка's, Скопје's and Тетово's n side), e 21.525
-  (Куманово's w). Trimmed to the Kosovo border the same day, an outline with 90° corners (`shapes`) a few km
-  past the border (world-atlas 1:50m is coarse: Блаце at 42.27 N fell outside it, so the east part keeps 42.30;
-  check in OSM): w 20.76, n 42.17 west of 20.95, 42.22 (Љуботен, 42.19) to 21.20, 42.30 to the east edge. Its
-  rectangle would be 42.075–42.30 N, 20.76–21.525 E. About 1180 km², of which about 560 km² in the country.
+  (Куманово's w). Trimmed to the Kosovo border the same day, an outline with 90° corners (`shapes`) about 2 km
+  past OSM's border (relation 53293): w 20.72 (Кораб's e), the n edge stepping from 42.10 (west) to 42.30 (east).
+  Its rectangle would be 42.075–42.30 N, 20.72–21.525 E. Check the border crossing at Блаце when it is built.
 - **Landmarks:** Св. Никола at Кучевиште, Скопска Црна Гора's villages, the Блаце crossing.
 
 ### 34. Новаци (name open)
@@ -443,9 +460,9 @@ Ohrid 096, Prilep 048, Kruševo 098): ask for each one when it is started.
 
 ## Not placed yet
 
-- Nothing: with the Пелагонија map (21) and Вевчани's w at 20.40 every part of the country is on a finished or
-  planned map. Checked on 2026-11-23 in the plan page: a grid of points every 0.005° (about 500 m) inside the
-  country's outline (world-atlas 1:50m, coarse) found none outside the maps, and no two maps overlap. Edges drawn
+- Nothing: every part of the country is on a finished or planned map. Checked on 2026-11-23 against OSM's border of the country (relation 53293, from Nominatim, simplified to about
+  200 m): a grid of points every 0.005° (about 500 m) found none outside the maps, and no two planned maps overlap
+  (finished Брод and Батинци overlap a little, as built). The plan page's own outline (world-atlas 1:50m) is coarse. Edges drawn
   "to the border" are approximate and get checked in OSM when each map is built.
 
 Other municipality seats (Лозово, Чашка, Ранковце, Василево, Босилово, Конче, …) are villages; all fall on one of
