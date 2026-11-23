@@ -660,6 +660,37 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
   was taken with the memory saver on; re-measure before relying on it).
 - 20.5k buildings, ~430k trees, ~68k parked cars, 6.5k cars, 15k people (desktop).
 
+### Load times per step, every map (2026-11-23, v16.0.0, M-series Mac, desktop profile, dev server)
+
+For the F-15's map-to-map flight ([IDEAS.md](IDEAS.md)). `loadCity()` times every step; the last load's
+numbers are `__dbg.loadTimes` (and logged as `load times (ms)`). Files come from the local dev server, so
+`download` here is almost nothing; on the live site it is the network. ms:
+
+| Map | parse | terrain | ground | buildings | cars | trees | pack | assemble | bake | extras | shaders | total |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Скопје | 17 | 38 | 64 | 139 | 48 | 843 | 824 | 170 | 271 | 270 | 65 | 2775 |
+| Батинци | 10 | 33 | 17 | 93 | 17 | 588 | 340 | 52 | 66 | 92 | 90 | 1444 |
+| Матка | 10 | 38 | 22 | 124 | 20 | 1709 | 349 | 81 | 152 | 108 | 39 | 2678 |
+| Брод | 9 | 76 | 27 | 60 | 20 | 3281 | 530 | 105 | 213 | 118 | 34 | 4511 |
+| Крушево | 3 | 13 | 19 | 13 | 3 | 407 | 236 | 43 | 54 | 48 | 33 | 885 |
+| Прилеп | 8 | 55 | 11 | 102 | 17 | 234 | 203 | 58 | 41 | 85 | 36 | 869 |
+| Кавадарци | 5 | 837 | 9 | 46 | 10 | 1432 | 458 | 92 | 100 | 194 | 63 | 3273 |
+| Битола | 10 | 109 | 14 | 114 | 19 | 726 | 328 | 87 | 80 | 112 | 42 | 1670 |
+| Охрид | 17 | 65 | 34 | 188 | 45 | 2547 | 809 | 173 | 136 | 178 | 40 | 4251 |
+| Ресен | 12 | 93 | 35 | 95 | 26 | 2577 | 848 | 178 | 244 | 177 | 42 | 4363 |
+| Вевчани | 9 | 45 | 20 | 88 | 19 | 1877 | 389 | 100 | 196 | 98 | 34 | 2907 |
+| Ростуше | 9 | 44 | 20 | 77 | 19 | 2219 | 458 | 111 | 174 | 106 | 36 | 3297 |
+| Тетово | 32 | 99 | 65 | 358 | 105 | 3156 | 676 | 200 | 235 | 206 | 44 | 5219 |
+| Каменица | 3 | 45 | 8 | 27 | 5 | 1462 | 368 | 84 | 109 | 56 | 36 | 2225 |
+| Дојран | 3 | 21 | 6 | 23 | 5 | 515 | 308 | 66 | 57 | 46 | 31 | 1097 |
+| Берово | 4 | 18 | 5 | 33 | 5 | 450 | 158 | 40 | 39 | 50 | 33 | 862 |
+
+- **Trees are the big step** (half to three quarters of every load: forested maps like Брод, Ресен,
+  Тетово, Охрид 2.2–3.3 s), then `pack` (0.2–0.85 s). `JSON.parse` is small (≤ 32 ms, Тетово); shaders
+  (the first frame) 30–90 ms. Кавадарци's `terrain` is the Луда Мара's channel cut.
+- `extras`: traffic, lamps, landmarks, labels, games and vehicles; `yield` (not shown): waiting for frames, 3–25 ms.
+- Not measured yet: a phone (the plan guesses 3–5× these), the live site's download.
+
 ## Tuning knobs (where to change things)
 
 | What | Where |

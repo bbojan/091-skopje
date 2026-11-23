@@ -202,7 +202,7 @@ function showProgress(stage: StageKey, f: number): void {
   loadBar.style.width = `${Math.round((st[0] + (st[1] - st[0]) * f) * 100)}%`;
   loadText.textContent = t(`stage.${next}`);
 }
-async function fetchJSON<T>(url: string, onProgress: (f: number) => void, expected = 7e6): Promise<T> {
+async function fetchJSON<T>(url: string, onProgress: (f: number) => void, expected = 7e6, onBytes?: () => void): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
   const total = Number(res.headers.get('content-length')) || expected;
@@ -220,6 +220,7 @@ async function fetchJSON<T>(url: string, onProgress: (f: number) => void, expect
   const all = new Uint8Array(got);
   let o = 0;
   for (const p of parts) { all.set(p, o); o += p.length; }
+  onBytes?.();
   return JSON.parse(new TextDecoder().decode(all)) as T;
 }
 // Yield between build stages. Visible: wait for a frame so the progress bar
@@ -238,20 +239,28 @@ const nextFrame = () => new Promise<void>((resolve) => {
 
 let loading = false;
 let shadowReady = false;
+/** how long each step of the last load took, ms (window.__dbg.loadTimes; docs/NOTES.md "Load times") */
+let loadTimes: Record<string, number> = {};
 /** Builds the city in stages behind the loading card; `world` is set when everything exists. */
 async function loadCity(spec: CitySpec): Promise<void> {
   loading = true;
   showLoader(spec);
   const t0 = performance.now();
+  loadTimes = {};
+  let tMark = t0;
+  const mark = (k: string) => { const n = performance.now(); loadTimes[k] = Math.round((loadTimes[k] ?? 0) + n - tMark); tMark = n; };
   showProgress('download', 0);
   const terrainP = Promise.all([
     fetch(spec.files.terrainJson).then((r) => r.json() as Promise<TerrainMeta>),
     fetch(spec.files.terrainBin).then((r) => r.arrayBuffer()),
   ]);
-  const data = await fetchJSON<CityData>(spec.files.scene, (f) => showProgress('download', f * 0.95), spec.sceneBytes);
+  const data = await fetchJSON<CityData>(spec.files.scene, (f) => showProgress('download', f * 0.95), spec.sceneBytes, () => mark('download'));
+  mark('parse');
   const [tm, tb] = await terrainP;
+  mark('download');
   showProgress('download', 1);
   await nextFrame();
+  mark('yield');
   // build on the main thread in stages, letting the progress bar repaint between them
   // (a background worker gets throttled to a fraction of this speed)
   const terrain = new Terrain(tm, new Uint16Array(tb), spec.terrainExag);
@@ -259,9 +268,11 @@ async function loadCity(spec: CitySpec): Promise<void> {
   let desc: CityDesc;
   for (;;) {
     const r = steps.next();
-    if (r.done) { desc = r.value; break; }
+    if (r.done) { desc = r.value; mark('pack'); break; }
+    mark(r.value);
     showProgress(r.value, 1);
     await nextFrame();
+    mark('yield');
   }
   const meta = desc.meta = data.meta;
   const { w: W, h: H } = meta;
@@ -275,12 +286,16 @@ async function loadCity(spec: CitySpec): Promise<void> {
   ink.setClipping(planes);
   showProgress('pack', 1);
   await nextFrame();
+  mark('yield');
   const city = assembleCity(desc, { clippingPlanes: planes, stream: memorySaver });
   scene.add(city.group);
   if (MOBILE || lowTier) city.setLODScale((MOBILE ? 0.65 : 1) * (lowTier ? 0.6 : 1));
+  mark('assemble');
   showProgress('assemble', 1);
   await nextFrame();
+  mark('yield');
   city.bakeGround(renderer, MOBILE ? 256 : 512, spec.sparseFar ?? 0);
+  mark('bake');
   const platform = landmarkGround(data, terrain); // raised monument terraces: people walk on top
   const traffic = createTraffic(city, terrain, { clippingPlanes: planes, buses: spec.buses, platform, ...(MOBILE ? { cars: 2500, people: 5000 } : {}) });
   traffic.setLight(lightTraffic);
@@ -333,6 +348,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   });
   walk.setInvertY(invertY);
   world = { spec, abort, terrain, meta, city, traffic, clouds, birds, gliders, lamps, precip, landmarks, labels, game, fire, flight, drive, walk, planeSpot };
+  mark('extras'); // traffic, lamps, landmarks, labels, games, vehicles
   console.log('city ready in', Math.round(performance.now() - t0), 'ms', city.stats, traffic.counts);
 
   if (!shadowReady) { // once per visit: the shadow map stays from one city to the next
@@ -357,6 +373,14 @@ async function loadCity(spec: CitySpec): Promise<void> {
   applyHash() || setView('center');
   // memory saver: build the detailed ground around the first view before showing it
   for (let i = 0; i < 400; i++) { city.updateLOD(camera); if (!city.streamPending) break; await nextFrame(); }
+  mark('stream');
+  // the first frame compiles the shaders
+  ink.render(scene, camera, false);
+  renderer.getContext().finish();
+  ink.reset();
+  mark('shaders');
+  loadTimes.total = Math.round(performance.now() - t0);
+  console.log('load times (ms)', JSON.stringify(loadTimes));
   showProgress('bake', 1);
   status.textContent = '';
   hideLoader();
@@ -1588,6 +1612,6 @@ renderer.setAnimationLoop(() => {
   ink.render(scene, camera, live);
 });
 
-window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, switchCity, get cityId() { return city.id; }, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; }, get country() { return country; } };
+window.__dbg = { scene, renderer, sun, camera, controls, ink, SHARED, sound, setView, fitShadow, updateCameraRange, switchCity, get cityId() { return city.id; }, get world() { return world; }, get city() { return world?.city; }, get flight() { return world?.flight; }, get country() { return country; }, get loadTimes() { return loadTimes; } };
 
 loadCity(city).catch(loadFailed);
