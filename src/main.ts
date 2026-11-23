@@ -453,6 +453,9 @@ addEventListener('popstate', () => { const id = cityFromUrl(); if (id !== city.i
 
 // city menu under the badge
 const cityBtn = $('city-btn'), cityMenu = $('city-menu');
+const cityList = document.createElement('div');
+cityList.className = 'city-list';
+cityMenu.append(cityList);
 for (const id of CITY_IDS) {
   const spec = CITIES[id];
   const b = document.createElement('button');
@@ -461,28 +464,19 @@ for (const id of CITY_IDS) {
   b.dataset.cityId = id;
   b.innerHTML = `<span class="code">${spec.code}</span><span>${spec.name}</span>`;
   b.addEventListener('click', () => { setCityMenu(false); void switchCity(id); });
-  cityMenu.append(b);
+  cityList.append(b);
 }
 function setCityMenu(open: boolean): void {
   cityMenu.hidden = !open;
   cityBtn.setAttribute('aria-expanded', String(open));
   if (open) fitCityMenu();
-  if (open) cityMenu.querySelector<HTMLElement>('[aria-checked="true"]')?.focus();
+  if (open) cityMenu.querySelector<HTMLElement>('[aria-checked="true"]')?.focus({ preventScroll: true });
+  if (open) cityMenu.querySelector<HTMLElement>('[aria-checked="true"]')?.scrollIntoView({ block: 'nearest' });
 }
-// on a short screen the list wraps into as many columns as it needs (filled top to bottom)
+// one column always; the box stops 8 px above the screen's bottom and the list scrolls inside it (CSS: #city-menu)
 function fitCityMenu(): void {
-  cityMenu.classList.remove('cols');
   if (cityMenu.hidden) return;
-  const r = cityMenu.getBoundingClientRect(), avail = innerHeight - 8 - r.top;
-  if (r.height <= avail) return;
-  // as many columns as the height needs, but no more than fit across the screen (then it scrolls)
-  cityMenu.style.setProperty('--top', `${r.top}px`);
-  cityMenu.classList.add('cols');
-  const items = cityMenu.children.length;
-  for (let cols = Math.min(items, Math.ceil(r.height / Math.max(avail, 1))); cols >= 1; cols--) {
-    cityMenu.style.setProperty('--rows', String(Math.ceil(items / cols)));
-    if (cols === 1 || cityMenu.getBoundingClientRect().right <= innerWidth - 8) break;
-  }
+  cityMenu.style.setProperty('--top', `${cityBtn.getBoundingClientRect().bottom + 8}px`);
 }
 addEventListener('resize', fitCityMenu);
 cityBtn.addEventListener('click', (e) => { e.stopPropagation(); setCityMenu(cityMenu.hidden === true); });
