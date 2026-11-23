@@ -18,26 +18,25 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 28 new maps**, all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 27 new maps**, all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
 |---|---|---|---|---|---|---|
-| Куманово | 1620 | Куманово | | | | |
+| Куманово | 1620 | Куманово | | Струмица | 690 | Струмица |
 | Велес | 1540 | Велес | | Дебарца | 630 | — |
-| Мариово* | 1170 | — | | Демир Хисар | 620 | Демир Хисар |
-| Ново Село* | 1060 | — | | Свети Николе | 580 | Свети Николе |
-| Новаци* | 1060 | — | | Крива Паланка | 570 | Крива Паланка |
-| Кичево | 1030 | Кичево | | Гевгелија | 510 | Гевгелија, Богданци |
-| Скопска Црна Гора* | 1010 | — | | | | |
-| Стоби* | 940 | — | | Валандово | 410 | Валандово |
-| Радовиш | 900 | Радовиш | | Пробиштип | 380 | Пробиштип |
-| Штип | 820 | Штип | | Неготино | 370 | Неготино |
-| Демир Капија | 820 | Демир Капија | | Кораб* | 370 | — |
-| Делчево | 770 | Делчево | | Виница | 340 | Виница |
-| Кратово | 750 | Кратово | | Голо Брдо* | 280 | — |
-| Пелагонија* | 730 | — | | Меџитлија* | 230 | — |
-| Струмица | 690 | Струмица | | Кочани | 190 | Кочани |
+| Мариово* | 1460 | — | | Свети Николе | 580 | Свети Николе |
+| Кичево | 1160 | Кичево | | Крива Паланка | 570 | Крива Паланка |
+| Стоби* | 1150 | — | | Гевгелија | 510 | Гевгелија, Богданци |
+| Ново Село* | 1060 | — | | Валандово | 410 | Валандово |
+| Скопска Црна Гора* | 1010 | — | | Пробиштип | 380 | Пробиштип |
+| Новаци* | 970 | — | | Неготино | 370 | Неготино |
+| Радовиш | 900 | Радовиш | | Кораб* | 370 | — |
+| Штип | 820 | Штип | | Виница | 340 | Виница |
+| Демир Капија | 820 | Демир Капија | | Голо Брдо* | 280 | — |
+| Демир Хисар | 810 | Демир Хисар | | Меџитлија* | 230 | — |
+| Делчево | 770 | Делчево | | Кочани | 190 | Кочани |
+| Кратово | 750 | Кратово | | | | |
 
 \* working names. Only Гевгелија holds two towns now (Богданци is next to it). For comparison, the largest finished
 maps are Брод and Ресен (about 1320 km² each); areas include the parts across the borders.
@@ -48,9 +47,9 @@ terrain stays the full rectangle and every OSM feature in the cut rectangles is 
 in `scripts/config.ts`, `cutOsm()` in `scripts/osm.ts`, used by `prepare.ts` and `terrain.ts`; first used by Матка:
 points and buildings with a corner inside are dropped, roads and rivers split at the edge, areas clipped; download
 tiles wholly inside a cut are skipped), so the corner shows bare relief, as outside a map. The cuts so far:
-Дебарца (Охрид's corner), Демир Хисар (Ресен's), Мариово (Кавадарци's), Вевчани (all of Охрид's
+Дебарца (Охрид's corner), Мариово (Кавадарци's), Вевчани (all of Охрид's
 map: Вевчани is an L around its north-west; built: Охрид's map and the stepped border edge cut), Делчево (Берово's and Радовиш's), Радовиш (Делчево's), Кратово (Крива Паланка's).
-Гевгелија (Дојран's). Велес, Матка (built: Скопје's and Брод's corners cut), Пелагонија, Скопска Црна Гора, Крива Паланка, Делчево, Мариово, Вевчани, Кораб,
+Гевгелија (Дојран's). Велес, Матка (built: Скопје's and Брод's corners cut), Кичево, Демир Хисар, Стоби, Скопска Црна Гора, Крива Паланка, Делчево, Мариово, Вевчани, Кораб,
 Куманово and Ново Село are not rectangles with one corner cut but outlines that go around several maps
 (`shapes` in the plan page); in the app they would be their bounding rectangle with those maps cut out.
 
@@ -82,24 +81,23 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 10 | Гевгелија | 510 | Гевгелија, Богданци | 30 |
 | 11 | Крива Паланка | 570 | Крива Паланка | 26 |
 | 12 | Свети Николе | 580 | Свети Николе | 22 |
-| 13 | Демир Хисар | 620 | Демир Хисар | 11 |
-| 14 | Дебарца | 630 | — | 27 |
-| 15 | Струмица | 690 | Струмица | 4 |
-| 16 | ~~Вевчани~~ built (2026-11-23, out of order) | 690 | — | 12 |
-| 17 | Пелагонија* | 730 | — | 21 |
-| 18 | Кратово | 750 | Кратово | 2 |
-| 19 | Делчево | 770 | Делчево | 13 |
-| 20 | Штип | 820 | Штип | 3 |
-| 21 | Демир Капија | 820 | Демир Капија | 31 |
-| 22 | Радовиш | 900 | Радовиш | 24 |
-| 23 | Стоби* | 940 | — | 25 |
-| 24 | Скопска Црна Гора* | 1010 | — | 33 |
-| 25 | Кичево | 1030 | Кичево | 10 |
-| 26 | Ново Село* | 1060 | — | 14 |
-| 27 | Новаци* | 1060 | — | 34 |
-| 28 | Мариово* | 1170 | — | 16 |
-| 29 | Велес | 1540 | Велес | 15 |
-| 30 | Куманово | 1620 | Куманово | 6 |
+| 13 | Дебарца | 630 | — | 27 |
+| 14 | Струмица | 690 | Струмица | 4 |
+| 15 | ~~Вевчани~~ built (2026-11-23, out of order) | 690 | — | 12 |
+| 16 | Кратово | 750 | Кратово | 2 |
+| 17 | Делчево | 770 | Делчево | 13 |
+| 18 | Демир Хисар | 810 | Демир Хисар | 11 |
+| 19 | Штип | 820 | Штип | 3 |
+| 20 | Демир Капија | 820 | Демир Капија | 31 |
+| 21 | Радовиш | 900 | Радовиш | 24 |
+| 22 | Новаци* | 970 | — | 34 |
+| 23 | Скопска Црна Гора* | 1010 | — | 33 |
+| 24 | Ново Село* | 1060 | — | 14 |
+| 25 | Стоби* | 1150 | — | 25 |
+| 26 | Кичево | 1160 | Кичево | 10 |
+| 27 | Мариово* | 1460 | — | 16 |
+| 28 | Велес | 1540 | Велес | 15 |
+| 29 | Куманово | 1620 | Куманово | 6 |
 
 \* working names. Next to build: the first row.
 
@@ -250,19 +248,23 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 - **Code:** open (phone code 045). `?city=kicevo`.
 - **Extent:** w 20.815 (Ростуше's e), e 21.12 (Брод's w), n 41.725 (Тетово's s), s ~41.36 (Пресека, the pass to
   Охрид: check in OSM). The first Кичево map reached down to Ресен; on 2026-11-23 the owner split its south part off
-  as Дебарца (27). About 1030 km², 20 m cells. No overlaps.
+  as Дебарца (27). The same day it took the west of Пелагонија (21, dropped): an outline (`SHAPES`) that also runs
+  under Брод (41.405–41.45 N, 21.12–21.31 E: over Крушево to its e side) and down Крушево's w side
+  (41.33–41.405 N, 21.12–21.19 E). Its rectangle would be 41.33–41.725 N, 20.815–21.31 E. About 1160 km²,
+  20 m cells. No overlaps.
 - **Landmarks:** Пречиста, the town centre, the Треска's upper valley.
 
 ### 11. Демир Хисар
 
-- **On it:** Демир Хисар, Слепче monastery, Смилево, the hills down to Битола's map and the edge of Пелагонија
-  below Крушево.
+- **On it:** Демир Хисар, Слепче monastery, Смилево, the hills down to Битола's map, the edge of Пелагонија
+  between Крушево and Прилеп (Кривогаштани, Житоше, Ропотово).
 - **Code:** open (phone code 047). `?city=demirhisar`.
 - **Extent:** **edge to edge** (decided with the owner on 2026-11-23): w 21.12 (Дебарца's e), e 21.40 (Битола's e and
   Новаци's w; first 21.49, trimmed so the two do not overlap), n 41.33 (Крушево's s), s 41.085 (Битола's n).
-  About 23 × 27 km, 20 m cells.
-  **Cut corner** (decided 2026-11-23): Ресен's north-east corner (41.085–41.13 N, 21.12–21.165 E, about 5 × 3.7 km)
-  is left out of this map.
+  Ресен's north-east corner (41.085–41.13 N, 21.12–21.165 E) is left out. Later on 2026-11-23 it took the east of
+  Пелагонија (21, dropped): north of Новаци it reaches 21.49 (Прилеп's w) and up to 41.45 (Брод's s) east of Крушево
+  (21.31) and 41.41 (Стоби's s) east of 21.42. An outline (`SHAPES`); its rectangle would be 41.085–41.45 N,
+  21.12–21.49 E. About 810 km², 20 m cells. No overlaps.
 - **Landmarks:** Слепче, Смилево (the Илинден congress), the Црна's upper valley.
 
 ### 12. 046 Вевчани — built (2026-11-23, branch `city-vevcani`)
@@ -330,10 +332,10 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 - **On it:** Мариово (Витолиште, Мемориште, Скочивир, Старавина), Кајмакчалан and the Нице front, the Црна's gorge,
   Тиквешко Езеро's upper end.
 - **Name / code:** open (working name Мариово).
-- **Extent:** decided with the owner on 2026-11-23: n 41.31 (Прилеп's s side, Пелагонија's s), s ~40.85 (past the Greek
-  border everywhere: check in OSM), w 21.65 (Новаци's e: the first Мариово map reached west to Битола and was split,
-  34), e 22.062 (Демир Капија's w). **Cut corner** (decided 2026-11-23): Кавадарци's south-west corner (41.25–41.31 N,
-  21.85–22.062 E) is left out. About 1650 km², 20 m cells; its south is Greece.
+- **Extent:** decided with the owner on 2026-11-23: n 41.41 (Стоби's s, level with Прилеп's n), s ~40.85 (past the Greek
+  border everywhere: check in OSM), w 21.63 (Прилеп's and Новаци's e: the first Мариово map reached west to Битола and
+  was split, 34), e 22.062 (Демир Капија's w), but only up to 41.25 east of 21.85: Кавадарци's map is left out.
+  An outline (`SHAPES`). About 1460 km², 20 m cells; its south is Greece.
   **Trimmed to the border** (2026-11-23): the s edge steps from 41.11 (east) down to 40.87 (west), about 2 km past
   the OSM border with Greece.
 - **Landmarks:** Кајмакчалан's chapel at the summit, the Црна in its canyon, Мариово's stone villages.
@@ -391,16 +393,10 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   would have taken, so the reference map stays as it is.
 - **Landmarks:** Матка, Св. Андреј, Св. Никола Шишевски, the Матка dam.
 
-### 21. Пелагонија (name open)
+### 21. Пелагонија — dropped (2026-11-23)
 
-- **On it:** the Pelagonian plain and hills around Крушево and Прилеп: Долнени, Кривогаштани, Житоше, Ропотово,
-  Сливје, Тополчани, Чепигово; the road and railway between Прилеп and Велес up to Плетвар.
-- **Name / code:** open (working name Пелагонија).
-- **Extent:** decided with the owner on 2026-11-23, an outline with 90° corners (`SHAPES` in `src/zones.ts`):
-  w 21.12 (Кичево's and Дебарца's e), e 21.85 (Кавадарци's w), n 41.45 (Брод's s) and 41.462 (Стоби's s), s 41.33 (Демир Хисар's n)
-  and 41.31 (Мариово's n); Крушево's and Прилеп's maps are cut out of its south edge. Its rectangle would be
-  41.31–41.462 N, 21.12–21.85 E. About 720 km², 20 m cells. No overlaps. With it every part of the country is on a map.
-- **Landmarks:** the plain's villages and fields (`farmMask` as in Битола), Плетвар pass.
+Split up by the owner: the strip west of and above Крушево went to Кичево (10), the part between Крушево and Прилеп
+to Демир Хисар (11), the strip above Прилеп to Стоби (25), the part east of Прилеп to Мариово (16).
 
 ### 22. Свети Николе
 
@@ -432,8 +428,9 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 
 - **On it:** Стоби, Градско, Росоман, the Вардар from Градско to Кавадарци's map, the Црна's mouth.
 - **Name / code:** open (working name Стоби).
-- **Extent:** split off Велес by the owner on 2026-11-23: n 41.62 (Велес's s), s 41.462 (Кавадарци's n), w 21.42 (Брод's e
-  and, below 41.45, Пелагонија's n step), e 22.062 (Неготино's w). About 940 km², 20 m cells. No overlaps.
+- **Extent:** split off Велес by the owner on 2026-11-23: n 41.62 (Велес's s), s 41.41 (Прилеп's n, Демир Хисар's and
+  Мариово's n), w 21.42 (Брод's and Демир Хисар's e), e 22.062 (Неготино's w). **Cut corner:** Кавадарци's north-west
+  part (41.41–41.462 N, 21.85–22.062 E) is left out. About 1150 km², 20 m cells. No overlaps.
 - **Landmarks:** Стоби's ruins (theatre, basilicas, mosaics: Хераклеа's theatre and canvases in `bitola.ts` can
   serve), Градско's Vardar bridge.
 
@@ -518,8 +515,8 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   before the gorge; Нидже's north slopes at the Greek border.
 - **Name / code:** open (working name Новаци, phone code 047).
 - **Extent:** split off Мариово by the owner on 2026-11-23: w 21.40 (Битола's, Меџитлија's and Демир Хисар's e),
-  e 21.65 (Мариово's w), n 41.31 (Пелагонија's and Прилеп's s), s ~40.85 (past the Greek border: check in OSM).
-  About 1060 km², 20 m cells.
+  e 21.63 (Прилеп's e, Мариово's w), n 41.31 (Демир Хисар's and Прилеп's s), s ~40.85 (past the Greek border: check
+  in OSM). About 970 km², 20 m cells.
 - **Landmarks:** the plain's fields (`farmMask`, as Битола), the Црна, the Нице front's western end.
 
 ## Not placed yet
