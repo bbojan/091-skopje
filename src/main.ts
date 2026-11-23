@@ -22,6 +22,7 @@ import { LANGS, lang, t, applyI18n, setLang, onLangChange, type Key } from './i1
 import { CITIES, CITY_IDS, cityFromUrl, urlForCity, type CityId, type CitySpec } from './cities.ts';
 import { loadCountry, createCountryView, type CountryView } from './country.ts';
 import { createCountryGround, type CountryGround } from './countryground.ts';
+import { createRadar, type Radar, type MapState } from './radar.ts';
 import { createPrefetch, lookAhead, mapAt, inMap, type Ahead, type MapFiles } from './hop.ts';
 import type { CityData, MapMeta, TerrainMeta, Vec3 } from './types.ts';
 
@@ -198,13 +199,16 @@ const STAGES: Record<StageKey, [number, number]> = {
 };
 const STAGE_KEYS = Object.keys(STAGES) as StageKey[];
 let lastStage: StageKey = 'download';
+/** how far the map being loaded is, 0…1 (the radar shows it for the map the F-15 flies into) */
+let buildProgress = 0;
 function showProgress(stage: StageKey, f: number): void {
   const st = STAGES[stage];
   // stages report completion; show the next stage's label while it works
   const after = STAGE_KEYS[STAGE_KEYS.indexOf(stage) + 1];
   const next = f >= 1 && after ? after : stage;
   lastStage = next;
-  loadBar.style.width = `${Math.round((st[0] + (st[1] - st[0]) * f) * 100)}%`;
+  buildProgress = st[0] + (st[1] - st[0]) * f;
+  loadBar.style.width = `${Math.round(buildProgress * 100)}%`;
   loadText.textContent = t(`stage.${next}`);
 }
 async function fetchJSON<T>(url: string, onProgress: (f: number) => void, expected = 7e6, onBytes?: () => void): Promise<T> {
@@ -255,6 +259,22 @@ let hopAhead: Ahead | null = null;
 let hopCheck = 0;
 const BUILD_S = MOBILE ? 15 : 5; // a guess at building a map, s (docs/NOTES.md "Load times per step": 1–5 s desktop)
 let hopping = false;
+/** the map being built while the F-15 flies into it */
+let hopTarget: CityId | null = null;
+// ---------------- the F-15's radar (src/radar.ts): desktop only, drawn while the F-15 flies
+let radar: Radar | null = null;
+function radarState(id: CityId): MapState {
+  if (id === hopTarget) return 'loading'; // being built
+  if (id === city.id && !hopTarget) return 'current';
+  if (prefetch.has(id)) return 'ready';
+  if (prefetch.loading(id)) return 'loading';
+  return 'open';
+}
+function drawRadar(f: Flight, meta: MapMeta): void {
+  if (!radar || document.body.classList.contains('mobile')) return;
+  const p = f.pos;
+  radar.draw(meta.lat0 - p.z / meta.ky, meta.lon0 + p.x / meta.kx, f.yaw, radarState, (id) => (id === hopTarget ? buildProgress : prefetch.progress(id)), SHARED.uTime.value);
+}
 /** the F-15 flying on over the country's ground while the next map builds (the old map's plane and coordinates) */
 let transit: { flight: Flight; ground: CountryGround; abort: AbortController; meta: MapMeta } | null = null;
 const latLonOf = (w: World, x: number, z: number): [number, number] => [w.meta.lat0 - z / w.meta.ky, w.meta.lon0 + x / w.meta.kx];
@@ -264,7 +284,8 @@ function edgeOpen(x: number, z: number): boolean {
   if (!w || !w.flight.jet) return false;
   const [lat, lon] = latLonOf(w, x, z);
   if (!inMap(w.spec.id, lat, lon)) return !!mapAt(lat, lon, w.spec.id);
-  return !!hopAhead;
+  // looked up here, not from the once-a-second prediction: right after a take-off near an edge it is not there yet
+  return !!lookAhead(w.meta, w.spec.id, x, z, w.flight.yaw, Math.max(w.flight.speed, 300));
 }
 /** once a second while the F-15 flies: the maps ahead (desktop: also ±45°), downloaded in time */
 function hopPredict(w: World): void {
@@ -296,6 +317,7 @@ async function hop(id: CityId): Promise<void> {
   const files = prefetch.take(id);
   if (!files) return;
   hopping = true;
+  hopTarget = id;
   const f = w.flight, p = f.pos;
   const [lat, lon] = latLonOf(w, p.x, p.z);
   hopCarry = { lat, lon, yaw: f.yaw, agl: p.y - groundAt(p.x, p.z), speed: f.speed, pitch: f.pitch, input: { ...f.input } };
@@ -331,6 +353,7 @@ async function hop(id: CityId): Promise<void> {
     const c = hopCarry;
     hopCarry = null;
     hopping = false;
+    hopTarget = null;
     if (c && world && world.spec.id === id) {
       const m = world.meta, x = (c.lon - m.lon0) * m.kx, z = -(c.lat - m.lat0) * m.ky;
       startFlight(new THREE.Vector3(x, 0, z), c.yaw, c);
@@ -386,6 +409,7 @@ function transitFrame(dt: number): void {
   controls.target.copy(f.pos);
   camera.near = 4; camera.far = 90000; camera.updateProjectionMatrix();
   heatHaze(f);
+  drawRadar(f, tr.meta);
   const h = f.hud;
   flyStats.textContent = `${h.kmh} ${t('u.kmh')} · ${h.alt} ${t('u.m')}`;
   if (soundOn) sound.update(dt, { mode: 'fly', speed: THREE.MathUtils.clamp((h.kmh - 662) / 1988, 0, 1), tractor: false, jet: true, burner: THREE.MathUtils.clamp((h.kmh - 1325) / 1325, 0, 1), dropping: false, scooping: false, fire: 0, rain: wxNow.rain, night: timeNow.night, near: 0 });
@@ -434,6 +458,7 @@ function showCountryGround(on: boolean, x = 0, z = 0): void {
         cgroundLoading = false;
         if (world !== w) return; // another map by now: built on the next frame
         cground = createCountryGround({ data, meta: w.meta, exag: w.spec.terrainExag, mobile: MOBILE });
+        if (!radar && !MOBILE) radar = createRadar({ data, canvas: $<HTMLCanvasElement>('radar') }); // desktop only: no room on phones
         cgroundFor = w;
         scene.add(cground.mesh);
       }).catch((e) => { cgroundLoading = false; console.warn('country terrain:', e); });
@@ -1925,7 +1950,13 @@ renderer.setAnimationLoop(() => {
       }
     }
     $('fly-boost').classList.toggle('on', h.boost);
-    if (flight.jet) { heatHaze(flight); hopUpdate(dt, world); }
+    // the radar before hopUpdate: that may start the switch, which takes the world away at once
+    if (flight.jet) {
+      heatHaze(flight);
+      drawRadar(flight, world.meta);
+      hopUpdate(dt, world);
+      if (!world) return; // the switch has begun: the old map is gone, the transit draws from the next frame
+    }
     else if (hopAhead) { hopAhead = null; prefetch.want([]); $('fly-next').hidden = true; }
     updateRockets(dt, flight);
     traffic.update(dt, camera, controls.target);

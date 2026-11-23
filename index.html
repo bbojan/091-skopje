@@ -215,6 +215,11 @@
       body:not(.racing):not(.firefighting) .game-only, body:not(.racing):not(.firefighting) .fly-flash { display: none; }
       body:not(.firefighting) .fire-only { display: none !important; }
       body:not(.jet) .jet-only { display: none !important; }
+      /* the F-15's radar (src/radar.ts): top left, desktop only (no room beside the sticks on phones and tablets) */
+      .radar { position: absolute; left: 16px; top: 16px; width: 200px; pointer-events: none; }
+      .radar canvas { display: block; width: 200px; height: 200px; border-radius: 50%; border: 2px solid var(--indigo); box-shadow: 2px 2px 0 rgba(75, 52, 40, 0.4); background: #3a3e48; }
+      body.mobile .radar { display: none !important; }
+      @media (max-width: 860px), (max-height: 560px) { .radar { display: none !important; } }
       body.jet .nojet { display: none !important; }
       /* the up/down hints follow the "invert up/down in flight" switch (on: ↑ dives) */
       body.plane-inv .pnorm, body:not(.plane-inv) .pinv { display: none !important; }
@@ -790,6 +795,9 @@
         <span class="chip game-only" id="fly-game"></span>
         <button class="chip snd" aria-label="Звук" data-i18n-aria="a.sound">🔇</button>
         <button class="chip" id="fly-exit" data-i18n="fly.exit">✕ Излез</button>
+      </div>
+      <div class="radar jet-only" id="radar-box">
+        <canvas id="radar" role="img" aria-label="Радар: мапите околу авионот" data-i18n-aria="a.radar"></canvas>
       </div>
       <div class="fly-nav game-only" id="fly-nav"><div class="arrow" id="fly-arrow"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 L35 20 H26 V37 H14 V20 H5 Z" fill="#d8322a" stroke="#4b3428" stroke-width="2.5" stroke-linejoin="round"/></svg></div><span class="chip" id="fly-dist"></span></div>
       <div class="fly-flash" id="fly-flash"></div>

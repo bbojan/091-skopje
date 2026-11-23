@@ -147,6 +147,8 @@ export function createPrefetch(o: { maxMaps: number; budget: number }) {
     /** slow frames: no new download starts meanwhile */
     pause(v: boolean): void { paused = v; if (!v) pump(); },
     has: (id: CityId) => ready.has(id),
+    /** downloading now */
+    loading: (id: CityId) => current?.id === id,
     /** the downloaded files, handed over once (they leave the cache) */
     take(id: CityId): MapFiles | null { const f = ready.get(id); ready.delete(id); return f ?? null; },
     /** 0…1 while it downloads, 1 when ready, 0 otherwise */
