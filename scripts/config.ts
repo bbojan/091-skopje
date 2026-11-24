@@ -306,6 +306,16 @@ export const CITIES = {
     files: { raw: 'data/negotino_raw.json', scene: 'public/negotino.json', terrainBin: 'public/negotino-terrain.bin', terrainJson: 'public/negotino-terrain.json', overture: 'data/negotino_overture.json' },
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Демир Капија (docs/TOWNS_TODO.md, 31): the town at the mouth of the Демиркаписка Клисура (the Вардар between the
+  // cliffs of the Железна Врата), its wineries (Кралска винарија Кралица Марија, Попова Кула, Грков in Крњево), Хотел
+  // Вердисо, the Бошава valley, Корешница, Кожуф with its ski centre down to the Greek border (~41.13–41.17 N in OSM, the s
+  // edge 41.10: Νότια and Περίκλεια). Edge to edge with Кавадарци (w), Неготино (n), Валандово and Гевгелија (e)
+  demirkapija: {
+    bbox: { s: 41.10, w: 22.062, n: 41.445, e: 22.32 },
+    tiles: [5, 7] as [number, number],
+    files: { raw: 'data/demirkapija_raw.json', scene: 'public/demirkapija.json', terrainBin: 'public/demirkapija-terrain.bin', terrainJson: 'public/demirkapija-terrain.json', overture: 'data/demirkapija_overture.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: Box; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec; cut?: Box[] }>;
 
 export type CityName = keyof typeof CITIES;

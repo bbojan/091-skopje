@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -1611,6 +1611,94 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill',
     bestRaceKey: 'skopje.bestRace.negotino',
     banners: { fire: 'Неготино е спасено!', roll: 'Поздрав од Повардарие!' },
+  },
+  demirkapija: {
+    id: 'demirkapija', name: 'Демир Капија', code: '043', icon: './favicon-demirkapija.svg',
+    files: { scene: './demirkapija.json', terrainBin: './demirkapija-terrain.bin', terrainJson: './demirkapija-terrain.json' },
+    sceneBytes: 1.9e6,
+    views: {
+      // the town at the mouth of the gorge with the wineries west of it, from the south
+      center: { ll: [41.41000, 22.23700], d: 1500, polar: 0.86, az: 0.25 },
+      dkpopova: { place: 'dkpopova', ll: [41.41063, 22.22630], d: 120, polar: 1.02, az: 0.75 }, // the tower and the arcade from the lawn
+      dkvila: { place: 'dkvila', ll: [41.41424, 22.23290], d: 110, polar: 0.98, az: 0.35 }, // Вила Марија in its park, the peacocks
+      dkmarija: { place: 'dkmarija', ll: [41.41431, 22.23325], d: 330, polar: 0.92, az: 0.6 }, // the royal winery: cellars, tanks, apartments, amphitheatre
+      dkverdisso: { place: 'dkverdisso', ll: [41.41549, 22.22856], d: 130, polar: 1.0, az: 1.0 }, // the hotel and its pool from the lawn
+      dkklisura: { ll: [41.39900, 22.26900], d: 2100, polar: 1.05, az: 0.75 }, // up the gorge from its south-east end toward the town
+      dkkozuf: { place: 'dkski', ll: [41.17829, 22.20021], d: 1700, polar: 1.08, az: 0.2 }, // the ski centre under Зелен Брег
+      overview: { ll: [41.29000, 22.19100], d: 27000, polar: 0.85, az: Math.PI }, // from the north: the vineyards, Кожуф behind
+    },
+    districts: [
+      ['Демир Капија', 41.40871, 22.24186], ['Корешница', 41.43476, 22.23762, 30], ['Бесвица', 41.38390, 22.18309, 30],
+      ['Чифлик', 41.39094, 22.22202, 30], ['Барово', 41.34462, 22.14040, 30], ['Бохула', 41.28778, 22.16108, 30],
+      ['Чемерско', 41.29359, 22.14172, 30], ['Конопиште', 41.24800, 22.07624, 30], ['Радња', 41.27543, 22.21920, 30],
+      ['Крњево', 41.30819, 22.12769, 30], ['Долна Бошава', 41.29472, 22.10620, 30], ['Горна Бошава', 41.28316, 22.10801, 30],
+      ['Страгово', 41.32438, 22.10456, 30], ['Вешје', 41.38579, 22.13696, 30], ['Дрен', 41.36692, 22.24619, 30],
+      ['Драчевица', 41.34998, 22.19655, 30], ['Кошарка', 41.40108, 22.31516, 30], ['Челевец', 41.42410, 22.27777, 30],
+      ['Прждево', 41.42028, 22.16641, 30], ['Тремник', 41.43960, 22.15349, 30], ['Долни Дисан', 41.42910, 22.09518, 30],
+      ['Горни Дисан', 41.39242, 22.10763, 30], ['Клисура', 41.38418, 22.29324, 30],
+      ['Демиркаписка Клисура', 41.39800, 22.27400, 120], ['Кожуф', 41.15500, 22.19500, 200],
+    ],
+    labels: [
+      ['Попова Кула', 41.41063, 22.22630, 26, 'dkpopova'],
+      ['Хотел Вердисо', 41.41549, 22.22856, 16, 'dkverdisso'],
+      ['Кралска винарија Кралица Марија', 41.41431, 22.23325, 18, 'dkmarija'],
+      ['Вила Марија', 41.41424, 22.23290, 16, 'dkvila'],
+      ['Амфитеатар', 41.41377, 22.23439, 8, 'dkamfi'],
+      ['Винарија Грков', 41.31542, 22.12812, 14, 'dkgrkov'],
+      ['Музеј на виното', 41.40865, 22.24467, 12, 'dkmuzej'],
+      ['Успение на Пресвета Богородица', 41.40920, 22.23675, 14, 'dkcrkva'],
+      ['Железничка станица', 41.40933, 22.24462, 10, 'dkstanica'],
+      ['Демиркаписки Прозори', 41.41053, 22.26094, 30, 'dkprozori'],
+      ['Ски центар Кожуф', 41.17829, 22.20021, 20, 'dkski'],
+      ['Зелен Брег', 41.16198, 22.20555, 12],
+      ['Порта', 41.15557, 22.17086, 12, 'dkporta'],
+      ['Дудица', 41.12611, 22.14406, 12, 'dkdudica'],
+      ['Св. Ѓорѓи', 41.33910, 22.25456, 12],
+      ['Моклишко Езеро', 41.36612, 22.06163, 6],
+      ['Вардар', 41.41700, 22.21500, 6, undefined, 'river'],
+      ['Бошава', 41.31655, 22.16328, 6, undefined, 'river'],
+    ],
+    // the wine road: from Попова Кула past the hotel and the royal winery, through the town, down the gorge and back
+    // over the vineyards of the Бошава valley and Крњево
+    route: [
+      ['Попова Кула', 41.41063, 22.22630, 60, 'dkpopova'],
+      ['Хотел Вердисо', 41.41549, 22.22856, 50, 'dkverdisso'],
+      ['Вила Марија', 41.41424, 22.23290, 50, 'dkvila'],
+      ['Демир Капија', 41.40890, 22.24450, 60],
+      ['Демиркаписки Прозори', 41.41053, 22.26094, 70, 'dkprozori'],
+      ['Демиркаписка Клисура', 41.39400, 22.27800, 60],
+      ['Клисура', 41.38418, 22.29324, 60],
+      ['Дрен', 41.36692, 22.24619, 70],
+      ['Драчевица', 41.34998, 22.19655, 70],
+      ['Винарија Грков', 41.31542, 22.12812, 60, 'dkgrkov'],
+      ['Барово', 41.34462, 22.14040, 70],
+      ['Бесвица', 41.38390, 22.18309, 60],
+      ['Кралица Марија', 41.41377, 22.23439, 50, 'dkamfi'],
+    ],
+    spots: [
+      ['dk.town', 'Демир Капија', 41.40890, 22.24450, 70],
+      ['dk.popova', 'Попова Кула', 41.41063, 22.22630, 60, 'dkpopova'],
+      ['dk.marija', 'Кралица Марија', 41.41431, 22.23325, 90, 'dkmarija'],
+      ['dk.vila', 'Вила Марија', 41.41424, 22.23290, 40, 'dkvila'],
+      ['dk.verdisso', 'Хотел Вердисо', 41.41549, 22.22856, 50, 'dkverdisso'],
+      ['dk.muzej', 'Музеј на виното', 41.40865, 22.24467, 30, 'dkmuzej'],
+      ['dk.grkov', 'Винарија Грков', 41.31542, 22.12812, 60, 'dkgrkov'],
+      ['dk.klisura', 'Демиркаписка Клисура', 41.41023, 22.25282, 120],
+      ['dk.kozuf', 'Ски центар Кожуф', 41.17829, 22.20021, 150, 'dkski'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.40871, 22.24186], near: 3000, far: 9000, min: 0.06, grow: 2 },
+    sparseFar: 1500, // most of the map is the bare and wooded slopes of Кожуф
+    // the Демир Капија vineyards: on the gentle slopes round the town and in the Бошава valley, almost all vines
+    vineyards: 650,
+    vineShare: 0.8,
+    walker: 'pejo',
+    snowLabel: 'weather.kozuf',
+    refillLabel: 'fire.refill.tetovo', // „Наполни вода од Вардар“
+    bestRaceKey: 'skopje.bestRace.demirkapija',
+    banners: { fire: 'Вардар ја спаси Демир Капија!', roll: 'На здравје од Демир Капија!' },
   },
 };
 

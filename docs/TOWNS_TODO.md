@@ -5,7 +5,7 @@
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
 045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. **Built, not yet released:** 0903 Кочани (branch `city-kocani`,
 2026-11-24), 047 Меџитлија (branch `city-medzitlija`, 2026-11-24), 031 Кратово (branch `city-kratovo`, 2026-11-24, developer
-Бранко Славков), 043 Неготино (branch `negotino`, 2026-11-24, developer Ристе Самарџиев). Details in the first table below.
+Бранко Славков), 043 Демир Капија (branch `demirkapija`, 2026-11-24, developer Ристе Самарџиев), 043 Неготино (branch `negotino`, 2026-11-24, developer Ристе Самарџиев). Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
@@ -177,7 +177,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 17 | Делчево | 770 | Делчево | 13 |
 | 18 | Демир Хисар | 810 | Демир Хисар | 11 |
 | 19 | Штип | 820 | Штип | 3 |
-| 20 | Демир Капија | 820 | Демир Капија | 31 |
+| 20 | ~~Демир Капија~~ built (2026-11-24, branch `demirkapija`, out of order) | 820 | Демир Капија | 31 |
 | 21 | Радовиш | 900 | Радовиш | 24 |
 | 22 | Новаци* | 970 | — | 34 |
 | 23 | Скопска Црна Гора* | 1010 | — | 33 |
@@ -590,7 +590,7 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
   Дојран's map as a **cut corner**.
 - **Landmarks:** the Vardar plain, Негорски Бањи, the wind farm, the border crossing at Богородица.
 
-### 31. Демир Капија
+### 31. 043 Демир Капија ✓ built (2026-11-24, branch `demirkapija`, not yet released; NOTES.md item 48; developer Ристе Самарџиев)
 
 - **On it:** Демир Капија and its gorge, Кожув, the Vardar from the gorge south toward Удово, Попова Кула winery.
 - **Code:** open (phone code 043). `?city=demirkapija`.

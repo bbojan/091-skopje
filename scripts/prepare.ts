@@ -689,6 +689,41 @@ const PREP: Record<CityName, CityPrep> = {
     // the churches the height guess made into blocks
     buildingTags: { 1069000600: { 'building:levels': '1', height: '9' }, 1041472847: { 'building:levels': '1', height: '8' }, 1049164095: { 'building:levels': '1', height: '8' } },
   },
+  demirkapija: {
+    old: null,
+    square: [41.40890, 22.24450], // the town square by the railway station (Commons photo of 2024; OSM has no square there)
+    landmarks: {},
+    // modelled by hand after photos and the aerial image (src/demirkapija.ts): Попова Кула's tower, wings and arcade on
+    // the hotel's outline, Хотел Вердисо on its outline (its pool beside it)
+    models: { dkpopova: 180708709, dkverdisso: 1456736044 },
+    // OSM lacks them (read off the aerial image): the royal winery Кралица Марија's villa (Вила Марија, 1934), the yard of
+    // steel tanks with the two tiled halls either side of it, the old royal cellar (a U open to the south-east), the
+    // amphitheatre in its park
+    modelRects: {
+      dkvila: [41.41424, 22.23290, 24, 15, -0.705],
+      dkcisterni: [41.41442, 22.23371, 48, 44, 1.15],
+      dkpodrum: [41.41489, 22.23433, 51.5, 41, 2.496],
+      dkamfi: [41.41377, 22.23439, 36, 36, 0.785],
+      // Попова Кула's lawn in front of the arcade: cypresses and shrubs (src/demirkapija.ts), no generated forest
+      dkpopovalawn: [41.41040, 22.22648, 48, 24, 0.871],
+    },
+    placeNames: {},
+    placeIds: {
+      dkpopova: 180708709, dkverdisso: 1456736044, dkmarija: 867034770, dkgrkov: 180725215, dkmuzej: 1436090228,
+      dkcrkva: 1062140984, dkstanica: 637905168,
+    },
+    placeNodes: { dktown: 420488854, dkski: 1911952052, dkporta: 3209120917, dkdudica: 3546184497, dkkula: 1999950887, dkprozori: 12506557078 },
+    nodeLL: {
+      420488854: [41.40871, 22.24186], 1911952052: [41.17829, 22.20021], 3209120917: [41.15557, 22.17086], // Демир Капија, Ски центар Кожуф, Порта
+      3546184497: [41.12611, 22.14406], 1999950887: [41.40562, 22.24912], 12506557078: [41.41053, 22.26094], // Дудица, the tower by the railway, Демиркаписки Прозори
+    },
+    tall: [],
+    // the few blocks of flats in the middle of Демир Капија
+    mid: [[41.4070, 41.4110, 22.2410, 22.2470]],
+    squareBonus: false,
+    maxLevels: 5,
+    buildingTags: { 180722338: { 'building:levels': '1', height: '7' } }, // Попова Кула's production hall
+  },
   brod: {
     old: null,
     square: [41.50676, 21.21943], // the paved square by the municipality building in Македонски Брод
