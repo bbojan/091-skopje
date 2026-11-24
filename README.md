@@ -8,7 +8,7 @@ An illustrated, living 3D map of Skopje — from Gjorče Petrov to Gazi Baba and
 
 Илустрирана, жива 3Д мапа на Скопје, нацртана од отворените податоци на OpenStreetMap.
 
-More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **097 Битола** (Bitola, the city of consuls under Pelister) **096 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **098 Прилеп** (Prilep under Markovi Kuli) **048 Крушево** (Kruševo, the town of the Ilinden Uprising) **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) **034 Дојран** (Dojran and the whole of Lake Dojran) **02 Батинци** (Batinci and its surroundings south of Skopje, to Marko's Monastery) **033 Берово** (Berovo, Pehčevo and the whole of Berovo Lake) **094 Тетово** (Tetovo, Gostivar and the Šar Mountains) **045 Македонски Брод** (Makedonski Brod, Lake Kozjak and the Treska) **047 Ресен** (Resen and the whole of Lake Prespa) **02 Матка** (the Matka Canyon and the land west of Skopje) and **046 Вевчани** (Vevčani and Drimkol under Jablanica) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica, https://bbojan.github.io/091-skopje/?city=dojran, https://bbojan.github.io/091-skopje/?city=batinci, https://bbojan.github.io/091-skopje/?city=berovo, https://bbojan.github.io/091-skopje/?city=tetovo, https://bbojan.github.io/091-skopje/?city=brod, https://bbojan.github.io/091-skopje/?city=resen, https://bbojan.github.io/091-skopje/?city=matka, https://bbojan.github.io/091-skopje/?city=vevcani
+More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš wine region), **097 Битола** (Bitola, the city of consuls under Pelister) **096 Охрид** (Ohrid and Struga with the whole of Lake Ohrid) **098 Прилеп** (Prilep under Markovi Kuli) **048 Крушево** (Kruševo, the town of the Ilinden Uprising) **033 Македонска Каменица** (Makedonska Kamenica, the miners' town under Osogovo) **034 Дојран** (Dojran and the whole of Lake Dojran) **02 Батинци** (Batinci and its surroundings south of Skopje, to Marko's Monastery) **033 Берово** (Berovo, Pehčevo and the whole of Berovo Lake) **094 Тетово** (Tetovo, Gostivar and the Šar Mountains) **045 Македонски Брод** (Makedonski Brod, Lake Kozjak and the Treska) **047 Ресен** (Resen and the whole of Lake Prespa) **02 Матка** (the Matka Canyon and the land west of Skopje) **046 Вевчани** (Vevčani and Drimkol under Jablanica) and **0903 Кочани** (Kočani and the rice fields of its plain) — are chosen from the badge at the top left or opened directly with `?city=`: https://bbojan.github.io/091-skopje/?city=kavadarci, https://bbojan.github.io/091-skopje/?city=bitola, https://bbojan.github.io/091-skopje/?city=ohrid, https://bbojan.github.io/091-skopje/?city=rostuse, https://bbojan.github.io/091-skopje/?city=prilep, https://bbojan.github.io/091-skopje/?city=krusevo, https://bbojan.github.io/091-skopje/?city=kamenica, https://bbojan.github.io/091-skopje/?city=dojran, https://bbojan.github.io/091-skopje/?city=batinci, https://bbojan.github.io/091-skopje/?city=berovo, https://bbojan.github.io/091-skopje/?city=tetovo, https://bbojan.github.io/091-skopje/?city=brod, https://bbojan.github.io/091-skopje/?city=resen, https://bbojan.github.io/091-skopje/?city=matka, https://bbojan.github.io/091-skopje/?city=vevcani, https://bbojan.github.io/091-skopje/?city=kocani
 
 ## Features
 
@@ -95,6 +95,11 @@ More towns — **043 Кавадарци** (Kavadarci, the centre of the Tikveš 
 - Hand-built after photos: the church of St. Nicholas, wooden footbridges over the stream below the springs
 - Its own places, labels, race route (12 rings), walking info cards; firefighting refills from Lake Globočica; no ЈСП buses
 
+**Kočani** (`?city=kocani`)
+- Kočani and its plain: the rice paddies along the Bregalnica (green in summer, flooded in spring, golden in autumn), Obleševo, Zrnovci and the slopes of Plačkovica, on real terrain
+- Hand-built after photos: the two Ottoman towers (the medieval tower and the clock tower), the Monument to Freedom on Lokubija with its mosaics
+- Its own places, labels, race route (12 rings), walking info cards; firefighting refills from the Bregalnica; no ЈСП buses
+
 **Time, weather and seasons**
 - Day, sunset and night (lit windows, street lamps, headlights), drifting clouds, birds, paragliders over Vodno, flowing river
 - Weather: clear, rain (wet streets, puddles, umbrellas), snow, or snow only on Vodno
@@ -160,6 +165,7 @@ npm run download -- brod && npm run overture -- brod && npm run terrain -- brod 
 npm run download -- resen && npm run overture -- resen && npm run terrain -- resen && npm run data -- resen
 npm run download -- matka && npm run overture -- matka && npm run terrain -- matka && npm run data -- matka
 npm run download -- vevcani && npm run overture -- vevcani && npm run terrain -- vevcani && npm run data -- vevcani
+npm run download -- kocani && npm run terrain -- kocani && npm run data -- kocani   # Overture adds nothing here
                    # when Overpass is down: scripts/pbf2overpass.py writes data/<city>_raw.json from Geofabrik extracts
 ```
 

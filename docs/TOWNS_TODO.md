@@ -3,7 +3,8 @@
 **Finished: 16 maps, all on the site** (v16.0.0, 2026-11-23; 02 Матка and 046 Вевчани added in it): 091 Скопје, 043 Кавадарци, 097 Битола,
 096 Охрид (with Струга), 098 Прилеп, 048 Крушево, 042 Ростуше (with Дебар and Маврово),
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
-045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. Details in the first table below.
+045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. **Built, not yet released:** 0903 Кочани (branch `city-kocani`,
+2026-11-24). Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
@@ -18,7 +19,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 27 new maps**, all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 26 new maps** (Кочани built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -35,7 +36,7 @@ towns on it):
 | Штип | 820 | Штип | | Виница | 340 | Виница |
 | Демир Капија | 820 | Демир Капија | | Голо Брдо* | 280 | — |
 | Демир Хисар | 810 | Демир Хисар | | Меџитлија* | 230 | — |
-| Делчево | 770 | Делчево | | Кочани | 190 | Кочани |
+| Делчево | 770 | Делчево | | ~~Кочани~~ built | 190 | Кочани |
 | Кратово | 750 | Кратово | | | | |
 
 \* working names. Only Гевгелија holds two towns now (Богданци is next to it). For comparison, the largest finished
@@ -99,7 +100,7 @@ its own.
 | Струмица | **0902** | 034 | **0902** | |
 | Валандово | 0902 | 034 | 034 | shares 034 |
 | Ново Село | 0902 | 034 | 034 | shares 034 |
-| Кочани | **0903** | 033 | **0903** | |
+| Кочани ✓ | **0903** | 033 | **0903** | built 2026-11-24 |
 | Каменица ✓ | 0903 | 033 | 033 | as now; shares 033 |
 | Берово, Пехчево ✓ | 0903 | 033 | 033 | as now; shares 033 |
 | Виница | 0903 | 033 | 033 | shares 033 |
@@ -156,7 +157,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 
 | # | Map | ~km² | Towns | Section |
 |---|---|---|---|---|
-| 1 | Кочани | 190 | Кочани | 23 |
+| 1 | ~~Кочани~~ built (2026-11-24, branch `city-kocani`) | 190 | Кочани | 23 |
 | 2 | Меџитлија* | 230 | — | 17 |
 | 3 | Голо Брдо* | 280 | — | 19 |
 | 4 | Виница | 340 | Виница | 32 |
@@ -493,8 +494,11 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
   (Куманово's s), w 21.75 (Велес's), e 22.062 (Штип's and Пробиштип's w). About 22 × 26 km, 20 m cells. No overlaps.
 - **Landmarks:** the town centre and its church, Овче Поле's fields (`farmMask`), the hills toward Штип.
 
-### 23. Кочани
+### 23. Кочани ✓ built (2026-11-24, branch `city-kocani`, not yet released; NOTES.md item 44)
 
+- **Built:** the box below as planned, 2,902 buildings (OSM only; Overture adds nothing), the rice paddies (`rice`, new),
+  the two Ottoman towers and Споменик на слободата modelled, refilling over the Брегалница. Кочанско Езеро (Гратче) is
+  **not** on it: it lies at 41.96 N, 1.5 km north of the box, on Пробиштип's map.
 - **On it:** Кочани and its rice fields, Облешево, Зрновци, Кочанско Езеро (Гратче) at the north edge.
 - **Code:** open (phone code 033). `?city=kocani`.
 - **Extent:** split off Штип by the owner on 2026-11-23: s 41.80 (Радовиш's n), n 41.945 (Пробиштип's s), w 22.32 (Штип's e),
@@ -544,7 +548,8 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
 
 ### 28. Пробиштип
 
-- **On it:** Пробиштип, Злетово, Лесновски манастир, the Злетовска Река.
+- **On it:** Пробиштип, Злетово, Лесновски манастир, the Злетовска Река; also Кочанско Езеро (Брана Гратче, 41.959–41.967 N,
+  22.40–22.42 E), just north of Кочани's map (found while building Кочани, 2026-11-24).
 - **Code:** open (phone code 032). `?city=probistip`.
 - **Extent:** split off Кратово by the owner on 2026-11-23: s 41.945 (Штип's and Кочани's n), n ~42.04 (between the two
   towns: check in OSM), w 22.062 (Свети Николе's and Куманово's e), e 22.495 (Каменица's w). About 380 km², 20 m cells.
