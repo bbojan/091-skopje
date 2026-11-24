@@ -627,6 +627,11 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    the next map lies inside the old one's rectangle (Матка → Скопје / Брод, Вевчани → Охрид). The transit's ground no
    longer sinks (`setSink(false)` in `countryground.ts`). Checked Брод → Матка → Тетово → Ростуше and Матка → Скопје;
    after every arrival the heights agree (0–1 m). New-town guide: the F-15 steps (`zones.ts`, the F-15 check).
+43. **v26.0.3** (2026-11-24): flying from map to map, the next map shows when the loader closes (the warm-up after
+   the build took 2.2 s for Ростуше's ~9,600 pieces, now 0.14 s, and the loader stays until the map shows). On phones
+   (reported by the owner from a phone): Тетово (21.5 MB, over the 20 MB phone budget) never loaded and was
+   downloaded again and again, now it loads from the network at the switch; with the memory saver the ground round
+   the entry is built before the map shows. Checked with phone emulation: Брод → Матка → Тетово → Ростуше.
 
 ## Country view (Nov 2026)
 
