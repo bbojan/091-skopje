@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'kratovo', 'stip', 'strumica', 'vevcani', 'batinci', 'matka'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -1541,6 +1541,76 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.resen',
     bestRaceKey: 'skopje.bestRace.resen',
     banners: { fire: 'Преспа го спаси Ресен!', roll: 'Поздрав од Преспа!' },
+  },
+  negotino: {
+    id: 'negotino', name: 'Неготино', code: '043', icon: './favicon-negotino.svg',
+    files: { scene: './negotino.json', terrainBin: './negotino-terrain.bin', terrainJson: './negotino-terrain.json' },
+    sceneBytes: 1.2e6,
+    views: {
+      center: { place: 'ngsquare', ll: [41.48431, 22.09079], d: 520, polar: 0.8, az: 0.1 },
+      ngatanas: { place: 'ngatanas', ll: [41.48776, 22.09356], d: 110, polar: 0.98, az: -0.25 }, // from Партизанска, the bell tower on the left
+      ngmanastir: { place: 'ngmanastir', ll: [41.49363, 22.10811], d: 150, polar: 0.98, az: 0.35 }, // the porch side, the bell tower behind
+      ngtec: { ll: [41.45742, 22.16064], d: 900, polar: 1.22, az: 2.75 }, // the chimney from the Вардар to the north, all of it in view
+      ngvardar: { ll: [41.51500, 22.12000], d: 2000, polar: 1.15, az: -2.5 }, // the Вардар's bends by Криволак, under the clouds
+      // the map is 21.5 × 17.3 km, wider east–west: from the south
+      overview: { ll: [41.51900, 22.19100], d: 27000, polar: 0.72, az: 0 },
+    },
+    districts: [
+      ['Неготино', 41.48442, 22.09059], ['Тимјаник', 41.46835, 22.08219, 30], ['Дуброво', 41.47039, 22.14611, 30],
+      ['Војшанци', 41.47562, 22.16525, 30], ['Бистренци', 41.44825, 22.20198, 30], ['Липа', 41.47867, 22.24618, 30],
+      ['Брусник', 41.51168, 22.20617, 30], ['Калањево', 41.50540, 22.26466, 30], ['Пепелиште', 41.51894, 22.12836, 30],
+      ['Криволак', 41.52728, 22.12140, 30], ['Вардар Чифлик', 41.54195, 22.11237, 30], ['Црвени Брегови', 41.53852, 22.08754, 30],
+      ['Загорци', 41.54838, 22.30415, 30], ['Гарван', 41.55930, 22.28985, 30], ['Пиперово', 41.57478, 22.26899, 30],
+      ['Лесковица', 41.59597, 22.24551, 30],
+    ],
+    labels: [
+      ['Плоштад', 41.48431, 22.09079, 12, 'ngsquare'],
+      ['Општина Неготино', 41.48357, 22.08901, 26, 'ngtownhall'],
+      ['Дом на култура', 41.48445, 22.09117, 12, 'ngdom'],
+      ['Св. Атанасиј Велики', 41.48776, 22.09356, 20, 'ngatanas'],
+      ['Неготински манастир', 41.49363, 22.10811, 20, 'ngmanastir'],
+      ['Спомен-костурница', 41.49066, 22.09903, 10, 'ngkosturnica'],
+      ['Антигонеја', 41.50341, 22.10039, 8, 'ngantigona'],
+      ['ЖС Неготино', 41.49770, 22.10448, 12, 'ngstation'],
+      ['ТЕЦ Неготино', 41.45742, 22.16064, 135],
+      ['Орлово Брдо', 41.57050, 22.13086, 20, 'orlovo'],
+      ['Вардар', 41.50111, 22.12305, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Плоштад', 41.48431, 22.09079, 60, 'ngsquare'],
+      ['Св. Атанасиј Велики', 41.48776, 22.09356, 50, 'ngatanas'],
+      ['Неготински манастир', 41.49363, 22.10811, 50, 'ngmanastir'],
+      ['Антигонеја', 41.50341, 22.10039, 50, 'ngantigona'],
+      ['Пепелиште', 41.51894, 22.12836, 55],
+      ['Вардар', 41.54035, 22.11734, 40],
+      ['Орлово Брдо', 41.57050, 22.13086, 60, 'orlovo'],
+      ['Пиперово', 41.57478, 22.26899, 60],
+      ['Брусник', 41.51168, 22.20617, 60],
+      ['Липа', 41.47867, 22.24618, 60],
+      ['ТЕЦ Неготино', 41.46000, 22.16064, 90],
+      ['Дуброво', 41.47039, 22.14611, 55],
+      ['Тимјаник', 41.46835, 22.08219, 55],
+      ['Плоштад', 41.48431, 22.09079, 60, 'ngsquare'],
+    ],
+    spots: [
+      ['ng.town', 'Неготино', 41.48431, 22.09079, 70, 'ngsquare'],
+      ['ng.atanas', 'Св. Атанасиј Велики', 41.48776, 22.09356, 40, 'ngatanas'],
+      ['ng.manastir', 'Неготински манастир', 41.49363, 22.10811, 50, 'ngmanastir'],
+      ['ng.antigona', 'Антигонеја', 41.50341, 22.10039, 120, 'ngantigona'],
+      ['ng.tec', 'ТЕЦ Неготино', 41.45742, 22.16064, 250],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.48442, 22.09059], near: 3500, far: 9000, min: 0.1, grow: 1.7 },
+    sparseFar: 1500,
+    // Повардарие: vineyards and fields on the gentle land round the town and along the Вардар (the Тиквеш share)
+    vineyards: 420,
+    walker: 'pejo',
+    snowLabel: 'weather.hills',
+    refillLabel: 'fire.refill',
+    bestRaceKey: 'skopje.bestRace.negotino',
+    banners: { fire: 'Неготино е спасено!', roll: 'Поздрав од Повардарие!' },
   },
 };
 
