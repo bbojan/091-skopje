@@ -725,6 +725,10 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    (the pane gave no screenshot frames). Seen: white spikes of draped road along Кнежевско Езеро's steep shore (`waterPad`
    on 20 m cells, as in Матка). Not checked: flying in from Каменица or Кочани, phones, firefighting and the race, night and
    snow views, the walking cards one by one, the towers and bridges against photos.
+   Added after the developer tried it: **Хотел Кратис** (OSM's 5-storey outline, label and walking card) and **Ѕингова куќа**
+   (label and walking card at the developer's point 42.079194, 22.172667; OSM has no name there, the nearest outline, way
+   1069222099, is ~10 m off). Кратово is also called „Ѕинго Land“: in the town's card and the roll banner „Поздрав од Ѕинго
+   Land!“ (Latin texts write Dzingo).
 
 ## Country view (Nov 2026)
 
