@@ -527,6 +527,36 @@ const PREP: Record<CityName, CityPrep> = {
     // the Вевчанска from the springs, a line in OSM: widened into a narrow strip of water under the footbridges
     waterLines: [[228209279, 2.5]],
   },
+  kocani: {
+    old: null,
+    square: [41.92120, 22.41090], // in front of Општина Кочани (OSM has no square there)
+    landmarks: {},
+    // modelled by hand after photos (src/kocani.ts): the two Ottoman towers on either bank of the Кочанска Река (the
+    // western one restored, 18.5 m; the eastern one the Саат-кула, a ruin with the clock's brick drum on its roof) and
+    // Споменик на слободата on Локубија
+    models: { kkula: 184307286, ksaat: 184313963, ksloboda: 1044325422 },
+    placeNames: {},
+    placeIds: { kkula: 184307286, ksaat: 184313963, ksloboda: 1044325422, lokubija: 37879858, townhall: 184154770, gjorgji: 37866487, preobrazenie: 1212048120, dudi: 851312559, dobravoda: 184298875, morodvis: 603638574, stadium: 37910534 },
+    placeNodes: { kocani: 417839656, oblesevo: 418245007, zrnovci: 418349554, orizari: 418350443, grdovci: 418349437, banja: 442904494, karev: 7947878810 },
+    nodeLL: {
+      417839656: [41.92113, 22.41142], 418245007: [41.88343, 22.33468], 418349554: [41.85365, 22.44595], // Кочани, Облешево, Зрновци
+      418350443: [41.92020, 22.44547], 418349437: [41.88126, 22.42037], 442904494: [41.91157, 22.33335], // Оризари, Грдовци, Бања
+      7947878810: [41.91566, 22.41278], // Споменик на Никола Карев
+    },
+    tall: [],
+    // the blocks of flats in the middle of Кочани
+    mid: [[41.9100, 41.9230, 22.4020, 22.4230]],
+    squareBonus: false,
+    maxLevels: 9,
+    // halls, the market and public buildings the height zone made into towers
+    buildingTags: Object.fromEntries([
+      ...[37936587, 183984204, 849618315, 863287978, 849619317].map((id) => [id, { 'building:levels': '2' }]), // market, two sports halls, МКЦ, a shop
+      ...[37879846, 849618789].map((id) => [id, { 'building:levels': '3' }]), // Центар на културата „Бели мугри“, the police station
+      [849621044, { 'building:levels': '1' }], // Ловен дом
+    ]),
+    // no lake on the map (Гратче lies 1.5 km north of it, on Пробиштип's): the Брегалница, a line in OSM, widened for refilling
+    waterLines: [[384225634, 10], [907653405, 10], [907655044, 10]],
+  },
   brod: {
     old: null,
     square: [41.50676, 21.21943], // the paved square by the municipality building in Македонски Брод

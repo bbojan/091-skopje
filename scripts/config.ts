@@ -245,6 +245,15 @@ export const CITIES = {
     ],
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Кочани and its plain (docs/TOWNS_TODO.md, 23): the town under Осогово at the north edge, the rice fields of the
+  // Кочанско Поле along the Брегалница, Облешево and Чешиново, Зрновци, Кочанско Езеро (Гратче) at the north edge.
+  // Edge to edge with Штип (w), Виница (e), Радовиш (s) and Пробиштип (n)
+  kocani: {
+    bbox: { s: 41.80, w: 22.32, n: 41.945, e: 22.46 },
+    tiles: [3, 4] as [number, number],
+    files: { raw: 'data/kocani_raw.json', scene: 'public/kocani.json', terrainBin: 'public/kocani-terrain.bin', terrainJson: 'public/kocani-terrain.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: Box; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec; cut?: Box[] }>;
 
 export type CityName = keyof typeof CITIES;
