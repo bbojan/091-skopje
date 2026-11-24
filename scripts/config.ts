@@ -265,6 +265,20 @@ export const CITIES = {
     files: { raw: 'data/medzitlija_raw.json', scene: 'public/medzitlija.json', terrainBin: 'public/medzitlija-terrain.bin', terrainJson: 'public/medzitlija-terrain.json', overture: 'data/medzitlija_overture.json' },
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Кратово (docs/TOWNS_TODO.md, 2): the town in its volcanic crater, Кратовска Река, Злетовица with Кнежево's lake,
+  // Ранковце and Петралица, up to the Serbian border (~42.30–42.36 N in OSM, the n edge 42.36). An L: the Крива Паланка
+  // map's corner (42.125–42.36 N, 22.25–22.495 E) is cut. Edge to edge with Пробиштип (s), Куманово (w), Каменица (e).
+  // The plan's w edge (22.062) left the Камени Кукли of Куклица (22.055) just outside: widened to 22.045 (a strip of the
+  // planned Куманово's outline, moved there in src/zones.ts)
+  kratovo: {
+    bbox: { s: 42.04, w: 22.045, n: 42.36, e: 22.495 },
+    tiles: [8, 7] as [number, number],
+    files: { raw: 'data/kratovo_raw.json', scene: 'public/kratovo.json', terrainBin: 'public/kratovo-terrain.bin', terrainJson: 'public/kratovo-terrain.json' },
+    cut: [
+      { s: 42.125, w: 22.25, n: 42.36, e: 22.495 }, // Крива Паланка
+    ],
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: Box; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec; cut?: Box[] }>;
 
 export type CityName = keyof typeof CITIES;
