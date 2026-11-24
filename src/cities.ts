@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'kratovo', 'stip', 'vevcani', 'batinci', 'matka'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'kratovo', 'stip', 'strumica', 'vevcani', 'batinci', 'matka'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -1145,6 +1145,93 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.stip',
     bestRaceKey: 'skopje.bestRace.stip',
     banners: { fire: 'Брегалница го спаси Штип!', roll: 'Поздрав од Штип!' },
+  },
+  strumica: {
+    id: 'strumica', name: 'Струмица', code: '0902', icon: './favicon-strumica.svg',
+    files: { scene: './strumica.json', terrainBin: './strumica-terrain.bin', terrainJson: './strumica-terrain.json' },
+    sceneBytes: 5.5e6,
+    views: {
+      center: { place: 'sqstrumica', ll: [41.43902, 22.63710], d: 620, polar: 0.82, az: 0.3 },
+      carevi: { place: 'carevi', ll: [41.43243, 22.63007], d: 300, polar: 0.95, az: 0.6 }, // the fortress hill over the town
+      leontij: { place: 'leontij', ll: [41.45058, 22.59024], d: 110, polar: 1.0, az: 0.4 },
+      eleusa: { ll: [41.47485, 22.56517], d: 110, polar: 1.0, az: 0.5 },
+      vodocha: { ll: [41.41715, 22.56158], d: 1800, polar: 1.1, az: 0.4 }, // the lake from the south-east, the dam on the left, under the clouds
+      pole: { ll: [41.47000, 22.60000], d: 2600, polar: 1.05, az: -0.6 }, // the Струмица plain toward the town
+      overview: { ll: [41.49000, 22.49000], d: 24000, polar: 0.72, az: 0 },
+    },
+    districts: [
+      ['Струмица', 41.43901, 22.63741], ['Водоча', 41.44980, 22.59207, 30], ['Вељуса', 41.47660, 22.56782, 30],
+      ['Баница', 41.44624, 22.61007, 30], ['Попчево', 41.41522, 22.59198, 30], ['Раборци', 41.39732, 22.60012, 30],
+      ['Три Води', 41.39593, 22.63138, 30], ['Добрејци', 41.46191, 22.65237, 30], ['Василево', 41.47421, 22.64394, 30],
+      ['Градошорци', 41.48236, 22.62413, 30], ['Ангелци', 41.47859, 22.61477, 30], ['Седларци', 41.48973, 22.58375, 30],
+      ['Едрениково', 41.50600, 22.58752, 30], ['Ново Владевци', 41.51934, 22.61277, 30], ['Сушево', 41.52884, 22.62924, 30],
+      ['Требичино', 41.51622, 22.54614, 30], ['Дукатино', 41.54420, 22.54532, 30], ['Радичево', 41.53900, 22.56881, 30],
+      ['Злеово', 41.55653, 22.60237, 30], ['Покрајчево', 41.57318, 22.57197, 30], ['Јаргулица', 41.58783, 22.56226, 30],
+      ['Калуѓерица', 41.57072, 22.51538, 30], ['Сулдурци', 41.58235, 22.48564, 30], ['Воиславци', 41.58812, 22.47079, 30],
+      ['Горни Липовиќ', 41.51066, 22.49285, 30], ['Долни Липовиќ', 41.50413, 22.45804, 30], ['Ракитец', 41.54310, 22.42516, 30],
+      ['Дедино', 41.57145, 22.42392, 30], ['Габревци', 41.56440, 22.37896, 30], ['Конче', 41.49565, 22.38547, 30],
+      ['Лубница', 41.50211, 22.36638, 30], ['Скоруша', 41.54310, 22.32454, 30], ['Рич', 41.44272, 22.51945, 30],
+      ['Белотино', 41.43419, 22.54508, 30], ['Струмичко Поле', 41.47500, 22.59500, 0],
+    ],
+    labels: [
+      ['Цареви Кули', 41.43243, 22.63007, 30, 'carevi'],
+      ['Плоштад Гоце Делчев', 41.43902, 22.63710, 12, 'sqstrumica'],
+      ['Манастир Св. Леонтиј', 41.45058, 22.59024, 14, 'leontij'],
+      ['Св. Богородица Елеуса', 41.47485, 22.56517, 14, 'eleusa'],
+      ['Водочко Езеро', 41.41715, 22.56158, 10, 'vodocha'],
+      ['Брана Водоча', 41.42091, 22.56663, 20, 'vdam'],
+      ['Мантово', 41.57297, 22.33891, 10, 'mantovo'],
+      ['Градски парк', 41.44539, 22.63662, 10, 'park'],
+      ['Стадион „Младост“', 41.44613, 22.63776, 14, 'stadium'],
+      ['Театар „Антон Панов“', 41.44494, 22.64011, 12, 'theatre'],
+      ['Дом на културата', 41.43907, 22.63647, 12, 'kultura'],
+      ['Орта џамија', 41.43572, 22.63483, 12, 'orta'],
+      ['Св. Кирил и Методиј', 41.43440, 22.63578, 12, 'kiril'],
+      ['Св. 15 Тивериополски маченици', 41.42998, 22.64112, 12, 'maccenici'],
+      ['Св. Григориј Палама', 41.43689, 22.64410, 12, 'palama'],
+      ['Музеј Струмица', 41.43541, 22.63643, 10, 'museum'],
+      ['Сулдуречки манастир', 41.58107, 22.48270, 12, 'suldurci'],
+      ['Струмица', 41.54171, 22.58294, 6, undefined, 'river'],
+      ['Водочница', 41.45154, 22.58876, 6, undefined, 'river'],
+      ['Тркајна', 41.39656, 22.62234, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Цареви Кули', 41.43243, 22.63007, 60, 'carevi'],
+      ['Плоштад Гоце Делчев', 41.43902, 22.63710, 45, 'sqstrumica'],
+      ['Василево', 41.47421, 22.64394, 55],
+      ['Сушево', 41.52884, 22.62924, 55],
+      ['Злеово', 41.55653, 22.60237, 55],
+      ['Јаргулица', 41.58783, 22.56226, 60],
+      ['Сулдурци', 41.58235, 22.48564, 55],
+      ['Мантово', 41.57297, 22.33891, 50, 'mantovo'],
+      ['Конче', 41.49565, 22.38547, 55],
+      ['Горни Липовиќ', 41.51066, 22.49285, 55],
+      ['Вељуса', 41.47485, 22.56517, 45, 'eleusa'],
+      ['Водочко Езеро', 41.41715, 22.56158, 40, 'vodocha'],
+      ['Водоча', 41.45058, 22.59024, 45, 'leontij'],
+      ['Раборци', 41.39732, 22.60012, 55],
+    ],
+    spots: [
+      ['sr.town', 'Струмица', 41.43902, 22.63710, 70, 'sqstrumica'],
+      ['sr.carevi', 'Цареви Кули', 41.43243, 22.63007, 120, 'carevi'],
+      ['sr.leontij', 'Манастир Св. Леонтиј', 41.45058, 22.59024, 60, 'leontij'],
+      ['sr.eleusa', 'Св. Богородица Елеуса', 41.47485, 22.56517, 50],
+      ['sr.vodocha', 'Водочко Езеро', 41.42091, 22.56663, 200, 'vdam'],
+      ['sr.mantovo', 'Мантово', 41.57297, 22.33891, 300, 'mantovo'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.43901, 22.63741], near: 4000, far: 9000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    // Струмичко Поле: vegetable fields and orchards on the plain, a few vineyards on the slopes
+    vineyards: 330, // m above the map's lowest point (77 m, the Вардар in the south-west corner): the farmland up to ~400 m
+    vineShare: 0.08,
+    walker: 'pejo',
+    snowLabel: 'weather.hills',
+    refillLabel: 'fire.refill.strumica',
+    bestRaceKey: 'skopje.bestRace.strumica',
+    banners: { fire: 'Струмица е спасена!', roll: 'Поздрав од Струмица!' },
   },
   batinci: {
     id: 'batinci', name: 'Батинци', code: '02', icon: './favicon-batinci.svg',
