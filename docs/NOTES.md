@@ -622,6 +622,11 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    `countryground.ts` now subtracts the map's `min`; measured on all 16 maps, the two agree (0 m on average, ±22 m at
    worst), and inside the map the country sinks at least 25 m. The firefighting plane never drew it, so it looked
    fine there.
+42. **v26.0.2** (2026-11-24): flying from map to map, while the next map builds the old one is gone but its
+   country ground still sank 25–425 m where it had been: a pit beside the jet, and under it for the whole build when
+   the next map lies inside the old one's rectangle (Матка → Скопје / Брод, Вевчани → Охрид). The transit's ground no
+   longer sinks (`setSink(false)` in `countryground.ts`). Checked Брод → Матка → Тетово → Ростуше and Матка → Скопје;
+   after every arrival the heights agree (0–1 m). New-town guide: the F-15 steps (`zones.ts`, the F-15 check).
 
 ## Country view (Nov 2026)
 
