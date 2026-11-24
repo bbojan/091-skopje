@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'vevcani', 'batinci', 'matka'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'vevcani', 'batinci', 'matka'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -875,6 +875,81 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.kocani',
     bestRaceKey: 'skopje.bestRace.kocani',
     banners: { fire: 'Брегалница го спаси Кочани!', roll: 'Свири, Кочани оркестар!' },
+  },
+  medzitlija: {
+    id: 'medzitlija', name: 'Меџитлија', code: '047', icon: './favicon-medzitlija.svg',
+    files: { scene: './medzitlija.json', terrainBin: './medzitlija-terrain.bin', terrainJson: './medzitlija-terrain.json' },
+    sceneBytes: 1.3e6,
+    views: {
+      center: { ll: [40.92700, 21.42900], d: 620, polar: 0.8, az: 0.3 },
+      mzdzamija: { ll: [40.92712, 21.42932], d: 95, polar: 1.2, az: 2.3 }, // from the north-east, as the photos
+      mzgranica: { ll: [40.91814, 21.41744], d: 520, polar: 0.75, az: 1.9 }, // both canopies, the Greek one on the left
+      mzvelusina: { place: 'mzvcrkva', ll: [40.92788, 21.34013], d: 95, polar: 1.05, az: -2.5 }, // the church and its tower, the konak behind
+      mzpole: { ll: [40.91000, 21.39000], d: 2600, polar: 1.12, az: -1.75 }, // the fields of the plain from the west toward the border, under the clouds
+      overview: { ll: [40.90250, 21.31750], d: 24000, polar: 0.72, az: 0 },
+    },
+    districts: [
+      ['Меџитлија', 40.92798, 21.42909], ['Кременица', 40.92367, 21.45772, 30], ['Лажец', 40.91209, 21.37829, 30],
+      ['Породин', 40.93615, 21.37266, 30], ['Велушина', 40.92769, 21.35340, 30], ['Граешница', 40.90095, 21.34326, 30],
+      ['Канино', 40.94587, 21.35445, 30], ['Барешани', 40.95299, 21.35550, 30], ['Острец', 40.92977, 21.30100, 30],
+      ['Кишава', 40.88761, 21.31288, 30], ['Драгош', 40.88261, 21.35296, 30],
+      ['Негочани', 40.90874, 21.42130, 30], ['Клабучишта', 40.87877, 21.40865, 30], ['Света Петка', 40.87974, 21.38103, 30],
+      ['Опсирино', 40.87079, 21.35536, 30], ['Раково', 40.85653, 21.31305, 30], ['Битуша', 40.85988, 21.36907, 30],
+      ['Горно Каленик', 40.86031, 21.45307, 30], ['Долно Каленик', 40.86478, 21.46684, 30],
+      ['Пелагонија', 40.94500, 21.42500, 0], ['Баба', 40.91000, 21.23000, 150],
+    ],
+    labels: [
+      ['Џамија', 40.92709, 21.42932, 26],
+      ['Граничен премин Меџитлија', 40.92015, 21.41643, 18],
+      ['Граничен премин Негочани', 40.91614, 21.41844, 18],
+      ['Велушки манастир', 40.92788, 21.34013, 18, 'mzvcrkva'],
+      ['Железничка станица Кременица', 40.91307, 21.46178, 12, 'kstation'],
+      ['Св. Атанасиј', 40.92328, 21.45779, 12, 'katanasij'],
+      ['Барешански манастир', 40.95221, 21.35054, 12, 'baresani'],
+      ['Остречка џамија', 40.92958, 21.29940, 14, 'ostrec'],
+      ['Св. Илија', 40.87834, 21.35798, 12, 'ilija'],
+      ['Споменик на Коле Канински', 40.93608, 21.37221, 10, 'kaninski'],
+      ['Рибници', 40.95198, 21.41083, 6],
+      ['Вирој', 40.95195, 21.21137, 6],
+      ['Негочанска Река', 40.90020, 21.39570, 6, undefined, 'river'],
+      ['Лажечка Река', 40.89930, 21.36520, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Џамија', 40.92709, 21.42932, 60],
+      ['Кременица', 40.92367, 21.45772, 55],
+      ['Железничка станица', 40.91307, 21.46178, 50, 'kstation'],
+      ['Негочани', 40.90874, 21.42130, 55],
+      ['Клабучишта', 40.87877, 21.40865, 60],
+      ['Света Петка', 40.87974, 21.38103, 60],
+      ['Драгош', 40.88261, 21.35296, 60],
+      ['Граешница', 40.90095, 21.34326, 60],
+      ['Велушки манастир', 40.92788, 21.34013, 60, 'mzvcrkva'],
+      ['Барешани', 40.95299, 21.35550, 60],
+      ['Породин', 40.93615, 21.37266, 55],
+      ['Лажец', 40.91209, 21.37829, 50],
+      ['Граничен премин', 40.92015, 21.41643, 55],
+    ],
+    spots: [
+      ['md.village', 'Меџитлија', 40.92740, 21.42975, 80],
+      ['md.dzamija', 'Џамија', 40.92709, 21.42932, 40],
+      ['md.granica', 'Граничен премин Меџитлија', 40.92015, 21.41643, 70],
+      ['md.velusina', 'Велушки манастир', 40.92788, 21.34013, 60, 'mzvcrkva'],
+      ['md.kremenica', 'Железничка станица Кременица', 40.91307, 21.46178, 50, 'kstation'],
+      ['md.pole', 'Пелагонија', 40.93500, 21.40500, 200],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [40.92798, 21.42909], near: 4000, far: 9000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    // Пелагонија: wheat and other fields on the plain on both sides of the border, a few vineyards
+    vineyards: 300,
+    vineShare: 0.08,
+    walker: 'pejo',
+    snowLabel: 'weather.baba',
+    refillLabel: 'fire.refill.medzitlija',
+    bestRaceKey: 'skopje.bestRace.medzitlija',
+    banners: { fire: 'Пелагонија е спасена!', roll: 'Поздрав од Пелагонија!' },
   },
   batinci: {
     id: 'batinci', name: 'Батинци', code: '02', icon: './favicon-batinci.svg',
