@@ -5,7 +5,8 @@
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
 045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. **Released in v32.0.0 (2026-11-24), 23 maps in all:** 0903 Кочани,
 047 Меџитлија, 031 Кратово (developer Бранко Славков), 092 Штип and 0902 Струмица (developer Калина Јовановска), 043 Неготино
-and 043 Демир Капија (developer Ристе Самарџиев). Details in the first table below.
+and 043 Демир Капија (developer Ристе Самарџиев). **Built since, not released:** 046 Голо Брдо (2026-11-25, on `develop`).
+Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
@@ -20,7 +21,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино and Демир Капија built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија and Голо Брдо built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -35,7 +36,7 @@ towns on it):
 | Новаци* | 970 | — | | ~~Неготино~~ built | 370 | Неготино |
 | Радовиш | 900 | Радовиш | | Кораб* | 370 | — |
 | ~~Штип~~ built | 820 | Штип | | Виница | 340 | Виница |
-| ~~Демир Капија~~ built | 820 | Демир Капија | | Голо Брдо* | 280 | — |
+| ~~Демир Капија~~ built | 820 | Демир Капија | | ~~Голо Брдо*~~ built | 280 | — |
 | Демир Хисар | 810 | Демир Хисар | | ~~Меџитлија*~~ built | 300 | — |
 | Делчево | 770 | Делчево | | ~~Кочани~~ built | 190 | Кочани |
 | ~~Кратово~~ built | 790 | Кратово | | | | |
@@ -122,7 +123,7 @@ its own.
 | Ресен ✓ | 096 | 047 | 047 | as now; shares 047 |
 | Вевчани ✓ | 096 | 046 | 046 | as now; shares 046 |
 | Дебарца | 096 | 046 | 046 | shares 046 |
-| Голо Брдо | 096 | 046 | 046 | shares 046 |
+| Голо Брдо ✓ | 096 | 046 | 046 | shares 046; built 2026-11-25 (code and name unconfirmed, chosen during the unattended build) |
 | Битола ✓ | **097** | 047 | **097** | as now |
 | Демир Хисар | 097 | 047 | 047 | shares 047 |
 | Новаци | 097 | 047 | 047 | shares 047 |
@@ -160,7 +161,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 |---|---|---|---|---|
 | 1 | ~~Кочани~~ built (2026-11-24, branch `city-kocani`) | 190 | Кочани | 23 |
 | 2 | ~~Меџитлија*~~ built (2026-11-24, branch `city-medzitlija`) | 300 | — | 17 |
-| 3 | Голо Брдо* | 280 | — | 19 |
+| 3 | ~~Голо Брдо*~~ built (2026-11-25, on `develop`) | 280 | — | 19 |
 | 4 | Виница | 340 | Виница | 32 |
 | 5 | ~~Неготино~~ built (2026-11-24, branch `negotino`) | 370 | Неготино | 5 |
 | 6 | Кораб* | 370 | — | 18 |
@@ -210,6 +211,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 047 Ресен | the whole of Преспа, Голем Град, Мала Преспа | `resen` | 40.685, 20.845, 41.13, 21.165 |
 | 02 Матка | Св. Андреја, Св. Никола Шишевски, Сарај, Сува Гора | `matka` | 41.725, 21.06, 42.075, 21.385 (Скопје's and Брод's corners cut) |
 | 046 Вевчани | Лабуништа, Подгорци, Белица, Јабланица, Глобочица | `vevcani` | 41.035, 20.47, 41.39, 20.815 (Охрид's map and the steps past the border cut) |
+| 046 Голо Брдо (not released yet) | Пешкопија, Макелари, Острени (Albania) | `golobrdo` | 41.39, 20.40, 41.725, 20.49 |
 
 ## Planned maps
 
@@ -469,7 +471,14 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   Albania), the w edge stepping from 20.49 to 20.54, about 2 km past the OSM border.
 - **Landmarks:** Кораб's summit, Корабски водопад, high pastures and sheepfolds.
 
-### 19. Голо Брдо (name open)
+### 19. 046 Голо Брдо ✓ built (2026-11-25, on `develop`, not released; NOTES.md item 52)
+
+- **Built** unattended (the owner was not asked): the box as planned, `?city=golobrdo`, 20 m cells, 407–1824 m. Raw OSM
+  from Geofabrik's Macedonian and Albanian extracts (`pbf2overpass.py`; Overpass answered 502): 3,386 buildings, Overture
+  adds 11,525. Models (src/golobrdo.ts): Xhamia e Allajbegisë in Бурим (Алајбеговци) and the church in Ербеле. Refilling
+  over the Црн Дрим. **Unconfirmed, chosen during the unattended build:** the badge **046** (this table's plan) and the
+  name **Голо Брдо** (the working name; only the north of the region lies on the map, the map's town is Пешкопија);
+  developer the owner (default). Not done: Пешкопија's old mosque and museum as models (labels only), the Llixha springs.
 
 - **On it:** the strip west of Ростуше along the border: the bend of the border by Дебар, the Црн Дрим below
   Дебарско Езеро, Пешкопија and Голо Брдо on the Albanian side.

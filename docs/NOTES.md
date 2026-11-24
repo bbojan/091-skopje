@@ -855,6 +855,31 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    cards; texts in `i18n-towns7.ts`; refilling over Водочко Езеро and Мантово; `vineyards: 330`. No hand-built models yet
    (Царевите кули, Водоча and Вељуса are views and labels only). Docs written up afterwards from its commits.
 
+52. **046 Голо Брдо** (2026-11-25, on `develop`, not released; 3rd in the build order; built unattended, the owner not
+   asked): the strip west of Ростуше along the border (docs/TOWNS_TODO.md, 19), almost all of it Albania: box 41.39–41.725 N,
+   20.40–20.49 E as planned (7.5 × 37.3 km, 20 m cells, 407–1824 m; EU-DEM at 100 points: mean −0.7 m, RMS 2.2 m), edge to
+   edge with Ростуше (e); the w edge is the planned zone's. Raw OSM from Geofabrik's Macedonian and Albanian extracts
+   (`scripts/pbf2overpass.py`; overpass-api.de answered 502 to a count query): 3,386 buildings and 1,491 roads, the same
+   3,386 OSM outlines `npm run overture` skipped; Overture adds 11,525. Scene: 14,896 buildings, 3.4 MB. A `mid` zone over
+   Пешкопија's centre (`maxLevels: 6`), the town hall, Pallati i Kulturës, the hospital, the museum, Xhamia e Re, the cinema,
+   a supermarket and the bus station pinned. No lake on the map: the Црн Дрим, a line in OSM, widened by `waterLines`
+   (half width 12 m) for refilling (checked with the fire mode's `isWater` along it). Labels in Macedonian, OSM's `name:mk`
+   where it has one (Макелари, Алајбеговци, Ербеле, Доволјани, Острени…; Пешкопија as in the plan, OSM has „Пешкопеја“).
+   Models (`src/golobrdo.ts`, on OSM's outlines via `models`; Commons photos of 2022, references only): **Xhamia e
+   Allajbegisë** in Бурим (before 1578, a cultural monument since 1970; en / de / sq / bg Wikipedia agree): an 8 m cube of
+   cloisonné masonry with three windows in two rows on three walls, an octagonal drum with a brick cornice, a low tiled
+   dome, the grey minaret with a balcony and a silver cone, the white front building of the 1990s with a red hipped roof
+   (OSM's outline holds both: the mosque at its narrower south-south-east end; the split and all heights from the photos);
+   **the church of the Преображение in Ербеле** (stone nave under a tiled gable, concrete porch with a red roof, a concrete
+   bell frame; one photo only, the bell frame's side not checked). Badge **046** (the Badge codes plan) and the working
+   name, both unconfirmed; the owner's LinkedIn; snow label the shared „Снег на ридовите“. The overview looks along the strip
+   from the south-west: the controls' 26 km limit cannot show 37 km side on. Checked: typecheck, build (the files in
+   `dist/`), every view by day, no console errors, switching to Ростуше and back (textures 311 → 311, scene objects 21 → 21,
+   geometries differ with the streamed ground), the F-15 over the map (country vs map heights: mean 0, −10…+13 m), Skopje
+   pixel check (0 on six views, 11–13 pixels on the three overviews: the gondola cabins; the pane was hidden, `requestAnimationFrame`
+   replaced by a 4 ms timer). Not checked: flying the F-15 in from Ростуше, firefighting and the race in play, the walking
+   cards one by one, night and snow views, phones.
+
 ## Country view (Nov 2026)
 
 - **What:** Macedonia, first in the city menu (a tile as tall as four cities, `.country-tile`), shows the whole country with every map's zone (`src/zones.ts`,
@@ -1131,6 +1156,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Струмица | `skopje.bestRace.strumica` | none |
 | Best race time in Неготино | `skopje.bestRace.negotino` | none |
 | Best race time in Демир Капија | `skopje.bestRace.demirkapija` | none |
+| Best race time in Голо Брдо | `skopje.bestRace.golobrdo` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
