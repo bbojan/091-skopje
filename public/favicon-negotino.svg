@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Неготино: a bunch of grapes with a vine leaf (the wine town of Повардарие) over the Вардар's waves -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <path d="M50 22 V12" stroke="#1f2a44" stroke-width="4" stroke-linecap="round"/>
+  <path d="M52 18 C60 8 74 10 76 20 C68 18 62 24 52 22 Z" fill="#1f2a44"/>
+  <g fill="#7a1f1a">
+    <circle cx="35" cy="31" r="8"/><circle cx="50" cy="29" r="8"/><circle cx="65" cy="31" r="8"/>
+    <circle cx="42.5" cy="44" r="8"/><circle cx="57.5" cy="44" r="8"/>
+    <circle cx="50" cy="57" r="8"/>
+  </g>
+  <path d="M12 74 Q22 68 32 74 T52 74 T72 74 T92 74" fill="none" stroke="#1f2a44" stroke-width="5" stroke-linecap="round"/>
+  <path d="M12 86 Q22 80 32 86 T52 86 T72 86 T92 86" fill="none" stroke="#1f2a44" stroke-width="5" stroke-linecap="round"/>
+</svg>

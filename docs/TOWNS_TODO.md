@@ -5,7 +5,7 @@
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
 045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. **Built, not yet released:** 0903 Кочани (branch `city-kocani`,
 2026-11-24), 047 Меџитлија (branch `city-medzitlija`, 2026-11-24), 031 Кратово (branch `city-kratovo`, 2026-11-24, developer
-Бранко Славков). Details in the first table below.
+Бранко Славков), 043 Неготино (branch `negotino`, 2026-11-24, developer Ристе Самарџиев). Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
@@ -20,7 +20,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 24 new maps** (Кочани, Меџитлија and Кратово built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 23 new maps** (Кочани, Меџитлија, Кратово and Неготино built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -32,7 +32,7 @@ towns on it):
 | Стоби* | 1150 | — | | Гевгелија | 510 | Гевгелија, Богданци |
 | Ново Село* | 1060 | — | | Валандово | 410 | Валандово |
 | Скопска Црна Гора* | 1010 | — | | Пробиштип | 380 | Пробиштип |
-| Новаци* | 970 | — | | Неготино | 370 | Неготино |
+| Новаци* | 970 | — | | ~~Неготино~~ built | 370 | Неготино |
 | Радовиш | 900 | Радовиш | | Кораб* | 370 | — |
 | Штип | 820 | Штип | | Виница | 340 | Виница |
 | Демир Капија | 820 | Демир Капија | | Голо Брдо* | 280 | — |
@@ -110,7 +110,7 @@ its own.
 | Кавадарци ✓ | 093 | 043 | 043 | as now; shares 043 |
 | Демир Капија | 093 / 095 | 043 | 043 | shares 043; not on the old list |
 | Стоби | 093 | 043 | 043 | shares 043 |
-| Неготино | 095 (?) | 043 | 043 | shares 043 |
+| Неготино ✓ | 095 (?) | 043 | 043 | shares 043; built 2026-11-24 |
 | Дојран ✓ | 093 | 034 | 034 | as now; shares 034 |
 | Гевгелија, Богданци | 093 | 034 | 034 | shares 034 |
 | Тетово, Гостивар ✓ | **094** | 044 / 042 | **094** | as now |
@@ -162,7 +162,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 2 | ~~Меџитлија*~~ built (2026-11-24, branch `city-medzitlija`) | 300 | — | 17 |
 | 3 | Голо Брдо* | 280 | — | 19 |
 | 4 | Виница | 340 | Виница | 32 |
-| 5 | Неготино | 370 | Неготино | 5 |
+| 5 | ~~Неготино~~ built (2026-11-24, branch `negotino`) | 370 | Неготино | 5 |
 | 6 | Кораб* | 370 | — | 18 |
 | 7 | Пробиштип | 380 | Пробиштип | 28 |
 | 8 | Валандово | 410 | Валандово | 29 |
@@ -266,10 +266,13 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   About 690 km², 20 m cells.
 - **Landmarks:** Царевите кули, Водоча and Вељуса monasteries (`byzChurch`).
 
-### 5. Неготино
+### 5. 043 Неготино ✓ built (2026-11-24, branch `negotino`, not yet released; NOTES.md item 47; developer Ристе Самарџиев)
 
+- **Built:** 41.445–41.60 N, 22.062–22.32 E as planned, `?city=negotino`, badge 043 (shared with Кавадарци). OSM has only 204
+  buildings: Overture adds 5,072. Models: Неготински манастир with its bell tower, Св. Атанасиј Велики, ТЕЦ Неготино's
+  chimney (~125 m, estimated) and fuel tanks. Refilling over the Вардар.
 - **On it:** Неготино, Криволак, the Вардар between Градско's plain and Демир Капија, vineyards.
-- **Name / code:** open (likely Неготино, `?city=negotino`).
+- **Name / code:** Неготино, `?city=negotino`, 043.
 - **Extent:** Negotino 41.48 N 22.09 E (close to the west edge). Decided with the owner on 2026-11-23: w 22.062
   (Кавадарци's e), e 22.32 (Струмица's w), n 41.60 (Штип's s), s ~41.445 (Демир Капија's n: the first Неготино map
   reached the Greek border and was split). About 370 km², 20 m cells.

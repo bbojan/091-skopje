@@ -719,6 +719,51 @@ const PREP: Record<CityName, CityPrep> = {
     squareBonus: false,
     maxLevels: 6,
   },
+  negotino: {
+    old: null,
+    square: [41.48431, 22.09079], // Градски Плоштад, in front of Општина Неготино and the Дом на култура
+    landmarks: {},
+    // modelled by hand after photos (src/negotino.ts): the church of Неготински манастир Св. Ѓорѓи and its bell tower,
+    // the town church Св. Атанасиј Велики, the three fuel tanks of ТЕЦ Неготино
+    models: {
+      ngmanastir: 1444822778, ngkambanarija: 1444822781, ngatanas: 1107385187,
+      ngtank1: 1311192854, ngtank2: 1311192855, ngtank3: 1311192856,
+    },
+    // ТЕЦ Неготино's chimney: OSM has it as a node (man_made=chimney); the square its foot stands on
+    modelRects: { ngoxak: [41.45742, 22.16064, 14, 14, 0] },
+    placeNames: {},
+    placeIds: {
+      ngsquare: 300510422, ngtownhall: 247042675, ngdom: 252659478, ngmanastir: 1444822778, ngatanas: 1107385187,
+      ngantigona: 334649006, ngstation: 637910481, ngkrivolak: 1547299707, ngpetka: 1547299704, ngjosif: 1547299702,
+      ngtec: 181374941,
+    },
+    placeNodes: {
+      ngkosturnica: 12633015642, negotino: 386785913, krivolak: 1912755079, pepeliste: 1912755552, dubrovo: 2016564427,
+      vojsanci: 1918025760, timjanik: 1912844163, orlovo: 6541494854,
+    },
+    // copied from OSM (Nov 2026): the raw file built from Geofabrik's extract keeps only some node types
+    nodeLL: {
+      12633015642: [41.49066, 22.09903], // historic=memorial, the ossuary of the fallen fighters
+      386785913: [41.48442, 22.09059], 1912755079: [41.52728, 22.1214], 1912755552: [41.51894, 22.12836], // Неготино, Криволак, Пепелиште
+      2016564427: [41.47039, 22.14611], 1918025760: [41.47562, 22.16525], 1912844163: [41.46835, 22.08219], // Дуброво, Војшанци, Тимјаник
+      6541494854: [41.5705, 22.13086], // Орлово Брдо (534 m)
+    },
+    tall: [],
+    // the blocks of flats round the square and along the main street
+    mid: [[41.4790, 41.4885, 22.0830, 22.0970]],
+    squareBonus: false,
+    maxLevels: 8,
+    // public buildings, halls and sheds the height zone or the guess made into towers (photos of 2013–2015: the town hall
+    // is a brick block of a ground floor and five storeys, the Дом на култура „Ацо Ѓорчев“ two storeys)
+    buildingTags: Object.fromEntries([
+      [247042675, { 'building:levels': '6' }], // Општина Неготино
+      ...[300510421, 1172192395, 1454442563, 1308881124].map((id) => [id, { 'building:levels': '3' }]), // post office, school, hospital, a shell
+      ...[252659478, 300510420, 1173216476, 1444822779, 1444822780, 920658720, 920658723].map((id) => [id, { 'building:levels': '2' }]), // Дом на култура, a club, the school's hall, the monastery's konaks, Криволак's barracks
+      [1173216477, { 'building:levels': '1' }], // the school's hut
+      ...[603047472, 603047473, 603047474, 603047475, 603047476, 603047477, 603047478, 603047479, 603047480, 603047481, 603047482, 603047483,
+        603047484, 603047485, 603047486, 603047489, 603047490, 603047491, 603047492, 603047493].map((id) => [id, { 'building:levels': '1' }]), // farm sheds
+    ]),
+  },
 };
 const CFG = PREP[CITY];
 const OLD = CFG.old;
