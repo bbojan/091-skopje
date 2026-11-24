@@ -370,6 +370,7 @@ async function hop(id: CityId): Promise<void> {
     }
     fade.classList.remove('on');
     document.body.classList.remove('hop');
+    hideLoader(); // the map shows from this frame on
   }
 }
 /**
@@ -393,19 +394,29 @@ async function warmUp(w: World, tr: NonNullable<typeof transit>): Promise<void> 
   for (const o of [...tops, ...items]) was.set(o, o.visible);
   const rt = new THREE.WebGLRenderTarget(32, 32);
   const kept = [...keep].filter((o) => o.visible);
-  let t0 = performance.now();
-  for (let i = 0; i < items.length; i++) {
-    if (!was.get(items[i])) continue; // not drawn now (another level of detail): uploaded when it is needed
+  // only what is drawn now (another level of detail is uploaded when it is needed), in batches that grow while a
+  // draw stays cheap; everything is hidden once per slice of ~10 ms, not once per piece (Ростуше has ~9,600)
+  const todo = items.filter((o) => was.get(o));
+  let i = 0, batch = 16;
+  while (i < todo.length) {
+    const t0 = performance.now();
     for (const o of was.keys()) o.visible = false;
     for (const o of kept) o.visible = false;
     w.city.group.visible = true;
-    items[i].visible = true;
-    renderer.setRenderTarget(rt);
-    renderer.render(scene, cam);
-    renderer.setRenderTarget(null);
+    while (i < todo.length && performance.now() - t0 < 10) {
+      const b = todo.slice(i, i + batch);
+      for (const o of b) o.visible = true;
+      const r0 = performance.now();
+      renderer.setRenderTarget(rt);
+      renderer.render(scene, cam);
+      renderer.setRenderTarget(null);
+      for (const o of b) o.visible = false;
+      i += b.length;
+      if (performance.now() - r0 < 3) batch = Math.min(batch * 2, 4096);
+    }
     for (const [o, v] of was) o.visible = v;
     for (const o of kept) o.visible = true;
-    if (performance.now() - t0 > 10) { await nextFrame(); t0 = performance.now(); }
+    if (i < todo.length) await nextFrame(); // the transit draws a frame meanwhile
   }
   rt.dispose();
 }
@@ -652,7 +663,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   console.log('load times (ms)', JSON.stringify(loadTimes));
   showProgress('bake', 1);
   status.textContent = '';
-  hideLoader();
+  if (!transit) hideLoader(); // the F-15 flying in: it stays until the map shows (after the warm-up, in hop())
   loading = false;
   if (f15Pending && !queuedCity) setTimeout(takeOffF15, 0);
 }

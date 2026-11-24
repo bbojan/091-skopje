@@ -700,7 +700,11 @@ Built in phases on branch `f15`, one commit each (the plan: [IDEAS.md](IDEAS.md)
   During a switch (the transit) the old map is gone, so its country ground stops sinking (`setSink(false)`):
   before, the plane flew past a pit 25–425 m deep where the old map had been, and over it the whole time when the
   next map is cut out of the old one's rectangle (Матка → Скопје / Брод, Вевчани → Охрид). Checked: Брод → Матка →
-  Тетово → Ростуше and Матка → Скопје; after every arrival the heights agree (0–1 m on average). The flight's floor and the rockets use it
+  Тетово → Ростуше and Матка → Скопје; after every arrival the heights agree (0–1 m on average).
+  The warm-up after the build used to hide and show every piece of the new map once per piece uploaded: Ростуше's
+  ~9,600 took 2.2 s on desktop after the loader had closed, so the plane flew over only the coarse country terrain
+  although "loading" looked finished. Now it uploads in growing batches (one draw per batch, everything hidden once
+  per ~10 ms slice): 0.14 s, and the small loader stays until the map shows. Тетово → Ростуше: ~4.2 s in all. The flight's floor and the rockets use it
   beyond the edges (`groundAt()` in `main.ts`). The camera sees 70 km. While it shows, the ink's normal pass is not
   clipped to the map (otherwise its depth is missing and everything beyond the map is hazed).
 
