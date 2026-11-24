@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'kratovo', 'vevcani', 'batinci', 'matka'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'kratovo', 'stip', 'vevcani', 'batinci', 'matka'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -1055,6 +1055,96 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.kratovo',
     bestRaceKey: 'skopje.bestRace.kratovo',
     banners: { fire: 'Кратово е спасено!', roll: 'Поздрав од Ѕинго Land!' },
+  },
+  stip: {
+    id: 'stip', name: 'Штип', code: '092', icon: './favicon-stip.svg',
+    files: { scene: './stip.json', terrainBin: './stip-terrain.bin', terrainJson: './stip-terrain.json' },
+    sceneBytes: 2.0e6,
+    views: {
+      center: { place: 'sqstip', ll: [41.73770, 22.19313], d: 620, polar: 0.82, az: 0.3 },
+      isar: { place: 'isar', ll: [41.73850, 22.18656], d: 280, polar: 0.95, az: 0.5 }, // the fortress hill over the town and the Отиња
+      bezisten: { place: 'bezisten', ll: [41.73754, 22.19263], d: 110, polar: 0.95, az: 0.4 },
+      novoselo: { ll: [41.73550, 22.18300], d: 320, polar: 0.9, az: -0.6 }, // Ново Село's churches under Исар, from the west
+      bargala: { place: 'bargala', ll: [41.79965, 22.29008], d: 220, polar: 0.95, az: 0.4 },
+      bregalnica: { ll: [41.78000, 22.22000], d: 2600, polar: 1.05, az: 2.6 }, // the valley from the north-east toward the town, under the clouds
+      overview: { ll: [41.77250, 22.19100], d: 26000, polar: 0.72, az: 0 },
+    },
+    districts: [
+      ['Штип', 41.73747, 22.19359], ['Ново Село', 41.73561, 22.18268], ['Баби', 41.76044, 22.20330], ['Леваци', 41.74069, 22.20829],
+      ['Дузлак', 41.74958, 22.21059], ['Кежовица', 41.73346, 22.17732], ['Пребег', 41.74669, 22.17992],
+      ['Карбинци', 41.81681, 22.23500, 30], ['Лакавица', 41.63873, 22.23602, 30], ['Три Чешми', 41.77297, 22.13376, 30],
+      ['Криви Дол', 41.78648, 22.10472, 30], ['Сарчиево', 41.80992, 22.13486, 30], ['Долни Балван', 41.80457, 22.20237, 30],
+      ['Таринци', 41.79871, 22.22943, 30], ['Козјак', 41.80923, 22.27389, 30], ['Радање', 41.77978, 22.27668, 30],
+      ['Крупиште', 41.84217, 22.25053, 30], ['Уларци', 41.85834, 22.26483, 30], ['Чешиново', 41.86942, 22.28619, 30],
+      ['Соколарци', 41.89705, 22.27944, 30], ['Спанчево', 41.90759, 22.31054, 30], ['Лепопелци', 41.90214, 22.21069, 30],
+      ['Гујновци', 41.89194, 22.19920, 30], ['Лезово', 41.91658, 22.18291, 30], ['Бучиште', 41.92910, 22.19735, 30],
+      ['Пестришно', 41.90911, 22.13372, 30], ['Мустафино', 41.84000, 22.07645, 30], ['Доброшани', 41.74158, 22.07718, 30],
+      ['Софилари', 41.70841, 22.13756, 30], ['Драгоево', 41.67308, 22.13241, 30], ['Селце', 41.64952, 22.17121, 30],
+      ['Пухче', 41.62823, 22.19803, 30], ['Горачино', 41.64149, 22.27820, 30], ['Шашаварлија', 41.71681, 22.28809, 30],
+      ['Голем Габер', 41.75105, 22.30408, 30], ['Пенуш', 41.71196, 22.10761, 30],
+    ],
+    labels: [
+      ['Исар', 41.73850, 22.18656, 30, 'isar'],
+      ['Безистен', 41.73754, 22.19263, 14, 'bezisten'],
+      ['Општина Штип', 41.73597, 22.19143, 14, 'townhall'],
+      ['Св. Архангел Михаил', 41.73894, 22.18813, 12, 'mihailf'],
+      ['Св. Спас', 41.73480, 22.18478, 12, 'spas'],
+      ['Св. Јован Крстител', 41.73692, 22.18411, 12, 'jovan'],
+      ['Св. Никола', 41.73657, 22.18887, 12, 'nikola'],
+      ['Св. Илија', 41.73574, 22.19550, 12, 'ilija'],
+      ['Св. Троица', 41.72971, 22.17517, 12, 'trojca'],
+      ['Кадин Ана џамија', 41.73786, 22.19792, 12, 'kadin'],
+      ['Хусамедин-пашина џамија', 41.73567, 22.19558, 12, 'husamedin'],
+      ['Музеј Штип', 41.73665, 22.18975, 12, 'museum'],
+      ['Народен театар', 41.73770, 22.19832, 12, 'theatre'],
+      ['Спомен-костурница', 41.73831, 22.18752, 12, 'memorial'],
+      ['Клисебаир', 41.72029, 22.19334, 20, 'klisebair'],
+      ['Кежовица', 41.73341, 22.17737, 10, 'kezovica'],
+      ['Градски стадион', 41.74282, 22.19038, 14, 'stadium'],
+      ['Железничка станица', 41.75560, 22.17336, 10, 'station'],
+      ['Баргала', 41.79965, 22.29008, 16, 'bargala'],
+      ['Брегалница', 41.73000, 22.15500, 6, undefined, 'river'],
+      ['Отиња', 41.73700, 22.19800, 6, undefined, 'river'],
+      ['Злетовица', 41.88000, 22.24500, 6, undefined, 'river'],
+      ['Козјачка Река', 41.79500, 22.28500, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Исар', 41.73850, 22.18656, 60, 'isar'],
+      ['Безистен', 41.73754, 22.19263, 45, 'bezisten'],
+      ['Баби', 41.76044, 22.20330, 55],
+      ['Карбинци', 41.81681, 22.23500, 55],
+      ['Крупиште', 41.84217, 22.25053, 55],
+      ['Соколарци', 41.89705, 22.27944, 60],
+      ['Чешиново', 41.86942, 22.28619, 55],
+      ['Баргала', 41.79965, 22.29008, 50, 'bargala'],
+      ['Радање', 41.77978, 22.27668, 55],
+      ['Шашаварлија', 41.71681, 22.28809, 60],
+      ['Лакавица', 41.63873, 22.23602, 60],
+      ['Софилари', 41.70841, 22.13756, 55],
+      ['Три Чешми', 41.77297, 22.13376, 55],
+      ['Клисебаир', 41.72029, 22.19334, 60, 'klisebair'],
+    ],
+    spots: [
+      ['st.town', 'Штип', 41.73770, 22.19313, 70, 'sqstip'],
+      ['st.isar', 'Исар', 41.73850, 22.18656, 90, 'isar'],
+      ['st.bezisten', 'Безистен', 41.73754, 22.19263, 35, 'bezisten'],
+      ['st.novoselo', 'Ново Село', 41.73561, 22.18268, 80],
+      ['st.kezovica', 'Кежовица', 41.73341, 22.17737, 50, 'kezovica'],
+      ['st.bargala', 'Баргала', 41.79965, 22.29008, 120, 'bargala'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.73747, 22.19359], near: 4000, far: 9000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    // the Брегалница valley and the plain round Карбинци: wheat and other fields, some vineyards on the slopes
+    vineyards: 300, // m above the map's lowest point (195 m): the farmland up to ~500 m
+    vineShare: 0.1,
+    walker: 'pejo',
+    snowLabel: 'weather.hills',
+    refillLabel: 'fire.refill.stip',
+    bestRaceKey: 'skopje.bestRace.stip',
+    banners: { fire: 'Брегалница го спаси Штип!', roll: 'Поздрав од Штип!' },
   },
   batinci: {
     id: 'batinci', name: 'Батинци', code: '02', icon: './favicon-batinci.svg',

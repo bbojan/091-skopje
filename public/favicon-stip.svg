@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Штип: the fortress of Исар on its hill above the town, the Брегалница winding below -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <path d="M8 72 Q30 40 50 38 Q70 40 92 72 Z" fill="#1f2a44"/>
+  <path d="M42 40 V20 H58 V40 Z" fill="#1f2a44"/>
+  <g fill="#1f2a44"><rect x="42" y="15" width="4" height="6"/><rect x="48" y="15" width="4" height="6"/><rect x="54" y="15" width="4" height="6"/></g>
+  <rect x="47.5" y="27" width="5" height="8" rx="2.5" fill="#f4ede0"/>
+  <path d="M10 84 Q30 76 50 84 T90 84" fill="none" stroke="#7a1f1a" stroke-width="5" stroke-linecap="round"/>
+</svg>

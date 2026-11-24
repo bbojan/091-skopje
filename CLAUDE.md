@@ -113,7 +113,7 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   The city stays built underneath, so Skopje is pixel-identical after closing it (checked).
 - The badge at the top left (`091 Скопје ▾`) is the city picker (the tab icon follows: `icon` in `CITIES`,
   `public/favicon-<id>.svg`). The LinkedIn button at the top right names the city's developer (one `.me-main`
-  per city, `data-city`; the ▼ menu lists the three developers: Бојан 091, Ристе 043, Бранко 031) and shows only on the map itself, not while flying, driving or walking.
+  per city, `data-city`; the ▼ menu lists the four developers: Бојан 091, Ристе 043, Бранко 031, Калина 092) and shows only on the map itself, not while flying, driving or walking.
   The round `?` right after the badge opens the help
   (shared by every city; per-city paragraphs carry `data-city="…"`, hidden by the `city-<id>` body class).
 - Cities: 091 Скопје, 043 Кавадарци (`?city=kavadarci`), 097 Битола (`?city=bitola`, v2.10.0), 096 Охрид

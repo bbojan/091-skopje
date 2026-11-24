@@ -825,7 +825,7 @@ addEventListener('keydown', (e) => {
   }
 });
 
-// the ▾ on the LinkedIn button: the developers (Bojan 091, Riste 043, Branko 031)
+// the ▾ on the LinkedIn button: the developers (Bojan 091, Riste 043, Branko 031, Kalina 092)
 const meBtn = $('me-more'), meMenu = $('me-menu');
 function setMeMenu(open: boolean): void {
   meMenu.hidden = !open;

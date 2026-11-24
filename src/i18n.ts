@@ -11,6 +11,7 @@ import { TOWNS2 } from './i18n-towns2.ts';
 import { TOWNS3 } from './i18n-towns3.ts';
 import { TOWNS4 } from './i18n-towns4.ts';
 import { TOWNS5 } from './i18n-towns5.ts';
+import { TOWNS6 } from './i18n-towns6.ts';
 import { COUNTRY } from './i18n-country.ts';
 
 export const LANGS = [
@@ -27,6 +28,7 @@ const TILES = '<a href="https://registry.opendata.aws/terrain-tiles/" target="_b
 const ME = (name: string) => `<a href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">${name}</a>`;
 const RISTE = (name: string) => `<a href="https://www.linkedin.com/in/ristes/" target="_blank" rel="noopener">${name}</a>`;
 const BRANKO = (name: string) => `<a href="https://www.linkedin.com/in/slavkovbranko/" target="_blank" rel="noopener">${name}</a>`;
+const KALINA = (name: string) => `<a href="https://www.linkedin.com/in/kalina-jovanovska-468281304/" target="_blank" rel="noopener">${name}</a>`;
 const K = (...keys: string[]) => keys.map((k) => `<kbd>${k}</kbd>`).join(' ');
 
 export const STR = {
@@ -114,6 +116,7 @@ export const STR = {
     ...TOWNS3.mk,
     ...TOWNS4.mk,
     ...TOWNS5.mk,
+    ...TOWNS6.mk,
     ...COUNTRY.mk,
   },
 
@@ -178,11 +181,12 @@ export const STR = {
     's.intro': 'The look is inspired by hand-drawn isometric maps: warm cream façades, terracotta roofs, lavender shadows and dense, rounded treetops. Everything is drawn in real time:',
     's.list': '<li>ink outlines tinted by the surface beneath, thicker along silhouettes;</li><li>soft shadows and darkening in corners (ambient occlusion);</li><li>windows, balconies, shutters, awnings and roof tiles painted in a shader;</li><li>two-tone shading of the trees — warm in the sun, cool in the shade;</li><li>when the camera is still, the image sharpens by accumulating many slightly shifted renders (supersampling).</li>',
     's.heights': 'Building heights missing from OpenStreetMap are estimated from the footprint and the neighbourhood — houses on the outskirts, high-rises in Karpoš and Aerodrom, low houses in the Old Bazaar.',
-    'help.foot': `Data © ${OSM} contributors (ODbL) · Terrain: ${TILES} (AWS Open Data) · Made with three.js by ${ME('Bojan Božinovski')}, ${RISTE('Riste Samardžiev')} (Kavadarci) and ${BRANKO('Branko Slavkov')} (Kratovo)`,
+    'help.foot': `Data © ${OSM} contributors (ODbL) · Terrain: ${TILES} (AWS Open Data) · Made with three.js by ${ME('Bojan Božinovski')}, ${RISTE('Riste Samardžiev')} (Kavadarci), ${BRANKO('Branko Slavkov')} (Kratovo) and ${KALINA('Kalina Jovanovska')} (Štip)`,
     'me': 'Bojan Božinovski',
     'me.more': 'Developers',
     'me.riste': 'Riste Samardžiev',
     'me.branko': 'Branko Slavkov',
+    'me.kalina': 'Kalina Jovanovska',
     'bar.places': '📍 Places', 'v.center': 'Square', 'v.kale': 'Kale & Bazaar', 'v.park': 'City Park', 'v.vodno': 'Vodno', 'v.overview': 'Overview',
     'bar.fly': '✈ Plane', 'bar.tools': '⚙ Options', 'bar.names': 'Names', 'bar.live': 'Live', 'bar.ink': 'Outlines', 'bar.shot': 'Save image', 'bar.lang': 'Language',
     'fly.exit': '✕ Exit', 'r.title': '🏁 Finish!', 'r.time': 'Time:', 'r.balloons': '091 balloons:', 'r.again': '↻ Again', 'r.free': 'Free flight',
@@ -302,6 +306,7 @@ export const STR = {
     ...TOWNS3.en,
     ...TOWNS4.en,
     ...TOWNS5.en,
+    ...TOWNS6.en,
     ...COUNTRY.en,
   },
 
@@ -366,11 +371,12 @@ export const STR = {
     's.intro': 'Изглед је инспирисан ручно цртаним изометријским мапама: топле кремасте фасаде, кровови од теракоте, сенке боје лаванде и густе заобљене крошње. Све се црта у реалном времену:',
     's.list': '<li>контуре мастилом у боји подлоге, дебље дуж силуета;</li><li>меке сенке и затамњење у угловима (амбијентална оклузија);</li><li>прозори, балкони, капци, тенде и црепови исцртани у шејдеру;</li><li>двотонско сенчење дрвећа — топло на сунцу, хладно у сенци;</li><li>када камера мирује, слика се изоштрава сабирањем више мало померених рендера (суперсемплинг).</li>',
     's.heights': 'Висине зграда којих нема у OpenStreetMap-у процењују се према облику и насељу — куће на периферији, солитери у Карпошу и Аеродрому, ниске куће у Чаршији.',
-    'help.foot': `Подаци © сарадници пројекта ${OSM} (ODbL) · Рељеф: ${TILES} (AWS Open Data) · Израдили ${ME('Бојан Божиновски')}, ${RISTE('Ристе Самарџиев')} (Кавадарци) и ${BRANKO('Бранко Славков')} (Кратово) у three.js-у`,
+    'help.foot': `Подаци © сарадници пројекта ${OSM} (ODbL) · Рељеф: ${TILES} (AWS Open Data) · Израдили ${ME('Бојан Божиновски')}, ${RISTE('Ристе Самарџиев')} (Кавадарци), ${BRANKO('Бранко Славков')} (Кратово) и ${KALINA('Калина Јовановска')} (Штип) у three.js-у`,
     'me': 'Бојан Божиновски',
     'me.more': 'Програмери',
     'me.riste': 'Ристе Самарџиев',
     'me.branko': 'Бранко Славков',
+    'me.kalina': 'Калина Јовановска',
     'bar.places': '📍 Места', 'v.center': 'Трг', 'v.kale': 'Кале и Чаршија', 'v.park': 'Градски парк', 'v.vodno': 'Водно', 'v.overview': 'Преглед',
     'bar.fly': '✈ Авион', 'bar.tools': '⚙ Опције', 'bar.names': 'Имена', 'bar.live': 'Уживо', 'bar.ink': 'Контуре', 'bar.shot': 'Сачувај слику', 'bar.lang': 'Језик',
     'fly.exit': '✕ Излаз', 'r.title': '🏁 Циљ!', 'r.time': 'Време:', 'r.balloons': 'Балони 091:', 'r.again': '↻ Поново', 'r.free': 'Слободан лет',
@@ -490,6 +496,7 @@ export const STR = {
     ...TOWNS3.sr,
     ...TOWNS4.sr,
     ...TOWNS5.sr,
+    ...TOWNS6.sr,
     ...COUNTRY.sr,
   },
 
@@ -554,11 +561,12 @@ export const STR = {
     's.intro': 'Izgled je inspiriran ručno crtanim izometrijskim kartama: tople krem fasade, krovovi od terakote, sjene boje lavande i guste zaobljene krošnje. Sve se crta u stvarnom vremenu:',
     's.list': '<li>konture tintom u boji podloge, deblje uz siluete;</li><li>meke sjene i zatamnjenje u kutovima (ambijentalna okluzija);</li><li>prozori, balkoni, kapci, tende i crijep iscrtani u shaderu;</li><li>dvotonsko sjenčanje stabala — toplo na suncu, hladno u sjeni;</li><li>kad kamera miruje, slika se izoštrava zbrajanjem više malo pomaknutih renderiranja (supersampling).</li>',
     's.heights': 'Visine zgrada kojih nema u OpenStreetMapu procjenjuju se prema obliku i naselju — kuće na periferiji, neboderi u Karpošu i Aerodromu, niske kuće u Čaršiji.',
-    'help.foot': `Podaci © suradnici projekta ${OSM} (ODbL) · Reljef: ${TILES} (AWS Open Data) · Izradili ${ME('Bojan Božinovski')}, ${RISTE('Riste Samardžiev')} (Kavadarci) i ${BRANKO('Branko Slavkov')} (Kratovo) u three.js-u`,
+    'help.foot': `Podaci © suradnici projekta ${OSM} (ODbL) · Reljef: ${TILES} (AWS Open Data) · Izradili ${ME('Bojan Božinovski')}, ${RISTE('Riste Samardžiev')} (Kavadarci), ${BRANKO('Branko Slavkov')} (Kratovo) i ${KALINA('Kalina Jovanovska')} (Štip) u three.js-u`,
     'me': 'Bojan Božinovski',
     'me.more': 'Programeri',
     'me.riste': 'Riste Samardžiev',
     'me.branko': 'Branko Slavkov',
+    'me.kalina': 'Kalina Jovanovska',
     'bar.places': '📍 Mjesta', 'v.center': 'Trg', 'v.kale': 'Kale i Čaršija', 'v.park': 'Gradski park', 'v.vodno': 'Vodno', 'v.overview': 'Pregled',
     'bar.fly': '✈ Avion', 'bar.tools': '⚙ Opcije', 'bar.names': 'Imena', 'bar.live': 'Uživo', 'bar.ink': 'Konture', 'bar.shot': 'Spremi sliku', 'bar.lang': 'Jezik',
     'fly.exit': '✕ Izlaz', 'r.title': '🏁 Cilj!', 'r.time': 'Vrijeme:', 'r.balloons': 'Baloni 091:', 'r.again': '↻ Ponovno', 'r.free': 'Slobodan let',
@@ -678,6 +686,7 @@ export const STR = {
     ...TOWNS3.hr,
     ...TOWNS4.hr,
     ...TOWNS5.hr,
+    ...TOWNS6.hr,
     ...COUNTRY.hr,
   },
 
@@ -742,11 +751,12 @@ export const STR = {
     's.intro': 'Videz je navdihnjen z ročno risanimi izometričnimi zemljevidi: tople kremne fasade, strehe iz terakote, sence v barvi sivke in goste zaobljene krošnje. Vse se riše v realnem času:',
     's.list': '<li>obrobe s črnilom v barvi podlage, debelejše ob silhuetah;</li><li>mehke sence in zatemnitev v kotih (ambientna okluzija);</li><li>okna, balkoni, polkna, tende in strešniki, izrisani v senčilniku;</li><li>dvobarvno senčenje dreves — toplo na soncu, hladno v senci;</li><li>ko kamera miruje, se slika izostri s seštevanjem več rahlo zamaknjenih upodobitev (supersampling).</li>',
     's.heights': 'Višine stavb, ki jih v OpenStreetMap ni, so ocenjene glede na obliko in sosesko — hiše na obrobju, stolpnice v Karpošu in Aerodromu, nizke hiše v Čaršiji.',
-    'help.foot': `Podatki © sodelavci projekta ${OSM} (ODbL) · Relief: ${TILES} (AWS Open Data) · Izdelali ${ME('Bojan Božinovski')}, ${RISTE('Riste Samardžiev')} (Kavadarci) in ${BRANKO('Branko Slavkov')} (Kratovo) s three.js`,
+    'help.foot': `Podatki © sodelavci projekta ${OSM} (ODbL) · Relief: ${TILES} (AWS Open Data) · Izdelali ${ME('Bojan Božinovski')}, ${RISTE('Riste Samardžiev')} (Kavadarci), ${BRANKO('Branko Slavkov')} (Kratovo) in ${KALINA('Kalina Jovanovska')} (Štip) s three.js`,
     'me': 'Bojan Božinovski',
     'me.more': 'Razvijalci',
     'me.riste': 'Riste Samardžiev',
     'me.branko': 'Branko Slavkov',
+    'me.kalina': 'Kalina Jovanovska',
     'bar.places': '📍 Kraji', 'v.center': 'Trg', 'v.kale': 'Kale in Čaršija', 'v.park': 'Mestni park', 'v.vodno': 'Vodno', 'v.overview': 'Pregled',
     'bar.fly': '✈ Letalo', 'bar.tools': '⚙ Možnosti', 'bar.names': 'Imena', 'bar.live': 'V živo', 'bar.ink': 'Obrisi', 'bar.shot': 'Shrani sliko', 'bar.lang': 'Jezik',
     'fly.exit': '✕ Izhod', 'r.title': '🏁 Cilj!', 'r.time': 'Čas:', 'r.balloons': 'Baloni 091:', 'r.again': '↻ Znova', 'r.free': 'Prosti let',
@@ -866,6 +876,7 @@ export const STR = {
     ...TOWNS3.sl,
     ...TOWNS4.sl,
     ...TOWNS5.sl,
+    ...TOWNS6.sl,
     ...COUNTRY.sl,
   },
 
@@ -930,11 +941,12 @@ export const STR = {
     's.intro': 'Pamja është frymëzuar nga hartat izometrike të vizatuara me dorë: fasada të ngrohta në ngjyrë kremi, çati prej terrakote, hije në ngjyrë livande dhe kurora pemësh të dendura e të rrumbullakëta. Gjithçka vizatohet në kohë reale:',
     's.list': '<li>kontura me bojë në ngjyrën e sfondit, më të trasha përgjatë siluetave;</li><li>hije të buta dhe errësim në qoshe (okluzion ambiental);</li><li>dritare, ballkone, grila, tenda dhe tjegulla të vizatuara në shader;</li><li>hijezim dyngjyrësh i pemëve — i ngrohtë në diell, i ftohtë në hije;</li><li>kur kamera qëndron e palëvizur, imazhi mprehet duke mbledhur shumë renderime pak të zhvendosura (supersampling).</li>',
     's.heights': 'Lartësitë e ndërtesave që mungojnë në OpenStreetMap vlerësohen sipas formës dhe lagjes — shtëpi në periferi, pallate të larta në Karposh dhe Aerodrom, shtëpi të ulëta në Çarshi.',
-    'help.foot': `Të dhënat © kontribuuesit e ${OSM} (ODbL) · Relievi: ${TILES} (AWS Open Data) · Punuar me three.js nga ${ME('Bojan Božinovski')}, ${RISTE('Riste Samardžiev')} (Kavadarci) dhe ${BRANKO('Branko Slavkov')} (Kratovo)`,
+    'help.foot': `Të dhënat © kontribuuesit e ${OSM} (ODbL) · Relievi: ${TILES} (AWS Open Data) · Punuar me three.js nga ${ME('Bojan Božinovski')}, ${RISTE('Riste Samardžiev')} (Kavadarci), ${BRANKO('Branko Slavkov')} (Kratovo) dhe ${KALINA('Kalina Jovanovska')} (Shtip)`,
     'me': 'Bojan Božinovski',
     'me.more': 'Zhvilluesit',
     'me.riste': 'Riste Samardžiev',
     'me.branko': 'Branko Slavkov',
+    'me.kalina': 'Kalina Jovanovska',
     'bar.places': '📍 Vende', 'v.center': 'Sheshi', 'v.kale': 'Kalaja dhe Çarshia', 'v.park': 'Parku i Qytetit', 'v.vodno': 'Vodno', 'v.overview': 'Pamja e plotë',
     'bar.fly': '✈ Aeroplan', 'bar.tools': '⚙ Opsione', 'bar.names': 'Emrat', 'bar.live': 'Gjallë', 'bar.ink': 'Konturet', 'bar.shot': 'Ruaj foton', 'bar.lang': 'Gjuha',
     'fly.exit': '✕ Dalje', 'r.title': '🏁 Finish!', 'r.time': 'Koha:', 'r.balloons': 'Balona 091:', 'r.again': '↻ Përsëri', 'r.free': 'Fluturim i lirë',
@@ -1054,6 +1066,7 @@ export const STR = {
     ...TOWNS3.sq,
     ...TOWNS4.sq,
     ...TOWNS5.sq,
+    ...TOWNS6.sq,
     ...COUNTRY.sq,
   },
 };
