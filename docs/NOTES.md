@@ -664,6 +664,39 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    checked: flying in from a neighbouring map (none of its neighbours is built yet), phones, firefighting and the race,
    night and snow views, the other walking cards one by one. Seen: on 20 m cells `farmMask` also paints a few open lots
    in the town (one next to the Саат-кула), as on the other 20 m maps.
+45. **047 Меџитлија** (Nov 2026, branch `city-medzitlija`, not yet released; second of the build order): southern Пелагонија
+   under Битола's map down past the Greek border (docs/TOWNS_TODO.md, 17): box 40.85–40.955 N, 21.165–21.47 E (11.7 ×
+   25.7 km, 20 m cells, 532–2347 m; Баба's southern ridges in the west), a plain rectangle edge to edge with Битола (n),
+   Ресен (w) and the planned Новаци (e). **The plan's e edge (21.40) left Меџитлија itself (21.429), its border crossing
+   (21.417) and Кременица (21.458) outside**: the box was widened to 21.47, the strip 40.85–40.955 N, 21.40–21.47 E cut out
+   of Новаци's planned box (`CUTS` in `src/zones.ts`). Raw OSM from Overpass this time (overpass-api.de answered after a
+   few 502s; 18 tiles): 999 buildings and 1,003 roads, exactly the count query; the Greek half comes with it (Geofabrik's
+   Macedonia extract has none of it). Overture adds 3,995 outlines (Меџитлија's village is nearly empty in OSM), so the
+   Overture credit is on. Scene: 4,966 buildings, 1.3 MB, no height zones (`maxLevels: 4`). Farmland painted like Битола's
+   (`vineyards: 300`, `vineShare: 0.08`). Refilling over the fish ponds by Жабени at the north edge (three OSM ponds of
+   33–55 ha). Models (`src/medzitlija.ts`, after Commons photos of 2014–2023 and Esri's aerial image; references only):
+   **the mosque of Меџитлија** (`modelRects.mzdzamija`, OSM lacks it: hall with three arched windows a side, copper dome
+   on a low drum, porch of three arches with a small dome, the white minaret with its balcony and silver cone; rectangle and
+   turn read off the aerial image, dome toward the qibla), **the border crossing's canopies** (`mzgranica`: the Macedonian
+   side, 84 × 54 m, ribbed grey roof over the lanes, booths, the offices along its east edge; `mzgrcka`: the Greek side 450 m
+   south, three dark blue bays; from the aerial image only, heights and columns guessed), **Велушки манастир** on OSM's
+   outlines (1839, rebuilt after the First World War, mk Wikipedia: the church Св. Ѓорѓи, white on a stone plinth under a
+   hipped tile roof, round-arched windows, an apse; its bell tower north-west of it, not in OSM, placed by a shadow on the
+   aerial image; the konak south of it with the gate passage and the white piers and wooden gallery on the court side).
+   Labels only: Св. Атанасиј and the railway station in Кременица, Барешански манастир, Остречка џамија, Св. Илија
+   (Драгош), Коле Канински's monument in Породин, Вирој. Greek villages are labelled by their Macedonian names from OSM's
+   `name:mk` (Негочани, Клабучишта, Света Петка, Опсирино, Раково, Битуша, Горно / Долно Каленик), as Дојран's Дојрани.
+   Badge 047 (the Badge codes table) and the owner's LinkedIn; tow banners „Пелагонија е спасена!“ / „Поздрав од
+   Пелагонија!“; snow label „Снег на Баба“ (Ресен's). In the city menu right after Кочани. Checked: typecheck, build (the
+   files in `dist/`), the map loads with no console errors, the views (the village, the mosque, both canopies, the
+   monastery, the plain, the overview), switching away and back (textures 318 → 318, scene objects 21 → 21, geometries
+   +2), the F-15 over the map (country vs map heights: mean 0, max 11 m), **flying the F-15 from Битола into Меџитлија
+   and back** (switched at the edge both ways; after arriving the heights agree, mean 0, ±12 m; at the Greek edge it
+   turns back), Skopje pixel check (0 on six views, 13–14 pixels on the three overviews: the gondola cabins). The pane was
+   hidden, so the pixel check ran with a frame pump: `requestAnimationFrame` queued and `performance.now` faked, the
+   script's `frames()` and the 1.7 s waits replaced by pumped frames, `img.decode()` by `onload` (with timer frames at 1–2
+   FPS the same code compared against itself differed on every pixel; pumped, it matches). Not checked: flying in from
+   Ресен, phones, firefighting and the race, night and snow views, the walking cards one by one.
 
 ## Country view (Nov 2026)
 
@@ -935,6 +968,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Матка | `skopje.bestRace.matka` | none |
 | Best race time in Вевчани | `skopje.bestRace.vevcani` | none |
 | Best race time in Кочани | `skopje.bestRace.kocani` | none |
+| Best race time in Меџитлија | `skopje.bestRace.medzitlija` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.

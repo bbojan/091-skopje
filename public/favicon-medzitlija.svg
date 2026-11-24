@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Меџитлија: the mosque's dome and minaret over the rows of the plain's fields -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <path d="M60 64 V30 L63 14 L66 30 V64 Z" fill="#1f2a44"/>
+  <rect x="58.5" y="38" width="9" height="3" rx="1" fill="#1f2a44"/>
+  <path d="M18 64 V48 H54 V64 Z" fill="#1f2a44"/>
+  <path d="M24 48 Q36 26 48 48 Z" fill="#7a1f1a"/>
+  <g fill="#f4ede0"><rect x="23" y="52" width="4" height="8" rx="2"/><rect x="34" y="52" width="4" height="8" rx="2"/><rect x="45" y="52" width="4" height="8" rx="2"/></g>
+  <path d="M10 76 H90 M14 86 H86" fill="none" stroke="#7a1f1a" stroke-width="4" stroke-linecap="round"/>
+</svg>

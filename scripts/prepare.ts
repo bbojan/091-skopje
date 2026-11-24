@@ -557,6 +557,28 @@ const PREP: Record<CityName, CityPrep> = {
     // no lake on the map (Гратче lies 1.5 km north of it, on Пробиштип's): the Брегалница, a line in OSM, widened for refilling
     waterLines: [[384225634, 10], [907653405, 10], [907655044, 10]],
   },
+  medzitlija: {
+    old: null,
+    square: [40.92740, 21.42975], // the paved yard in front of the mosque in Меџитлија (OSM has no square there)
+    landmarks: {},
+    // modelled by hand after photos (src/medzitlija.ts): Велушки манастир's church Св. Ѓорѓи and its konak
+    models: { mzvcrkva: 849440102, mzvkonak: 849440101 },
+    // OSM lacks them: read off the aerial image. The mosque of Меџитлија (dome toward the qibla), the canopies of the
+    // border crossing (the Macedonian side over the lanes, the offices on its east; the Greek side's three bays)
+    modelRects: {
+      mzdzamija: [40.92709, 21.42932, 18, 12, 2.67],
+      mzgranica: [40.92015, 21.41643, 84, 54, Math.PI / 2],
+      mzgrcka: [40.91614, 21.41844, 78, 74, 0],
+    },
+    placeNames: {},
+    placeIds: { mzvcrkva: 849440102, mzvkonak: 849440101, crossing: 537846447, kstation: 404975023, katanasij: 404975011, baresani: 412310914, ilija: 219799845, ostrec: 219827428 },
+    placeNodes: { kaninski: 14313547332, branitel: 14313555859 },
+    nodeLL: { 14313547332: [40.93608, 21.37221], 14313555859: [40.93587, 21.37131] }, // Коле Канински, the defenders of 2001 (Породин)
+    tall: [],
+    mid: [],
+    squareBonus: false,
+    maxLevels: 4,
+  },
   brod: {
     old: null,
     square: [41.50676, 21.21943], // the paved square by the municipality building in Македонски Брод
