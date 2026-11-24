@@ -56,7 +56,7 @@ export interface CitySpec {
   rice?: [share: number, top: number];
   /** how the walking person looks: Итар Пејо in folk costume, a man in a dark suit (Kavadarci), or
    *  Милтон Манаки with his film camera (Bitola; his action films an оро instead of dancing it) */
-  walker: 'pejo' | 'suit' | 'manaki';
+  walker: 'pejo' | 'suit' | 'manaki' | 'singo';
   /** the companion Шарпланинец in the dark coat of the Пелистер sheepdogs (Bitola); unset: grey-sand */
   darkDog?: boolean;
   /** weather preset 'vodno' is called by the local mountain; the firefighting water source */
@@ -1050,7 +1050,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     // Славиште and the valleys round Кратово: wheat and other fields on the gentle land, a few vineyards
     vineyards: 200,
     vineShare: 0.05,
-    walker: 'pejo',
+    walker: 'singo', // Ѕинго in the miner's helmet of „Силекс“ (src/walk.ts)
     snowLabel: 'weather.osogovo',
     refillLabel: 'fire.refill.kratovo',
     bestRaceKey: 'skopje.bestRace.kratovo',
