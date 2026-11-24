@@ -254,6 +254,17 @@ export const CITIES = {
     files: { raw: 'data/kocani_raw.json', scene: 'public/kocani.json', terrainBin: 'public/kocani-terrain.bin', terrainJson: 'public/kocani-terrain.json' },
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Меџитлија: the strip of Пелагонија under Битола's map down past the Greek border (docs/TOWNS_TODO.md, 17): Меџитлија
+  // and its crossing, Кременица, Лажец, Пелистер's eastern foot; south of the border (~40.92 N) the first villages of the
+  // Florina plain (Νίκη, Μεσόκαμπος). Edge to edge with Битола (its n edge) and Ресен (w). The plan's e edge (21.40) left
+  // Меџитлија itself (21.429), its crossing (21.417) and Кременица (21.458) outside: widened to 21.47, a corner of the
+  // planned Новаци's box (cut there in src/zones.ts)
+  medzitlija: {
+    bbox: { s: 40.85, w: 21.165, n: 40.955, e: 21.47 },
+    tiles: [6, 3] as [number, number],
+    files: { raw: 'data/medzitlija_raw.json', scene: 'public/medzitlija.json', terrainBin: 'public/medzitlija-terrain.bin', terrainJson: 'public/medzitlija-terrain.json', overture: 'data/medzitlija_overture.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: Box; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec; cut?: Box[] }>;
 
 export type CityName = keyof typeof CITIES;
