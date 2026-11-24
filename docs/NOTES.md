@@ -745,6 +745,19 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    Solid white sheet letters ~14 m tall (rounded Ѕ and О), leaning back 11° on grey steel scaffolding, mirrored along the
    frame so they read from the north (`modelRects.krsign`, 140 × 70 m: a clearing in the forest round them), with its own
    card saying it is not real. New views: Хотел Кратис, Ѕингова куќа, ЅИНГО LAND.
+   **The second joke**, from the developer (people say that in 1995 Кратово looked like a country of its own, Ѕинго
+   with his own money): **the border crossing into Ѕинго Land** on the R1205 into town, 1.3 km from the square on a
+   straight stretch with no houses (`modelRects.krgranica`): a canopy over the road with „ЅИНГО LAND“ on both fascias,
+   the customs booth, a red and white barrier, the land's flag (wine field, gold miner's helmet, gold Ѕ; two one-sided
+   cloths so it reads from both sides), an exchange office „МЕНУВАЧНИЦА 1 ЅИНГО = 1 ЅИНГО“ and a board „ДОБРЕДОЈДОВТЕ ВО
+   ЅИНГО LAND — ПАСОШ НЕ Е ПОТРЕБЕН“; its card says „велат“ and calls it this map's joke. **Rivers**: OSM has Крива Река,
+   Злетовица, the Кратовска Река outside the centre and the smaller rivers only as lines (cut into the terrain, no water):
+   now `waterLines` (14 ways, 1.5–6 m half width). `waterLines` also takes the pieces of a way split by a cut rectangle
+   (id + k·1e12); other cities have no split pieces, so their scenes do not change. **The town's Olympic pool**, which mk
+   Wikipedia says belongs to АД РИК „Силекс“ (Ѕинго's mine), on OSM's site outline (`leisure=water_park`, ~120 × 50 m):
+   a 50 m eight-lane pool with lane ropes and starting blocks, a children's pool, a tiled deck on a stone terrace where the
+   slope falls away, a fence, changing rooms, loungers and umbrellas, and at the gate „БАЗЕН · СОПСТВЕНОСТ НА ЅИНГО LAND“
+   between two of the land's flags; the layout is drawn, not surveyed.
 
 ## Country view (Nov 2026)
 

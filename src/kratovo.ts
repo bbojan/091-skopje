@@ -26,6 +26,10 @@
 //   upper floor overhanging on wooden brackets, timber beams, shuttered windows, a hipped tile roof with wide eaves — and
 //   on its west wall a mural drawn here (a canvas: a miner's lamp and helmet for „Силекс“, a football for the
 //   federation, „ЅИНГО LAND“ in a vez border).
+// - The town's Olympic pool (mk Wikipedia: owned by АД РИК „Силекс“, the mine Ѕинго ran), on OSM's site outline: a
+//   50 m pool of eight lanes with lane ropes and starting blocks, a children's pool, a tiled deck on a stone terrace
+//   where the slope falls away, a fence, the changing rooms, loungers and umbrellas, and at the gate the sign
+//   „БАЗЕН · СОПСТВЕНОСТ НА ЅИНГО LAND“ between two of the land's flags. Its layout is drawn, not surveyed.
 // - The second joke: the border crossing into Ѕинго Land on the R1205 (people say that in 1995 Кратово looked like a
 //   country of its own, with Ѕинго's own money): a canopy over the road with „ЅИНГО LAND“ on its fascia, a red and white
 //   barrier, the customs booth, the land's flag, an exchange office (1 ЅИНГО = 1 ЅИНГО) and a „no passport needed“ board.
@@ -453,6 +457,73 @@ export function createKratovo(data: CityData, terrain: Terrain, clippingPlanes: 
     );
     mm.castShadow = mm.receiveShadow = true;
     group.add(mm);
+  }
+
+  // ---------------- the Olympic pool, Ѕинго Land property: +u along the site's long axis, +v across it
+  const pf = M.krbazen ? frame(M.krbazen, terrain) : null;
+  if (pf) {
+    const p = parts(), ring = toPts(M.krbazen).map(([x, z]) => pf.local(x, z));
+    const deck = 0.0, tex: [THREE.BufferGeometry, THREE.Material][] = [];
+    // the terrace: stone walls where the slope falls away, a pale tiled deck on top, a low fence round its edge
+    p.walls('stone', ring, pf.under, deck - 0.15);
+    p.walls('cream', ring, deck - 0.15, deck);
+    p.edges(ring, (u, v, len, ang) => {
+      p.put('iron', new THREE.BoxGeometry(len, 0.05, 0.05).translate(0, 1.6, -0.15), u, v, deck, ang);
+      for (let t = -len / 2; t <= len / 2; t += 2.5) p.put('iron', new THREE.BoxGeometry(0.05, 1.6, 0.05).translate(t, 0.8, -0.15), u, v, deck, ang);
+    });
+    // the 50 m pool: white tiled rim, eight lanes of 2.5 m, the water a little below the rim
+    const pu = -pf.L * 0.12, pl = 25, pw = 10.5;
+    p.box('white', pu - pl - 0.6, pu + pl + 0.6, -pw - 0.6, pw + 0.6, deck, deck + 0.12);
+    const water = new THREE.MeshLambertMaterial({ color: '#4fbfd6', clippingPlanes });
+    tex.push([new THREE.PlaneGeometry(2 * pl, 2 * pw).rotateX(-Math.PI / 2).translate(pu, deck + 0.13, 0), water]);
+    // lane ropes: red and white floats, and the dark lane lines under the water at the ends
+    for (let k = 1; k < 8; k++) {
+      const v = -pw + (2 * pw * k) / 8;
+      for (let s = 0; s < 20; s++) { const u0 = pu - pl + (2 * pl * s) / 20; p.box(s % 4 < 2 ? 'brick' : 'white', u0, u0 + (2 * pl) / 20, v - 0.06, v + 0.06, deck + 0.13, deck + 0.22); }
+    }
+    for (let k = 0; k < 8; k++) {
+      const v = -pw + (2 * pw * (k + 0.5)) / 8;
+      p.box('face', pu - pl + 1.5, pu + pl - 1.5, v - 0.12, v + 0.12, deck + 0.131, deck + 0.135);
+      p.box('white', pu - pl - 0.55, pu - pl - 0.05, v - 0.3, v + 0.3, deck + 0.12, deck + 0.85); // starting blocks
+      p.box('face', pu - pl - 0.56, pu - pl - 0.5, v - 0.15, v + 0.15, deck + 0.6, deck + 0.8);
+    }
+    // the children's pool, round-cornered as a box, shallower and paler
+    const ku = pu + pl + 10, kw = 5;
+    if (ku + 6 < pf.L) {
+      p.box('white', ku - 6.4, ku + 6.4, -kw - 0.4, kw + 0.4, deck, deck + 0.12);
+      tex.push([new THREE.PlaneGeometry(12, 2 * kw).rotateX(-Math.PI / 2).translate(ku, deck + 0.13, 0), new THREE.MeshLambertMaterial({ color: '#7fd3e2', clippingPlanes })]);
+    }
+    // the changing rooms and café along the far end: white, a flat roof with a wine fascia
+    const bu0 = Math.min(pf.L - 2, ku + 9), bu1 = bu0 - 9;
+    if (bu0 > pu + pl + 3) {
+      p.box('white', bu1, bu0, -pf.W * 0.55, pf.W * 0.55, deck, deck + 3.2);
+      p.box('brick', bu1 - 0.3, bu0 + 0.3, -pf.W * 0.55 - 0.3, pf.W * 0.55 + 0.3, deck + 3.2, deck + 3.6);
+      for (let v = -pf.W * 0.45; v < pf.W * 0.45; v += 3) p.box('glass', bu1 - 0.05, bu1, v, v + 1.8, deck + 0.9, deck + 2.4);
+    }
+    // loungers and umbrellas on both long sides of the pool
+    for (const sv of [-1, 1]) for (let u = pu - pl + 2; u < pu + pl - 2; u += 4) {
+      const v = sv * (pw + 3.2);
+      if (Math.abs(v) > pf.W - 1.5) continue;
+      p.box('white', u - 0.35, u + 0.35, v - 1.0, v + 1.0, deck, deck + 0.35);
+      if (Math.round(u) % 8 < 4) { p.cyl('iron', u + 0.9, v, deck, deck + 2.2, 0.04, 0.04, 6); p.cone(sv > 0 ? 'brick' : 'ochre', u + 0.9, v, deck + 1.9, 1.3, 0.5, 8); }
+    }
+    // the gate at the near end: the sign „БАЗЕН · СОПСТВЕНОСТ НА ЅИНГО LAND“ on two posts between two flags
+    const gu = pu - pl - 6, sv0 = 0;
+    for (const sv of [-2.4, 2.4]) p.box('iron', gu - 0.08, gu + 0.08, sv0 + sv - 0.08, sv0 + sv + 0.08, deck, deck + 3.6);
+    const sign = new THREE.MeshLambertMaterial({ map: signTexture(768, 300, '#1f2a44', '#fff8ec', [['БАЗЕН', 90], ['СОПСТВЕНОСТ НА', 44], ['ЅИНГО LAND', 66]], '#e8b04a'), clippingPlanes, side: THREE.DoubleSide });
+    tex.push([new THREE.PlaneGeometry(4.8, 1.9).rotateY(-Math.PI / 2).translate(gu - 0.1, deck + 2.7, sv0), sign]);
+    const flag = flagTexture();
+    for (const sv of [-4.2, 4.2]) {
+      p.cyl('iron', gu, sv, deck, deck + 7, 0.06, 0.05, 8);
+      tex.push([new THREE.PlaneGeometry(2.1, 1.4).translate(1.1, 0, 0).rotateY(Math.PI / 2 - 0.3).translate(gu, deck + 6.2, sv + 0.01), new THREE.MeshLambertMaterial({ map: flag, clippingPlanes })]);
+      tex.push([new THREE.PlaneGeometry(2.1, 1.4).translate(-1.1, 0, 0).rotateY(-Math.PI / 2 - 0.3).translate(gu, deck + 6.2, sv - 0.01), new THREE.MeshLambertMaterial({ map: flag, clippingPlanes })]);
+    }
+    place(p, pf);
+    for (const [g, mat] of tex) {
+      const mesh = new THREE.Mesh(g.applyMatrix4(pf.m), mat);
+      mesh.receiveShadow = true;
+      group.add(mesh);
+    }
   }
 
   // ---------------- the second joke: the border crossing into Ѕинго Land. +u along the road (north, toward the town),
