@@ -323,13 +323,13 @@ async function hop(id: CityId): Promise<void> {
   const w = world;
   if (!w || hopping || loading) return;
   const files = prefetch.take(id);
-  if (!files) return;
+  if (!files && !prefetch.tooBig(id)) return; // not downloaded yet
   hopping = true;
   hopTarget = id;
   const f = w.flight, p = f.pos;
   const [lat, lon] = latLonOf(w, p.x, p.z);
   hopCarry = { lat, lon, yaw: f.yaw, agl: p.y - groundAt(p.x, p.z), speed: f.speed, pitch: f.pitch, input: { ...f.input } };
-  hopFiles = { id, files };
+  hopFiles = files ? { id, files } : null; // a map too big to keep (phones: Тетово) loads from the network
   const fade = $('hop-fade');
   document.body.classList.add('hop'); // the loader shows small (name and bar only)
   if (cground && cgroundFor === w && cground.visible) {
@@ -387,6 +387,9 @@ async function warmUp(w: World, tr: NonNullable<typeof transit>): Promise<void> 
   cam.lookAt(x + dx * 900, y - 250, z + dz * 900);
   cam.updateMatrixWorld();
   w.city.updateLOD(cam);
+  // memory saver (on by default on phones): the detailed ground is built near the camera on demand; build it round
+  // where the plane comes in now (loadCity's first round used the old map's camera)
+  for (let k = 0; k < 400 && w.city.streamPending; k++) { await nextFrame(); w.city.updateLOD(cam); }
   const keep = new Set<THREE.Object3D>([f.plane, tr.ground.mesh, ...SCENE_BASE]);
   const tops = scene.children.filter((o) => !keep.has(o));
   const items = tops.flatMap((o) => (o === w.city.group ? o.children : [o]));
@@ -451,7 +454,7 @@ function hopUpdate(dt: number, w: World): void {
   if (inMap(w.spec.id, lat, lon)) return;
   const id = mapAt(lat, lon, w.spec.id);
   if (!id) return;
-  if (prefetch.has(id)) void hop(id);
+  if (prefetch.has(id) || prefetch.tooBig(id)) void hop(id);
   else if (prefetch.progress(id) === 0) prefetch.want([id]); // over the next map already: get it now
 }
 /** the map's clipping planes (the ink's normal pass is clipped to them, except while the country's ground shows) */
@@ -651,7 +654,8 @@ async function loadCity(spec: CitySpec): Promise<void> {
   }
   applyHash() || setView('center');
   // memory saver: build the detailed ground around the first view before showing it
-  for (let i = 0; i < 400; i++) { city.updateLOD(camera); if (!city.streamPending) break; await nextFrame(); }
+  // (the F-15 flying in: done by warmUp() round where the plane comes in, not round the old map's camera)
+  if (!transit) for (let i = 0; i < 400; i++) { city.updateLOD(camera); if (!city.streamPending) break; await nextFrame(); }
   mark('stream');
   // the first frame compiles the shaders (the F-15 flying in: compiled without drawing, the camera is the old map's)
   if (transit) renderer.compile(scene, camera);

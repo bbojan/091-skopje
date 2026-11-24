@@ -73,6 +73,9 @@ export function createPrefetch(o: { maxMaps: number; budget: number }) {
   const ready = new Map<CityId, MapFiles & { bytes: number; at: number }>();
   let current: { id: CityId; got: number; total: number; abort: AbortController } | null = null;
   let wanted: CityId[] = [];
+  /** maps too big to keep on this device (Тетово's 21.5 MB on a phone): not downloaded again; main.ts switches into
+   *  them from the network */
+  const tooBig = new Set<CityId>();
   let paused = false;
   /** measured speed of the downloads, bytes per second (a guess until the first one is done) */
   let rate = 4e6;
@@ -111,7 +114,7 @@ export function createPrefetch(o: { maxMaps: number; budget: number }) {
       const scene = await grab(spec.files.scene, abort, add);
       const bytes = scene.byteLength + terrainBin.byteLength + terrainJson.byteLength;
       rate = 0.5 * rate + 0.5 * (bytes / Math.max(0.05, (performance.now() - t0) / 1000));
-      if (bytes > o.budget) return; // too big to keep on this device: built from the network at the edge
+      if (bytes > o.budget) { tooBig.add(id); return; } // too big to keep on this device: built from the network at the edge
       ready.set(id, { scene, terrainBin, terrainJson, bytes, at: performance.now() });
       trim();
     } catch (e) {
@@ -133,7 +136,7 @@ export function createPrefetch(o: { maxMaps: number; budget: number }) {
 
   function pump(): void {
     if (current || paused) return;
-    const next = wanted.find((id) => !ready.has(id));
+    const next = wanted.find((id) => !ready.has(id) && !tooBig.has(id));
     if (next) void download(next);
   }
 
@@ -147,6 +150,8 @@ export function createPrefetch(o: { maxMaps: number; budget: number }) {
     /** slow frames: no new download starts meanwhile */
     pause(v: boolean): void { paused = v; if (!v) pump(); },
     has: (id: CityId) => ready.has(id),
+    /** too big to keep here: switch into it from the network */
+    tooBig: (id: CityId) => tooBig.has(id),
     /** downloading now */
     loading: (id: CityId) => current?.id === id,
     /** to be downloaded, after the one downloading now */
@@ -154,7 +159,7 @@ export function createPrefetch(o: { maxMaps: number; budget: number }) {
     /** the downloaded files, handed over once (they leave the cache) */
     take(id: CityId): MapFiles | null { const f = ready.get(id); ready.delete(id); return f ?? null; },
     /** 0…1 while it downloads, 1 when ready, 0 otherwise */
-    progress(id: CityId): number { return ready.has(id) ? 1 : current?.id === id ? Math.min(0.99, current.got / current.total) : 0; },
+    progress(id: CityId): number { return ready.has(id) || tooBig.has(id) ? 1 : current?.id === id ? Math.min(0.99, current.got / current.total) : 0; },
     /** seconds a download of this map would take at the measured speed */
     seconds(id: CityId): number { return (CITIES[id].sceneBytes + 5e6) / rate; },
     clear(): void { current?.abort.abort(); current = null; ready.clear(); wanted = []; },

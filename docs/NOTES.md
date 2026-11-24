@@ -704,7 +704,13 @@ Built in phases on branch `f15`, one commit each (the plan: [IDEAS.md](IDEAS.md)
   The warm-up after the build used to hide and show every piece of the new map once per piece uploaded: Ростуше's
   ~9,600 took 2.2 s on desktop after the loader had closed, so the plane flew over only the coarse country terrain
   although "loading" looked finished. Now it uploads in growing batches (one draw per batch, everything hidden once
-  per ~10 ms slice): 0.14 s, and the small loader stays until the map shows. Тетово → Ростуше: ~4.2 s in all. The flight's floor and the rockets use it
+  per ~10 ms slice): 0.14 s, and the small loader stays until the map shows. Тетово → Ростуше: ~4.2 s in all.
+  **Phones** (seen by the owner on a phone, then checked with phone emulation): a map bigger than the 20 MB phone
+  budget (Тетово, 21.5 MB) was downloaded, thrown away and never ready, so the switch never came and it was
+  downloaded again and again; now it is marked too big (`prefetch.tooBig`) and the switch loads it from the network.
+  And with the memory saver (on by default on phones) the detailed ground round the entry was built only after the
+  map showed (loadCity's first round used the old map's camera): `warmUp()` now streams it at the entry first.
+  Checked on the phone profile: Брод → Матка → Тетово → Ростуше, the ground built on every arrival. The flight's floor and the rockets use it
   beyond the edges (`groundAt()` in `main.ts`). The camera sees 70 km. While it shows, the ink's normal pass is not
   clipped to the map (otherwise its depth is missing and everything beyond the map is hazed).
 
