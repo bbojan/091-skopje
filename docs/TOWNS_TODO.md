@@ -3,9 +3,9 @@
 **Finished: 16 maps, all on the site** (v16.0.0, 2026-11-23; 02 Матка and 046 Вевчани added in it): 091 Скопје, 043 Кавадарци, 097 Битола,
 096 Охрид (with Струга), 098 Прилеп, 048 Крушево, 042 Ростуше (with Дебар and Маврово),
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
-045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. **Built, not yet released:** 0903 Кочани (branch `city-kocani`,
-2026-11-24), 047 Меџитлија (branch `city-medzitlija`, 2026-11-24), 031 Кратово (branch `city-kratovo`, 2026-11-24, developer
-Бранко Славков), 043 Демир Капија (branch `demirkapija`, 2026-11-24, developer Ристе Самарџиев), 043 Неготино (branch `negotino`, 2026-11-24, developer Ристе Самарџиев). Details in the first table below.
+045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. **Released in v32.0.0 (2026-11-24), 23 maps in all:** 0903 Кочани,
+047 Меџитлија, 031 Кратово (developer Бранко Славков), 092 Штип and 0902 Струмица (developer Калина Јовановска), 043 Неготино
+and 043 Демир Капија (developer Ристе Самарџиев). Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
@@ -20,12 +20,12 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 23 new maps** (Кочани, Меџитлија, Кратово and Неготино built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино and Демир Капија built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
 |---|---|---|---|---|---|---|
-| Куманово | 1620 | Куманово | | Струмица | 690 | Струмица |
+| Куманово | 1620 | Куманово | | ~~Струмица~~ built | 690 | Струмица |
 | Велес | 1540 | Велес | | Дебарца | 630 | — |
 | Мариово* | 1460 | — | | Свети Николе | 580 | Свети Николе |
 | Кичево | 1160 | Кичево | | Крива Паланка | 570 | Крива Паланка |
@@ -34,8 +34,8 @@ towns on it):
 | Скопска Црна Гора* | 1010 | — | | Пробиштип | 380 | Пробиштип |
 | Новаци* | 970 | — | | ~~Неготино~~ built | 370 | Неготино |
 | Радовиш | 900 | Радовиш | | Кораб* | 370 | — |
-| Штип | 820 | Штип | | Виница | 340 | Виница |
-| Демир Капија | 820 | Демир Капија | | Голо Брдо* | 280 | — |
+| ~~Штип~~ built | 820 | Штип | | Виница | 340 | Виница |
+| ~~Демир Капија~~ built | 820 | Демир Капија | | Голо Брдо* | 280 | — |
 | Демир Хисар | 810 | Демир Хисар | | ~~Меџитлија*~~ built | 300 | — |
 | Делчево | 770 | Делчево | | ~~Кочани~~ built | 190 | Кочани |
 | ~~Кратово~~ built | 790 | Кратово | | | | |
@@ -94,11 +94,11 @@ its own.
 | Куманово | **0901** | 031 | **0901** | |
 | Кратово ✓ | 0901 | 031 | 031 | shares 031; built 2026-11-24 |
 | Крива Паланка | 0901 | 031 | 031 | shares 031 |
-| Штип | **092** | 032 | **092** | |
+| Штип ✓ | **092** | 032 | **092** | built 2026-11-24 |
 | Пробиштип | 092 | 032 | 032 | shares 032 |
 | Свети Николе | 092 | 032 | 032 | shares 032 |
 | Радовиш | 0902 | 032 | 032 | shares 032 |
-| Струмица | **0902** | 034 | **0902** | |
+| Струмица ✓ | **0902** | 034 | **0902** | built 2026-11-24 |
 | Валандово | 0902 | 034 | 034 | shares 034 |
 | Ново Село | 0902 | 034 | 034 | shares 034 |
 | Кочани ✓ | **0903** | 033 | **0903** | built 2026-11-24 |
@@ -108,7 +108,7 @@ its own.
 | Делчево | 0903 | 033 | 033 | shares 033 |
 | Велес | **093** | 043 | **093** | |
 | Кавадарци ✓ | 093 | 043 | 043 | as now; shares 043 |
-| Демир Капија | 093 / 095 | 043 | 043 | shares 043; not on the old list |
+| Демир Капија ✓ | 093 / 095 | 043 | 043 | shares 043; not on the old list; built 2026-11-24 |
 | Стоби | 093 | 043 | 043 | shares 043 |
 | Неготино ✓ | 095 (?) | 043 | 043 | shares 043; built 2026-11-24 |
 | Дојран ✓ | 093 | 034 | 034 | as now; shares 034 |
@@ -171,12 +171,12 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 11 | Крива Паланка | 570 | Крива Паланка | 26 |
 | 12 | Свети Николе | 580 | Свети Николе | 22 |
 | 13 | Дебарца | 630 | — | 27 |
-| 14 | Струмица | 690 | Струмица | 4 |
+| 14 | ~~Струмица~~ built (2026-11-24) | 690 | Струмица | 4 |
 | 15 | ~~Вевчани~~ built (2026-11-23, out of order) | 690 | — | 12 |
 | 16 | ~~Кратово~~ built (2026-11-24, branch `city-kratovo`, out of order) | 790 | Кратово | 2 |
 | 17 | Делчево | 770 | Делчево | 13 |
 | 18 | Демир Хисар | 810 | Демир Хисар | 11 |
-| 19 | Штип | 820 | Штип | 3 |
+| 19 | ~~Штип~~ built (2026-11-24, out of order) | 820 | Штип | 3 |
 | 20 | ~~Демир Капија~~ built (2026-11-24, branch `demirkapija`, out of order) | 820 | Демир Капија | 31 |
 | 21 | Радовиш | 900 | Радовиш | 24 |
 | 22 | Новаци* | 970 | — | 34 |
@@ -232,7 +232,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   Overture outlines for the Полог villages.
 - **Open:** landmark priorities, the developer for the LinkedIn button.
 
-### 2. 031 Кратово ✓ built (2026-11-24, branch `city-kratovo`, not yet released; NOTES.md item 46; developer Бранко Славков)
+### 2. 031 Кратово ✓ built (2026-11-24, branch `city-kratovo`, released in v32.0.0; NOTES.md item 46; developer Бранко Славков)
 
 - **Built:** 42.04–42.36 N, **22.045**–22.495 E, Крива Паланка's corner (42.125–42.36 N, 22.25–22.495 E) cut. The plan's w edge
   (22.062) left the Камени Кукли of Куклица (42.105 N, 22.055 E) 600 m outside: widened to 22.045, Куманово's planned outline
@@ -247,26 +247,31 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   (26) and reached over Каменица to Делчево. About 750 km², 20 m cells.
 - **Landmarks:** the town in its volcanic crater, medieval towers, stone bridges.
 
-### 3. Штип
+### 3. 092 Штип ✓ built (2026-11-24, released in v32.0.0; NOTES.md item 50; developer Калина Јовановска)
 
+- **Built:** 41.60–41.945 N, 22.062–22.32 E as planned, `?city=stip`, badge 092. Raw file from Geofabrik's extract (Overpass
+  cut off): 4,580 buildings, 3,448 roads, no Overture. No hand-built models yet. Refilling over the Брегалница.
 - **On it:** Штип, Карбинци, the Брегалница from Штип toward Кочани's plain, Лакавица.
-- **Name / code:** open (likely Штип, `?city=stip`).
+- **Name / code:** Штип, `?city=stip`, 092.
 - **Extent:** Štip 41.74 N 22.19 E. On 2026-11-23 the owner split the first Штип map (which also held Кочани,
   Виница and Радовиш) in three: Штип keeps the west, s 41.60, w 22.062 (as Неготино's w), n 41.945 (Пробиштип's s),
   e 22.32 (Кочани's and Радовиш's w). About 38 × 21 km, 20 m cells. n meets Пробиштип, s Неготино and Струмица.
 - **Landmarks:** Исар and Св. Архангел Михаил, Безистен, the Брегалница and its bridges.
 
-### 4. Струмица
+### 4. 0902 Струмица ✓ built (2026-11-24, released in v32.0.0; NOTES.md item 51; developer Калина Јовановска)
 
+- **Built:** 41.38–41.60 N, 22.32–22.66 E as planned, `?city=strumica`, badge 0902. OSM has only 605 buildings: Overture adds
+  21,066. No hand-built models yet (Царевите кули, Водоча and Вељуса are views and labels only). Refilling over Водочко Езеро
+  and Мантово.
 - **On it:** Струмица, Водоча, Вељуса, Банско, the Струмица plain west of Ново Село's map.
-- **Name / code:** open (likely Струмица, `?city=strumica`).
+- **Name / code:** Струмица, `?city=strumica`, 0902.
 - **Extent:** Strumica 41.44 N 22.64 E (close to the east edge). Decided with the owner on 2026-11-23: s 41.38
   (Валандово's n), w 22.32 (Неготино's and Демир Капија's e), n 41.60 (Штип's and Радовиш's s), e 22.66 (Ново Село's w).
   The first Струмица map reached down to the Greek border; Валандово (29) and Гевгелија (30) were split off.
   About 690 km², 20 m cells.
 - **Landmarks:** Царевите кули, Водоча and Вељуса monasteries (`byzChurch`).
 
-### 5. 043 Неготино ✓ built (2026-11-24, branch `negotino`, not yet released; NOTES.md item 47; developer Ристе Самарџиев)
+### 5. 043 Неготино ✓ built (2026-11-24, branch `negotino`, released in v32.0.0; NOTES.md item 47; developer Ристе Самарџиев)
 
 - **Built:** 41.445–41.60 N, 22.062–22.32 E as planned, `?city=negotino`, badge 043 (shared with Кавадарци). OSM has only 204
   buildings: Overture adds 5,072. Models: Неготински манастир with its bell tower, Св. Атанасиј Велики, ТЕЦ Неготино's
@@ -437,7 +442,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   the OSM border with Greece.
 - **Landmarks:** Кајмакчалан's chapel at the summit, the Црна in its canyon, Мариово's stone villages.
 
-### 17. Меџитлија ✓ built (2026-11-24, branch `city-medzitlija`, not yet released; NOTES.md item 45)
+### 17. Меџитлија ✓ built (2026-11-24, branch `city-medzitlija`, released in v32.0.0; NOTES.md item 45)
 
 - **Built:** 40.85–40.955 N, 21.165–**21.47** E: the plan's e edge (21.40) left the village of Меџитлија (21.429), its
   crossing (21.417) and Кременица (21.458) outside, so the box was widened east and that corner (40.85–40.955 N,
@@ -509,7 +514,7 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
   (Куманово's s), w 21.75 (Велес's), e 22.062 (Штип's and Пробиштип's w). About 22 × 26 km, 20 m cells. No overlaps.
 - **Landmarks:** the town centre and its church, Овче Поле's fields (`farmMask`), the hills toward Штип.
 
-### 23. Кочани ✓ built (2026-11-24, branch `city-kocani`, not yet released; NOTES.md item 44)
+### 23. Кочани ✓ built (2026-11-24, branch `city-kocani`, released in v32.0.0; NOTES.md item 44)
 
 - **Built:** the box below as planned, 2,902 buildings (OSM only; Overture adds nothing), the rice paddies (`rice`, new),
   the two Ottoman towers and Споменик на слободата modelled, refilling over the Брегалница. Кочанско Езеро (Гратче) is
@@ -590,7 +595,7 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
   Дојран's map as a **cut corner**.
 - **Landmarks:** the Vardar plain, Негорски Бањи, the wind farm, the border crossing at Богородица.
 
-### 31. 043 Демир Капија ✓ built (2026-11-24, branch `demirkapija`, not yet released; NOTES.md item 48; developer Ристе Самарџиев)
+### 31. 043 Демир Капија ✓ built (2026-11-24, branch `demirkapija`, released in v32.0.0; NOTES.md item 48; developer Ристе Самарџиев)
 
 - **On it:** Демир Капија and its gorge, Кожув, the Vardar from the gorge south toward Удово, Попова Кула winery.
 - **Code:** open (phone code 043). `?city=demirkapija`.

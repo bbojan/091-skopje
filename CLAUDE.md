@@ -42,7 +42,7 @@ npm run country      # the whole country at 100 m → public/country.png/.json (
 | File | Role |
 |---|---|
 | `main.ts` | App shell: renderer, controls, loading (staged build + progress card), city switching (`loadCity` / `unloadWorld` / `switchCity`), views, time of day, flight/race wiring, popups, help, gamepad, adaptive quality |
-| `cities.ts` | The cities (Skopje, Kavadarci, Bitola, Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran, Batinci, Berovo, Tetovo, Makedonski Brod, Resen, Матка, Вевчани, Кочани, Меџитлија, Кратово, Демир Капија, Неготино) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
+| `cities.ts` | The cities (Skopje, Kavadarci, Bitola, Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran, Batinci, Berovo, Tetovo, Makedonski Brod, Resen, Матка, Вевчани, Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
 | `city.ts` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds; Kavadarci's vineyards and Bitola's fields, Кочани's rice paddies (`rice`) (`farmMask`, `VINE_GROUND`: farmland marked by one terrain colour, plots painted by the ground shader; `vineShare` per city: the share of plots that are vineyards) |
 | `terrain.ts` | Heightfield with exact mesh-matching interpolation; chunk/low-res meshes; triangle clipping for draping |
 | `post.ts` | `InkRenderer`: colour + normal/depth passes (one pass in the low tier or with smooth edges off: normals as a second attachment) → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
@@ -131,14 +131,17 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   75k buildings, the largest scene), 045 Македонски Брод (`?city=brod`, v14.0.0: Козјак, Света Петка, Зрзе),
   047 Ресен (`?city=resen`, v14.0.0: the whole of Преспа, its level set by hand), 02 Матка (`?city=matka`, v16.0.0: the
   first map that is not a rectangle, Скопје's and Брод's maps cut out of it), 046 Вевчани (`?city=vevcani`, v16.0.0: Охрид's map
-  cut out of it), 0903 Кочани (`?city=kocani`, branch `city-kocani`, not yet released: Кочанско Поле's rice paddies, `rice` in
-  `CITIES` → `RICE_GROUND` in `city.ts`, compiled only into a city with rice), 047 Меџитлија (`?city=medzitlija`, branch
-  `city-medzitlija`, not yet released: southern Пелагонија to the Greek border, widened east to 21.47 so that Меџитлија is on it;
-  Новаци's planned box cut there), 031 Кратово (`?city=kratovo`, branch `city-kratovo`, not yet released, developer Бранко Славков:
+  cut out of it), 0903 Кочани (`?city=kocani`, v32.0.0: Кочанско Поле's rice paddies, `rice` in
+  `CITIES` → `RICE_GROUND` in `city.ts`, compiled only into a city with rice), 047 Меџитлија (`?city=medzitlija`,
+  v32.0.0: southern Пелагонија to the Greek border, widened east to 21.47 so that Меџитлија is on it;
+  Новаци's planned box cut there), 031 Кратово (`?city=kratovo`, v32.0.0, developer Бранко Славков:
   an L, Крива Паланка's planned corner cut; widened west to 22.045 for the Камени Кукли, Куманово's planned outline moved there; named „Кратово – Ѕинго Land“, with Хотел Кратис, Ѕинго's house and its
-  mural, and the „ЅИНГО LAND“ hillside sign as a joke), 043 Демир Капија (`?city=demirkapija`, branch `demirkapija`, not yet
-  released, developer Ристе Самарџиев: the gorge, the wineries Попова Кула, Кралица Марија and Грков, Хотел Вердисо, Кожуф), 043 Неготино (`?city=negotino`, branch `negotino`, not yet released,
-  developer Ристе Самарџиев: the middle Повардарие, Overture's outlines for most buildings, refilling over the Вардар).
+  mural, and the „ЅИНГО LAND“ hillside sign as a joke), 043 Демир Капија (`?city=demirkapija`, v32.0.0,
+  developer Ристе Самарџиев: the gorge, the wineries Попова Кула, Кралица Марија and Грков, Хотел Вердисо, Кожуф), 043 Неготино (`?city=negotino`, v32.0.0,
+  developer Ристе Самарџиев: the middle Повардарие, Overture's outlines for most buildings, refilling over the Вардар),
+  092 Штип (`?city=stip`, v32.0.0, developer Калина Јовановска: Исар, Безистен, Баргала, the Брегалница; no hand-built
+  models yet), 0902 Струмица (`?city=strumica`, v32.0.0, developer Калина Јовановска: Царевите кули, Водоча, Вељуса,
+  Струмичко Поле; Overture's outlines for most buildings; no hand-built models yet).
 - The F-15 (v26.0.0) flies from map to map: the next map downloaded ahead, switched at the edge while the jet flies on
   over the country's terrain (`src/hop.ts`, `src/countryground.ts`, `transit` in `main.ts`); every new finished map
   in `src/zones.ts` widens the flight. All of it: "F-15 and flying from map to map" in docs/NOTES.md.

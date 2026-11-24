@@ -632,7 +632,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    (reported by the owner from a phone): Тетово (21.5 MB, over the 20 MB phone budget) never loaded and was
    downloaded again and again, now it loads from the network at the switch; with the memory saver the ground round
    the entry is built before the map shows. Checked with phone emulation: Брод → Матка → Тетово → Ростуше.
-44. **0903 Кочани** (Nov 2026, branch `city-kocani`, not yet released; first of the build order, smallest first): Кочани
+44. **0903 Кочани** (Nov 2026, branch `city-kocani`, released in v32.0.0; first of the build order, smallest first): Кочани
    and Кочанско Поле (docs/TOWNS_TODO.md, 23): box 41.80–41.945 N, 22.32–22.46 E (11.6 × 16.1 km, 20 m cells,
    296–1628 m; Плачковица at the south edge), a plain rectangle edge to edge with the planned Штип, Виница, Радовиш and
    Пробиштип maps. Raw OSM from Geofabrik's Macedonia extract (`scripts/pbf2overpass.py`; Overpass answered 406 to a
@@ -664,7 +664,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    checked: flying in from a neighbouring map (none of its neighbours is built yet), phones, firefighting and the race,
    night and snow views, the other walking cards one by one. Seen: on 20 m cells `farmMask` also paints a few open lots
    in the town (one next to the Саат-кула), as on the other 20 m maps.
-45. **047 Меџитлија** (Nov 2026, branch `city-medzitlija`, not yet released; second of the build order): southern Пелагонија
+45. **047 Меџитлија** (Nov 2026, branch `city-medzitlija`, released in v32.0.0; second of the build order): southern Пелагонија
    under Битола's map down past the Greek border (docs/TOWNS_TODO.md, 17): box 40.85–40.955 N, 21.165–21.47 E (11.7 ×
    25.7 km, 20 m cells, 532–2347 m; Баба's southern ridges in the west), a plain rectangle edge to edge with Битола (n),
    Ресен (w) and the planned Новаци (e). **The plan's e edge (21.40) left Меџитлија itself (21.429), its border crossing
@@ -697,7 +697,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    script's `frames()` and the 1.7 s waits replaced by pumped frames, `img.decode()` by `onload` (with timer frames at 1–2
    FPS the same code compared against itself differed on every pixel; pumped, it matches). Not checked: flying in from
    Ресен, phones, firefighting and the race, night and snow views, the walking cards one by one.
-46. **031 Кратово** (Nov 2026, branch `city-kratovo`, not yet released; built out of order, 16th in the build order; the
+46. **031 Кратово** (Nov 2026, branch `city-kratovo`, released in v32.0.0; built out of order, 16th in the build order; the
    first map by the third developer, **Бранко Славков**, `linkedin.com/in/slavkovbranko`): the town in its volcanic crater and
    its surroundings (docs/TOWNS_TODO.md, 2): box 42.04–42.36 N, 22.045–22.495 E (35.6 × 37.1 km, 20 m cells, 383–2076 m), an
    L: Крива Паланка's planned corner (42.125–42.36 N, 22.25–22.495 E) is `cut`. **Widened west from 22.062 to 22.045** so
@@ -765,7 +765,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    smile: a grin curving up at the corners with a crescent of teeth, round rosy cheeks, the eyes narrowed. Label
    „🪖 Ѕинго“ (Latin: Dzingo); his action is Пејо's. (A first version wore the yellow helmet of „Силекс“ and glasses.)
 
-47. **043 Неготино** (Nov 2026, branch `negotino` off `develop`, not yet released; 5th in the build order; developer
+47. **043 Неготино** (Nov 2026, branch `negotino` off `develop`, released in v32.0.0; 5th in the build order; developer
    **Ристе Самарџиев**, as for Кавадарци): the town on the Вардар and the middle Повардарие (docs/TOWNS_TODO.md, 5): box
    41.445–41.60 N, 22.062–22.32 E as planned (21.5 × 17.3 km, 20 m cells, 100–1142 m), edge to edge with Кавадарци (w).
    Overpass answered only count queries (504 on the rest), so the raw file came from Geofabrik's Macedonia extract
@@ -795,7 +795,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    mean 0, max 11 m), Skopje pixel check (0 on six views, 13–17 pixels on the three overviews: the gondola cabins). Not
    checked: flying in from Кавадарци, phones, firefighting and the race, rain and snow, the walking cards one by one.
 
-48. **043 Демир Капија** (Nov 2026, branch `demirkapija`, not yet released; 20th in the build order, built out of order;
+48. **043 Демир Капија** (Nov 2026, branch `demirkapija`, released in v32.0.0; 20th in the build order, built out of order;
    developer **Ристе Самарџиев**, the LinkedIn button on this map names him): the town at the mouth of the Демиркаписка
    Клисура and its wine country (docs/TOWNS_TODO.md, 31): box 41.10–41.445 N, 22.062–22.32 E (21.6 × 38.4 km, 20 m cells,
    86–2165 m), edge to edge with Кавадарци (w), Неготино (n), Валандово and Гевгелија (e), down past Кожуф's ridge into
@@ -836,6 +836,24 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
 49. **v32.0.0** (2026-11-24): the maps built since v26.0.3 released together (23 maps in all): 0903 Кочани, 047 Меџитлија,
    031 Кратово (Бранко Славков), 092 Штип and 0902 Струмица (Калина Јовановска), 043 Неготино and Демир Капија (Ристе
    Самарџиев; both rebased on Штип and Струмица, their texts moved to `i18n-towns8.ts` / `i18n-towns9.ts`).
+
+50. **092 Штип** (Nov 2026, merged into `develop` by its developer, released in v32.0.0; 19th in the build order, built out of
+   order; developer **Калина Јовановска**, the LinkedIn button on this map names her): the town on the Брегалница under
+   Исар (docs/TOWNS_TODO.md, 3): box 41.60–41.945 N, 22.062–22.32 E, 20 m cells, 195–900 m. Overpass gave only cut-off
+   answers, so the raw file came from Geofabrik's extract (`scripts/pbf2overpass.py`): 4,580 buildings, 3,448 roads, no
+   Overture. Blocks of flats raised round the centre, the old čaršija under Исар left low; shops, halls, churches and the
+   Кадин Ана mosque pinned to their storeys. Scene 2.0 MB. Views Исар, Безистен, Ново Село, Баргала, the Брегалница; a
+   14-ring race from Исар to Клисебаир; walking cards; texts in `i18n-towns6.ts`; refilling over the widened Брегалница;
+   farmland up to ~500 m painted as fields with some vineyards (`vineyards: 300`). No hand-built models yet. The docs were
+   not part of its merge: written up afterwards from its commits.
+51. **0902 Струмица** (Nov 2026, merged into `develop` by its developer, released in v32.0.0; 14th in the build order;
+   developer **Калина Јовановска**): the town under Царевите кули and Струмичко Поле (docs/TOWNS_TODO.md, 4): box
+   41.38–41.60 N, 22.32–22.66 E, 20 m cells, 77–1136 m. Raw file from Geofabrik's extract: OSM has only 605 buildings and
+   1,974 roads, Overture adds 21,066 outlines (exactly the 605 OSM ones skipped). Scene 5.5 MB. Blocks of flats raised
+   round the centre; public buildings, a cinema, petrol stations, two churches and Орта џамија pinned to their storeys.
+   Views Цареви Кули, Водоча, Вељуса, Водочко Езеро, Струмичко Поле; a 14-ring race from Цареви Кули to Раборци; walking
+   cards; texts in `i18n-towns7.ts`; refilling over Водочко Езеро and Мантово; `vineyards: 330`. No hand-built models yet
+   (Царевите кули, Водоча and Вељуса are views and labels only). Docs written up afterwards from its commits.
 
 ## Country view (Nov 2026)
 
@@ -1109,6 +1127,8 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Кочани | `skopje.bestRace.kocani` | none |
 | Best race time in Меџитлија | `skopje.bestRace.medzitlija` | none |
 | Best race time in Кратово | `skopje.bestRace.kratovo` | none |
+| Best race time in Штип | `skopje.bestRace.stip` | none |
+| Best race time in Струмица | `skopje.bestRace.strumica` | none |
 | Best race time in Неготино | `skopje.bestRace.negotino` | none |
 | Best race time in Демир Капија | `skopje.bestRace.demirkapija` | none |
 
