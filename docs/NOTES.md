@@ -616,6 +616,12 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    FPS in the window's title (a switch turns it off). Skopje pixel-identical (checked after every rendering change:
    0 except 1–4 pixels at the gondola cabins in the overviews). Not checked: phones and tablets, the live site's
    download times.
+41. **v26.0.1** (2026-11-24): in F-15 mode the coarse country terrain covered the higher maps (Охрид, Ростуше,
+   Вевчани, Берово, Прилеп, Крушево, Битола, Ресен …). A map's terrain stores its heights above its own lowest point
+   (`min` in `*-terrain.json`), the country grid above the sea, so the country stood `min` too high (Охрид 686 m).
+   `countryground.ts` now subtracts the map's `min`; measured on all 16 maps, the two agree (0 m on average, ±22 m at
+   worst), and inside the map the country sinks at least 25 m. The firefighting plane never drew it, so it looked
+   fine there.
 
 ## Country view (Nov 2026)
 
