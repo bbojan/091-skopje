@@ -963,6 +963,7 @@ export const CITIES: Record<CityId, CitySpec> = {
       krkukli: { place: 'krkukli', ll: [42.10558, 22.05483], d: 260, polar: 1.0, az: 0.5 },
       krsingo: { place: 'krsingo', ll: [42.07911, 22.17281], d: 60, polar: 0.78, az: -1.45 }, // the house and its mural on the west wall
       krkratis: { place: 'krkratis', ll: [42.07762, 22.18084], d: 95, polar: 1.05, az: 0.75 }, // the hotel's front and its terrace
+      krgranica: { ll: [42.06880, 22.17208], d: 70, polar: 1.05, az: -0.6 }, // from the south-west: the canopy, the barrier, the flag
       krsign: { ll: [42.07150, 22.18030], d: 480, polar: 1.2, az: 3.0 }, // from over the town toward Баба, the letters on its face
       knezevo: { ll: [42.11100, 22.31000], d: 1700, polar: 1.12, az: 2.6 }, // the lake from the south-east, the dam on the right, under the clouds
       overview: { ll: [42.16000, 22.22000], d: 26000, polar: 0.72, az: 0 },
@@ -1000,6 +1001,7 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['Хотел Кратис', 42.07762, 22.18084, 20, 'krkratis'],
       ['Ѕингова куќа', 42.07911, 22.17281, 12, 'krsingo'],
       ['ЅИНГО LAND', 42.07117, 22.18026, 60],
+      ['Граница на Ѕинго Land', 42.06880, 22.17208, 12],
       ['Св. Јован Претеча', 42.07590, 22.18311, 12, 'krjovan'],
       ['Камени Кукли', 42.10558, 22.05483, 14, 'krkukli'],
       ['Кнежевско Езеро', 42.11303, 22.31501, 8, 'knezevo'],
@@ -1033,6 +1035,7 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['kr.kratis', 'Хотел Кратис', 42.07762, 22.18084, 35, 'krkratis'],
       ['kr.singo', 'Ѕингова куќа', 42.07911, 22.17281, 30, 'krsingo'],
       ['kr.sign', 'ЅИНГО LAND', 42.07117, 22.18026, 90],
+      ['kr.granica', 'Граница на Ѕинго Land', 42.06880, 22.17208, 40],
       ['kr.kukli', 'Камени Кукли', 42.10558, 22.05483, 120, 'krkukli'],
       ['kr.knezevo', 'Кнежевско Езеро', 42.10775, 22.30682, 200, 'krdam'],
     ],
