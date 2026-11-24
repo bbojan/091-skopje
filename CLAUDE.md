@@ -89,8 +89,10 @@ npm run country      # the whole country at 100 m → public/country.png/.json (
 | `i18n-towns3.ts` | UI texts of Матка and Вевчани, spread into `STR` after `TOWNS2` |
 | `i18n-towns4.ts` | UI texts of Кочани and Меџитлија, spread into `STR` after `TOWNS3` |
 | `i18n-towns5.ts` | UI texts of Кратово, spread into `STR` after `TOWNS4` |
-| `i18n-towns6.ts` | UI texts of Неготино, spread into `STR` after `TOWNS5` |
-| `i18n-country.ts` | UI texts of the country view, spread into `STR` after `TOWNS6` |
+| `i18n-towns6.ts` | UI texts of Штип, spread into `STR` after `TOWNS5` |
+| `i18n-towns7.ts` | UI texts of Струмица, spread into `STR` after `TOWNS6` |
+| `i18n-towns8.ts` | UI texts of Неготино, spread into `STR` after `TOWNS7` |
+| `i18n-country.ts` | UI texts of the country view, spread into `STR` after `TOWNS8` |
 | `country.ts` | Country view (Macedonia, first in the city menu): all of Macedonia at 100 m from `public/country.png` (heights, land cover, border), its own scene / camera / controls drawn through the same ink renderer (`renderCountry()` in `main.ts`), zones as a canvas overlay, hover, picking by marching the height grid, badges that open a city; the data is loaded once and kept for the visit (`loadCountry`, meant for the F-15 too) |
 | `countryground.ts` | The country's 100 m terrain around a city map while the F-15 flies: one CPU-built grid following the plane (fine near, ~0.7 km cells at 45 km), sunk below the map inside it, the map's own exaggeration; the flight and the rockets use its height beyond the map's edges. While it shows, the ink's normal pass is not clipped to the map (`ink.setClipping`) |
 | `hop.ts` | The F-15 from map to map: `mapAt` / `inMap` (the finished maps' outlines from `zones.ts`), `lookAhead` (the map the plane would enter along a heading), `createPrefetch` (raw files of up to 3 maps ahead, 80 MB; phones 1, 20 MB; one low-priority download at a time). `main.ts` predicts once a second, opens the edge where a map lies ahead (`flight.setEdgeOpen`), shows `→ Батинци ▓▓░░` and switches at the edge (`hop()`: fade, small loader, `switchCity`, the flight carried over by lat / lon) |
