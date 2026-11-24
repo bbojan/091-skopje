@@ -330,7 +330,7 @@ const WATER_GLINT = /* glsl */ `
 /** the terrain colour that marks farmland (linear: three.js colours) */
 export const FARM_MARK = '#dbd291';
 const glc = (h: string) => { const c = C(h); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; };
-const VINE_GROUND = /* glsl */ `
+const vineGround = (rice: boolean) => /* glsl */ `
   // a crisp edge where the terrain colour turns from the marker to its neighbour (no tan halo)
   float fd = distance(raw, uFarm), farm = 1.0 - smoothstep(0.045, 0.045 + max(fwidth(fd), 0.004), fd);
   if (farm > 0.0) {
@@ -384,7 +384,7 @@ const VINE_GROUND = /* glsl */ `
     } else {
       col = mix(${glc('#d2d29a')}, ${glc('#bfc98a')}, wxNoise(vWPos.xz * 0.08));
     }
-    col *= 0.94 + 0.12 * r2;
+    col *= 0.94 + 0.12 * r2;${rice ? RICE_GROUND : ''}
     // grass verges round the plots and dirt tracks round the blocks; far away (a pixel wider than they
     // are) they fade to their share of the pixel instead of widening
     float ew = fwidth(edge) + 0.001, bw = fwidth(edgeB) + 0.001;
@@ -392,13 +392,27 @@ const VINE_GROUND = /* glsl */ `
     col = mix(col, ${glc('#e5d4ae')}, (1.0 - smoothstep(2.2 - bw * 0.5, 2.2 + bw * 0.5, edgeB)) * min(1.0, 3.0 / bw));
     diffuseColor.rgb = mix(diffuseColor.rgb, col, farm);
   }`;
+// Rice paddies (Кочани): on the low plain (world height under uRice.y, the limit wobbled by noise) a share uRice.x of the
+// plots are paddies instead: basins 20–40 m long behind thin earth bunds, green in summer, flooded with seedlings
+// in spring, golden in autumn, muddy stubble in winter. Only compiled into a city's shader when it has rice.
+const RICE_GROUND = /* glsl */ `
+    float riceZ = 1.0 - smoothstep(uRice.y - 4.0, uRice.y + 4.0, vWPos.y + (wxNoise(vWPos.xz * 0.0015) - 0.5) * 24.0);
+    if (fHash1(c1 * 3.7 + plot * 2.31) < uRice.x * riceZ) {
+      float bl = 20.0 + 20.0 * fHash1(c1 * 2.9 + plot * 0.53), fb = fract(q.x / bl), bund = min(fb, 1.0 - fb) * bl;
+      vec3 rc = mix(${glc('#6da943')}, ${glc('#82b84f')}, r2 * 0.7 + 0.3 * wxNoise(vWPos.xz * 0.05));
+      rc = mix(rc, mix(${glc('#d8b850')}, ${glc('#c9a446')}, r2), uAutumn);
+      rc = mix(rc, mix(${glc('#93b6b4')}, ${glc('#a9c58c')}, 0.25 + 0.3 * r2), uSpring);
+      rc = mix(rc, mix(${glc('#a3907a')}, ${glc('#b29d7f')}, r2), uWinter);
+      float bw2 = fwidth(bund) + 0.001;
+      col = mix(rc, ${glc('#bccb86')}, (1.0 - smoothstep(0.5 - bw2 * 0.5, 0.5 + bw2 * 0.5, bund)) * min(1.0, 0.8 / bw2));
+    }`;
 const FARM_HASH = /* glsl */ `
   float fHash1(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
   vec2 fHash2(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973)); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.xx + p3.yz) * p3.zy); }
   vec4 fHash4(vec2 p) { vec4 p4 = fract(vec4(p.xyxy) * vec4(0.1031, 0.1030, 0.0973, 0.1099)); p4 += dot(p4, p4.wzxy + 33.33); return fract((p4.xxyz + p4.yzzw) * p4.zywx); }`;
 
 /** Ground materials: weather (wet, puddles, snow) and, for the near ground, water glints; `vine`: vineyards and fields on the farmland marker. */
-function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boolean, vine = false, vineShare = 0.52): void {
+function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boolean, vine = false, vineShare = 0.52, rice: [share: number, top: number] | null = null): void {
   sh.uniforms.uTime = SHARED.uTime;
   sh.uniforms.uWet = SHARED.uWet;
   sh.uniforms.uSnow = SHARED.uSnow;
@@ -414,6 +428,8 @@ function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boole
   sh.uniforms.uWater = { value: new THREE.Vector3(waterLin.r, waterLin.g, waterLin.b) };
   sh.uniforms.uPool = { value: new THREE.Vector3(poolLin.r, poolLin.g, poolLin.b) };
   if (vine) { const f = C(FARM_MARK); sh.uniforms.uFarm = { value: new THREE.Vector3(f.r, f.g, f.b) }; sh.uniforms.uVineShare = { value: vineShare }; }
+  const paddies = vine && !!rice;
+  if (paddies) sh.uniforms.uRice = { value: new THREE.Vector2(rice![0], rice![1]) };
   sh.vertexShader = sh.vertexShader
     .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;\nvarying float vNy;')
     .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWPos = position;\nvNy = normal.y;');
@@ -426,11 +442,11 @@ function groundShader(sh: THREE.WebGLProgramParametersWithUniforms, water: boole
       uniform vec3 uRoad[${ROAD_LIN.length}];
       uniform vec4 uBurn[6];
       uniform float uBurnOn;
-      ${WX_NOISE}${vine ? `\n      uniform vec3 uFarm;\n      uniform float uVineShare;${FARM_HASH}` : ''}`)
+      ${WX_NOISE}${vine ? `\n      uniform vec3 uFarm;\n      uniform float uVineShare;${paddies ? '\n      uniform vec2 uRice;' : ''}${FARM_HASH}` : ''}`)
     .replace('#include <color_fragment>', `#include <color_fragment>
       vec3 raw = diffuseColor.rgb;
       float wm = ${water ? '1.0 - smoothstep(0.012, 0.045, min(distance(raw, uWater), distance(raw, uPool)))' : '0.0'};
-      ${vine ? VINE_GROUND : ''}
+      ${vine ? vineGround(paddies) : ''}
       ${SEASON_GROUND}
       if (uBurnOn > 0.0) {
         // ash and soot where a fire burned, with a ragged edge
@@ -616,6 +632,9 @@ export interface CityOptions {
   vineyards?: number;
   /** the share of those plots that are vineyards, the rest fields (CitySpec.vineShare; default 0.52) */
   vineShare?: number;
+  /** rice paddies among those plots on the low plain: the share of plots, up to this height (m above the map's lowest
+   *  point; CitySpec.rice) */
+  rice?: [share: number, top: number];
   /** the F-15 flying in: the long stages (trees, pack) yield whenever this many ms have passed, so frames go on
    *  between slices; the result is the same (unset: one yield per stage) */
   sliceMs?: number;
@@ -654,6 +673,8 @@ export interface CityDesc {
   vine: boolean;
   /** the share of farm plots that are vineyards */
   vineShare: number;
+  /** rice paddies on the low farmland: [share, top] (CityOptions.rice) */
+  rice: [number, number] | null;
   /** build one chunk's detailed terrain / draped ground (streaming builds them on demand) */
   lazy: { terrainHi: (k: number) => GeoData; ground: (k: number) => GeoData | null };
 }
@@ -1436,6 +1457,7 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
     lazy: { terrainHi, ground: buildGround },
     vine: !!farm,
     vineShare: opts.vineShare ?? 0.52,
+    rice: opts.rice ?? null,
   };
 }
 
@@ -1493,8 +1515,8 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
   const { clippingPlanes } = opts;
   const group = new THREE.Group();
   const groundMat = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes });
-  groundMat.onBeforeCompile = (sh) => groundShader(sh, true, desc.vine, desc.vineShare);
-  groundMat.customProgramCacheKey = () => (desc.vine ? 'ground-water-vine-v1' : 'ground-water-v5');
+  groundMat.onBeforeCompile = (sh) => groundShader(sh, true, desc.vine, desc.vineShare, desc.rice);
+  groundMat.customProgramCacheKey = () => (desc.vine ? (desc.rice ? 'ground-water-vine-rice-v1' : 'ground-water-vine-v1') : 'ground-water-v5');
 
   const facadeMat = facadeMaterial(clippingPlanes);
   const treeMat = toonFoliage(clippingPlanes);
@@ -1571,7 +1593,7 @@ export function assembleCity(desc: CityDesc, opts: CityOptions) {
   }
   group.add(new THREE.Mesh(geoFromData(desc.skirt), new THREE.MeshLambertMaterial({ vertexColors: true })));
 
-  const lod = makeLOD(lodChunks, group, clippingPlanes, groundMat, desc.lazy, !!opts.stream, desc.vine, desc.vineShare);
+  const lod = makeLOD(lodChunks, group, clippingPlanes, groundMat, desc.lazy, !!opts.stream, desc.vine, desc.vineShare, desc.rice);
   // Object.assign keeps lod's getters live (a spread would copy their values once)
   return Object.assign(lod, { group, roadList: desc.roadList, stats: desc.stats });
 }
@@ -1597,7 +1619,7 @@ interface LodChunk {
 
 export type City = ReturnType<typeof assembleCity>;
 
-function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THREE.Plane[] | undefined, groundMat: THREE.Material, lazy: CityDesc['lazy'], streamAtStart: boolean, vine: boolean, vineShare: number) {
+function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THREE.Plane[] | undefined, groundMat: THREE.Material, lazy: CityDesc['lazy'], streamAtStart: boolean, vine: boolean, vineShare: number, rice: [number, number] | null) {
   let stream = streamAtStart;
   // build / drop one chunk's detailed terrain and draped ground
   function buildHi(L: LodChunk): void {
@@ -1690,8 +1712,8 @@ function makeLOD(lodChunks: LodChunk[], group: THREE.Group, clippingPlanes: THRE
       if (temp) dropHi(L);
       L.tex = rt;
       const far = new THREE.MeshLambertMaterial({ map: rt.texture, clippingPlanes });
-      far.onBeforeCompile = (sh) => groundShader(sh, false, vine, vineShare);
-      far.customProgramCacheKey = () => (vine ? 'ground-far-vine-v1' : 'ground-far-v2');
+      far.onBeforeCompile = (sh) => groundShader(sh, false, vine, vineShare, rice);
+      far.customProgramCacheKey = () => (vine ? (rice ? 'ground-far-vine-rice-v1' : 'ground-far-vine-v1') : 'ground-far-v2');
       L.terrainLo.material = far;
     }
     for (const b of bigs.values()) b.dispose();

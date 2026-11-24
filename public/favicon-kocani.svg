@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Кочани: the medieval tower (flat eaves, the wooden balcony) over the rows of the rice fields -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <path d="M33 72 L36 22 H64 L67 72 Z" fill="#1f2a44"/>
+  <rect x="30" y="16" width="40" height="7" rx="1.5" fill="#1f2a44"/>
+  <rect x="64" y="30" width="9" height="12" fill="#7a1f1a"/>
+  <g fill="#f4ede0"><rect x="44" y="34" width="5" height="6"/><rect x="47" y="50" width="2.5" height="9"/><circle cx="41" cy="27" r="1.8"/><circle cx="59" cy="27" r="1.8"/></g>
+  <g fill="none" stroke="#7a1f1a" stroke-width="4" stroke-linecap="round">
+    <path d="M10 78 Q50 70 90 78"/><path d="M10 88 Q50 80 90 88"/>
+  </g>
+</svg>

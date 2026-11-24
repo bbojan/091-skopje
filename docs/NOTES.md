@@ -632,6 +632,38 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    (reported by the owner from a phone): Тетово (21.5 MB, over the 20 MB phone budget) never loaded and was
    downloaded again and again, now it loads from the network at the switch; with the memory saver the ground round
    the entry is built before the map shows. Checked with phone emulation: Брод → Матка → Тетово → Ростуше.
+44. **0903 Кочани** (Nov 2026, branch `city-kocani`, not yet released; first of the build order, smallest first): Кочани
+   and Кочанско Поле (docs/TOWNS_TODO.md, 23): box 41.80–41.945 N, 22.32–22.46 E (11.6 × 16.1 km, 20 m cells,
+   296–1628 m; Плачковица at the south edge), a plain rectangle edge to edge with the planned Штип, Виница, Радовиш and
+   Пробиштип maps. Raw OSM from Geofabrik's Macedonia extract (`scripts/pbf2overpass.py`; Overpass answered 406 to a
+   probe): 2,907 buildings and 1,864 roads, exactly the counts of an Overpass count query on maps.mail.ru. Overture adds
+   **nothing** here (all 2,906 of its outlines are OSM's own), so no `overture` file and no Overture credit. Scene: 2,902
+   buildings, 1.3 MB; a `mid` zone over the centre (78 blocks of 9 storeys; the market, two sports halls, МКЦ, the
+   culture centre, the police station and Ловен дом pinned with `buildingTags`). **No lake on the map:** Кочанско Езеро
+   (Брана Гратче, 41.959–41.967 N) lies 1.5 km north of the box, on Пробиштип's planned map; the Брегалница is widened
+   with `waterLines` (half width 10 m) for refilling. **Rice paddies** (new, `rice` in `CITIES` → `RICE_GROUND` in
+   `src/city.ts`): on the farmland (`vineyards: 260`, `vineShare: 0.06`) the plots under 40 m above the map's lowest
+   point (the plain along the Брегалница, wobbled by noise) are paddies with a share of 0.8: basins 20–40 m behind thin
+   bunds, green in summer, flooded with seedlings in spring, golden in autumn, muddy in winter. The snippet is compiled
+   only into a city with rice (its own program cache keys), so Кавадарци's, Битола's and Прилеп's ground shaders are
+   unchanged. Models (`src/kocani.ts`, after Commons photos; references only): **Средновековна кула** (west bank,
+   18.5 m and restored per Wikipedia: rubble stone with dressed quoins, flat slab cap, round openings, barred window,
+   machicolation, the wooden balcony, the stepped stair at the foot; which faces carry the balcony and the stair was
+   not checked against an aerial image), **Саат-кула** (east bank, mk Wikipedia: the ruin with the clock's whitewashed
+   brick drum and four posts on its slab), **Споменик на слободата** on Локубија (Чемерски / Раѓеновиќ, 1977/1981,
+   spomenikdatabase.org: the curved wall round a small amphitheatre with drawn mosaics on both faces and a ragged mosaic
+   crest, end posts, two pylons with low walls, steps; OSM has only the whole site's 46 × 43 m outline, so the wall's
+   place in it and its turn (convex side south) are guesses). Labels only: Св. Ѓорѓи, Св. Преображение, Џамија Дуди
+   Ханум, Манастир Добра Вода, Мородвис. Badge 0903 (the bold one in the Badge codes table) and the owner's LinkedIn as
+   for Матка and Вевчани; tow banners „Брегалница го спаси Кочани!“ / „Свири, Кочани оркестар!“; snow label „Снег на
+   Плачковица“ (the range inside the map). In the city menu right after Македонска Каменица. Checked: typecheck, build
+   (the files in `dist/`), the map loads with no console errors, the views (the two towers, the monument, the rice
+   fields in summer, spring and autumn, the overview), labels, a walking info card (the western tower), switching away
+   and back (textures 213 → 213, scene objects 21 → 21, geometries ±2), the F-15 over the map (country vs map heights:
+   mean 0, max 12 m), Skopje pixel check (0 on six views, 13–14 pixels on the three overviews: the gondola cabins). Not
+   checked: flying in from a neighbouring map (none of its neighbours is built yet), phones, firefighting and the race,
+   night and snow views, the other walking cards one by one. Seen: on 20 m cells `farmMask` also paints a few open lots
+   in the town (one next to the Саат-кула), as on the other 20 m maps.
 
 ## Country view (Nov 2026)
 
@@ -902,6 +934,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Resen | `skopje.bestRace.resen` | none |
 | Best race time in Матка | `skopje.bestRace.matka` | none |
 | Best race time in Вевчани | `skopje.bestRace.vevcani` | none |
+| Best race time in Кочани | `skopje.bestRace.kocani` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
