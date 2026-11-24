@@ -297,6 +297,15 @@ export const CITIES = {
     files: { raw: 'data/strumica_raw.json', scene: 'public/strumica.json', terrainBin: 'public/strumica-terrain.bin', terrainJson: 'public/strumica-terrain.json', overture: 'data/strumica_overture.json' },
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Неготино (docs/TOWNS_TODO.md, 5): the town on the Вардар's left bank, its vineyards and the Тиквешко Поле's east
+  // end, Пепелиште, Дуброво and Тремник, the Вардар from Криволак down to Демир Капија's gorge. Edge to edge with
+  // Кавадарци (w), Демир Капија (s) and Штип (n)
+  negotino: {
+    bbox: { s: 41.445, w: 22.062, n: 41.60, e: 22.32 },
+    tiles: [6, 5] as [number, number],
+    files: { raw: 'data/negotino_raw.json', scene: 'public/negotino.json', terrainBin: 'public/negotino-terrain.bin', terrainJson: 'public/negotino-terrain.json', overture: 'data/negotino_overture.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: Box; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec; cut?: Box[] }>;
 
 export type CityName = keyof typeof CITIES;
