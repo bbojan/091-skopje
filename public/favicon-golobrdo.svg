@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Голо Брдо: the stone cube, drum and tiled dome of Xhamia e Allajbegisë with its minaret, the Црн Дрим below -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <path d="M62 66 V30 L65 12 L68 30 V66 Z" fill="#1f2a44"/>
+  <rect x="60" y="34" width="10" height="3" rx="1" fill="#1f2a44"/>
+  <path d="M20 66 V42 H54 V66 Z" fill="#1f2a44"/>
+  <path d="M24 42 V36 H50 V42 Z" fill="#1f2a44"/>
+  <path d="M24 36 Q37 20 50 36 Z" fill="#7a1f1a"/>
+  <g fill="#f4ede0"><rect x="27" y="50" width="4" height="9" rx="2"/><rect x="35" y="50" width="4" height="9" rx="2"/><rect x="43" y="50" width="4" height="9" rx="2"/></g>
+  <path d="M10 78 Q30 72 50 78 T90 78 M14 87 Q32 82 50 87 T86 87" fill="none" stroke="#7a1f1a" stroke-width="4" stroke-linecap="round"/>
+</svg>

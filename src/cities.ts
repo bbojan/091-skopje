@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -1232,6 +1232,78 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.strumica',
     bestRaceKey: 'skopje.bestRace.strumica',
     banners: { fire: 'Струмица е спасена!', roll: 'Поздрав од Струмица!' },
+  },
+  golobrdo: {
+    id: 'golobrdo', name: 'Голо Брдо', code: '046', icon: './favicon-golobrdo.svg',
+    files: { scene: './golobrdo.json', terrainBin: './golobrdo-terrain.bin', terrainJson: './golobrdo-terrain.json' },
+    sceneBytes: 3.4e6,
+    views: {
+      center: { place: 'square', ll: [41.68457, 20.43049], d: 650, polar: 0.78, az: 0.1 }, // Пешкопија's centre from the south
+      gbxhamija: { place: 'gbxhamija', ll: [41.57824, 20.46576], d: 75, polar: 1.12, az: 0.4 }, // from the south, as the photos
+      gbherbel: { place: 'gbherbel', ll: [41.61814, 20.47097], d: 60, polar: 1.1, az: -2.4 }, // the porch and the bell frame
+      gbdrim: { ll: [41.52500, 20.46500], d: 2600, polar: 1.25, az: 3.0 }, // down the Црн Дрим's valley from the north, toward Дебар
+      gbostren: { ll: [41.43000, 20.46000], d: 2600, polar: 1.08, az: -0.3 }, // Острени and the slopes of Голо Брдо
+      // the map is 7.5 × 37 km: seen from the south-west along its length, Пешкопија at the far end
+      overview: { ll: [41.53000, 20.44500], d: 26000, polar: 1.15, az: -0.3 },
+    },
+    districts: [
+      ['Пешкопија', 41.68488, 20.42871], ['Макелари', 41.58897, 20.48638, 30], ['Горно Блато', 41.56363, 20.48951, 30],
+      ['Долно Блато', 41.56240, 20.47764, 30], ['Ербеле', 41.62002, 20.46981, 30], ['Доволјани', 41.62083, 20.44865, 30],
+      ['Граждани', 41.61108, 20.47526, 30], ['Алајбеговци', 41.57953, 20.46415, 30], ['Мајтаре', 41.56874, 20.47155, 30],
+      ['Хомеш', 41.55219, 20.42795, 30], ['Горна Горица', 41.52877, 20.44503, 30], ['Шупенци', 41.53089, 20.42327, 30],
+      ['Окшатина', 41.56378, 20.42856, 30], ['Тополјани', 41.58592, 20.42498, 30], ['Белово', 41.69700, 20.47504, 30],
+      ['Мелани', 41.65492, 20.46459, 30], ['Дешат', 41.71202, 20.41514, 30], ['Спас', 41.55077, 20.48164, 30],
+      ['Трбач', 41.48865, 20.47925, 30], ['Стригичани', 41.48851, 20.40757, 30], ['Љуболеш', 41.47555, 20.42700, 30],
+      ['Радоешта', 41.44664, 20.47110, 30], ['Големо Острени', 41.43072, 20.45768, 30], ['Мало Острени', 41.43070, 20.49646, 30],
+      ['Оржаново', 41.41956, 20.44752, 30], ['Лешничани', 41.42651, 20.41061, 30],
+      ['Дибра', 41.64000, 20.43500, 0], ['Голо Брдо', 41.41500, 20.46500, 0],
+    ],
+    labels: [
+      ['Алајбегова џамија', 41.57824, 20.46576, 22, 'gbxhamija'],
+      ['Св. Преображение', 41.61814, 20.47097, 16, 'gbherbel'],
+      ['Нова џамија', 41.68449, 20.43238, 20, 'gbxhamiare'],
+      ['Музеј на Дибра', 41.68569, 20.42890, 14, 'gbmuzej'],
+      ['Граничен премин Блато', 41.56315, 20.49231, 14],
+      ['Лапидар', 41.52115, 20.43394, 10],
+      ['Црн Дрим', 41.52800, 20.46120, 6, undefined, 'river'],
+      ['Црн Дрим', 41.61300, 20.43650, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Пешкопија', 41.68457, 20.43049, 80],
+      ['Белово', 41.69700, 20.47504, 70],
+      ['Мелани', 41.65492, 20.46459, 70],
+      ['Ербеле', 41.61814, 20.47097, 60, 'gbherbel'],
+      ['Алајбегова џамија', 41.57824, 20.46576, 55, 'gbxhamija'],
+      ['Макелари', 41.58897, 20.48638, 60],
+      ['Граничен премин Блато', 41.56315, 20.49231, 55],
+      ['Црн Дрим', 41.52800, 20.46120, 45],
+      ['Трбач', 41.48865, 20.47925, 70],
+      ['Големо Острени', 41.43072, 20.45768, 80],
+      ['Љуболеш', 41.47555, 20.42700, 80],
+      ['Горна Горица', 41.52877, 20.44503, 70],
+      ['Окшатина', 41.56378, 20.42856, 70],
+      ['Тополјани', 41.58592, 20.42498, 70],
+      ['Пешкопија', 41.68457, 20.43049, 70],
+    ],
+    spots: [
+      ['gb.peshkopi', 'Пешкопија', 41.68457, 20.43049, 150],
+      ['gb.xhamija', 'Алајбегова џамија', 41.57824, 20.46576, 40, 'gbxhamija'],
+      ['gb.herbel', 'Св. Преображение', 41.61814, 20.47097, 40, 'gbherbel'],
+      ['gb.blato', 'Граничен премин Блато', 41.56315, 20.49231, 80],
+      ['gb.drim', 'Црн Дрим', 41.52800, 20.46120, 200],
+      ['gb.golobrdo', 'Голо Брдо', 41.43072, 20.45768, 250],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    // the wooded slopes of Дешат and the hills of Голо Брдо: full density round Пешкопија, thinner (drawn larger) far out
+    treeThin: { ll: [41.66000, 20.44500], near: 3000, far: 9000, min: 0.05, grow: 2 },
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.hills',
+    refillLabel: 'fire.refill.golobrdo',
+    bestRaceKey: 'skopje.bestRace.golobrdo',
+    banners: { fire: 'Црн Дрим го спаси Голо Брдо!', roll: 'Поздрав од Голо Брдо!' },
   },
   batinci: {
     id: 'batinci', name: 'Батинци', code: '02', icon: './favicon-batinci.svg',
