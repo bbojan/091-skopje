@@ -765,6 +765,36 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    smile: a grin curving up at the corners with a crescent of teeth, round rosy cheeks, the eyes narrowed. Label
    „🪖 Ѕинго“ (Latin: Dzingo); his action is Пејо's. (A first version wore the yellow helmet of „Силекс“ and glasses.)
 
+47. **043 Неготино** (Nov 2026, branch `negotino` off `develop`, not yet released; 5th in the build order; developer
+   **Ристе Самарџиев**, as for Кавадарци): the town on the Вардар and the middle Повардарие (docs/TOWNS_TODO.md, 5): box
+   41.445–41.60 N, 22.062–22.32 E as planned (21.5 × 17.3 km, 20 m cells, 100–1142 m), edge to edge with Кавадарци (w).
+   Overpass answered only count queries (504 on the rest), so the raw file came from Geofabrik's Macedonia extract
+   (`scripts/pbf2overpass.py`): **204 buildings and 776 roads, the same as an Overpass count query**. OSM is thin here
+   (204 buildings for a town of 13,000): **Overture adds 5,072 outlines** (credited in the bar and the help). Terrain checked
+   against EU-DEM at 100 points (opentopodata): mean −0.4 m, RMS 0.8 m, max 5.3 m. Scene 1.2 MB, 5,270 buildings; a `mid`
+   zone over the centre, `maxLevels: 8`; pinned after photos of 2013–2015: the town hall (a brick block, ground + 5), the
+   Дом на култура „Ацо Ѓорчев“ (2 storeys), the post office, school, hospital, the monastery's konaks, farm sheds; the three
+   „Negotinki“ blocks of flats stay at the zone's 8 storeys (not checked). Farmland painted up to 420 m (`vineyards`, the
+   default vine share). The Вардар is a water area in OSM here (up to 0.6 km² a stretch): refilling over it with the shared
+   „Наполни вода од Вардар“. Models (`src/negotino.ts`, after Commons photos, references only): **Неготински манастир Св.
+   Ѓорѓи** on its outline (white nave, low grey metal roof, three drums with dark domes and red pilasters, the tiled porch on
+   the south, the apse) and **its bell tower** on OSM's small outline (stone panels in white frames, red brick arches);
+   **Св. Атанасиј Велики** (ochre basilica, brick-framed arched windows, hipped tile roof, lower narthex, the bell tower at
+   the south-west corner on Партизанска, where the photo shows it); **ТЕЦ Неготино's chimney** at OSM's node
+   (`modelRects.ngoxak`): no published height was found, **~125 m estimated** from two geotagged Commons photos with EXIF
+   focal lengths (122 m from 370 m away, ~135 m from the Вардар bridge 1 km away, measured to the horizon) and its ~10 m
+   foot; red and white bands over the top quarter, three galleries; **the three fuel tanks** on OSM's outlines (45 m
+   across, 15 m read off the photos). The old Саат-кула (a ruin on Commons) is not in OSM and was not placed. Badge 043
+   (shared with Кавадарци); the LinkedIn button names Ристе; the help footer now reads „(Кавадарци, Неготино)“ in all six
+   languages; tab icon a grape bunch with a vine leaf over the Вардар's waves (drawn, not the town's arms); tow banners
+   „Неготино е спасено!“ / „Поздрав од Повардарие!“; walker Пејо. Info cards from mk Wikipedia (Неготино, Неготински
+   манастир, ТЕЦ „Неготино“; the plant's year and size also on no Wikipedia). Checked: typecheck, build (the files in
+   `dist/`), strings, the map loads with no console errors, the views (square, Св. Атанасиј, the monastery, ТЕЦ, Вардар,
+   overview), night, the places menu and the help, switching Неготино → Скопје → Неготино → Кавадарци → Неготино (textures
+   403 → 403, scene objects 21 → 21, geometries 54 → 56: streamed ground), the F-15 over the map (country vs map heights:
+   mean 0, max 11 m), Skopje pixel check (0 on six views, 13–17 pixels on the three overviews: the gondola cabins). Not
+   checked: flying in from Кавадарци, phones, firefighting and the race, rain and snow, the walking cards one by one.
+
 ## Country view (Nov 2026)
 
 - **What:** Macedonia, first in the city menu (a tile as tall as four cities, `.country-tile`), shows the whole country with every map's zone (`src/zones.ts`,
@@ -1037,6 +1067,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Кочани | `skopje.bestRace.kocani` | none |
 | Best race time in Меџитлија | `skopje.bestRace.medzitlija` | none |
 | Best race time in Кратово | `skopje.bestRace.kratovo` | none |
+| Best race time in Неготино | `skopje.bestRace.negotino` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
