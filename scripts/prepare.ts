@@ -590,6 +590,7 @@ const PREP: Record<CityName, CityPrep> = {
       krsimic: 1041470916, krsaat: 1041470903, krzlatko: 1041470895, krkrste: 1068995475, krhadzi: 1041470976, kremin: 1041469306,
       krradin: 1328812145, krgrof: 1329719000, krcarsija: 1330153314, krjoksir: 1330177797, kramam: 1330177800, krargul: 1330181223,
       krsaraj: 1328852746, krkukli: 1310947327, krkratis: 974485944, krsingo: 1069089773,
+      krbazen: 1069081206, // the town's Olympic pool (OSM: water_park), „Силекс“'s
     },
     // the joke: a hillside sign „ЅИНГО LAND“ in the manner of Hollywood's on Баба's north face, the slope seen from the
     // whole town (sampled: ~200 m above the square, 770 m south of it, ~27° steep, no buildings); wide, so no trees in front
@@ -605,6 +606,7 @@ const PREP: Record<CityName, CityPrep> = {
       krradin: 1328812145, krgrof: 1329719000, krcarsija: 1330153314, krjoksir: 1330177797, krkukli: 1310947327,
       krsquare: 1329402649, knezevo: 182039253, krdam: 1420954858, krgjorgji: 1041472847, krjovan: 1069000600, krmuzej: 974485945,
       krstadium: 1328795532, krtrojca: 1049164095, krkratis: 974485944,
+      krbazen: 1069081206,
       krsingo: 1069089773, // Ѕинговата куќа: the building the developer pointed at, next to the point given (42.079194, 22.172667)
     },
     placeNodes: { krkarpos: 12136243295 },

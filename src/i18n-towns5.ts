@@ -15,6 +15,7 @@ export const TOWNS5 = {
     'info.kr.singo': 'Ѕинговата куќа е на Љубисав Иванов – Ѕинго (1936–2020), роден во Трновац: повеќе од 40 години генерален директор на рудникот „Силекс“, претседател на Социјалистичката партија и пратеник во секој состав на Собранието до 2011, прв претседател на Фудбалската федерација на Македонија (1993–1996). Муралот на западниот ѕид е нацртан за оваа мапа.',
     'info.kr.sign': 'Натписот „ЅИНГО LAND“ на ридот над Кратово го нема во вистинскиот свет — тоа е шега на оваа мапа. Холивуд има свој натпис, Кратово има Ѕинго.',
     'info.kr.granica': 'Граница на Ѕинго Land. Велат дека во 1995 година Кратово изгледало како посебна држава — Ѕинго имал и своја валута. Граничниот премин е шега на оваа мапа: пасош не е потребен, а во менувачницата курсот е секогаш ист — 1 ѕинго за 1 ѕинго.',
+    'info.kr.bazen': 'Градскиот олимписки базен на Кратово е во сопственост на АД РИК „Силекс“ — рудникот што Ѕинго го водеше повеќе од 40 години. Значи, сопственост на Ѕинго Land.',
     'info.kr.knezevo': 'Кнежевското Езеро е создадено во 2010 година со преградување на Злетовица кај селото Кнежево, со каменонасипна брана висока 75 метри. Ги снабдува со вода повеќе општини во источниот дел на Македонија.',
   },
   en: {
@@ -39,8 +40,10 @@ export const TOWNS5 = {
     'v.krkratis': 'Hotel Kratis',
     'v.krsingo': 'Dzingo’s house',
     'v.krgranica': 'Dzingo Land border',
+    'v.krbazen': 'Pool',
     'v.krsign': 'ЅИНГО LAND',
     'info.kr.granica': 'The border of Dzingo Land. People say that in 1995 Kratovo looked like a country of its own — Dzingo even had his own currency. The crossing is this map’s joke: no passport needed, and the exchange office always has the same rate — 1 dzingo for 1 dzingo.',
+    'info.kr.bazen': 'Kratovo’s Olympic swimming pool belongs to Sileks — the mine Dzingo ran for more than 40 years. Which makes it Dzingo Land property.',
     'info.kr.knezevo': 'Kneževo lake was created in 2010 by damming the Zletovica near the village of Kneževo with a rockfill dam 75 metres high. It supplies water to several municipalities in the east of Macedonia.',
   },
   sr: {
@@ -65,8 +68,10 @@ export const TOWNS5 = {
     'v.krkratis': 'Хотел Кратис',
     'v.krsingo': 'Ѕингова кућа',
     'v.krgranica': 'Граница: Ѕинго Land',
+    'v.krbazen': 'Базен',
     'v.krsign': 'ЅИНГО LAND',
     'info.kr.granica': 'Граница Ѕинго Land-а. Кажу да је 1995. године Кратово изгледало као посебна држава — Ѕинго је имао и своју валуту. Гранични прелаз је шала ове мапе: пасош није потребан, а у мењачници је курс увек исти — 1 ѕинго за 1 ѕинго.',
+    'info.kr.bazen': 'Градски олимпијски базен у Кратову у власништву је АД РИК „Силекс“ — рудника који је Ѕинго водио више од 40 година. Дакле, власништво Ѕинго Land-а.',
     'info.kr.knezevo': 'Кнежевско језеро настало је 2010. године преграђивањем Злетовице код села Кнежева, каменонасутом браном високом 75 метара. Снабдева водом више општина на истоку Македоније.',
   },
   hr: {
@@ -91,8 +96,10 @@ export const TOWNS5 = {
     'v.krkratis': 'Hotel Kratis',
     'v.krsingo': 'Dzingova kuća',
     'v.krgranica': 'Granica: Dzingo Land',
+    'v.krbazen': 'Bazen',
     'v.krsign': 'ЅИНГО LAND',
     'info.kr.granica': 'Granica Dzingo Landa. Kažu da je 1995. Kratovo izgledalo kao zasebna država — Dzingo je imao i svoju valutu. Granični prijelaz šala je ove karte: putovnica nije potrebna, a u mjenjačnici je tečaj uvijek isti — 1 dzingo za 1 dzingo.',
+    'info.kr.bazen': 'Gradski olimpijski bazen u Kratovu u vlasništvu je tvrtke Sileks — rudnika koji je Dzingo vodio više od 40 godina. Dakle, vlasništvo Dzingo Landa.',
     'info.kr.knezevo': 'Kneževsko jezero nastalo je 2010. pregrađivanjem Zletovice kod sela Kneževo, kamenometnom branom visokom 75 metara. Opskrbljuje vodom više općina na istoku Makedonije.',
   },
   sl: {
@@ -117,8 +124,10 @@ export const TOWNS5 = {
     'v.krkratis': 'Hotel Kratis',
     'v.krsingo': 'Dzingova hiša',
     'v.krgranica': 'Meja: Dzingo Land',
+    'v.krbazen': 'Bazen',
     'v.krsign': 'ЅИНГО LAND',
     'info.kr.granica': 'Meja Dzingo Landa. Pravijo, da je bilo Kratovo leta 1995 videti kot samostojna država — Dzingo je imel celo svojo valuto. Mejni prehod je šala tega zemljevida: potni list ni potreben, menjalnica pa ima vedno isti tečaj — 1 dzingo za 1 dzingo.',
+    'info.kr.bazen': 'Mestni olimpijski bazen v Kratovu je v lasti podjetja Sileks — rudnika, ki ga je Dzingo vodil več kot 40 let. Torej last Dzingo Landa.',
     'info.kr.knezevo': 'Kneževsko jezero je nastalo leta 2010, ko so Zletovico pri vasi Kneževo zajezili s 75 metrov visokim kamnometnim jezom. Z vodo oskrbuje več občin na vzhodu Makedonije.',
   },
   sq: {
@@ -143,8 +152,10 @@ export const TOWNS5 = {
     'v.krkratis': 'Hotel Kratis',
     'v.krsingo': 'Shtëpia e Dzingos',
     'v.krgranica': 'Kufiri: Dzingo Land',
+    'v.krbazen': 'Pishina',
     'v.krsign': 'ЅИНГО LAND',
     'info.kr.granica': 'Kufiri i Dzingo Landit. Thonë se më 1995 Kratova dukej si shtet më vete — Dzingo kishte edhe monedhën e vet. Vendkalimi kufitar është shaka e kësaj harte: pasaporta nuk nevojitet, ndërsa në këmbimore kursi është gjithmonë i njëjtë — 1 dzingo për 1 dzingo.',
+    'info.kr.bazen': 'Pishina olimpike e qytetit në Kratovë është pronë e Sileksit — minierës që Dzingo e drejtoi për më shumë se 40 vjet. Pra, pronë e Dzingo Landit.',
     'info.kr.knezevo': 'Liqeni i Knezhevës u krijua më 2010 me digën e Zletovicës pranë fshatit Knezhevë, një digë me mbushje guri 75 metra e lartë. Furnizon me ujë disa komuna në lindje të Maqedonisë.',
   },
 };
