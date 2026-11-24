@@ -168,6 +168,19 @@ Add the id to `CITY_IDS` and an entry to `CITIES` (`CitySpec` documents the fiel
 - `bestRaceKey`: a storage key of its own (`skopje.bestRace.ohrid`); add it to the Settings table
   in NOTES.md.
 
+### The country view and the F-15 (`src/zones.ts`)
+
+Move the map's zone from `PLANNED` to `EXISTING` (its box as in `scripts/config.ts`) and give it its city id in
+`CITY_OF`; a map that is not a rectangle keeps its outline in `SHAPES` / `CUTS`. That one entry makes the map:
+- a badge that opens it in the country view (Macedonia in the city menu);
+- flyable for the F-15: the jet flies into it from a neighbouring map and out of it (`src/hop.ts` finds the
+  neighbours from the outlines; nothing else to add), and its radar shows it in colour instead of greyed.
+
+Nothing else is needed for the F-15. The country's 100 m terrain drawn round the map and the map's own terrain
+meet by themselves: a map's terrain stores its heights above its own lowest point (`min` in `<id>-terrain.json`)
+and `countryground.ts` subtracts that `min` when the map loads (the v26.0.1 fix; before it the country covered
+every map that does not lie low). `sceneBytes` in `CITIES` also feeds the download-time guess for the F-15.
+
 ## 6. Page and texts
 
 `index.html`:
@@ -244,6 +257,18 @@ mem(); await __dbg.switchCity('skopje'); /* wait for the loader */ await __dbg.s
    scripts would write Skopje's files.
 5. Back / forward between cities, a shared link with `#@…`, no console errors. Put back any
    `skopje.*` settings your testing changed in the browser.
+6. **The F-15** (✈ F-15 beside Macedonia in the city menu): fly over the new map and out past its edges. The map's
+   own terrain and buildings show, the coarse country terrain only beyond the edges. To measure it, in the console
+   after taking off in the F-15 (the two should agree within a few tens of metres; a large mean means the heights
+   are on different bases):
+
+```js
+const w = __dbg.world, cg = __dbg.cground, m = w.meta; let sum = 0, n = 0, max = -1e9;
+for (let fx = -0.46; fx <= 0.46; fx += 0.04) for (let fz = -0.46; fz <= 0.46; fz += 0.04) { const d = cg.height(fx * m.w, fz * m.h) - w.terrain.at(fx * m.w, fz * m.h); sum += d; n++; max = Math.max(max, d); }
+({ mean: Math.round(sum / n), max: Math.round(max) }); // v26.0.1, all 16 maps: mean 0, max ≤ 22
+```
+
+   Then fly from a neighbouring map into the new one (the radar shows it ahead, downloading, entering) and back.
 
 ## 9. Documentation and release
 
@@ -370,6 +395,8 @@ Shortcuts and fixes that came out of the third city; reuse them before writing n
       `.me-main` LinkedIn link with `data-city="<id>"` (the developer shown for the city)
 - [ ] `public/favicon-<id>.svg` and `icon` in `CITIES.<id>`
 - [ ] `src/i18n.ts`: new keys in 6 languages; `npm run strings`
+- [ ] `src/zones.ts`: the zone moved from `PLANNED` to `EXISTING`, its id in `CITY_OF` (country view badge, F-15)
 - [ ] Monuments: references, models, `blockGrid` clearings, `LandmarkData`, labels and info cards
 - [ ] Typecheck, build, browser walk-through, switching memory test, Skopje pixel check
+- [ ] The F-15 over the new map (its own terrain shows, the country's only outside) and flying in from a neighbour
 - [ ] NOTES.md, README, CLAUDE.md if conventions changed; version; ask before pushing
