@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Кратово: a stone tower and an arched bridge over the river, in the crater's rim -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <path d="M10 40 Q22 26 34 34 M66 34 Q78 26 90 40" fill="none" stroke="#7a1f1a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M40 58 V24 H58 V58 Z" fill="#1f2a44"/>
+  <path d="M38 24 L49 14 L60 24 Z" fill="#7a1f1a"/>
+  <g fill="#f4ede0"><rect x="46.5" y="30" width="5" height="8" rx="2.5"/><rect x="46.5" y="44" width="5" height="7" rx="2.5"/></g>
+  <path d="M10 70 Q50 44 90 70 V78 H74 Q50 56 26 78 H10 Z" fill="#1f2a44"/>
+  <path d="M10 88 Q20 84 30 88 T50 88 T70 88 T90 88" fill="none" stroke="#7a1f1a" stroke-width="4" stroke-linecap="round"/>
+</svg>
