@@ -591,8 +591,9 @@ const PREP: Record<CityName, CityPrep> = {
       krradin: 1328812145, krgrof: 1329719000, krcarsija: 1330153314, krjoksir: 1330177797, kramam: 1330177800, krargul: 1330181223,
       krsaraj: 1328852746, krkukli: 1310947327, krkratis: 974485944, krsingo: 1069089773,
     },
-    // the joke: a hillside sign „ЅИНГО LAND“ in the manner of Hollywood's, on the crater's north slope facing the town
-    modelRects: { krsign: [42.08580, 22.18050, 96, 70, Math.PI / 2] }, // wide, so the slope in front stays clear of trees
+    // the joke: a hillside sign „ЅИНГО LAND“ in the manner of Hollywood's on Баба's north face, the slope seen from the
+    // whole town (sampled: ~200 m above the square, 770 m south of it, ~27° steep, no buildings); wide, so no trees in front
+    modelRects: { krsign: [42.07117, 22.18026, 140, 70, Math.PI / 2] },
     placeNames: {},
     placeIds: {
       krsimic: 1041470916, krsaat: 1041470903, krzlatko: 1041470895, krkrste: 1068995475, krhadzi: 1041470976, kremin: 1041469306,

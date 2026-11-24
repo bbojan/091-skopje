@@ -26,7 +26,8 @@
 //   upper floor overhanging on wooden brackets, timber beams, shuttered windows, a hipped tile roof with wide eaves — and
 //   on its west wall a mural drawn here (a canvas: a miner's lamp and helmet for „Силекс“, a football for the
 //   federation, „ЅИНГО LAND“ in a vez border).
-// - The joke: „ЅИНГО LAND“ in big white letters on posts on the crater's north slope, facing the town, like Hollywood's.
+// - The joke: „ЅИНГО LAND“ on Баба's north face, the slope seen from the whole town (found by sampling the terrain round
+//   the square), like Hollywood's on Mount Lee: solid white letters ~14 m tall leaning back on steel scaffolding.
 import * as THREE from 'three';
 import { frame, parts, modelKit, toPts, PU, MU, PV, MV, type Frame, type Parts } from './models.ts';
 import type { Terrain } from './terrain.ts';
@@ -105,11 +106,11 @@ function muralTexture(): THREE.CanvasTexture {
 
 /** Stroke letters for the hillside sign, in a 1 × 1.4 box: polylines. */
 const LETTERS: Record<string, [number, number][][]> = {
-  Ѕ: [[[1, 1.4], [0, 1.4], [0, 0.7], [1, 0.7], [1, 0], [0, 0]]],
+  Ѕ: [[[1, 1.2], [0.8, 1.4], [0.2, 1.4], [0, 1.2], [0, 0.92], [0.22, 0.7], [0.78, 0.7], [1, 0.48], [1, 0.2], [0.8, 0], [0.2, 0], [0, 0.2]]],
   И: [[[0, 1.4], [0, 0], [1, 1.4], [1, 0]]],
   Н: [[[0, 0], [0, 1.4]], [[1, 0], [1, 1.4]], [[0, 0.7], [1, 0.7]]],
   Г: [[[0, 0], [0, 1.4], [1, 1.4]]],
-  О: [[[0, 0], [0, 1.4], [1, 1.4], [1, 0], [0, 0]]],
+  О: [[[0.25, 0], [0, 0.3], [0, 1.1], [0.25, 1.4], [0.75, 1.4], [1, 1.1], [1, 0.3], [0.75, 0], [0.25, 0]]],
   L: [[[0, 1.4], [0, 0], [1, 0]]],
   A: [[[0, 0], [0.5, 1.4], [1, 0]], [[0.22, 0.6], [0.78, 0.6]]],
   N: [[[0, 0], [0, 1.4], [1, 0], [1, 1.4]]],
@@ -410,33 +411,46 @@ export function createKratovo(data: CityData, terrain: Terrain, clippingPlanes: 
     group.add(mm);
   }
 
-  // ---------------- the joke: „ЅИНГО LAND“ on the hillside, letters facing the town (−v, north of the town is +v... the
-  // frame's +v points south, toward the town)
+  // ---------------- the joke: „ЅИНГО LAND“ on Баба's north face above the town, in the manner of Hollywood's sign:
+  // solid white sheet letters ~14 m tall leaning back into the slope on steel scaffolding. The frame's +v points south
+  // (uphill); the letters face north toward the town, so they read along −u (east is on a viewer's left)
   const gf = M.krsign ? frame(M.krsign, terrain, data.landmarks?.modelAxes?.krsign, true) : null;
   if (gf) {
-    const p = parts(), text = 'ЅИНГО LAND', H = 11, Wl = H / 1.4 * 0.8, gap = 2.6, st = 1.4;
-    const total = [...text].reduce((s, ch) => s + (ch === ' ' ? Wl * 0.8 : Wl + gap), -gap);
+    const text = 'ЅИНГО LAND', H = 14, Wl = 9.6, gap = 3.2, st = 2.7, lean = 0.2;
+    const total = [...text].reduce((s, ch) => s + (ch === ' ' ? Wl * 0.7 : Wl + gap), -gap);
     let x = -total / 2;
     for (const ch of text) {
-      if (ch === ' ') { x += Wl * 0.8; continue; }
+      if (ch === ' ') { x += Wl * 0.7; continue; }
+      const p = parts();
+      // the letter stands on the lowest ground across its width, a little off the slope
       let gmin = Infinity;
-      for (let k = 0; k <= 4; k++) gmin = Math.min(gmin, ground(gf, x + (Wl * k) / 4, 0));
-      const y0 = gmin + 2.2;
+      for (let k = 0; k <= 6; k++) gmin = Math.min(gmin, ground(gf, -(x + (Wl * k) / 6), 0));
+      const y0 = gmin + 1.2;
+      const U = (lx: number) => -(x + lx * Wl); // mirrored: reads left to right from the north
       for (const line of LETTERS[ch] ?? []) for (let i = 0; i + 1 < line.length; i++) {
         const [ax, ay] = line[i], [bx, by] = line[i + 1];
-        const pa = [x + ax * Wl, y0 + (ay * H) / 1.4], pb = [x + bx * Wl, y0 + (by * H) / 1.4];
+        // strokes kept inside the letter's box: the centre line is pulled in by half a stroke
+        const ins = (v: number, span: number) => st / 2 + v * (span - st);
+        const pa = [U(0) - ins(ax, Wl), y0 + ins(ay / 1.4, H)], pb = [U(0) - ins(bx, Wl), y0 + ins(by / 1.4, H)];
         const len = Math.hypot(pb[0] - pa[0], pb[1] - pa[1]), ang = Math.atan2(pb[1] - pa[1], pb[0] - pa[0]);
-        p.add('white', new THREE.BoxGeometry(len + st, st, 0.35).rotateZ(ang).translate((pa[0] + pb[0]) / 2, (pa[1] + pb[1]) / 2, 0));
+        p.add('white', new THREE.BoxGeometry(len + st, st, 0.3).rotateZ(ang).translate((pa[0] + pb[0]) / 2, (pa[1] + pb[1]) / 2, 0));
       }
-      // the posts and braces behind each letter, down to the slope
-      for (const k of [0.15, 0.85]) {
-        const uu = x + Wl * k, gy = ground(gf, uu, -0.6);
-        p.box('woodDark', uu - 0.15, uu + 0.15, -0.75, -0.45, gy - 0.5, y0 + H * 0.8);
-        p.put('woodDark', new THREE.BoxGeometry(0.2, 0.2, 4.2).rotateX(0.8), uu, -2.0, gy + 1.2, 0);
+      // the scaffolding behind (uphill, +v): three steel posts, two rails, braces down into the slope
+      const gs = (uu: number, vv: number) => ground(gf, uu, vv);
+      for (const k of [0.12, 0.5, 0.88]) {
+        const uu = U(k), top = y0 + H * 0.95;
+        p.box('concreteDark', uu - 0.14, uu + 0.14, 0.25, 0.53, gs(uu, 0.4) - 0.6, top);
+        const by = gs(uu, 4.5);
+        const blen = Math.hypot(4.1, top * 0.6 - by), bang = Math.atan2(top * 0.6 - by, 4.1);
+        p.add('concreteDark', new THREE.BoxGeometry(0.16, 0.16, blen).rotateX(bang).translate(uu, (top * 0.6 + by) / 2, 2.45));
       }
+      for (const fy of [0.3, 0.7]) p.box('concreteDark', U(0.95), U(0.05), 0.3, 0.48, y0 + H * fy, y0 + H * fy + 0.2);
+      // lean the whole letter and its frame back into the slope (shear: v grows with height above its foot)
+      const shear = new THREE.Matrix4().set(1, 0, 0, 0, 0, 1, 0, 0, 0, lean, 1, -lean * y0, 0, 0, 0, 1);
+      for (const list of p.map.values()) for (const g of list) g.applyMatrix4(shear);
+      place(p, gf);
       x += Wl + gap;
     }
-    place(p, gf);
   }
 
   return { group, nightLit: [glass] };
