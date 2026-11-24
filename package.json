@@ -1,7 +1,7 @@
 {
   "name": "091-skopje",
   "private": true,
-  "version": "26.0.3",
+  "version": "32.0.0",
   "type": "module",
   "scripts": {
     "download": "node scripts/download.ts",

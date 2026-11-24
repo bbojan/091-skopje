@@ -833,6 +833,10 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    three overviews: the gondola cabins). Not checked: flying in from Кавадарци or Неготино, phones, firefighting and the
    race, night and snow views, walking and the cards one by one, the Kožuf ski runs (not drawn).
 
+49. **v32.0.0** (2026-11-24): the maps built since v26.0.3 released together (23 maps in all): 0903 Кочани, 047 Меџитлија,
+   031 Кратово (Бранко Славков), 092 Штип and 0902 Струмица (Калина Јовановска), 043 Неготино and Демир Капија (Ристе
+   Самарџиев; both rebased on Штип and Струмица, their texts moved to `i18n-towns8.ts` / `i18n-towns9.ts`).
+
 ## Country view (Nov 2026)
 
 - **What:** Macedonia, first in the city menu (a tile as tall as four cities, `.country-tile`), shows the whole country with every map's zone (`src/zones.ts`,
