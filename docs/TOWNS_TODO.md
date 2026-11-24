@@ -4,7 +4,8 @@
 096 Охрид (with Струга), 098 Прилеп, 048 Крушево, 042 Ростуше (with Дебар and Маврово),
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
 045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. **Built, not yet released:** 0903 Кочани (branch `city-kocani`,
-2026-11-24), 047 Меџитлија (branch `city-medzitlija`, 2026-11-24). Details in the first table below.
+2026-11-24), 047 Меџитлија (branch `city-medzitlija`, 2026-11-24), 031 Кратово (branch `city-kratovo`, 2026-11-24, developer
+Бранко Славков). Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
@@ -19,7 +20,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 25 new maps** (Кочани and Меџитлија built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 24 new maps** (Кочани, Меџитлија and Кратово built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -37,7 +38,7 @@ towns on it):
 | Демир Капија | 820 | Демир Капија | | Голо Брдо* | 280 | — |
 | Демир Хисар | 810 | Демир Хисар | | ~~Меџитлија*~~ built | 300 | — |
 | Делчево | 770 | Делчево | | ~~Кочани~~ built | 190 | Кочани |
-| Кратово | 750 | Кратово | | | | |
+| ~~Кратово~~ built | 790 | Кратово | | | | |
 
 \* working names. Only Гевгелија holds two towns now (Богданци is next to it). For comparison, the largest finished
 maps are Брод and Ресен (about 1320 km² each); areas include the parts across the borders.
@@ -91,7 +92,7 @@ its own.
 | Батинци ✓ | 091 | 02 | 02 | as now; shares 02 |
 | Скопска Црна Гора | 091 | 02 | 02 | shares 02 |
 | Куманово | **0901** | 031 | **0901** | |
-| Кратово | 0901 | 031 | 031 | shares 031 |
+| Кратово ✓ | 0901 | 031 | 031 | shares 031; built 2026-11-24 |
 | Крива Паланка | 0901 | 031 | 031 | shares 031 |
 | Штип | **092** | 032 | **092** | |
 | Пробиштип | 092 | 032 | 032 | shares 032 |
@@ -172,7 +173,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 13 | Дебарца | 630 | — | 27 |
 | 14 | Струмица | 690 | Струмица | 4 |
 | 15 | ~~Вевчани~~ built (2026-11-23, out of order) | 690 | — | 12 |
-| 16 | Кратово | 750 | Кратово | 2 |
+| 16 | ~~Кратово~~ built (2026-11-24, branch `city-kratovo`, out of order) | 790 | Кратово | 2 |
 | 17 | Делчево | 770 | Делчево | 13 |
 | 18 | Демир Хисар | 810 | Демир Хисар | 11 |
 | 19 | Штип | 820 | Штип | 3 |
@@ -231,7 +232,12 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   Overture outlines for the Полог villages.
 - **Open:** landmark priorities, the developer for the LinkedIn button.
 
-### 2. Кратово
+### 2. 031 Кратово ✓ built (2026-11-24, branch `city-kratovo`, not yet released; NOTES.md item 46; developer Бранко Славков)
+
+- **Built:** 42.04–42.36 N, **22.045**–22.495 E, Крива Паланка's corner (42.125–42.36 N, 22.25–22.495 E) cut. The plan's w edge
+  (22.062) left the Камени Кукли of Куклица (42.105 N, 22.055 E) 600 m outside: widened to 22.045, Куманово's planned outline
+  moved there (`SHAPES` in `src/zones.ts`: e edge 22.045 from 42.04 N up). The border in OSM runs at 42.30–42.36 N here: the n
+  edge stays 42.36 (up to ~5 km of Serbia west of 22.17, as Куманово's 42.34).
 
 - **On it:** Кратово, Кратовска Река, the crater's hills up to the border.
 - **Code:** open (phone codes 031 / 032). `?city=kratovo`.

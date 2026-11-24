@@ -697,6 +697,34 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    script's `frames()` and the 1.7 s waits replaced by pumped frames, `img.decode()` by `onload` (with timer frames at 1–2
    FPS the same code compared against itself differed on every pixel; pumped, it matches). Not checked: flying in from
    Ресен, phones, firefighting and the race, night and snow views, the walking cards one by one.
+46. **031 Кратово** (Nov 2026, branch `city-kratovo`, not yet released; built out of order, 16th in the build order; the
+   first map by the third developer, **Бранко Славков**, `linkedin.com/in/slavkovbranko`): the town in its volcanic crater and
+   its surroundings (docs/TOWNS_TODO.md, 2): box 42.04–42.36 N, 22.045–22.495 E (35.6 × 37.1 km, 20 m cells, 383–2076 m), an
+   L: Крива Паланка's planned corner (42.125–42.36 N, 22.25–22.495 E) is `cut`. **Widened west from 22.062 to 22.045** so
+   that the Камени Кукли (22.055) are on it; Куманово's planned outline moved with it. Overpass was at capacity all morning
+   (no tile in 15 minutes), so the raw file came from Geofabrik's Macedonia + Serbia extracts (`scripts/pbf2overpass.py`):
+   5,556 buildings, 2,961 roads before the cut (a count query never got through, so not cross-checked against Overpass).
+   **Overture adds nothing** here (0 outlines; 6,428 of its outlines are OSM's own), so no Overture credit. Scene: 2,630
+   buildings after the cut, 2.3 MB; the old town as an `old` box, no height zones (a `mid` zone over the centre made the old
+   town 6-storey blocks), `maxLevels: 5`, the three churches pinned low. Farmland painted on Славиште's plain (`vineyards: 200`,
+   `vineShare: 0.05`). Refilling over Кнежевско Езеро (69 ha). Models (`src/kratovo.ts`, after mk Wikipedia's descriptions,
+   no photos looked at): **the six towers** on OSM's outlines (narrowed to the published widths where Wikipedia gives them:
+   Симиќева 7.9 m and 22 m with its two chimneys, Златковичева 14.15 m, Крстева 16.1 m; Хаџикостова 14 m and Емин-бегова 13 m
+   guessed; the Саат-кула 15.5 m guessed, its чардак placed on the south side by guess), **seven stone bridges** on OSM's
+   `man_made=bridge` outlines (one arch, a humped deck kept ~4 m over the river since the 20 m terrain hardly cuts it,
+   parapets with copings; Нов Мост, the modern one, left out; Радин мост's towers not modelled), **the earth pyramids of
+   Куклица** (15 large up to 10 m, ~80 small up to 5 m with twins at the foot, seeded inside OSM's site outline, not at
+   their real places). Badge 031 (shared with Крива Паланка, the Badge codes table); tow banners „Кратово е спасено!“ /
+   „Поздрав од кратерот!“; snow label „Снег на Осогово“ (Каменица's). The developers' ▼ menu now lists three (031 Бранко
+   Славков), the LinkedIn button on this map names him, and the help footer credits him in all six languages (Slovene
+   „Izdelala“ → „Izdelali“ for three). Checked: typecheck, build (the files in `dist/`), the map loads with no console
+   errors, the views (towers, bridges, Радин мост, Камени Кукли, the square, the lake, the overview), switching Кратово →
+   Скопје → Кратово → Кочани → Кратово (textures 1377 → 1377, scene objects 21 → 21, geometries +2 per return: streamed
+   ground), the F-15 over the map (country vs map heights: mean 0, −8…+39 m on Осогово's slopes), Skopje pixel check (0 on
+   six views, 12–13 pixels on the three overviews: the gondola cabins), screenshots with `scripts/browser/shot-sink.ts`
+   (the pane gave no screenshot frames). Seen: white spikes of draped road along Кнежевско Езеро's steep shore (`waterPad`
+   on 20 m cells, as in Матка). Not checked: flying in from Каменица or Кочани, phones, firefighting and the race, night and
+   snow views, the walking cards one by one, the towers and bridges against photos.
 
 ## Country view (Nov 2026)
 
@@ -969,6 +997,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Вевчани | `skopje.bestRace.vevcani` | none |
 | Best race time in Кочани | `skopje.bestRace.kocani` | none |
 | Best race time in Меџитлија | `skopje.bestRace.medzitlija` | none |
+| Best race time in Кратово | `skopje.bestRace.kratovo` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
