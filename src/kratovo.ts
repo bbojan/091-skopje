@@ -26,6 +26,9 @@
 //   upper floor overhanging on wooden brackets, timber beams, shuttered windows, a hipped tile roof with wide eaves — and
 //   on its west wall a mural drawn here (a canvas: a miner's lamp and helmet for „Силекс“, a football for the
 //   federation, „ЅИНГО LAND“ in a vez border).
+// - The second joke: the border crossing into Ѕинго Land on the R1205 (people say that in 1995 Кратово looked like a
+//   country of its own, with Ѕинго's own money): a canopy over the road with „ЅИНГО LAND“ on its fascia, a red and white
+//   barrier, the customs booth, the land's flag, an exchange office (1 ЅИНГО = 1 ЅИНГО) and a „no passport needed“ board.
 // - The joke: „ЅИНГО LAND“ on Баба's north face, the slope seen from the whole town (found by sampling the terrain round
 //   the square), like Hollywood's on Mount Lee: solid white letters ~14 m tall leaning back on steel scaffolding.
 import * as THREE from 'three';
@@ -102,6 +105,47 @@ function muralTexture(): THREE.CanvasTexture {
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;
   return t;
+}
+
+/** A flat sign drawn on a canvas: lines of text centred on a coloured board (optional frame). */
+function signTexture(w: number, h: number, bg: string, fg: string, lines: [text: string, size: number][], frame?: string): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d')!;
+  g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  if (frame) { g.strokeStyle = frame; g.lineWidth = h * 0.06; g.strokeRect(h * 0.05, h * 0.05, w - h * 0.1, h - h * 0.1); }
+  g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle';
+  const total = lines.reduce((s, [, z]) => s + z * 1.2, 0);
+  let y = (h - total) / 2;
+  for (const [t, z] of lines) {
+    let fs = z;
+    g.font = `bold ${fs}px "Rubik Mono One", "Arial Black", sans-serif`;
+    while (g.measureText(t).width > w * 0.9 && fs > 10) { fs -= 2; g.font = `bold ${fs}px "Rubik Mono One", "Arial Black", sans-serif`; }
+    g.fillText(t, w / 2, y + z * 0.6);
+    y += z * 1.2;
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+
+/** The flag of Ѕинго Land: a wine field, a gold miner's helmet with its lamp, a gold Ѕ. */
+function flagTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 384; c.height = 256;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#7a1f1a'; g.fillRect(0, 0, 384, 256);
+  g.fillStyle = '#1f2a44'; g.fillRect(0, 0, 384, 26); g.fillRect(0, 230, 384, 26);
+  g.fillStyle = '#e8b04a';
+  g.beginPath(); g.arc(150, 150, 62, Math.PI, 0); g.closePath(); g.fill();
+  g.beginPath(); g.ellipse(150, 152, 84, 12, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#fff6c8'; g.beginPath(); g.arc(150, 108, 16, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#e8b04a'; g.font = 'bold 120px "Rubik Mono One", "Arial Black", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('Ѕ', 290, 135);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
 }
 
 /** Stroke letters for the hillside sign, in a 1 × 1.4 box: polylines. */
@@ -409,6 +453,56 @@ export function createKratovo(data: CityData, terrain: Terrain, clippingPlanes: 
     );
     mm.castShadow = mm.receiveShadow = true;
     group.add(mm);
+  }
+
+  // ---------------- the second joke: the border crossing into Ѕинго Land. +u along the road (north, toward the town),
+  // +v across it (east)
+  const bf = M.krgranica ? frame(M.krgranica, terrain, data.landmarks?.modelAxes?.krgranica, true) : null;
+  if (bf) {
+    const p = parts(), gb = (u: number, v: number) => ground(bf, u, v);
+    const tex: [THREE.BufferGeometry, THREE.Texture, THREE.Side?][] = [];
+    // the canopy over the road: a flat roof on four columns, a deep fascia carrying the name on both ends
+    const cu = 6, cv = 8, ch = 5.6, cy = Math.max(gb(0, 0), gb(-cu, 0), gb(cu, 0)) + ch;
+    for (const su of [-1, 1]) for (const sv of [-1, 1]) p.cyl('concrete', su * (cu - 0.6), sv * (cv - 0.6), gb(su * (cu - 0.6), sv * (cv - 0.6)) - 0.5, cy, 0.32, 0.32, 12);
+    p.box('white', -cu, cu, -cv, cv, cy, cy + 0.35);
+    p.box('face', -cu - 0.1, cu + 0.1, -cv - 0.1, cv + 0.1, cy + 0.35, cy + 1.6);
+    p.box('white', -cu - 0.15, cu + 0.15, -cv - 0.15, cv + 0.15, cy + 1.6, cy + 1.75);
+    const fascia = signTexture(1024, 160, '#1f2a44', '#fff8ec', [['ЅИНГО LAND', 110]]);
+    for (const su of [-1, 1]) tex.push([new THREE.PlaneGeometry(2 * cv - 0.6, 1.1).rotateY(su > 0 ? Math.PI / 2 : -Math.PI / 2).translate(su * (cu + 0.13), cy + 0.97, 0), fascia]);
+    // the customs booth on the east side of the road, its window toward the lane, and a stop line
+    const bu = -1, bv = 5.2, by = gb(bu, bv);
+    p.box('white', bu - 1.6, bu + 1.6, bv - 1.1, bv + 1.1, by - 0.4, by + 2.7);
+    p.box('glass', bu - 1.3, bu + 1.3, bv - 1.14, bv - 1.08, by + 1.1, by + 2.3);
+    p.box('face', bu - 1.75, bu + 1.75, bv - 1.25, bv + 1.25, by + 2.7, by + 3.0);
+    // the barrier: a red and white boom across the incoming (south) lane, on a post by the booth
+    const ru = -cu - 2, rv = 4.2, ry = gb(ru, rv);
+    p.box('iron', ru - 0.3, ru + 0.3, rv - 0.3, rv + 0.3, ry - 0.3, ry + 1.1);
+    for (let k = 0; k < 8; k++) { const v0 = rv - 0.3 - k * 1.0; p.box(k % 2 ? 'white' : 'brick', ru - 0.08, ru + 0.08, v0 - 1.0, v0, ry + 0.9, ry + 1.05); }
+    // the flagpole with the flag of Ѕинго Land, west of the road
+    const fu = -cu - 3, fv = -cv - 2, fy = gb(fu, fv);
+    p.cyl('iron', fu, fv, fy - 0.3, fy + 11, 0.09, 0.07, 8);
+    p.cyl('gold', fu, fv, fy + 11, fy + 11.25, 0.16, 0.16, 8);
+    // two one-sided cloths back to back, so the flag reads the right way round from both sides
+    const flag = flagTexture(), cloth = () => new THREE.PlaneGeometry(3.0, 2.0).translate(1.55, 0, 0);
+    tex.push([cloth().rotateY(0.25).translate(fu, fy + 9.9, fv + 0.01), flag, THREE.FrontSide]);
+    tex.push([new THREE.PlaneGeometry(3.0, 2.0).translate(-1.55, 0, 0).rotateY(Math.PI).rotateY(0.25).translate(fu, fy + 9.9, fv - 0.01), flag, THREE.FrontSide]);
+    // the exchange office: a kiosk west of the road behind the canopy, its board toward the road
+    const ku = cu + 4, kv = -cv + 1.5, ky = gb(ku, kv);
+    p.box('cream', ku - 1.8, ku + 1.8, kv - 1.4, kv + 1.4, ky - 0.4, ky + 2.6);
+    p.box('glass', ku - 1.4, ku + 1.4, kv + 1.36, kv + 1.44, ky + 1.0, ky + 2.1);
+    p.box('brick', ku - 2.0, ku + 2.0, kv - 1.6, kv + 1.7, ky + 2.6, ky + 2.85);
+    tex.push([new THREE.PlaneGeometry(3.6, 1.2).translate(ku, ky + 3.5, kv + 1.5), signTexture(512, 170, '#e8b04a', '#1f2a44', [['МЕНУВАЧНИЦА', 46], ['1 ЅИНГО = 1 ЅИНГО', 40]], '#7a1f1a')]);
+    p.box('iron', ku - 0.06, ku + 0.06, kv + 1.4, kv + 1.5, ky + 2.85, ky + 2.95);
+    // the welcome board for the incoming traffic, south of the crossing on the east side
+    const wu = -cu - 9, wv = 6.5, wy = gb(wu, wv);
+    for (const sv of [-1.2, 1.2]) p.box('iron', wu - 0.07, wu + 0.07, wv + sv - 0.07, wv + sv + 0.07, wy - 0.3, wy + 3.4);
+    tex.push([new THREE.PlaneGeometry(3.4, 1.7).rotateY(-Math.PI / 2).translate(wu - 0.1, wy + 3.1, wv), signTexture(512, 256, '#f4ede0', '#7a1f1a', [['ДОБРЕДОЈДОВТЕ', 44], ['ВО ЅИНГО LAND', 44], ['ПАСОШ НЕ Е ПОТРЕБЕН', 30]], '#1f2a44')]);
+    place(p, bf);
+    for (const [g, t, side] of tex) {
+      const mesh = new THREE.Mesh(g.applyMatrix4(bf.m), new THREE.MeshLambertMaterial({ map: t, clippingPlanes, side: side ?? THREE.DoubleSide }));
+      mesh.castShadow = mesh.receiveShadow = true;
+      group.add(mesh);
+    }
   }
 
   // ---------------- the joke: „ЅИНГО LAND“ on Баба's north face above the town, in the manner of Hollywood's sign:

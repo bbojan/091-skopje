@@ -593,7 +593,12 @@ const PREP: Record<CityName, CityPrep> = {
     },
     // the joke: a hillside sign „ЅИНГО LAND“ in the manner of Hollywood's on Баба's north face, the slope seen from the
     // whole town (sampled: ~200 m above the square, 770 m south of it, ~27° steep, no buildings); wide, so no trees in front
-    modelRects: { krsign: [42.07117, 22.18026, 140, 70, Math.PI / 2] },
+    modelRects: {
+      krsign: [42.07117, 22.18026, 140, 70, Math.PI / 2],
+      // the second joke: the border crossing into Ѕинго Land on the R1205 into town (a straight stretch 1.3 km from the
+      // square, no houses near), the road running north–south through it
+      krgranica: [42.06880, 22.17208, 30, 30, 0],
+    },
     placeNames: {},
     placeIds: {
       krsimic: 1041470916, krsaat: 1041470903, krzlatko: 1041470895, krkrste: 1068995475, krhadzi: 1041470976, kremin: 1041469306,
@@ -608,6 +613,13 @@ const PREP: Record<CityName, CityPrep> = {
     mid: [],
     squareBonus: false,
     maxLevels: 5,
+    // the rivers OSM has only as lines, widened into water (in the channels terrain.ts cuts): Крива Река through
+    // Славиште, Злетовица below Кнежево, the Кратовска Река (its middle in town is an OSM water area already) and the
+    // smaller ones
+    waterLines: [
+      [235341361, 6], [1557884350, 5], [860970958, 5], [182007528, 5], [183288179, 5], [793411789, 5], [793411790, 5],
+      [242056451, 3], [794803592, 3], [746756170, 1.5], [303758306, 3.5], [860315337, 3.5], [249690906, 3.5], [693358495, 2.5],
+    ],
     // the churches the height guess made into blocks
     buildingTags: { 1069000600: { 'building:levels': '1', height: '9' }, 1041472847: { 'building:levels': '1', height: '8' }, 1049164095: { 'building:levels': '1', height: '8' } },
   },
@@ -1185,9 +1197,11 @@ for (const ll of CFG.extraPlazas ?? []) {
 
 // rivers OSM has only as lines: a strip of water along the line (one polygon per way, mitred at the bends),
 // in the channel scripts/terrain.ts cuts along it
+// (a way split by a cut rectangle keeps its id on the first piece, the others get id + k·1e12: all are taken)
 for (const [id, hw] of CFG.waterLines ?? []) {
-  const el = raw.elements.find((e) => e.type === 'way' && e.id === id);
-  if (!el) { console.warn(`waterLines: way ${id} is not in the download`); continue; }
+  const els = raw.elements.filter((e) => e.type === 'way' && (e.id === id || (e.id > 1e12 && e.id % 1e12 === id)));
+  if (!els.length) { console.warn(`waterLines: way ${id} is not in the download`); continue; }
+  for (const el of els) {
   const pts = wayPts(el.geometry || []);
   const off = (sgn: number) => pts.map((p, i): Pt => {
     const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
@@ -1196,6 +1210,7 @@ for (const [id, hw] of CFG.waterLines ?? []) {
   });
   const r = [...off(1), ...off(-1).reverse()];
   out.areas.push({ k: 'water', z: AREA_Z.water, a: r1(Math.abs(area(r))), r: [flat(r)] });
+  }
 }
 
 // River polygon fallback ordering
