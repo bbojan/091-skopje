@@ -579,6 +579,34 @@ const PREP: Record<CityName, CityPrep> = {
     squareBonus: false,
     maxLevels: 4,
   },
+  kratovo: {
+    // the old town in the crater: low stone houses with tiled roofs along the river and up the slopes
+    old: { s: 42.0735, n: 42.0830, w: 22.1700, e: 22.1880 },
+    square: [42.07800, 22.18172], // the small square by Општина Кратово and the Саат-кула (OSM place=square)
+    landmarks: {},
+    // modelled by hand (src/kratovo.ts): the six medieval towers on their OSM outlines, the stone bridges over the
+    // Кратовска Река and the Манцева Река on their OSM bridge outlines, the earth pyramids of Куклица on the site's outline
+    models: {
+      krsimic: 1041470916, krsaat: 1041470903, krzlatko: 1041470895, krkrste: 1068995475, krhadzi: 1041470976, kremin: 1041469306,
+      krradin: 1328812145, krgrof: 1329719000, krcarsija: 1330153314, krjoksir: 1330177797, kramam: 1330177800, krargul: 1330181223,
+      krsaraj: 1328852746, krkukli: 1310947327,
+    },
+    placeNames: {},
+    placeIds: {
+      krsimic: 1041470916, krsaat: 1041470903, krzlatko: 1041470895, krkrste: 1068995475, krhadzi: 1041470976, kremin: 1041469306,
+      krradin: 1328812145, krgrof: 1329719000, krcarsija: 1330153314, krjoksir: 1330177797, krkukli: 1310947327,
+      krsquare: 1329402649, knezevo: 182039253, krdam: 1420954858, krgjorgji: 1041472847, krjovan: 1069000600, krmuzej: 974485945,
+      krstadium: 1328795532, krtrojca: 1049164095,
+    },
+    placeNodes: { krkarpos: 12136243295 },
+    nodeLL: { 12136243295: [42.07746, 22.18106] }, // the monument to Петар Карпош
+    tall: [],
+    mid: [],
+    squareBonus: false,
+    maxLevels: 5,
+    // the churches the height guess made into blocks
+    buildingTags: { 1069000600: { 'building:levels': '1', height: '9' }, 1041472847: { 'building:levels': '1', height: '8' }, 1049164095: { 'building:levels': '1', height: '8' } },
+  },
   brod: {
     old: null,
     square: [41.50676, 21.21943], // the paved square by the municipality building in Македонски Брод
