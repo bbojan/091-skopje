@@ -129,7 +129,8 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   `CITIES` → `RICE_GROUND` in `city.ts`, compiled only into a city with rice), 047 Меџитлија (`?city=medzitlija`, branch
   `city-medzitlija`, not yet released: southern Пелагонија to the Greek border, widened east to 21.47 so that Меџитлија is on it;
   Новаци's planned box cut there), 031 Кратово (`?city=kratovo`, branch `city-kratovo`, not yet released, developer Бранко Славков:
-  an L, Крива Паланка's planned corner cut; widened west to 22.045 for the Камени Кукли, Куманово's planned outline moved there).
+  an L, Крива Паланка's planned corner cut; widened west to 22.045 for the Камени Кукли, Куманово's planned outline moved there; named „Кратово – Ѕинго Land“, with Хотел Кратис, Ѕинго's house and its
+  mural, and the „ЅИНГО LAND“ hillside sign as a joke).
 - The F-15 (v26.0.0) flies from map to map: the next map downloaded ahead, switched at the edge while the jet flies on
   over the country's terrain (`src/hop.ts`, `src/countryground.ts`, `transit` in `main.ts`); every new finished map
   in `src/zones.ts` widens the flight. All of it: "F-15 and flying from map to map" in docs/NOTES.md.

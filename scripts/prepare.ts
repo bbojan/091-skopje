@@ -589,15 +589,17 @@ const PREP: Record<CityName, CityPrep> = {
     models: {
       krsimic: 1041470916, krsaat: 1041470903, krzlatko: 1041470895, krkrste: 1068995475, krhadzi: 1041470976, kremin: 1041469306,
       krradin: 1328812145, krgrof: 1329719000, krcarsija: 1330153314, krjoksir: 1330177797, kramam: 1330177800, krargul: 1330181223,
-      krsaraj: 1328852746, krkukli: 1310947327,
+      krsaraj: 1328852746, krkukli: 1310947327, krkratis: 974485944, krsingo: 1069089773,
     },
+    // the joke: a hillside sign „ЅИНГО LAND“ in the manner of Hollywood's, on the crater's north slope facing the town
+    modelRects: { krsign: [42.08580, 22.18050, 96, 70, Math.PI / 2] }, // wide, so the slope in front stays clear of trees
     placeNames: {},
     placeIds: {
       krsimic: 1041470916, krsaat: 1041470903, krzlatko: 1041470895, krkrste: 1068995475, krhadzi: 1041470976, kremin: 1041469306,
       krradin: 1328812145, krgrof: 1329719000, krcarsija: 1330153314, krjoksir: 1330177797, krkukli: 1310947327,
       krsquare: 1329402649, knezevo: 182039253, krdam: 1420954858, krgjorgji: 1041472847, krjovan: 1069000600, krmuzej: 974485945,
       krstadium: 1328795532, krtrojca: 1049164095, krkratis: 974485944,
-      krsingo: 1069222099, // Ѕинговата куќа: the building nearest the point the developer gave (42.079194, 22.172667)
+      krsingo: 1069089773, // Ѕинговата куќа: the building the developer pointed at, next to the point given (42.079194, 22.172667)
     },
     placeNodes: { krkarpos: 12136243295 },
     nodeLL: { 12136243295: [42.07746, 22.18106] }, // the monument to Петар Карпош

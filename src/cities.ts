@@ -952,7 +952,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     banners: { fire: 'Пелагонија е спасена!', roll: 'Поздрав од Пелагонија!' },
   },
   kratovo: {
-    id: 'kratovo', name: 'Кратово', code: '031', icon: './favicon-kratovo.svg',
+    id: 'kratovo', name: 'Кратово – Ѕинго Land', code: '031', icon: './favicon-kratovo.svg',
     files: { scene: './kratovo.json', terrainBin: './kratovo-terrain.bin', terrainJson: './kratovo-terrain.json' },
     sceneBytes: 2.3e6,
     views: {
@@ -961,6 +961,9 @@ export const CITIES: Record<CityId, CitySpec> = {
       krmostovi: { ll: [42.07840, 22.18160], d: 150, polar: 1.0, az: -0.9 }, // Грофчански and Чаршијски мост from upstream
       krradin: { place: 'krradin', ll: [42.07556, 22.18439], d: 110, polar: 0.85, az: -0.9 },
       krkukli: { place: 'krkukli', ll: [42.10558, 22.05483], d: 260, polar: 1.0, az: 0.5 },
+      krsingo: { place: 'krsingo', ll: [42.07911, 22.17281], d: 60, polar: 0.78, az: -1.45 }, // the house and its mural on the west wall
+      krkratis: { place: 'krkratis', ll: [42.07762, 22.18084], d: 95, polar: 1.05, az: 0.75 }, // the hotel's front and its terrace
+      krsign: { ll: [42.08560, 22.18050], d: 260, polar: 1.25, az: 0.15 }, // the letters on the slope, from the town below
       knezevo: { ll: [42.11100, 22.31000], d: 1700, polar: 1.12, az: 2.6 }, // the lake from the south-east, the dam on the right, under the clouds
       overview: { ll: [42.16000, 22.22000], d: 26000, polar: 0.72, az: 0 },
     },
@@ -995,7 +998,8 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['Јокширски мост', 42.07933, 22.18257, 12, 'krjoksir'],
       ['Св. Ѓорѓи Кратовски', 42.07780, 22.17607, 12, 'krgjorgji'],
       ['Хотел Кратис', 42.07762, 22.18084, 20, 'krkratis'],
-      ['Ѕингова куќа', 42.07919, 22.17267, 12],
+      ['Ѕингова куќа', 42.07911, 22.17281, 12, 'krsingo'],
+      ['ЅИНГО LAND', 42.08580, 22.18050, 40],
       ['Св. Јован Претеча', 42.07590, 22.18311, 12, 'krjovan'],
       ['Камени Кукли', 42.10558, 22.05483, 14, 'krkukli'],
       ['Кнежевско Езеро', 42.11303, 22.31501, 8, 'knezevo'],
@@ -1027,7 +1031,8 @@ export const CITIES: Record<CityId, CitySpec> = {
       ['kr.mostovi', 'Грофчански мост', 42.07824, 22.18124, 35, 'krgrof'],
       ['kr.radin', 'Радин мост', 42.07556, 22.18439, 40, 'krradin'],
       ['kr.kratis', 'Хотел Кратис', 42.07762, 22.18084, 35, 'krkratis'],
-      ['kr.singo', 'Ѕингова куќа', 42.07919, 22.17267, 30],
+      ['kr.singo', 'Ѕингова куќа', 42.07911, 22.17281, 30, 'krsingo'],
+      ['kr.sign', 'ЅИНГО LAND', 42.08580, 22.18050, 70],
       ['kr.kukli', 'Камени Кукли', 42.10558, 22.05483, 120, 'krkukli'],
       ['kr.knezevo', 'Кнежевско Езеро', 42.10775, 22.30682, 200, 'krdam'],
     ],

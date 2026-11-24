@@ -729,6 +729,18 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    (label and walking card at the developer's point 42.079194, 22.172667; OSM has no name there, the nearest outline, way
    1069222099, is ~10 m off). Кратово is also called „Ѕинго Land“: in the town's card and the roll banner „Поздрав од Ѕинго
    Land!“ (Latin texts write Dzingo).
+   Then, at the developer's request: the map is named **„Кратово – Ѕинго Land“** (badge and tab title; the zone stays
+   „Кратово“). **Хотел Кратис** modelled after the hotel's own front photo (hotelkratis.mk, a reference only): tan stone
+   podium with white pilasters over OSM's outline, the roof terrace with railing, wooden posts and a white sail awning,
+   the three-bay block of a white concrete frame with tan stone panels, a white cornice, a dark mansard with dormers, the
+   wine-red board over the entrance; the block's depth and place on the podium are guessed. **Ѕинговата куќа** moved to
+   the building the developer pointed at (way 1069089773, next to the point) and modelled as an old Кратово house (stone
+   ground floor, white overhanging upper floor on brackets, timber, shutters, wide-eaved tile roof) with a mural drawn on
+   a canvas on its west wall (vez border, miner's helmet and lamp for „Силекс“, a football for the federation,
+   „ЅИНГО LAND“). Its card gives Љубисав Иванов – Ѕинго's facts from mk Wikipedia (1936–2020, Трновац; „Силекс“ over 40
+   years; SPM president; MP to 2011; first president of the Football Federation 1993–1996). **The joke**: „ЅИНГО LAND“
+   in white letters on posts on the crater's north slope facing the town (`modelRects.krsign`, 96 × 70 m so no trees
+   grow in front), with its own card saying it is not real. New views: Хотел Кратис, Ѕингова куќа, ЅИНГО LAND.
 
 ## Country view (Nov 2026)
 
