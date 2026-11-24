@@ -4,7 +4,7 @@
 096 Охрид (with Струга), 098 Прилеп, 048 Крушево, 042 Ростуше (with Дебар and Маврово),
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
 045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. **Built, not yet released:** 0903 Кочани (branch `city-kocani`,
-2026-11-24). Details in the first table below.
+2026-11-24), 047 Меџитлија (branch `city-medzitlija`, 2026-11-24). Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
 
@@ -19,7 +19,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 26 new maps** (Кочани built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 25 new maps** (Кочани and Меџитлија built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -35,7 +35,7 @@ towns on it):
 | Радовиш | 900 | Радовиш | | Кораб* | 370 | — |
 | Штип | 820 | Штип | | Виница | 340 | Виница |
 | Демир Капија | 820 | Демир Капија | | Голо Брдо* | 280 | — |
-| Демир Хисар | 810 | Демир Хисар | | Меџитлија* | 230 | — |
+| Демир Хисар | 810 | Демир Хисар | | ~~Меџитлија*~~ built | 300 | — |
 | Делчево | 770 | Делчево | | ~~Кочани~~ built | 190 | Кочани |
 | Кратово | 750 | Кратово | | | | |
 
@@ -49,7 +49,7 @@ in `scripts/config.ts`, `cutOsm()` in `scripts/osm.ts`, used by `prepare.ts` and
 points and buildings with a corner inside are dropped, roads and rivers split at the edge, areas clipped; download
 tiles wholly inside a cut are skipped), so the corner shows bare relief, as outside a map. The cuts so far:
 Дебарца (Охрид's corner), Мариово (Кавадарци's), Вевчани (all of Охрид's
-map: Вевчани is an L around its north-west; built: Охрид's map and the stepped border edge cut), Делчево (Берово's and Радовиш's), Радовиш (Делчево's), Кратово (Крива Паланка's).
+map: Вевчани is an L around its north-west; built: Охрид's map and the stepped border edge cut), Делчево (Берово's and Радовиш's), Радовиш (Делчево's), Кратово (Крива Паланка's), Новаци (Меџитлија's south-east strip, 40.85–40.955 N, 21.40–21.47 E).
 Гевгелија (Дојран's). Велес, Матка (built: Скопје's and Брод's corners cut), Кичево, Демир Хисар, Стоби, Скопска Црна Гора, Крива Паланка, Делчево, Мариово, Вевчани, Кораб,
 Куманово and Ново Село are not rectangles with one corner cut but outlines that go around several maps
 (`shapes` in the plan page); in the app they would be their bounding rectangle with those maps cut out.
@@ -125,7 +125,7 @@ its own.
 | Битола ✓ | **097** | 047 | **097** | as now |
 | Демир Хисар | 097 | 047 | 047 | shares 047 |
 | Новаци | 097 | 047 | 047 | shares 047 |
-| Меџитлија | 097 | 047 | 047 | shares 047 |
+| Меџитлија ✓ | 097 | 047 | 047 | shares 047; built 2026-11-24 |
 | Прилеп ✓ | **098** | 048 | **098** | changed 2026-11-23 (was 048) |
 | Крушево ✓ | 098 | 048 | **048** | changed 2026-11-23 (was 098) |
 | Мариово | 098 | 048 | 048 | shares 048 |
@@ -158,7 +158,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | # | Map | ~km² | Towns | Section |
 |---|---|---|---|---|
 | 1 | ~~Кочани~~ built (2026-11-24, branch `city-kocani`) | 190 | Кочани | 23 |
-| 2 | Меџитлија* | 230 | — | 17 |
+| 2 | ~~Меџитлија*~~ built (2026-11-24, branch `city-medzitlija`) | 300 | — | 17 |
 | 3 | Голо Брдо* | 280 | — | 19 |
 | 4 | Виница | 340 | Виница | 32 |
 | 5 | Неготино | 370 | Неготино | 5 |
@@ -428,7 +428,13 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   the OSM border with Greece.
 - **Landmarks:** Кајмакчалан's chapel at the summit, the Црна in its canyon, Мариово's stone villages.
 
-### 17. Меџитлија (name open)
+### 17. Меџитлија ✓ built (2026-11-24, branch `city-medzitlija`, not yet released; NOTES.md item 45)
+
+- **Built:** 40.85–40.955 N, 21.165–**21.47** E: the plan's e edge (21.40) left the village of Меџитлија (21.429), its
+  crossing (21.417) and Кременица (21.458) outside, so the box was widened east and that corner (40.85–40.955 N,
+  21.40–21.47 E) cut out of Новаци's planned box (`CUTS` in `src/zones.ts`). 4,966 buildings (999 OSM, 3,995 Overture),
+  the Greek half from Overpass. Modelled: the mosque of Меџитлија, both canopies of the border crossing, Велушки
+  манастир. Badge 047, working name kept (the owner may rename it).
 
 - **On it:** the strip of Пелагонија under Битола's map down to the Greek border: Меџитлија and its crossing,
   Кременица, Лажец; across the border the first villages of the Florina plain.
@@ -608,7 +614,8 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
 - **On it:** the Pelagonian plain south-east of Битола: Новаци, Бач, Добромири, Паралово, the Црна's lower plain
   before the gorge; Нидже's north slopes at the Greek border.
 - **Name / code:** open (working name Новаци, phone code 047).
-- **Extent:** split off Мариово by the owner on 2026-11-23: w 21.40 (Битола's, Меџитлија's and Демир Хисар's e),
+- **Extent:** split off Мариово by the owner on 2026-11-23: w 21.40 (Битола's and Демир Хисар's e; south of 40.955 N
+  21.47, Меџитлија's e: that corner went to Меџитлија when it was built, 2026-11-24, `CUTS`),
   e 21.63 (Прилеп's e, Мариово's w), n 41.31 (Демир Хисар's and Прилеп's s), s ~40.85 (past the Greek border: check
   in OSM). About 970 km², 20 m cells.
 - **Landmarks:** the plain's fields (`farmMask`, as Битола), the Црна, the Нице front's western end.
