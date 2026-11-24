@@ -279,6 +279,15 @@ export const CITIES = {
     ],
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Штип (docs/TOWNS_TODO.md, 3): the town on the Брегалница under Исар, Карбинци, the Брегалница from Штип toward
+  // Кочани's plain, Лакавица. Edge to edge with Пробиштип (n), Кочани and Радовиш (e), Неготино and Струмица (s),
+  // Велес (w)
+  stip: {
+    bbox: { s: 41.60, w: 22.062, n: 41.945, e: 22.32 },
+    tiles: [4, 7] as [number, number],
+    files: { raw: 'data/stip_raw.json', scene: 'public/stip.json', terrainBin: 'public/stip-terrain.bin', terrainJson: 'public/stip-terrain.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: Box; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec; cut?: Box[] }>;
 
 export type CityName = keyof typeof CITIES;

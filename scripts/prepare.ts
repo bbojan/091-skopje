@@ -557,6 +557,42 @@ const PREP: Record<CityName, CityPrep> = {
     // no lake on the map (Гратче lies 1.5 km north of it, on Пробиштип's): the Брегалница, a line in OSM, widened for refilling
     waterLines: [[384225634, 10], [907653405, 10], [907655044, 10]],
   },
+  stip: {
+    // the old čaršija under Исар, on both banks of the Отиња: low houses with tiled roofs
+    old: { s: 41.7330, n: 41.7395, w: 22.1830, e: 22.1930 },
+    square: [41.73770, 22.19313], // the paved square by the Безистен and the post office (OSM: a pedestrian area)
+    landmarks: {},
+    models: {},
+    placeNames: {},
+    placeIds: {
+      isar: 417361065, memorial: 417361056, bezisten: 443072144, townhall: 439087277, museum: 439347125, theatre: 444881590,
+      mihail: 1467897317, mihailf: 1467897320, spas: 416992742, uspenie: 416992727, nikola: 439088377, ilija: 444748306,
+      jovan: 1468420993, trojca: 1468419563, kadin: 444881587, husamedin: 1305522855, kezovica: 445949939, stadium: 439153595,
+      bargala: 189909367, sqstip: 443071971, station: 445980711,
+    },
+    placeNodes: { stip: 417840346, karbinci: 418344956, lakavica: 456085842, jews: 4357166289, klisebair: 6347047895 },
+    nodeLL: {
+      417840346: [41.73747, 22.19359], 418344956: [41.81681, 22.23500], 456085842: [41.63873, 22.23602], // Штип, Карбинци, Лакавица
+      4357166289: [41.73642, 22.19044], 6347047895: [41.72029, 22.19334], // the monument to the Jews killed in 1943, the cross on Клисебаир
+    },
+    tall: [],
+    // the blocks of flats round the centre and in the newer quarters north and east of it, the old čaršija left out
+    mid: [[41.7395, 41.7530, 22.1820, 22.2120], [41.7290, 41.7395, 22.1930, 22.2120]],
+    squareBonus: false,
+    maxLevels: 10,
+    // shops, halls, churches, a mosque and public buildings the height zone made into towers
+    buildingTags: Object.fromEntries([
+      ...[245839091, 322462325, 444742006, 444745783, 444745799, 444872955, 444876216, 445966450, 445976288, 477138851,
+        1074010246, 1075480941, 1115276767, 1115276768, 1158955785, 1158955787, 1158955788, 1158955791, 1305390318,
+        1305390321, 1305390322, 1305390325, 1323499761, 1374348340, 1553050075, 1553050078, 478124641, 443070432,
+        1327094328].map((id) => [id, { 'building:levels': '2' }]), // shops, malls, restaurants, halls, a petrol station, the fire station, a grandstand
+      ...[443065971, 445514158, 444745814, 444881590, 439154788, 444884453].map((id) => [id, { 'building:levels': '3' }]), // post offices, the library, the theatre, the police, offices
+      ...[444881587, 677754392, 1074008427].map((id) => [id, { 'building:levels': '1', height: '9' }]), // Кадин Ана џамија, two churches
+    ]),
+    relationTags: { 8465887: { 'building:levels': '3' } }, // Апелационен суд, a multipolygon
+    // the Брегалница, partly a line in OSM: widened for refilling (its water areas below the town stay as they are)
+    waterLines: [[384225617, 10], [384225634, 10], [416789510, 10]],
+  },
   medzitlija: {
     old: null,
     square: [40.92740, 21.42975], // the paved yard in front of the mosque in Меџитлија (OSM has no square there)
