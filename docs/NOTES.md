@@ -739,8 +739,12 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    a canvas on its west wall (vez border, miner's helmet and lamp for „Силекс“, a football for the federation,
    „ЅИНГО LAND“). Its card gives Љубисав Иванов – Ѕинго's facts from mk Wikipedia (1936–2020, Трновац; „Силекс“ over 40
    years; SPM president; MP to 2011; first president of the Football Federation 1993–1996). **The joke**: „ЅИНГО LAND“
-   in white letters on posts on the crater's north slope facing the town (`modelRects.krsign`, 96 × 70 m so no trees
-   grow in front), with its own card saying it is not real. New views: Хотел Кратис, Ѕингова куќа, ЅИНГО LAND.
+   on **Баба's north face** (first put on the gentler north slope, out of the default view): the terrain round the square
+   was sampled for the slope most seen from the town (height above the square, steepness toward it, line of sight, no
+   buildings) and Баба won, ~200 m above the square and 770 m south of it, ~27° steep, like Mount Lee over Los Angeles.
+   Solid white sheet letters ~14 m tall (rounded Ѕ and О), leaning back 11° on grey steel scaffolding, mirrored along the
+   frame so they read from the north (`modelRects.krsign`, 140 × 70 m: a clearing in the forest round them), with its own
+   card saying it is not real. New views: Хотел Кратис, Ѕингова куќа, ЅИНГО LAND.
 
 ## Country view (Nov 2026)
 
