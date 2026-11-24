@@ -787,7 +787,7 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    across, 15 m read off the photos). The old Саат-кула (a ruin on Commons) is not in OSM and was not placed. Badge 043
    (shared with Кавадарци); the LinkedIn button names Ристе; the help footer now reads „(Кавадарци, Неготино)“ in all six
    languages; tab icon a grape bunch with a vine leaf over the Вардар's waves (drawn, not the town's arms); tow banners
-   „Неготино е спасено!“ / „Поздрав од Повардарие!“; walker Пејо. Info cards from mk Wikipedia (Неготино, Неготински
+   „Неготино е спасено!“ / „Поздрав од Повардарие!“; walker Кавадарци's man in a suit (`suit`, the developer's choice). Info cards from mk Wikipedia (Неготино, Неготински
    манастир, ТЕЦ „Неготино“; the plant's year and size also on no Wikipedia). Checked: typecheck, build (the files in
    `dist/`), strings, the map loads with no console errors, the views (square, Св. Атанасиј, the monastery, ТЕЦ, Вардар,
    overview), night, the places menu and the help, switching Неготино → Скопје → Неготино → Кавадарци → Неготино (textures

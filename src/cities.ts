@@ -1606,7 +1606,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     sparseFar: 1500,
     // Повардарие: vineyards and fields on the gentle land round the town and along the Вардар (the Тиквеш share)
     vineyards: 420,
-    walker: 'pejo',
+    walker: 'suit', // the developer's walker, as on Кавадарци
     snowLabel: 'weather.hills',
     refillLabel: 'fire.refill',
     bestRaceKey: 'skopje.bestRace.negotino',
