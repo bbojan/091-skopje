@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'vevcani', 'batinci', 'matka'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'vevcani', 'batinci', 'matka'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -52,6 +52,8 @@ export interface CitySpec {
   vineyards?: number;
   /** the share of those plots that are vineyards, the rest fields (default 0.52, Tikveš) */
   vineShare?: number;
+  /** rice paddies on the low plain (Кочани): [share of the farm plots, up to this height in m above the map's lowest point] */
+  rice?: [share: number, top: number];
   /** how the walking person looks: Итар Пејо in folk costume, a man in a dark suit (Kavadarci), or
    *  Милтон Манаки with his film camera (Bitola; his action films an оро instead of dancing it) */
   walker: 'pejo' | 'suit' | 'manaki';
@@ -800,6 +802,79 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.matka',
     bestRaceKey: 'skopje.bestRace.matka',
     banners: { fire: 'Треска ја спаси Матка!', roll: 'Поздрав од Матка!' },
+  },
+  kocani: {
+    id: 'kocani', name: 'Кочани', code: '0903', icon: './favicon-kocani.svg',
+    files: { scene: './kocani.json', terrainBin: './kocani-terrain.bin', terrainJson: './kocani-terrain.json' },
+    sceneBytes: 1.3e6,
+    views: {
+      center: { ll: [41.91900, 22.41000], d: 700, polar: 0.8, az: 0.15 },
+      kkula: { place: 'kkula', ll: [41.92156, 22.40906], d: 100, polar: 1.0, az: 0.4 },
+      ksaat: { place: 'ksaat', ll: [41.92341, 22.41207], d: 95, polar: 0.98, az: -0.5 },
+      ksloboda: { place: 'ksloboda', ll: [41.91889, 22.40700], d: 75, polar: 0.9, az: 0.5 },
+      kpole: { ll: [41.88000, 22.39000], d: 2600, polar: 1.05, az: 0.2 }, // the rice fields of Кочанско Поле toward the town, under the clouds
+      overview: { ll: [41.86500, 22.39000], d: 21000, polar: 0.72, az: 0 },
+    },
+    districts: [
+      ['Кочани', 41.92113, 22.41142], ['Облешево', 41.88343, 22.33468, 30], ['Грдовци', 41.88126, 22.42037, 30],
+      ['Зрновци', 41.85365, 22.44595, 30], ['Оризари', 41.92020, 22.44547, 30], ['Бели', 41.92805, 22.38023, 30],
+      ['Тркање', 41.90494, 22.36159, 30], ['Бања', 41.91157, 22.33335, 30], ['Видовиште', 41.84493, 22.39764, 30],
+      ['Мородвис', 41.84773, 22.41695, 30], ['Прибачево', 41.88682, 22.44237, 30],
+      ['Долни Подлог', 41.88705, 22.36965, 30], ['Мојанци', 41.87375, 22.38153, 30], ['Теранци', 41.85154, 22.35495, 30],
+      ['Кочанско Поле', 41.86500, 22.40500, 0], ['Плачковица', 41.81200, 22.41000, 150],
+    ],
+    labels: [
+      ['Средновековна кула', 41.92156, 22.40906, 24, 'kkula'],
+      ['Саат-кула', 41.92341, 22.41207, 20, 'ksaat'],
+      ['Споменик на слободата', 41.91889, 22.40700, 16, 'ksloboda'],
+      ['Општина Кочани', 41.92151, 22.41127, 16, 'townhall'],
+      ['Св. Ѓорѓи', 41.91728, 22.40872, 16, 'gjorgji'],
+      ['Св. Преображение', 41.91479, 22.42553, 14, 'preobrazenie'],
+      ['Џамија Дуди Ханум', 41.92448, 22.41015, 14, 'dudi'],
+      ['Споменик на Никола Карев', 41.91566, 22.41278, 10, 'karev'],
+      ['Градски стадион', 41.90876, 22.40612, 14, 'stadium'],
+      ['Манастир Добра Вода', 41.93802, 22.45968, 12, 'dobravoda'],
+      ['Мородвис', 41.84845, 22.41794, 12, 'morodvis'],
+      ['Оризишта', 41.88000, 22.39500, 6],
+      ['Брегалница', 41.86600, 22.39400, 6, undefined, 'river'],
+      ['Кочанска Река', 41.90358, 22.38287, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Средновековна кула', 41.92156, 22.40906, 60, 'kkula'],
+      ['Споменик на слободата', 41.91889, 22.40700, 55, 'ksloboda'],
+      ['Оризари', 41.92020, 22.44547, 60],
+      ['Манастир Добра Вода', 41.93802, 22.45968, 60, 'dobravoda'],
+      ['Прибачево', 41.88682, 22.44237, 50],
+      ['Зрновци', 41.85365, 22.44595, 55],
+      ['Мородвис', 41.84845, 22.41794, 55, 'morodvis'],
+      ['Оризишта', 41.86600, 22.39400, 35],
+      ['Облешево', 41.88343, 22.33468, 55],
+      ['Бања', 41.91157, 22.33335, 60],
+      ['Тркање', 41.90494, 22.36159, 50],
+      ['Саат-кула', 41.92341, 22.41207, 55, 'ksaat'],
+    ],
+    spots: [
+      ['ko.town', 'Кочани', 41.92120, 22.41090, 70],
+      ['ko.kula', 'Средновековна кула', 41.92156, 22.40906, 40, 'kkula'],
+      ['ko.saat', 'Саат-кула', 41.92341, 22.41207, 40, 'ksaat'],
+      ['ko.sloboda', 'Споменик на слободата', 41.91889, 22.40700, 60, 'ksloboda'],
+      ['ko.gjorgji', 'Св. Ѓорѓи', 41.91728, 22.40872, 50, 'gjorgji'],
+      ['ko.rice', 'Оризишта', 41.90200, 22.40000, 150],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.92113, 22.41142], near: 3000, far: 8000, min: 0.06, grow: 2 },
+    sparseFar: 1500,
+    // Кочанско Поле: rice paddies on the low plain along the Брегалница, wheat and other fields above it, a few vineyards
+    vineyards: 260,
+    vineShare: 0.06,
+    rice: [0.8, 40],
+    walker: 'pejo',
+    snowLabel: 'weather.plackovica',
+    refillLabel: 'fire.refill.kocani',
+    bestRaceKey: 'skopje.bestRace.kocani',
+    banners: { fire: 'Брегалница го спаси Кочани!', roll: 'Свири, Кочани оркестар!' },
   },
   batinci: {
     id: 'batinci', name: 'Батинци', code: '02', icon: './favicon-batinci.svg',

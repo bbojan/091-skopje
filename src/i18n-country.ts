@@ -1,4 +1,4 @@
-// UI texts of the country view (src/country.ts), spread into STR in i18n.ts after TOWNS3.
+// UI texts of the country view (src/country.ts), spread into STR in i18n.ts after TOWNS4.
 // Macedonian holds only the strings set from JavaScript; the static ones are in index.html.
 export const COUNTRY = {
   mk: {

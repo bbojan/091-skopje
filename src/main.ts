@@ -539,7 +539,7 @@ async function loadCity(spec: CitySpec): Promise<void> {
   // build on the main thread in stages, letting the progress bar repaint between them
   // (a background worker gets throttled to a fraction of this speed)
   const terrain = new Terrain(tm, new Uint16Array(tb), spec.terrainExag);
-  const steps = computeCitySteps(data, terrain, { density: MOBILE ? 0.5 : 1, stream: memorySaver, treeThin: spec.treeThin, vineyards: spec.vineyards, vineShare: spec.vineShare, sliceMs: transit ? 12 : undefined });
+  const steps = computeCitySteps(data, terrain, { density: MOBILE ? 0.5 : 1, stream: memorySaver, treeThin: spec.treeThin, vineyards: spec.vineyards, vineShare: spec.vineShare, rice: spec.rice, sliceMs: transit ? 12 : undefined });
   let desc: CityDesc;
   for (;;) {
     const r = steps.next();
