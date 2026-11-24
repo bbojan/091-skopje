@@ -316,6 +316,15 @@ export const CITIES = {
     files: { raw: 'data/demirkapija_raw.json', scene: 'public/demirkapija.json', terrainBin: 'public/demirkapija-terrain.bin', terrainJson: 'public/demirkapija-terrain.json', overture: 'data/demirkapija_overture.json' },
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Голо Брдо (docs/TOWNS_TODO.md, 19): the strip west of Ростуше along the border, almost all of it Albania: the Црн Дрим
+  // (Drini i Zi) below Дебарско Езеро, Маќеларе, Пешкопија under Кораб's south-western foot, the villages of Дибра and the
+  // north of Голо Брдо (Golloborda). Edge to edge with Ростуше (e); its w edge as the planned zone (src/zones.ts)
+  golobrdo: {
+    bbox: { s: 41.39, w: 20.40, n: 41.725, e: 20.49 },
+    tiles: [2, 6] as [number, number],
+    files: { raw: 'data/golobrdo_raw.json', scene: 'public/golobrdo.json', terrainBin: 'public/golobrdo-terrain.bin', terrainJson: 'public/golobrdo-terrain.json', overture: 'data/golobrdo_overture.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: Box; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec; cut?: Box[] }>;
 
 export type CityName = keyof typeof CITIES;

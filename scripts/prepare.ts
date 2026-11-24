@@ -799,6 +799,35 @@ const PREP: Record<CityName, CityPrep> = {
         603047484, 603047485, 603047486, 603047489, 603047490, 603047491, 603047492, 603047493].map((id) => [id, { 'building:levels': '1' }]), // farm sheds
     ]),
   },
+  golobrdo: {
+    old: null,
+    square: [41.68457, 20.43049], // Пешкопија: the pedestrian Bulevardi Elez Isufi in front of the town hall and Xhamia e Re
+    landmarks: {},
+    // modelled by hand after photos (src/golobrdo.ts): Xhamia e Allajbegisë in Бурим (Алајбеговци, before 1578), the church of
+    // the Преображение (Kisha e Shpërfytyrimit) in Ербеле
+    models: { gbxhamija: 1259367304, gbherbel: 1259366508 },
+    placeNames: {},
+    placeIds: {
+      gbxhamija: 1259367304, gbherbel: 1259366508, gbmuzej: 183603180, gbxhamiare: 448813724, gbopstina: 448813544,
+      gbllixhat: 589440940, gbtashko: 1115518598,
+    },
+    placeNodes: {},
+    nodeLL: {},
+    tall: [],
+    // the blocks of flats of Пешкопија's centre round the boulevard
+    mid: [[41.6790, 41.6880, 20.4230, 20.4360]],
+    squareBonus: false,
+    maxLevels: 6,
+    // public buildings, halls and shops the height zone made into towers
+    buildingTags: Object.fromEntries([
+      [448813544, { 'building:levels': '4' }], // Bashkia Dibër, the town hall
+      ...[401676739, 179971546, 183603182].map((id) => [id, { 'building:levels': '3' }]), // Pallati i Kulturës, the hospital, a school
+      ...[183603180, 448813724, 440865525, 1388501417].map((id) => [id, { 'building:levels': '2' }]), // the museum, Xhamia e Re, the cinema, a supermarket
+      [670814297, { 'building:levels': '1' }], // the bus station
+    ]),
+    // the Црн Дрим, a line in OSM, widened for refilling
+    waterLines: [[507745511, 12], [507746411, 12], [504764979, 12]],
+  },
 };
 const CFG = PREP[CITY];
 const OLD = CFG.old;
