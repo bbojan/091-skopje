@@ -336,6 +336,7 @@ async function hop(id: CityId): Promise<void> {
     // fly on over the country's ground while the next map builds in time slices (no fade)
     const ground = cground;
     transit = { flight: f, ground, abort: w.abort, meta: w.meta };
+    ground.setSink(false); // the map is about to go: no pit where it was (and over a map cut out of it, true heights)
     f.setGround((x, z) => ground.height(x, z));
     f.setEdgeOpen(() => true);
   } else {

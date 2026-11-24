@@ -64,6 +64,8 @@ export function createCountryGround(o: { data: CountryData; meta: MapMeta; exag:
 
   const COL = coverPalette(), paper = new THREE.Color(PAL.paper), snowy = new THREE.Color('#efe9e0'), tmp = new THREE.Color();
   let cx = NaN, cz = NaN;
+  /** sink below the map inside it; off while the map is gone (the F-15 flying on while the next one builds) */
+  let sink = true;
   /** follow the plane: rebuilds the grid when it has moved a step on */
   function update(x: number, z: number): void {
     const sx = Math.round(x / SNAP) * SNAP, sz = Math.round(z / SNAP) * SNAP;
@@ -76,7 +78,7 @@ export function createCountryGround(o: { data: CountryData; meta: MapMeta; exag:
         // inside the map: below its own terrain (deeper further in), so only the map's ground shows
         const inside = Math.min(hw - Math.abs(X), hh - Math.abs(Z));
         // (25 m at least: the 100 m grid stands up to ~22 m above the map's own 10–20 m terrain here and there)
-        if (inside > 0) y -= 25 + Math.min(400, inside);
+        if (sink && inside > 0) y -= 25 + Math.min(400, inside);
         pos[v * 3] = X; pos[v * 3 + 1] = y; pos[v * 3 + 2] = Z;
         const cv = coverAt(X, Z);
         tmp.copy(COL[cv] ?? COL[0]);
@@ -93,6 +95,8 @@ export function createCountryGround(o: { data: CountryData; meta: MapMeta; exag:
     /** show it (the F-15 flies) or not; shown again it is rebuilt where the plane is */
     setVisible(v: boolean): void { if (!v) cx = NaN; mesh.visible = v; },
     get visible(): boolean { return mesh.visible; },
+    /** off: the true heights inside the map too (its map has been taken away); rebuilt on the next update */
+    setSink(v: boolean): void { if (v !== sink) { sink = v; cx = NaN; } },
   };
 }
 
