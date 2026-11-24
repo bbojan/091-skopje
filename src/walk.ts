@@ -128,64 +128,77 @@ function buildSuit(): Rig {
   return { group: g, legs, arms, head };
 }
 
-/** Кратово's walker, Ѕинго (Љубисав Иванов, 1936–2020; drawn, not a likeness): an older gentleman in a grey suit,
- *  white shirt and indigo tie, white hair, glasses, and — the joke — the yellow miner's helmet of „Силекс“, the mine he
- *  ran for over 40 years, its lamp on the front. Same rig as Пејо. */
+/** Кратово's walker, Ѕинго (Љубисав Иванов, 1936–2020), after two portraits the developer gave (references only): a
+ *  heavy-set older man, smiling, in a dark green suit, a light blue shirt and a tie striped red, white and black; bald
+ *  on top with short grey hair over the ears and round the back, a broad face with full jowls, greying eyebrows. Same
+ *  rig as Пејо. */
 function buildSingo(): Rig {
   const g = new THREE.Group();
-  const suit = lambert('#5b5f66'), shirt = lambert('#f4f2ee'), tie = lambert('#1f2a44'), skin = lambert('#dcae8c');
-  const hair = lambert('#e2ded6'), shoe = lambert('#141416'), dark = lambert('#2a1d16'), frame = lambert('#1a1a1c');
-  const helmet = lambert('#f1c232'), lamp = new THREE.MeshLambertMaterial({ color: '#fff6c8', emissive: '#fff0a0', emissiveIntensity: 0.6 });
+  const suit = lambert('#203c37'), shirt = lambert('#cfe1ec'), tie = lambert('#1d1c22'), red = lambert('#a8242a'), white = lambert('#f2f0ea');
+  const skin = lambert('#e4b49a'), hair = lambert('#c9c4bc'), brow = lambert('#7a7066'), shoe = lambert('#141416'), dark = lambert('#2a1d16');
   const add = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) => {
     const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; g.add(m); return m;
   };
   const legs = [-1, 1].map((s) => {
-    const l = limb(capsule(0.09, 0.62), suit, [0, 0.9, s * 0.1], 0.42);
-    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.08, 0.11), shoe);
+    const l = limb(capsule(0.095, 0.62), suit, [0, 0.9, s * 0.11], 0.42);
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.08, 0.12), shoe);
     foot.position.set(0.06, -0.86, 0);
     l.add(foot);
     g.add(l);
     return l;
   });
-  add(capsule(0.22, 0.4), suit, 0, 1.22, 0).scale.set(1.04, 1, 1.12); // the jacket, a little portly
+  add(capsule(0.25, 0.38), suit, 0, 1.21, 0).scale.set(1.08, 1, 1.15); // a broad, heavy body in the buttoned jacket
   const vee = (top: number, bottom: number, h: number, mat: THREE.Material, x: number, y: number) => {
     const m = add(new THREE.CylinderGeometry(top, bottom, h, 4).rotateY(Math.PI / 4), mat, x, y, 0);
     m.scale.set(0.12, 1, 1);
     return m;
   };
-  vee(0.11, 0.01, 0.28, shirt, 0.2, 1.47);
-  vee(0.02, 0.036, 0.24, tie, 0.217, 1.44);
-  add(new THREE.SphereGeometry(0.022, 8, 6), tie, 0.202, 1.575, 0).scale.set(0.8, 0.9, 1); // knot
-  add(new THREE.CylinderGeometry(0.07, 0.09, 0.08, 14), shirt, 0, 1.6, 0); // collar
+  vee(0.12, 0.01, 0.3, shirt, 0.25, 1.46);
+  vee(0.022, 0.04, 0.26, tie, 0.268, 1.43);
+  add(new THREE.SphereGeometry(0.024, 8, 6), tie, 0.25, 1.575, 0).scale.set(0.8, 0.9, 1); // knot
+  // the tie's diagonal stripes, red and white on the dark ground
+  for (const [y, mat] of [[1.53, red], [1.495, white], [1.46, red], [1.425, white], [1.39, red]] as const)
+    add(new THREE.BoxGeometry(0.006, 0.014, 0.06), mat, 0.277, y, 0).rotation.x = 0.6;
+  add(new THREE.CylinderGeometry(0.085, 0.1, 0.08, 14), shirt, 0, 1.6, 0); // collar, a thick neck
   const arms = [-1, 1].map((s) => {
-    const a = limb(capsule(0.068, 0.48), suit, [0, 1.46, s * 0.31], 0.3);
-    const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.058, 0.058, 0.04, 10), shirt);
-    cuff.position.y = -0.56;
+    const a = limb(capsule(0.075, 0.47), suit, [0, 1.46, s * 0.34], 0.3);
+    const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.062, 0.04, 10), shirt);
+    cuff.position.y = -0.55;
     a.add(cuff);
-    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.065, 10, 8), skin);
-    hand.position.y = -0.63;
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), skin);
+    hand.position.y = -0.62;
     a.add(hand);
     g.add(a);
     return a;
   });
-  const head = add(new THREE.SphereGeometry(0.13, 16, 12), skin, 0, 1.72, 0);
-  head.scale.set(1, 1.02, 1.04);
-  // white hair at the sides and back, under the helmet
-  add(new THREE.SphereGeometry(0.136, 16, 8, Math.PI * 0.75, Math.PI * 1.5, 0.9, 0.9), hair, -0.005, 1.73, 0);
-  for (const z of [-1, 1]) add(new THREE.SphereGeometry(0.03, 8, 6), skin, -0.005, 1.71, z * 0.135).scale.set(0.7, 1.2, 0.5); // ears
-  for (const z of [-0.045, 0.045]) {
-    add(new THREE.SphereGeometry(0.014, 6, 4), dark, 0.118, 1.735, z); // eyes
-    add(new THREE.TorusGeometry(0.026, 0.005, 6, 12).rotateY(Math.PI / 2), frame, 0.127, 1.735, z); // glasses
-    add(new THREE.BoxGeometry(0.02, 0.012, 0.05), hair, 0.122, 1.768, z * 1.1); // white eyebrows
+  // a big round head, wide at the jaw, the jowls filling down to the collar
+  const head = add(new THREE.SphereGeometry(0.135, 18, 14), skin, 0, 1.73, 0);
+  head.scale.set(1.04, 1.06, 1.1);
+  add(new THREE.SphereGeometry(0.12, 16, 10), skin, 0.02, 1.655, 0).scale.set(1, 0.75, 1.18); // jowls and chin
+  // bald on top: the grey fringe only over the ears and round the back of the head
+  // (three.js puts phi = π at +x, the face: the band runs from just behind one temple round the back to the other)
+  const fringe = new THREE.SphereGeometry(0.142, 18, 8, Math.PI * 1.42, Math.PI * 1.16, 1.25, 0.5);
+  add(fringe, hair, -0.01, 1.73, 0).scale.set(1.04, 1.06, 1.1);
+  for (const z of [-1, 1]) add(new THREE.SphereGeometry(0.034, 8, 6), skin, -0.005, 1.72, z * 0.148).scale.set(0.7, 1.25, 0.5); // ears
+  for (const z of [-0.048, 0.048]) {
+    add(new THREE.SphereGeometry(0.015, 6, 4), dark, 0.128, 1.745, z); // eyes, a little heavy-lidded
+    add(new THREE.BoxGeometry(0.024, 0.016, 0.06), skin, 0.132, 1.757, z); // the lids
+    add(new THREE.BoxGeometry(0.026, 0.022, 0.07), brow, 0.13, 1.778, z * 1.12).rotation.x = z > 0 ? 0.12 : -0.12; // thick brows
   }
-  add(new THREE.BoxGeometry(0.006, 0.006, 0.04), frame, 0.13, 1.737, 0); // the bridge of the glasses
-  add(new THREE.SphereGeometry(0.024, 8, 6), skin, 0.132, 1.7, 0); // nose
-  // the miner's helmet: a yellow dome with a ridge and a brim, the lamp on the front
-  add(new THREE.SphereGeometry(0.148, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), helmet, 0, 1.775, 0).scale.set(1.05, 0.95, 1);
-  add(new THREE.CylinderGeometry(0.19, 0.19, 0.018, 20), helmet, 0.01, 1.78, 0).scale.set(1.08, 1, 1);
-  add(new THREE.BoxGeometry(0.26, 0.025, 0.03), helmet, 0, 1.915, 0);
-  add(new THREE.CylinderGeometry(0.032, 0.032, 0.035, 12).rotateZ(Math.PI / 2), frame, 0.145, 1.85, 0);
-  add(new THREE.CylinderGeometry(0.026, 0.026, 0.01, 12).rotateZ(Math.PI / 2), lamp, 0.165, 1.85, 0);
+  add(new THREE.SphereGeometry(0.03, 10, 8), skin, 0.142, 1.71, 0).scale.set(1, 1, 1.1); // a broad nose
+  // Ѕинго's smile, as in the portrait: a wide grin curving up at the corners, a crescent of teeth between the lips, the
+  // cheeks pushed up round and rosy, the eyes narrowed by it
+  const lip = lambert('#b0675c'), teeth = lambert('#f3ecdc'), cheek = lambert('#e9a58f');
+  const arc = (z: number, lift: number) => 1.662 + lift + 9 * z * z; // the curve of the smile (z across the face)
+  for (let i = 0; i < 9; i++) {
+    const z0 = -0.05 + (0.1 * i) / 9, z1 = z0 + 0.1 / 9, zm = (z0 + z1) / 2, ang = Math.atan2(arc(z1, 0) - arc(z0, 0), z1 - z0);
+    const seg = (mat: THREE.Material, lift: number, h: number, x: number) => add(new THREE.BoxGeometry(0.008, h, 0.0125), mat, x, arc(zm, lift), zm).rotation.x = -ang;
+    seg(lip, 0.011, 0.006, 0.146); // upper lip
+    if (i > 0 && i < 8) seg(teeth, 0.003, 0.011, 0.149); // the teeth
+    seg(lip, -0.007, 0.007, 0.146); // lower lip
+  }
+  for (const z of [-1, 1]) add(new THREE.SphereGeometry(0.038, 10, 8), cheek, 0.1, 1.695, z * 0.072).scale.set(0.8, 0.75, 0.9); // round cheeks
+  for (const z of [-0.048, 0.048]) add(new THREE.BoxGeometry(0.02, 0.01, 0.05), skin, 0.134, 1.736, z); // the lower lids, raised
   g.scale.setScalar(SCALE);
   return { group: g, legs, arms, head };
 }
