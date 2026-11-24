@@ -1636,7 +1636,7 @@ touchStick($('fly-stunts'), (x, y) => {
 const hudCache = new Map<string, string>();
 const setText = (id: string, text: string) => { if (hudCache.get(id) !== text) { hudCache.set(id, text); $(id).textContent = text; } };
 const ACT_KEY: Record<WalkAction, Key | null> = { bus: 'act.bus', plane: 'act.plane', gondolaUp: 'act.gondolaUp', gondolaDown: 'act.gondolaDown', oro: 'act.oro', oroStop: 'act.oroStop', film: 'act.film', filmStop: 'act.filmStop', bark: 'act.bark', none: null };
-const walkerKey = (w: CitySpec['walker']): Key => (w === 'suit' ? 'char.suit' : w === 'manaki' ? 'char.manaki' : 'char.pejo');
+const walkerKey = (w: CitySpec['walker']): Key => (w === 'suit' ? 'char.suit' : w === 'manaki' ? 'char.manaki' : w === 'singo' ? 'char.singo' : 'char.pejo');
 const camDir = new THREE.Vector3();
 function updateWalkHud(): void {
   if (!world) return;

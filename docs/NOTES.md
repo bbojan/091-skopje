@@ -758,6 +758,9 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    a 50 m eight-lane pool with lane ropes and starting blocks, a children's pool, a tiled deck on a stone terrace where the
    slope falls away, a fence, changing rooms, loungers and umbrellas, and at the gate „БАЗЕН · СОПСТВЕНОСТ НА ЅИНГО LAND“
    between two of the land's flags; the layout is drawn, not surveyed.
+   **Walking as Ѕинго** (`walker: 'singo'`, `buildSingo()` in `src/walk.ts`, the Пејо rig): an older gentleman in a grey
+   suit, white shirt, indigo tie, white hair, glasses and — the joke — the yellow miner's helmet of „Силекс“ with its lamp;
+   drawn, not a likeness. Label „🪖 Ѕинго“ (Latin: Dzingo); his action is Пејо's.
 
 ## Country view (Nov 2026)
 
