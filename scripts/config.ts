@@ -288,6 +288,15 @@ export const CITIES = {
     files: { raw: 'data/stip_raw.json', scene: 'public/stip.json', terrainBin: 'public/stip-terrain.bin', terrainJson: 'public/stip-terrain.json' },
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Струмица (docs/TOWNS_TODO.md, 4): the town under Царевите кули near the east edge, Водоча and Вељуса, Банско, the
+  // Струмица plain west of Ново Село's map. Edge to edge with Штип and Радовиш (n), Неготино and Демир Капија (w),
+  // Валандово (s), Ново Село (e)
+  strumica: {
+    bbox: { s: 41.38, w: 22.32, n: 41.60, e: 22.66 },
+    tiles: [6, 4] as [number, number],
+    files: { raw: 'data/strumica_raw.json', scene: 'public/strumica.json', terrainBin: 'public/strumica-terrain.bin', terrainJson: 'public/strumica-terrain.json', overture: 'data/strumica_overture.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: Box; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec; cut?: Box[] }>;
 
 export type CityName = keyof typeof CITIES;

@@ -593,6 +593,34 @@ const PREP: Record<CityName, CityPrep> = {
     // the Брегалница, partly a line in OSM: widened for refilling (its water areas below the town stay as they are)
     waterLines: [[384225617, 10], [384225634, 10], [416789510, 10]],
   },
+  strumica: {
+    old: null,
+    square: [41.43902, 22.63710], // Плоштад Гоце Делчев (OSM: place=square)
+    landmarks: {},
+    models: {},
+    placeNames: {},
+    placeIds: {
+      sqstrumica: 299862944, carevi: 212703196, leontij: 356294223, vodocha: 27616251, vdam: 866796179, mantovo: 192085216,
+      park: 33463711, stadium: 33525824, kultura: 232347702, orta: 1128459981, kiril: 1128459982, maccenici: 1266637023,
+      palama: 248662336, ilija: 212703220, suldurci: 410608638,
+    },
+    placeNodes: { strumica: 185561545, eleusa: 3263433907, theatre: 2406054226, museum: 9241877277, konce: 1993613357 },
+    nodeLL: {
+      185561545: [41.43901, 22.63741], 3263433907: [41.47485, 22.56517], // Струмица, Св. Богородица Елеуса (Вељуса)
+      2406054226: [41.44494, 22.64011], 9241877277: [41.43541, 22.63643], 1993613357: [41.49565, 22.38547], // the theatre, the museum, Конче
+    },
+    tall: [],
+    // the blocks of flats round the centre of Струмица
+    mid: [[41.4300, 41.4500, 22.6250, 22.6560]],
+    squareBonus: false,
+    maxLevels: 9,
+    // public buildings, a cinema, petrol stations and the places of worship the height zone made into towers
+    buildingTags: Object.fromEntries([
+      ...[232225505, 232347702].map((id) => [id, { 'building:levels': '3' }]), // Општина, Дом на културата
+      ...[232369699, 1286221972, 1286221984].map((id) => [id, { 'building:levels': '2' }]), // Кино Балкан, two petrol stations
+      ...[248662336, 1128459981, 1128459982].map((id) => [id, { 'building:levels': '1', height: '9' }]), // Св. Григориј Палама, Орта џамија, Св. Кирил и Методиј
+    ]),
+  },
   medzitlija: {
     old: null,
     square: [40.92740, 21.42975], // the paved yard in front of the mosque in Меџитлија (OSM has no square there)
