@@ -795,6 +795,44 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    mean 0, max 11 m), Skopje pixel check (0 on six views, 13–17 pixels on the three overviews: the gondola cabins). Not
    checked: flying in from Кавадарци, phones, firefighting and the race, rain and snow, the walking cards one by one.
 
+48. **043 Демир Капија** (Nov 2026, branch `demirkapija`, not yet released; 20th in the build order, built out of order;
+   developer **Ристе Самарџиев**, the LinkedIn button on this map names him): the town at the mouth of the Демиркаписка
+   Клисура and its wine country (docs/TOWNS_TODO.md, 31): box 41.10–41.445 N, 22.062–22.32 E (21.6 × 38.4 km, 20 m cells,
+   86–2165 m), edge to edge with Кавадарци (w), Неготино (n), Валандово and Гевгелија (e), down past Кожуф's ridge into
+   Greece. Overpass gave 502/504 all afternoon, so the raw file came from Geofabrik's Macedonia extract
+   (`scripts/pbf2overpass.py`): 602 buildings, 877 roads; **the strip south of the border has no OSM** (Greece's extract,
+   ~340 MB, not fetched; one Overpass try for 41.10–41.175 N failed), only Overture's outlines there. Overture adds 5,561
+   outlines (Microsoft ML; 726 of its outlines are OSM's own). Scene 1.8 MB, 6,159 buildings; a small `mid` zone over the
+   centre, `maxLevels: 5`. Farmland painted as vineyards almost everywhere it is gentle and low (`vineyards: 650`,
+   `vineShare: 0.8`). Refilling over the Вардар's riverbank areas (1.2 and 0.6 km²; the Tetovo refill text „Наполни вода од
+   Вардар“ reused). Snow label „Снег на Кожуф“; tow banners „Вардар ја спаси Демир Капија!“ / „На здравје од Демир Капија!“.
+   **The wineries, researched:** Попова Кула (winery from 2004, hotel and restaurant 2009, 33 rooms, the 17 m tower with the
+   tasting room, named after the old Попова Кула on the Roman road, known for Станушина; kajak.mk, panacomp.net,
+   popovakula.com.mk), Кралска винарија Кралица Марија (King Aleksandar's estate of ~2,700 ha bought in 1928, first harvest
+   1928, the queen's villa, she visited in 1934, four Austrian glass vats and Serbian oak barrels never moved, today private
+   with ~7 million litres; wineryqueenmaria.com, vinotika.mk, Tikveš Wine Route; Еленов's „Вила Марија“ / „Шато Демир Капија“
+   wines came from the same historic cellar until 2016, the sources do not say clearly how the two names relate, so the
+   cards name only Кралица Марија), Грков in Крњево (from 2004, ~550 m, the first organic wine in Macedonia in 2007;
+   kajak.mk, travel2macedonia, myguidemacedonia), and the Музеј на виното in town (OSM; label and card only). Imako, often
+   listed with them, is by Штип, not here. **Хотел Вердисо** (14 rooms, spa, restaurant for 350, pool; kajak.mk and booking
+   pages; verdisso.mk did not resolve). Models (`src/demirkapija.ts`): **Попова Кула** after Commons photos (2010–2015) on
+   OSM's hotel outline, laid out from the aerial image in a frame along the wings (the tower where the outline steps between
+   the arcade wing and the white wing; the main block behind the arcade wing is a guess), the lawn in front as a
+   `modelRect` with cypresses and parasols instead of generated forest; **Хотел Вердисо** on OSM's outline, from the aerial
+   image and the booking descriptions only (no outside photo found: walls, balconies and the glazed terrace are guessed, the
+   dark roofs and the pool's place are from the aerial image); at Кралица Марија, all `modelRects` read off the aerial image:
+   **Вила Марија** after a Commons photo of 2014 (ochre walls, rusticated plinth, paired arched windows, the loggia and the
+   terracotta caryatids „момичките“; its grey hip roof from the aerial image; the loggia's place at the south-east end is a
+   guess), the park's trees round it, **three peacocks** (one with its tail fanned), the **U of the old royal cellar**, the
+   **two tiled halls with three rows of steel tanks** between them, the **amphitheatre**. Badge 043 (Кавадарци's group, the
+   Badge codes table). Checked: typecheck, build, the map loads in ~3.5 s with no console errors (headless Chromium driven
+   by Playwright, `--use-angle=metal`; the Chrome extension was not connected), the views (centre, Попова Кула, Вила Марија,
+   Кралица Марија, Вердисо, the gorge, Кожуф, the overview), switching Демир Капија → Скопје → Демир Капија → Кавадарци →
+   Демир Капија (textures 865 → 865, scene objects 21 → 21, geometries +2 per return, the same on Кочани: streamed ground),
+   the F-15 over the map (country vs map heights: mean 0, max 11 m), Skopje pixel check (0 on six views, 12–13 pixels on the
+   three overviews: the gondola cabins). Not checked: flying in from Кавадарци or Неготино, phones, firefighting and the
+   race, night and snow views, walking and the cards one by one, the Kožuf ski runs (not drawn).
+
 ## Country view (Nov 2026)
 
 - **What:** Macedonia, first in the city menu (a tile as tall as four cities, `.country-tile`), shows the whole country with every map's zone (`src/zones.ts`,
@@ -1068,6 +1106,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Меџитлија | `skopje.bestRace.medzitlija` | none |
 | Best race time in Кратово | `skopje.bestRace.kratovo` | none |
 | Best race time in Неготино | `skopje.bestRace.negotino` | none |
+| Best race time in Демир Капија | `skopje.bestRace.demirkapija` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
