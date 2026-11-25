@@ -4,6 +4,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>091 Скопје</title>
+    <!-- Google Analytics (GA4), cookieless: Consent Mode denies storage, so no cookies are set
+         and no banner is needed. Only on the live site, not on localhost. -->
+    <script>
+      if (location.hostname === 'bbojan.github.io') {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { dataLayer.push(arguments); };
+        gtag('consent', 'default', {
+          ad_storage: 'denied', analytics_storage: 'denied',
+          ad_user_data: 'denied', ad_personalization: 'denied',
+        });
+        gtag('js', new Date());
+        gtag('config', 'G-7B6FCGFQKV');
+        const s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-7B6FCGFQKV';
+        document.head.appendChild(s);
+      }
+    </script>
     <link rel="icon" id="favicon" type="image/svg+xml" href="./favicon-skopje.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Rubik+Mono+One&display=swap" rel="stylesheet" />
