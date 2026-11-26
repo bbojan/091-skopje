@@ -297,6 +297,14 @@ export const CITIES = {
     files: { raw: 'data/strumica_raw.json', scene: 'public/strumica.json', terrainBin: 'public/strumica-terrain.bin', terrainJson: 'public/strumica-terrain.json', overture: 'data/strumica_overture.json' },
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Валандово (docs/TOWNS_TODO.md, 29): Валандово, Јосифово, Пиперево, the Анска Река, the Вардар at Удово, the
+  // pomegranate and fig orchards. Edge to edge with Струмица (n), Демир Капија (w), Гевгелија (s), Ново Село (e)
+  valandovo: {
+    bbox: { s: 41.25, w: 22.32, n: 41.38, e: 22.66 },
+    tiles: [6, 3] as [number, number],
+    files: { raw: 'data/valandovo_raw.json', scene: 'public/valandovo.json', terrainBin: 'public/valandovo-terrain.bin', terrainJson: 'public/valandovo-terrain.json', overture: 'data/valandovo_overture.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
   // Неготино (docs/TOWNS_TODO.md, 5): the town on the Вардар's left bank, its vineyards and the Тиквешко Поле's east
   // end, Пепелиште, Дуброво and Тремник, the Вардар from Криволак down to Демир Капија's gorge. Edge to edge with
   // Кавадарци (w), Демир Капија (s) and Штип (n)
