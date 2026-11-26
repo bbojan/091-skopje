@@ -621,6 +621,27 @@ const PREP: Record<CityName, CityPrep> = {
       ...[248662336, 1128459981, 1128459982].map((id) => [id, { 'building:levels': '1', height: '9' }]), // Св. Григориј Палама, Орта џамија, Св. Кирил и Методиј
     ]),
   },
+  valandovo: {
+    old: null,
+    square: [41.31734, 22.56198], // the centre of Валандово on Гоце Делчев (the town node; OSM has no square there)
+    landmarks: {},
+    models: {},
+    placeNames: {},
+    placeIds: {
+      isar: 229632394, mirlake: 186145617, kostur: 422989843, stadium: 1548641331, vdimitrij: 1546945814,
+      vgjorgji: 1547299669, udovo: 375120196, josifovo: 1135550702, rabrovo: 1546945815,
+    },
+    placeNodes: { valandovo: 412192203, idomenae: 2026975410 },
+    nodeLL: {
+      412192203: [41.31734, 22.56198], 2026975410: [41.27758, 22.49377], // Валандово, Исар (Идомене) near Марвинци
+    },
+    tall: [],
+    // the few blocks of flats in the centre of Валандово
+    mid: [[41.3150, 41.3215, 22.5560, 22.5660]],
+    squareBonus: false,
+    maxLevels: 6,
+    buildingTags: {},
+  },
   medzitlija: {
     old: null,
     square: [40.92740, 21.42975], // the paved yard in front of the mosque in Меџитлија (OSM has no square there)

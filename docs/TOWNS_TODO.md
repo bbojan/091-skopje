@@ -166,7 +166,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 5 | ~~Неготино~~ built (2026-11-24, branch `negotino`) | 370 | Неготино | 5 |
 | 6 | Кораб* | 370 | — | 18 |
 | 7 | Пробиштип | 380 | Пробиштип | 28 |
-| 8 | Валандово | 410 | Валандово | 29 |
+| 8 | ~~Валандово~~ built (2026-11-26, branch `city-valandovo`) | 410 | Валандово | 29 |
 | 9 | ~~Матка*~~ built (2026-11-23, out of order) | 500 | — | 20 |
 | 10 | Гевгелија | 510 | Гевгелија, Богданци | 30 |
 | 11 | Крива Паланка | 570 | Крива Паланка | 26 |
@@ -584,7 +584,11 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
   towns: check in OSM), w 22.062 (Свети Николе's and Куманово's e), e 22.495 (Каменица's w). About 380 km², 20 m cells.
 - **Landmarks:** Лесново monastery, Злетово's mines, Пробиштип's centre.
 
-### 29. Валандово
+### 29. 034 Валандово ✓ built (2026-11-26, branch `city-valandovo`, not released)
+
+- **Built:** the box as planned, `?city=valandovo`, badge 034 (shared with Дојран), 20 m cells, 54–1393 m. OSM 1,936 of 1,940
+  buildings and 917 of 917 roads (count query); Overture adds 7,255 outlines (9,191 buildings, scene 2.3 MB). Refilling over
+  the Вардар's water areas and Миравско Езеро. No hand-built models yet (Исар is its OSM outline only).
 
 - **On it:** Валандово, Јосифово, Пиперево, the Анска Река, the Vardar at Удово.
 - **Code:** open (phone code 034). `?city=valandovo`.

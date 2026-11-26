@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -1232,6 +1232,78 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.strumica',
     bestRaceKey: 'skopje.bestRace.strumica',
     banners: { fire: 'Струмица е спасена!', roll: 'Поздрав од Струмица!' },
+  },
+  valandovo: {
+    id: 'valandovo', name: 'Валандово', code: '034', icon: './favicon-valandovo.svg',
+    files: { scene: './valandovo.json', terrainBin: './valandovo-terrain.bin', terrainJson: './valandovo-terrain.json' },
+    sceneBytes: 2.3e6,
+    views: {
+      center: { place: 'valandovo', ll: [41.31734, 22.56198], d: 620, polar: 0.82, az: 0.3 },
+      vaisar: { place: 'idomenae', ll: [41.27758, 22.49377], d: 320, polar: 0.95, az: 0.5 }, // the hill over Марвинци
+      vamirlake: { place: 'mirlake', ll: [41.31321, 22.40443], d: 900, polar: 1.0, az: 0.4 },
+      vavardar: { ll: [41.34000, 22.44500], d: 1600, polar: 1.05, az: -0.5 }, // the Вардар at Удово and Давидово
+      vaanska: { ll: [41.30500, 22.53000], d: 2600, polar: 1.05, az: 0.6 }, // the Анска Река's orchards toward the town
+      overview: { ll: [41.31500, 22.49000], d: 24000, polar: 0.72, az: 0 },
+    },
+    districts: [
+      ['Валандово', 41.31734, 22.56198], ['Раброво', 41.32112, 22.57952, 30], ['Пирава', 41.31982, 22.53270, 30],
+      ['Јосифово', 41.33179, 22.47537, 30], ['Удово', 41.34714, 22.43559, 30], ['Давидово', 41.33179, 22.43229, 30],
+      ['Миравци', 41.30881, 22.43534, 30], ['Габрово', 41.28582, 22.40155, 30], ['Петрово', 41.29540, 22.38357, 30],
+      ['Милетково', 41.28350, 22.46259, 30], ['Смоквица', 41.25887, 22.46977, 30], ['Марвинци', 41.28360, 22.49860, 30],
+      ['Грчиште', 41.25683, 22.49814, 30], ['Балинци', 41.28867, 22.51442, 30], ['Брајковци', 41.29228, 22.52309, 30],
+      ['Казандол', 41.27486, 22.57297, 30], ['Дедели', 41.28392, 22.60526, 30], ['Собри', 41.29319, 22.63461, 30],
+      ['Чалакли', 41.30409, 22.63931, 30], ['Мемешли', 41.33403, 22.64320, 30], ['Орманли', 41.34687, 22.65003, 30],
+      ['Костурино', 41.35712, 22.60958, 30], ['Градец', 41.37808, 22.40190, 30],
+    ],
+    labels: [
+      ['Исар (Идомене)', 41.27758, 22.49377, 30, 'idomenae'],
+      ['Миравско Езеро', 41.31321, 22.40443, 10, 'mirlake'],
+      ['Градски стадион', 41.31218, 22.55823, 14, 'stadium'],
+      ['Св. Димитриј', 41.32157, 22.55722, 12, 'vdimitrij'],
+      ['Св. Ѓорѓи', 41.32613, 22.54834, 12, 'vgjorgji'],
+      ['Св. Илија', 41.31917, 22.57978, 12, 'rabrovo'],
+      ['Св. Атанасиј', 41.34283, 22.44158, 12, 'udovo'],
+      ['Успение на Пресвета Богородица', 41.33305, 22.47526, 12, 'josifovo'],
+      ['Спомен-костурница', 41.34328, 22.44320, 12, 'kostur'],
+      ['Висока Чука', 41.27371, 22.32375, 20],
+      ['Красица', 41.30055, 22.63443, 20],
+      ['Вардар', 41.33068, 22.45355, 6, undefined, 'river'],
+      ['Анска Река', 41.29733, 22.54953, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Валандово', 41.31734, 22.56198, 45, 'valandovo'],
+      ['Раброво', 41.32112, 22.57952, 50],
+      ['Костурино', 41.35712, 22.60958, 55],
+      ['Орманли', 41.34687, 22.65003, 55],
+      ['Собри', 41.29319, 22.63461, 55],
+      ['Казандол', 41.27486, 22.57297, 55],
+      ['Исар', 41.27758, 22.49377, 55, 'idomenae'],
+      ['Смоквица', 41.25887, 22.46977, 55],
+      ['Габрово', 41.28582, 22.40155, 55],
+      ['Миравско Езеро', 41.31321, 22.40443, 45, 'mirlake'],
+      ['Удово', 41.34714, 22.43559, 50],
+      ['Јосифово', 41.33179, 22.47537, 50],
+      ['Пирава', 41.31982, 22.53270, 50],
+    ],
+    spots: [
+      ['va.town', 'Валандово', 41.31734, 22.56198, 70, 'valandovo'],
+      ['va.isar', 'Исар (Идомене)', 41.27758, 22.49377, 120, 'idomenae'],
+      ['va.mirlake', 'Миравско Езеро', 41.31321, 22.40443, 200, 'mirlake'],
+      ['va.vardar', 'Вардар', 41.33068, 22.45355, 250],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.31734, 22.56198], near: 4000, far: 9000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    // the Валандово valley: orchards (pomegranates, figs) and fields, a few vineyards on the slopes
+    vineyards: 250, // m above the map's lowest point (54 m, the Вардар in the south-west): the farmland up to ~300 m
+    vineShare: 0.12,
+    walker: 'pejo',
+    snowLabel: 'weather.hills',
+    refillLabel: 'fire.refill.valandovo',
+    bestRaceKey: 'skopje.bestRace.valandovo',
+    banners: { fire: 'Валандово е спасено!', roll: 'Поздрав од Валандово!' },
   },
   golobrdo: {
     id: 'golobrdo', name: 'Голо Брдо', code: '046', icon: './favicon-golobrdo.svg',
