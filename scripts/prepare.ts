@@ -879,6 +879,34 @@ const PREP: Record<CityName, CityPrep> = {
     // the Црн Дрим, a line in OSM, widened for refilling
     waterLines: [[507745511, 12], [507746411, 12], [504764979, 12]],
   },
+  korab: {
+    old: null,
+    square: [41.80522, 20.61963], // Стрезимир: the border police post where the climbs to Кораб start (no village there)
+    landmarks: {},
+    placeNames: {},
+    placeIds: { kbbrodec: 715124995, kbstrezimir: 235709571, kbgolemlake: 966141862, kbmallake: 1211220683 },
+    placeNodes: {
+      kbkorab: 2590602216, kbmalkorab: 10074783695, kbwaterfall: 10078528115, kbkallabak: 702868839, kbvrata: 694526563,
+      kbsherupa: 5387110181, kbvenec: 11581867512, kbcrnacuka: 11626809728, kbbelokapce: 10879709259,
+      kbzuzne: 2048321332, kbnistrovo: 1895918057, kbbogdevo: 503512774, kbbrodecv: 2048183715, kbnicpur: 1895918097,
+      kbnivishte: 1895918092, kbbibanje: 1895918100,
+    },
+    nodeLL: {
+      2590602216: [41.79034, 20.54686], 10074783695: [41.76935, 20.53554], 10078528115: [41.76777, 20.54607], // Голем Кораб, Мал Кораб, Корабски водопад
+      702868839: [41.91751, 20.57577], 694526563: [41.81508, 20.56481], 5387110181: [41.87720, 20.59438], // Калабак, Корабска Врата, Шерупа
+      11581867512: [41.84834, 20.71860], 11626809728: [41.79843, 20.57253], 10879709259: [41.78737, 20.56966], // Венец, Црна Чука, Бело Капче
+      2048321332: [41.75303, 20.62636], 1895918057: [41.73414, 20.63716], 503512774: [41.74325, 20.70012], // Жужње, Нистрово, Богдево
+      2048183715: [41.78854, 20.68696], 1895918097: [41.74362, 20.67330], 1895918092: [41.73103, 20.59121], // Бродец, Ничпур, Нивиште
+      1895918100: [41.73196, 20.62794], // Бибање
+    },
+    tall: [],
+    mid: [],
+    squareBonus: false,
+    maxLevels: 3, // villages of houses and sheepfolds, no blocks of flats
+    buildingTags: {},
+    // the Радика, a line in OSM, widened for refilling
+    waterLines: [[362984701, 10]],
+  },
 };
 const CFG = PREP[CITY];
 const OLD = CFG.old;

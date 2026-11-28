@@ -42,7 +42,7 @@ npm run country      # the whole country at 100 m → public/country.png/.json (
 | File | Role |
 |---|---|
 | `main.ts` | App shell: renderer, controls, loading (staged build + progress card), city switching (`loadCity` / `unloadWorld` / `switchCity`), views, time of day, flight/race wiring, popups, help, gamepad, adaptive quality |
-| `cities.ts` | The cities (Skopje, Kavadarci, Bitola, Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran, Batinci, Berovo, Tetovo, Makedonski Brod, Resen, Матка, Вевчани, Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Виница) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
+| `cities.ts` | The cities (Skopje, Kavadarci, Bitola, Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran, Batinci, Berovo, Tetovo, Makedonski Brod, Resen, Матка, Вевчани, Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Виница, Кораб) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
 | `city.ts` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds; Kavadarci's vineyards and Bitola's fields, Кочани's rice paddies (`rice`) (`farmMask`, `VINE_GROUND`: farmland marked by one terrain colour, plots painted by the ground shader; `vineShare` per city: the share of plots that are vineyards) |
 | `terrain.ts` | Heightfield with exact mesh-matching interpolation; chunk/low-res meshes; triangle clipping for draping |
 | `post.ts` | `InkRenderer`: colour + normal/depth passes (one pass in the low tier or with smooth edges off: normals as a second attachment) → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
@@ -98,6 +98,7 @@ npm run country      # the whole country at 100 m → public/country.png/.json (
 | `i18n-towns9.ts` | UI texts of Демир Капија, spread into `STR` after `TOWNS8` |
 | `i18n-towns10.ts` | UI texts of Голо Брдо, spread into `STR` after `TOWNS9` |
 | `i18n-towns12.ts` | UI texts of Виница, spread into `STR` after `TOWNS11` |
+| `i18n-towns13.ts` | UI texts of Кораб, spread into `STR` after `TOWNS12` |
 | `i18n-country.ts` | UI texts of the country view, spread into `STR` after `TOWNS10` |
 | `country.ts` | Country view (Macedonia, first in the city menu): all of Macedonia at 100 m from `public/country.png` (heights, land cover, border), its own scene / camera / controls drawn through the same ink renderer (`renderCountry()` in `main.ts`), zones as a canvas overlay, hover, picking by marching the height grid, badges that open a city; the data is loaded once and kept for the visit (`loadCountry`, meant for the F-15 too) |
 | `countryground.ts` | The country's 100 m terrain around a city map while the F-15 flies: one CPU-built grid following the plane (fine near, ~0.7 km cells at 45 km), sunk below the map inside it, the map's own exaggeration; the flight and the rockets use its height beyond the map's edges. While it shows, the ink's normal pass is not clipped to the map (`ink.setClipping`) |
@@ -149,7 +150,9 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   built 2026-11-25, not released: the Црн Дрим valley west of Дебар with Пешкопија, almost all Albania, raw file from the
   Albanian extract; badge and name unconfirmed), 033 Виница (`?city=vinica`, built 2026-11-28, not released: the east end
   of Кочанска Котлина with Блатец, Истибања and the hills toward Делчево; Overture's outlines for most buildings; Виничко
-  Кале's ruins modelled after its description).
+  Кале's ruins modelled after its description), 042 Кораб (`?city=korab`, built 2026-11-28, not released: Голем Кораб,
+  Корабски водопад, Горна Река and the Шар ridge, the steps past the border cut; raw file from the Macedonian, Albanian and
+  Kosovo extracts; `treeLine` keeps the alpine meadows bare; badge and name unconfirmed).
 - The F-15 (v26.0.0) flies from map to map: the next map downloaded ahead, switched at the edge while the jet flies on
   over the country's terrain (`src/hop.ts`, `src/countryground.ts`, `transit` in `main.ts`); every new finished map
   in `src/zones.ts` widens the flight. All of it: "F-15 and flying from map to map" in docs/NOTES.md.

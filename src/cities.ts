@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo', 'vinica'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo', 'vinica', 'korab'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -48,6 +48,8 @@ export interface CitySpec {
   sparseFar?: number;
   /** fewer, larger trees in green areas far from the town (loading time and memory); unset: everywhere alike (Skopje) */
   treeThin?: TreeThin;
+  /** the tree line, m above the map's lowest point: green areas above it stay bare (high mountains); unset: none */
+  treeLine?: number;
   /** vineyards and fields on open, gentle land up to this height (m); unset: none (Skopje) */
   vineyards?: number;
   /** the share of those plots that are vineyards, the rest fields (default 0.52, Tikveš) */
@@ -1382,6 +1384,82 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.vinica',
     bestRaceKey: 'skopje.bestRace.vinica',
     banners: { fire: 'Виница е спасена!', roll: 'Поздрав од Виница!' },
+  },
+  korab: {
+    id: 'korab', name: 'Кораб', code: '042', icon: './favicon-korab.svg',
+    files: { scene: './korab.json', terrainBin: './korab-terrain.bin', terrainJson: './korab-terrain.json' },
+    sceneBytes: 0.44e6,
+    views: {
+      // Голем Кораб from the east, over the high pastures above Стрезимир
+      center: { place: 'kbkorab', ll: [41.79034, 20.54686], d: 3000, polar: 1.15, az: 1.3 },
+      kbkorab: { place: 'kbkorab', ll: [41.79034, 20.54686], d: 1500, polar: 1.0, az: 2.3 }, // the summit from the north-east
+      kbwaterfall: { place: 'kbwaterfall', ll: [41.76777, 20.54607], d: 2000, polar: 1.05, az: 1.0 }, // the waterfall's valley under Мал Кораб, from the north-east
+      kbradika: { ll: [41.80500, 20.64500], d: 3500, polar: 1.15, az: 2.9 }, // the upper Радика from the north, toward Горна Река
+      kbshar: { ll: [41.88500, 20.63000], d: 5500, polar: 1.12, az: 0.1 }, // the border ridge of Шар Планина from the south
+      kbreka: { place: 'kbzuzne', ll: [41.75303, 20.62636], d: 1600, polar: 0.95, az: 0.2 }, // Жужње, Нистрово and Бибање
+      // the map is 19 × 22 km: seen from the south-east, Кораб on the left, the Шар ridge at the back
+      overview: { ll: [41.82500, 20.61000], d: 24000, polar: 0.9, az: 0.6 },
+    },
+    districts: [
+      ['Жужње', 41.75303, 20.62636, 30], ['Нистрово', 41.73414, 20.63716, 30], ['Бибање', 41.73196, 20.62794, 30],
+      ['Нивиште', 41.73103, 20.59121, 30], ['Ничпур', 41.74362, 20.67330, 30], ['Богдево', 41.74325, 20.70012, 30],
+      ['Кракорница', 41.75583, 20.69363, 30], ['Бродец', 41.78854, 20.68696, 30], ['Стрезимир', 41.80522, 20.61963, 30],
+      ['Кораб', 41.78500, 20.55500, 150], ['Шар Планина', 41.88000, 20.65000, 150], ['Горна Река', 41.75500, 20.66000, 40],
+    ],
+    labels: [
+      ['Голем Кораб', 41.79034, 20.54686, 30, 'kbkorab'],
+      ['Мал Кораб', 41.76935, 20.53554, 25, 'kbmalkorab'],
+      ['Корабски водопад', 41.76777, 20.54607, 20, 'kbwaterfall'],
+      ['Корабска Врата', 41.81508, 20.56481, 20, 'kbvrata'],
+      ['Бело Капче', 41.78737, 20.56966, 20, 'kbbelokapce'],
+      ['Црна Чука', 41.79843, 20.57253, 20, 'kbcrnacuka'],
+      ['Калабак', 41.91751, 20.57577, 20, 'kbkallabak'],
+      ['Шерупа', 41.87720, 20.59438, 20, 'kbsherupa'],
+      ['Венец', 41.84834, 20.71860, 20, 'kbvenec'],
+      ['Големокорабско Езеро', 41.78700, 20.55250, 10, 'kbgolemlake'],
+      ['Малокорабско Езеро', 41.77200, 20.54150, 10, 'kbmallake'],
+      ['Св. Петка', 41.78900, 20.68500, 12, 'kbbrodec'],
+      ['Караула Стрезимир', 41.80522, 20.61963, 12, 'kbstrezimir'],
+      ['Радика', 41.81700, 20.64300, 6, undefined, 'river'],
+      ['Радика', 41.76500, 20.65500, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Стрезимир', 41.80522, 20.61963, 60, 'kbstrezimir'],
+      ['Корабска Врата', 41.81508, 20.56481, 80, 'kbvrata'],
+      ['Голем Кораб', 41.79034, 20.54686, 90, 'kbkorab'],
+      ['Мал Кораб', 41.76935, 20.53554, 90, 'kbmalkorab'],
+      ['Корабски водопад', 41.76777, 20.54607, 70, 'kbwaterfall'],
+      ['Бело Капче', 41.78737, 20.56966, 80, 'kbbelokapce'],
+      ['Шерупа', 41.87720, 20.59438, 80, 'kbsherupa'],
+      ['Калабак', 41.91751, 20.57577, 80, 'kbkallabak'],
+      ['Радика', 41.86000, 20.64000, 60],
+      ['Венец', 41.84834, 20.71860, 80, 'kbvenec'],
+      ['Бродец', 41.78854, 20.68696, 60, 'kbbrodecv'],
+      ['Богдево', 41.74325, 20.70012, 60, 'kbbogdevo'],
+      ['Ничпур', 41.74362, 20.67330, 60, 'kbnicpur'],
+      ['Нистрово', 41.73414, 20.63716, 60, 'kbnistrovo'],
+      ['Жужње', 41.75303, 20.62636, 60, 'kbzuzne'],
+    ],
+    spots: [
+      ['kb.korab', 'Голем Кораб', 41.79034, 20.54686, 250, 'kbkorab'],
+      ['kb.waterfall', 'Корабски водопад', 41.76777, 20.54607, 150, 'kbwaterfall'],
+      ['kb.pastures', 'Стрезимир', 41.80522, 20.61963, 300, 'kbstrezimir'],
+      ['kb.radika', 'Радика', 41.81700, 20.64300, 300],
+      ['kb.shar', 'Шар Планина', 41.88500, 20.63000, 600],
+      ['kb.reka', 'Горна Река', 41.75303, 20.62636, 300, 'kbzuzne'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    // bare high mountains: the woods of the Радика valley at full density round Горна Река, thinner (drawn larger) far out
+    treeThin: { ll: [41.75500, 20.65000], near: 3000, far: 9000, min: 0.05, grow: 2 },
+    treeLine: 850, // ~1780 m: the beech woods end there, above them pastures, scree and rock (the map's lowest point 928 m)
+    sparseFar: 1500,
+    walker: 'pejo',
+    snowLabel: 'weather.korab',
+    refillLabel: 'fire.refill.korab',
+    bestRaceKey: 'skopje.bestRace.korab',
+    banners: { fire: 'Радика го спаси Кораб!', roll: 'Поздрав од Кораб!' },
   },
   golobrdo: {
     id: 'golobrdo', name: 'Голо Брдо', code: '046', icon: './favicon-golobrdo.svg',
