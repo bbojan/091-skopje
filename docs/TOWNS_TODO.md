@@ -5,7 +5,8 @@
 033 Македонска Каменица (with Саса), 034 Дојран, 02 Батинци, 033 Берово (with Пехчево), 094 Тетово (with Гостивар),
 045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. **Released in v32.0.0 (2026-11-24), 23 maps in all:** 0903 Кочани,
 047 Меџитлија, 031 Кратово (developer Бранко Славков), 092 Штип and 0902 Струмица (developer Калина Јовановска), 043 Неготино
-and 043 Демир Капија (developer Ристе Самарџиев). **Built since, not released:** 046 Голо Брдо (2026-11-25, on `develop`).
+and 043 Демир Капија (developer Ристе Самарџиев). **Built since, not released:** 046 Голо Брдо (2026-11-25, on `develop`), 034 Валандово (2026-11-26, branch
+`city-valandovo`, developer Филип Калковалиев).
 Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
@@ -21,7 +22,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија and Голо Брдо built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо and Валандово built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -31,7 +32,7 @@ towns on it):
 | Мариово* | 1460 | — | | Свети Николе | 580 | Свети Николе |
 | Кичево | 1160 | Кичево | | Крива Паланка | 570 | Крива Паланка |
 | Стоби* | 1150 | — | | Гевгелија | 510 | Гевгелија, Богданци |
-| Ново Село* | 1060 | — | | Валандово | 410 | Валандово |
+| Ново Село* | 1060 | — | | ~~Валандово~~ built | 410 | Валандово |
 | Скопска Црна Гора* | 1010 | — | | Пробиштип | 380 | Пробиштип |
 | Новаци* | 970 | — | | ~~Неготино~~ built | 370 | Неготино |
 | Радовиш | 900 | Радовиш | | Кораб* | 370 | — |
@@ -212,6 +213,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 02 Матка | Св. Андреја, Св. Никола Шишевски, Сарај, Сува Гора | `matka` | 41.725, 21.06, 42.075, 21.385 (Скопје's and Брод's corners cut) |
 | 046 Вевчани | Лабуништа, Подгорци, Белица, Јабланица, Глобочица | `vevcani` | 41.035, 20.47, 41.39, 20.815 (Охрид's map and the steps past the border cut) |
 | 046 Голо Брдо (not released yet) | Пешкопија, Макелари, Острени (Albania) | `golobrdo` | 41.39, 20.40, 41.725, 20.49 |
+| 034 Валандово (not released yet) | Јосифово, Пиперево, Миравско Езеро | `valandovo` | 41.25, 22.32, 41.38, 22.66 |
 
 ## Planned maps
 
@@ -584,7 +586,7 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
   towns: check in OSM), w 22.062 (Свети Николе's and Куманово's e), e 22.495 (Каменица's w). About 380 km², 20 m cells.
 - **Landmarks:** Лесново monastery, Злетово's mines, Пробиштип's centre.
 
-### 29. 034 Валандово ✓ built (2026-11-26, branch `city-valandovo`, not released)
+### 29. 034 Валандово ✓ built (2026-11-26, branch `city-valandovo`, not released; developer Филип Калковалиев)
 
 - **Built:** the box as planned, `?city=valandovo`, badge 034 (shared with Дојран), 20 m cells, 54–1393 m. OSM 1,936 of 1,940
   buildings and 917 of 917 roads (count query); Overture adds 7,255 outlines (9,191 buildings, scene 2.3 MB). Refilling over
