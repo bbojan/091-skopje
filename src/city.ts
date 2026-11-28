@@ -628,6 +628,9 @@ export interface CityOptions {
   stream?: boolean;
   /** fewer, larger trees in green areas far from the town (CitySpec.treeThin) */
   treeThin?: TreeThin;
+  /** no trees in green areas above this height (m above the map's lowest point), thinning out over the 150 m below it
+   *  (CitySpec.treeLine; unset: trees at any height) */
+  treeLine?: number;
   /** vineyards and fields on open, gentle land up to this height (m, CitySpec.vineyards) */
   vineyards?: number;
   /** the share of those plots that are vineyards, the rest fields (CitySpec.vineShare; default 0.52) */
@@ -1348,6 +1351,10 @@ export function* computeCitySteps(data: CityData, terrain: Terrain, opts: CityOp
               if (hash01(px, pz) > keep) continue;
               rad *= Math.min(thin.grow, keep ** -0.25);
             }
+          }
+          if (opts.treeLine !== undefined) { // high mountains: bare pastures and rock above the tree line
+            const over = T(px, pz) - opts.treeLine + 150;
+            if (over > 0 && hash01(pz, px) * 150 < over) continue;
           }
           if (!placeOk(px, pz, isC ? 2.2 : rad * (forest ? 1.25 : 1.15))) continue;
           addTree(isC ? 'cyp' : 'trees', px, pz, rad, forest ? -rr() - 0.001 : rr());

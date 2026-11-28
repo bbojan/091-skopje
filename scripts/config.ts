@@ -341,6 +341,21 @@ export const CITIES = {
     files: { raw: 'data/golobrdo_raw.json', scene: 'public/golobrdo.json', terrainBin: 'public/golobrdo-terrain.bin', terrainJson: 'public/golobrdo-terrain.json', overture: 'data/golobrdo_overture.json' },
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Кораб (docs/TOWNS_TODO.md, 18; a working name): Кораб (2764 m) and its waterfall, the border ridge of Шар Планина west
+  // of Тетово's map, the upper Радика and the high pastures; trimmed to the border: the w edge steps from 20.49
+  // to 20.54 going north, about 2 km past the OSM border (Albania and Kosovo beyond). Edge to edge with Ростуше (s),
+  // Тетово (e) and Голо Брдо (its ne corner)
+  korab: {
+    bbox: { s: 41.725, w: 20.49, n: 41.925, e: 20.72 },
+    tiles: [4, 4] as [number, number],
+    files: { raw: 'data/korab_raw.json', scene: 'public/korab.json', terrainBin: 'public/korab-terrain.bin', terrainJson: 'public/korab-terrain.json', overture: 'data/korab_overture.json' },
+    cut: [
+      { s: 41.775, w: 20.49, n: 41.925, e: 20.50 }, // Albania and Kosovo beyond the border (zones.ts: the steps of Кораб's outline)
+      { s: 41.825, w: 20.50, n: 41.925, e: 20.54 },
+    ],
+    // Голем Кораб's summit (2764 m): the 20 m cells and the smoothing leave it ~50 m low
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [[41.79034, 20.54686, 2764, 300]] } as TerrainSpec,
+  },
 } satisfies Record<string, { bbox: Box; tiles: [number, number]; files: CityFiles; terrain: TerrainSpec; cut?: Box[] }>;
 
 export type CityName = keyof typeof CITIES;
