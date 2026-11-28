@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo', 'vinica', 'korab', 'probistip', 'gevgelija'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo', 'vinica', 'korab', 'probistip', 'gevgelija', 'krivapalanka'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -1462,6 +1462,89 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.probistip',
     bestRaceKey: 'skopje.bestRace.probistip',
     banners: { fire: 'Пробиштип е спасен!', roll: 'Поздрав од Пробиштип!' },
+  },
+  krivapalanka: {
+    id: 'krivapalanka', name: 'Крива Паланка', code: '031', icon: './favicon-krivapalanka.svg',
+    files: { scene: './krivapalanka.json', terrainBin: './krivapalanka-terrain.bin', terrainJson: './krivapalanka-terrain.json' },
+    sceneBytes: 2.1e6,
+    views: {
+      center: { place: 'krivapalanka', ll: [42.20381, 22.33367], d: 650, polar: 0.82, az: 0.3 },
+      kposogovo: { place: 'kpjoakim', ll: [42.20863, 22.36231], d: 320, polar: 0.95, az: 0.5 }, // the monastery on its hill above the town
+      kpbazaar: { ll: [42.20280, 22.33450], d: 330, polar: 0.9, az: -0.3 }, // the old bazaar by the Крива Река and Св. Димитриј
+      kpdevebair: { place: 'kpdevebair', ll: [42.22049, 22.45876], d: 600, polar: 0.95, az: -0.4 }, // the crossing, Гюешево past it
+      kpreka: { ll: [42.20000, 22.39000], d: 2600, polar: 1.05, az: -1.3 }, // up the Крива Река from the town toward Деве Баир
+      kpruen: { place: 'kpruen', ll: [42.15801, 22.51627], d: 2600, polar: 1.1, az: -0.2 }, // Руен, Осогово's top, from the north
+      overview: { ll: [42.25000, 22.42000], d: 26000, polar: 0.72, az: 0 }, // 26 km: the controls' limit
+    },
+    districts: [
+      ['Крива Паланка', 42.20381, 22.33367], ['Конопница', 42.18121, 22.28651, 30], ['Т\'лминци', 42.18653, 22.26225, 30],
+      ['Градец', 42.21953, 22.30138, 30], ['Осиче', 42.24999, 22.30569, 30], ['Габар', 42.25071, 22.26035, 30],
+      ['Добровница', 42.27532, 22.32243, 30], ['Трново', 42.27543, 22.38238, 30], ['Мала Црцорија', 42.28663, 22.34921, 30],
+      ['Голема Црцорија', 42.31457, 22.33419, 30], ['Голеш', 42.32891, 22.33131, 30], ['Крстов Дол', 42.30720, 22.29842, 30],
+      ['Подржи Коњ', 42.30490, 22.26796, 30], ['Варовиште', 42.21556, 22.36100, 30], ['Жидилово', 42.22483, 22.39826, 30],
+      ['Кркља', 42.21482, 22.39623, 30], ['Узем', 42.22212, 22.42440, 30], ['Костур', 42.20571, 22.43700, 30],
+      ['Дурачка Река', 42.18163, 22.36078, 30], ['Станци', 42.17687, 22.37648, 30], ['Б\'с', 42.18780, 22.38765, 30],
+      ['Осогово', 42.15000, 22.42000, 150],
+    ],
+    labels: [
+      ['Осоговски манастир', 42.20950, 22.36301, 20, 'kpbogorodica'],
+      ['Св. Јоаким Осоговски', 42.20863, 22.36231, 12, 'kpjoakim'],
+      ['Рождество на Пресвета Богородица', 42.20883, 22.36237, 10, 'kpbogorodica'],
+      ['Св. Димитриј', 42.20227, 22.33567, 12, 'kpdimitrij'],
+      ['Стара чаршија', 42.20280, 22.33450, 8],
+      ['Градски музеј', 42.20201, 22.33490, 8, 'kpmuseum'],
+      ['Градски стадион', 42.21108, 22.34294, 8, 'kpstadium'],
+      ['Граничен премин Деве Баир', 42.22049, 22.45876, 14, 'kpdevebair'],
+      ['Граничен премин Голеш', 42.32646, 22.33151, 14, 'kpgoles'],
+      ['Станечки водопади', 42.17633, 22.39643, 10, 'kpvodopadi'],
+      ['Руен', 42.15801, 22.51627, 40, 'kpruen'],
+      ['Царев Врв', 42.12617, 22.45210, 40, 'kpcarev'],
+      ['Трновски Ветер', 42.27035, 22.38196, 10, 'kpveter'],
+      ['Крива Река', 42.20150, 22.34500, 6, undefined, 'river'],
+      ['Крива Река', 42.19800, 22.42500, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Крива Паланка', 42.20381, 22.33367, 45, 'krivapalanka'],
+      ['Осоговски манастир', 42.20950, 22.36301, 50, 'kpbogorodica'],
+      ['Варовиште', 42.21556, 22.36100, 50],
+      ['Жидилово', 42.22483, 22.39826, 55],
+      ['Узем', 42.22212, 22.42440, 55],
+      ['Деве Баир', 42.22049, 22.45876, 55, 'kpdevebair'],
+      ['Костур', 42.20571, 22.43700, 55],
+      ['Руен', 42.15801, 22.51627, 80, 'kpruen'],
+      ['Царев Врв', 42.12617, 22.45210, 80, 'kpcarev'],
+      ['Станечки водопади', 42.17633, 22.39643, 55, 'kpvodopadi'],
+      ['Дурачка Река', 42.18163, 22.36078, 50],
+      ['Конопница', 42.18121, 22.28651, 50],
+      ['Градец', 42.21953, 22.30138, 50],
+      ['Добровница', 42.27532, 22.32243, 55],
+      ['Голема Црцорија', 42.31457, 22.33419, 55],
+      ['Трново', 42.27543, 22.38238, 55],
+      ['Стара чаршија', 42.20280, 22.33450, 45],
+    ],
+    spots: [
+      ['kp.town', 'Крива Паланка', 42.20381, 22.33367, 70, 'krivapalanka'],
+      ['kp.osogovo', 'Осоговски манастир', 42.20950, 22.36301, 120, 'kpbogorodica'],
+      ['kp.bazaar', 'Стара чаршија', 42.20280, 22.33450, 80],
+      ['kp.devebair', 'Деве Баир', 42.22049, 22.45876, 150, 'kpdevebair'],
+      ['kp.reka', 'Крива Река', 42.20150, 22.34500, 150],
+      ['kp.ruen', 'Руен', 42.15801, 22.51627, 300, 'kpruen'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [42.20381, 22.33367], near: 3500, far: 8500, min: 0.1, grow: 1.6 },
+    sparseFar: 1500,
+    // the high pastures of Осогово above ~1750 m (Руен 2251 m) stay bare
+    treeLine: 1200, // m above the map's lowest point (547 m): ~1750 m
+    // the fields and meadows of the Крива Река valley; no vineyards up here
+    vineyards: 400,
+    vineShare: 0.02,
+    walker: 'pejo',
+    snowLabel: 'weather.osogovo',
+    refillLabel: 'fire.refill.krivapalanka',
+    bestRaceKey: 'skopje.bestRace.krivapalanka',
+    banners: { fire: 'Крива Паланка е спасена!', roll: 'Поздрав од Крива Паланка!' },
   },
   gevgelija: {
     id: 'gevgelija', name: 'Гевгелија, Богданци', code: '034', icon: './favicon-gevgelija.svg',

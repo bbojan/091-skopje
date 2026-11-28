@@ -279,6 +279,22 @@ export const CITIES = {
     ],
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Крива Паланка (docs/TOWNS_TODO.md, 26): Крива Паланка and Осоговски манастир, Ранковце, the Крива Река up to the
+  // Bulgarian border at Деве Баир, Осогово's northern slopes. Edge to edge with Кратово (w; its L's corner is this map)
+  // and Каменица (s); the n edge steps down along the Serbian and Bulgarian border about 2 km past it (src/zones.ts)
+  krivapalanka: {
+    bbox: { s: 42.125, w: 22.25, n: 42.38, e: 22.60 },
+    tiles: [7, 6] as [number, number],
+    files: { raw: 'data/krivapalanka_raw.json', scene: 'public/krivapalanka.json', terrainBin: 'public/krivapalanka-terrain.bin', terrainJson: 'public/krivapalanka-terrain.json' },
+    cut: [
+      { s: 42.35, w: 22.35, n: 42.38, e: 22.60 }, // past the border (Serbia, Bulgaria): the stepped n edge
+      { s: 42.33, w: 22.40, n: 42.35, e: 22.60 },
+      { s: 42.28, w: 22.45, n: 42.33, e: 22.60 },
+      { s: 42.22, w: 22.50, n: 42.28, e: 22.60 },
+      { s: 42.16, w: 22.55, n: 42.22, e: 22.60 },
+    ],
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
   // Штип (docs/TOWNS_TODO.md, 3): the town on the Брегалница under Исар, Карбинци, the Брегалница from Штип toward
   // Кочани's plain, Лакавица. Edge to edge with Пробиштип (n), Кочани and Радовиш (e), Неготино and Струмица (s),
   // Велес (w)
