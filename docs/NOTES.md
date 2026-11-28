@@ -901,6 +901,26 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    `requestAnimationFrame` replaced by a 4 ms timer). Not checked: the DEM against EU-DEM, flying the F-15 in from a
    neighbour, firefighting and the race in play, the walking cards one by one, night and snow views, phones.
 
+54. **042 Кораб** (2026-11-28, branch `claude/city-korab-3dbf80`, not released; 6th in the build order; built unattended,
+   the owner not asked): Кораб and Горна Река (docs/TOWNS_TODO.md, 18), the zone as trimmed to the border: 41.725–41.925 N,
+   20.49–20.72 E with two `cut` rectangles for the steps on the west (Albania and Kosovo), 19.1 × 22.3 km, 20 m cells,
+   928–2766 m; edge to edge with Ростуше (s), Тетово (e) and Голо Брдо (its ne corner). Raw OSM from Geofabrik's
+   Macedonian (2026-11-24), Albanian and Kosovo (2026-11-28) extracts with `scripts/pbf2overpass.py` (overpass-api.de did
+   not answer a count query): 137 buildings and 402 roads in the box (Overture's own OSM copy skipped all 137); Горна Река's
+   villages are almost unmapped, so Overture adds 275 outlines (359 buildings, 354 roads, scene 0.44 MB after the cuts).
+   The DEM leaves Голем Кораб at 2709 m: a known-height point (`points`, radius 300 m) sets it to 2764 m. **New:
+   `treeLine`** in `CitySpec` (src/cities.ts → `computeCitySteps`): green areas scatter trees at any height, so the alpine
+   meadows round Кораб (one OSM meadow is ~260 km²) came out wooded; above `treeLine` (m above the map's lowest point,
+   here 850 ≈ 1780 m) no trees, thinning out over the 150 m below it, from a position hash (no draw from the shared
+   random stream, so maps without it are unchanged). Refilling over the Радика (a line in OSM, `waterLines`). No hand-built
+   models: the waterfall is a label, a view and an info card. Badge **042** (Горна Река's villages are in Маврово и
+   Ростуше: shared with Ростуше) and the name Кораб, both unconfirmed; the owner's LinkedIn; snow label „Снег на Кораб“;
+   favicon a snow-capped peak over the waterfall. Јеловјане, named in the plan, lies on Тетово's map (41.96 N, 20.90 E).
+   Checked: typecheck, build (the files in `dist/`), the map and its views by day, no console errors, the F-15 over the map
+   (country vs map heights: mean 0, max +19 m; the radar shows it in colour), Skopje pixel check (0 on six views; 1–5 pixels
+   on the overviews before the `treeLine` code, 13–16 after it, 3 s vs ~10 s after load: the gondola's cabins). Not checked: switching memory, flying the F-15 in from a neighbour,
+   firefighting and the race in play, the walking cards one by one, night and snow views, phones.
+
 ## Country view (Nov 2026)
 
 - **What:** Macedonia, first in the city menu (a tile as tall as four cities, `.country-tile`), shows the whole country with every map's zone (`src/zones.ts`,
@@ -1179,6 +1199,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Демир Капија | `skopje.bestRace.demirkapija` | none |
 | Best race time in Голо Брдо | `skopje.bestRace.golobrdo` | none |
 | Best race time in Виница | `skopje.bestRace.vinica` | none |
+| Best race time in Кораб | `skopje.bestRace.korab` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.

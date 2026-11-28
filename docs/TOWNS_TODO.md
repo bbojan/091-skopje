@@ -6,7 +6,8 @@
 045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. **Released in v32.0.0 (2026-11-24), 23 maps in all:** 0903 Кочани,
 047 Меџитлија, 031 Кратово (developer Бранко Славков), 092 Штип and 0902 Струмица (developer Калина Јовановска), 043 Неготино
 and 043 Демир Капија (developer Ристе Самарџиев). **Built since, not released:** 046 Голо Брдо (2026-11-25, on `develop`), 034 Валандово (2026-11-26, branch
-`city-valandovo`, developer Филип Калковалиев), 033 Виница (2026-11-28, branch `claude/city-vinica-3fcf8e`).
+`city-valandovo`, developer Филип Калковалиев), 033 Виница (2026-11-28, branch `claude/city-vinica-3fcf8e`),
+042 Кораб (2026-11-28, branch `claude/city-korab-3dbf80`; badge and name unconfirmed).
 Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
@@ -22,7 +23,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Валандово and Виница built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Валандово, Виница and Кораб built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -35,7 +36,7 @@ towns on it):
 | Ново Село* | 1060 | — | | ~~Валандово~~ built | 410 | Валандово |
 | Скопска Црна Гора* | 1010 | — | | Пробиштип | 380 | Пробиштип |
 | Новаци* | 970 | — | | ~~Неготино~~ built | 370 | Неготино |
-| Радовиш | 900 | Радовиш | | Кораб* | 370 | — |
+| Радовиш | 900 | Радовиш | | ~~Кораб*~~ built | 370 | — |
 | ~~Штип~~ built | 820 | Штип | | ~~Виница~~ built | 340 | Виница |
 | ~~Демир Капија~~ built | 820 | Демир Капија | | ~~Голо Брдо*~~ built | 280 | — |
 | Демир Хисар | 810 | Демир Хисар | | ~~Меџитлија*~~ built | 300 | — |
@@ -117,7 +118,7 @@ its own.
 | Гевгелија, Богданци | 093 | 034 | 034 | shares 034 |
 | Тетово, Гостивар ✓ | **094** | 044 / 042 | **094** | as now |
 | Ростуше, Дебар, Маврово ✓ | 094 / 096 | 042 / 046 | 042 | as now |
-| Кораб | 094 / 096 | 042 / 046 | 042 or 046 | shares either |
+| Кораб ✓ | 094 / 096 | 042 / 046 | 042 | shares 042 with Ростуше; built 2026-11-28 (code and name unconfirmed, chosen during the unattended build: Горна Река's villages are in Маврово и Ростуше, 042) |
 | Кичево | **095** | 045 | **095** | |
 | Брод ✓ | 095 | 045 | 045 | as now |
 | Охрид, Струга ✓ | **096** | 046 | **096** | as now |
@@ -135,9 +136,8 @@ its own.
 
 **Shared codes:** 02 Матка, Батинци, Скопска Црна Гора · 031 Кратово, Крива Паланка · 032 Пробиштип, Свети Николе,
 Радовиш · 033 Каменица, Берово, Виница, Делчево · 034 Дојран, Гевгелија, Валандово, Ново Село · 043 Кавадарци,
-Неготино, Демир Капија, Стоби · 046 Вевчани, Славна Дебарца, Голо Брдо (and Кораб with 046) · 047 Ресен, Демир Хисар,
-Новаци, Меџитлија · 048 Крушево, Мариово. Codes of one map only: the 11 old codes, 042 Ростуше (unless Кораб
-takes it), 045 Брод.
+Неготино, Демир Капија, Стоби · 046 Вевчани, Славна Дебарца, Голо Брдо · 042 Ростуше, Кораб · 047 Ресен, Демир Хисар,
+Новаци, Меџитлија · 048 Крушево, Мариово. Codes of one map only: the 11 old codes, 045 Брод.
 
 **Maps on more than one code** (the badge follows the main town): Ростуше, Дебар, Маврово (Маврово 094 / Дебар
 096; new: 042 / 046 with Центар Жупа); Мариово (mostly Прилеп's 098, parts of Кавадарци's 093 and Битола's 097);
@@ -165,7 +165,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 3 | ~~Голо Брдо*~~ built (2026-11-25, on `develop`) | 280 | — | 19 |
 | 4 | ~~Виница~~ built (2026-11-28, branch `claude/city-vinica-3fcf8e`) | 340 | Виница | 32 |
 | 5 | ~~Неготино~~ built (2026-11-24, branch `negotino`) | 370 | Неготино | 5 |
-| 6 | Кораб* | 370 | — | 18 |
+| 6 | ~~Кораб*~~ built (2026-11-28, branch `claude/city-korab-3dbf80`) | 370 | — | 18 |
 | 7 | Пробиштип | 380 | Пробиштип | 28 |
 | 8 | ~~Валандово~~ built (2026-11-26, branch `city-valandovo`) | 410 | Валандово | 29 |
 | 9 | ~~Матка*~~ built (2026-11-23, out of order) | 500 | — | 20 |
@@ -215,6 +215,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 046 Голо Брдо (not released yet) | Пешкопија, Макелари, Острени (Albania) | `golobrdo` | 41.39, 20.40, 41.725, 20.49 |
 | 034 Валандово (not released yet) | Јосифово, Пиперево, Миравско Езеро | `valandovo` | 41.25, 22.32, 41.38, 22.66 |
 | 033 Виница (not released yet) | Блатец, Истибања, Виничко Кале, Пекљани | `vinica` | 41.80, 22.46, 41.945, 22.71 |
+| 042 Кораб (not released yet) | Голем Кораб, Корабски водопад, Горна Река (Жужње, Нистрово, Бродец), Шар Планина | `korab` | 41.725, 20.49, 41.925, 20.72 (the steps past the border cut) |
 
 ## Planned maps
 
@@ -463,7 +464,18 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
   It could also be added to Битола's map instead of being a map of its own.
 - **Landmarks:** the border crossing, the fields, Пелистер's eastern foot.
 
-### 18. Кораб (name open)
+### 18. 042 Кораб ✓ built (2026-11-28, branch `claude/city-korab-3dbf80`, not released)
+
+- **Built** unattended (the owner was not asked): the trimmed zone, `?city=korab`, 41.725–41.925 N, 20.49–20.72 E with the
+  two steps on the west as `cut` rectangles (41.775–41.925 × 20.49–20.50, 41.825–41.925 × 20.50–20.54), 20 m cells,
+  928–2766 m (Голем Кораб's summit pinned to 2764 m). Raw OSM from Geofabrik's Macedonian, Albanian and Kosovo extracts
+  (`pbf2overpass.py`; Overpass did not answer): 137 buildings, 402 roads; Overture adds 275 outlines (359 buildings in the
+  scene). Refilling over the Радика (widened line). New `treeLine` (src/cities.ts): the alpine meadows above ~1780 m stay
+  bare. **Unconfirmed, chosen during the unattended build:** the badge **042** (Горна Река's villages are in Маврово и
+  Ростуше; shared with Ростуше) and the name **Кораб** (the working name); developer the owner (default). Not on it:
+  Јеловјане (41.96 N, 20.90 E in OSM, on Тетово's map). Not done: the waterfall as a model (a label and a view only), sheepfolds
+  beyond OSM's few farm buildings.
+
 
 - **On it:** Кораб (the highest peak, 2764 m) and its waterfall, Јеловјане, the border ridge of Шар Планина west of
   Тетово's map, the upper Радика.
