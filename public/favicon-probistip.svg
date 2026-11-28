@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Пробиштип: Лесново's church (a domed drum on a cross-in-square) over the miners' crossed hammers -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <path d="M24 62 V44 H38 V34 Q50 20 62 34 V44 H76 V62 Z" fill="#1f2a44"/>
+  <path d="M50 14 V24 M45 18 H55" stroke="#b8862c" stroke-width="4" stroke-linecap="round"/>
+  <path d="M28 88 L52 70 M72 88 L48 70" stroke="#7a1f1a" stroke-width="6" stroke-linecap="round"/>
+  <path d="M46 66 L56 74 M54 66 L44 74" stroke="#7a1f1a" stroke-width="9" stroke-linecap="round"/>
+</svg>

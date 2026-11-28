@@ -921,6 +921,23 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    on the overviews before the `treeLine` code, 13–16 after it, 3 s vs ~10 s after load: the gondola's cabins). Not checked: switching memory, flying the F-15 in from a neighbour,
    firefighting and the race in play, the walking cards one by one, night and snow views, phones.
 
+55. **032 Пробиштип** (2026-11-28, branch `claude/city-probistip-e002cd`, not released; 7th in the build order; built unattended): Пробиштип,
+   Злетово and its mine, Лесновски манастир, the Злетовица, Кочанско Езеро behind the Гратче dam and Пониква on Осогово
+   (docs/TOWNS_TODO.md, 28): 41.945–42.04 N, 22.062–22.495 E, 35.8 × 10.6 km, 20 m cells, 388–1628 m; edge to edge with
+   Кратово (n), Каменица (e), Штип, Кочани and Виница (s). Raw OSM from Geofabrik's Macedonian extract (2026-11-24) with
+   `scripts/pbf2overpass.py` (overpass-api.de did not answer a count query): 540 buildings, 893 roads. **Overture adds
+   nothing here**: releases 2026-11-18.0 and 2026-10-21.0 hold only their copy of the same 540 OSM outlines in this box (no
+   Microsoft footprints), so `files.overture` is left out and the town's blocks between mapped streets are thin (538
+   buildings in the scene, 0.92 MB). Heights: a `mid` zone over the centre's blocks of flats, `maxLevels` 6. Views of Лесново,
+   Злетово, the mine's works and tailings pond, Кочанско Езеро (refilling) and Осогово; 15 race rings, six walking cards
+   (src/i18n-towns14.ts); snow label „Снег на Осогово“ (Каменица's). Лесново's Св. Архангел Михаил is `byzChurch` on its
+   OSM outline (`models: { lesnovo }`, src/probistip.ts) after the mk / en Wikipedia descriptions, no photos: cloisonné
+   walls, a tall octagonal drum, a narthex; sizes guessed. Favicon: the church over crossed miners' hammers.
+   Checked: typecheck, build (the files in `dist/`), the map and views by day, no console errors, the F-15 over the map
+   (country vs map heights: mean 0, max +12 m), Skopje pixel check (0 on six views, 1–3 pixels on the overviews: the
+   gondola). Not checked: switching memory, flying the F-15 in from a neighbour, firefighting and the race in play, the
+   walking cards one by one, night and snow views, phones.
+
 ## Country view (Nov 2026)
 
 - **What:** Macedonia, first in the city menu (a tile as tall as four cities, `.country-tile`), shows the whole country with every map's zone (`src/zones.ts`,
@@ -1200,6 +1217,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Голо Брдо | `skopje.bestRace.golobrdo` | none |
 | Best race time in Виница | `skopje.bestRace.vinica` | none |
 | Best race time in Кораб | `skopje.bestRace.korab` | none |
+| Best race time in Пробиштип | `skopje.bestRace.probistip` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
