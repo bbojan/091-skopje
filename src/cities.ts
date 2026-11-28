@@ -19,6 +19,15 @@ export const POPULATION: Record<CityId, number> = {
   kamenica: 4368, krusevo: 4104, valandovo: 3671, brod: 3643, demirkapija: 2643, vevcani: 2343, dojran: 997 + 413,
   medzitlija: 155, korab: 0, matka: 0,
 };
+/** The city menu's order (the owner's rule, 2026-11-28): these first, in this order; then the rest by POPULATION,
+ *  the most people first; MENU_LAST at the very bottom. */
+export const MENU_FIRST: CityId[] = ['skopje', 'kavadarci', 'ohrid', 'krusevo', 'bitola', 'rostuse'];
+export const MENU_LAST: CityId[] = ['golobrdo'];
+export const MENU_ORDER: CityId[] = [
+  ...MENU_FIRST,
+  ...CITY_IDS.filter((id) => !MENU_FIRST.includes(id) && !MENU_LAST.includes(id)).sort((a, b) => POPULATION[b] - POPULATION[a]),
+  ...MENU_LAST,
+];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
 
