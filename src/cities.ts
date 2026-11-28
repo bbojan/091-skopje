@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo', 'vinica', 'korab', 'probistip'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo', 'vinica', 'korab', 'probistip', 'gevgelija'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -1462,6 +1462,83 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.probistip',
     bestRaceKey: 'skopje.bestRace.probistip',
     banners: { fire: 'Пробиштип е спасен!', roll: 'Поздрав од Пробиштип!' },
+  },
+  gevgelija: {
+    id: 'gevgelija', name: 'Гевгелија, Богданци', code: '034', icon: './favicon-gevgelija.svg',
+    files: { scene: './gevgelija.json', terrainBin: './gevgelija-terrain.bin', terrainJson: './gevgelija-terrain.json' },
+    sceneBytes: 4.3e6,
+    views: {
+      center: { place: 'gevgelija', ll: [41.13887, 22.50332], d: 650, polar: 0.82, az: 0.3 },
+      gvbogdanci: { place: 'gvbogdanci', ll: [41.20161, 22.57765], d: 650, polar: 0.85, az: 0.4 },
+      gvwind: { ll: [41.22400, 22.55900], d: 1500, polar: 1.12, az: 2.7 }, // the wind farm's ridge from the north-west, the rotors facing the camera
+      gvbanji: { place: 'gvbanji', ll: [41.17163, 22.49106], d: 380, polar: 0.92, az: 0.5 },
+      gvborder: { place: 'gvborder', ll: [41.12767, 22.55154], d: 520, polar: 0.9, az: -0.6 }, // Богородица – Евзони on the motorway
+      gvvardar: { ll: [41.15500, 22.52500], d: 2400, polar: 1.05, az: 0.2 }, // the Вардар past Гевгелија toward the border
+      overview: { ll: [41.17000, 22.53500], d: 26000, polar: 0.72, az: 0 }, // 26 km: the controls' limit
+    },
+    districts: [
+      ['Гевгелија', 41.13887, 22.50332], ['Богданци', 41.20161, 22.57765], ['Негорци', 41.18346, 22.47964, 30],
+      ['Богородица', 41.14042, 22.54929, 30], ['Мачуково', 41.10470, 22.55756, 30], ['Сехово', 41.12208, 22.51086, 30],
+      ['Моин', 41.13372, 22.44960, 30], ['Ново Конско', 41.15537, 22.43829, 30], ['Ума', 41.15045, 22.32781, 30],
+      ['Серменин', 41.21921, 22.34533, 30], ['Кованец', 41.22470, 22.41375, 30], ['Прдејци', 41.20764, 22.50131, 30],
+      ['Мрзенци', 41.16555, 22.50252, 30], ['Ѓавато', 41.19389, 22.53606, 30], ['Стојаково', 41.15615, 22.57805, 30],
+      ['Селемли', 41.15077, 22.61743, 30], ['Фурка', 41.24117, 22.61330, 30], ['Црничани', 41.23580, 22.65452, 30],
+    ],
+    labels: [
+      ['Негорски Бањи', 41.17163, 22.49106, 14, 'gvbanji'],
+      ['Вардарски Рид', 41.14857, 22.52179, 20, 'gvrid'],
+      ['Ветерен парк Богданци', 41.22600, 22.56000, 110],
+      ['Граничен премин Богородица', 41.12767, 22.55154, 14, 'gvborder'],
+      ['Св. Спас', 41.13916, 22.51091, 12, 'gvspas'],
+      ['Св. Кирил и Методиј', 41.13898, 22.50426, 12, 'gvkiril'],
+      ['Св. Петар и Павле', 41.13872, 22.50513, 12, 'gvpetar'],
+      ['Централен Парк', 41.13917, 22.50256, 8, 'gvpark'],
+      ['Два Коња', 41.14586, 22.50018, 8, 'gvkonji'],
+      ['Споменик на слободата', 41.15826, 22.50068, 10, 'gvsloboda'],
+      ['Градски парк Богданци', 41.20355, 22.57613, 8, 'gvbpark'],
+      ['Св. Атанасиј', 41.20404, 22.57635, 12, 'gvbatanas'],
+      ['Св. Атанасиј Велики', 41.18364, 22.47936, 12, 'gvnatanas'],
+      ['Селемлиско Езеро', 41.14303, 22.61443, 8, 'gvselemli'],
+      ['Вардар', 41.17200, 22.52600, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Гевгелија', 41.13887, 22.50332, 45, 'gevgelija'],
+      ['Вардарски Рид', 41.14857, 22.52179, 55, 'gvrid'],
+      ['Богородица', 41.14042, 22.54929, 50],
+      ['Стојаково', 41.15615, 22.57805, 50],
+      ['Селемли', 41.15077, 22.61743, 50],
+      ['Богданци', 41.20161, 22.57765, 50, 'gvbogdanci'],
+      ['Ветерен парк', 41.23000, 22.56300, 150],
+      ['Фурка', 41.24117, 22.61330, 55],
+      ['Прдејци', 41.20764, 22.50131, 55],
+      ['Негорци', 41.18346, 22.47964, 50],
+      ['Негорски Бањи', 41.17163, 22.49106, 45, 'gvbanji'],
+      ['Ново Конско', 41.15537, 22.43829, 55],
+      ['Моин', 41.13372, 22.44960, 55],
+      ['Сехово', 41.12208, 22.51086, 50],
+    ],
+    spots: [
+      ['gv.town', 'Гевгелија', 41.13887, 22.50332, 70, 'gevgelija'],
+      ['gv.bogdanci', 'Богданци', 41.20161, 22.57765, 70, 'gvbogdanci'],
+      ['gv.banji', 'Негорски Бањи', 41.17163, 22.49106, 120, 'gvbanji'],
+      ['gv.rid', 'Вардарски Рид', 41.14857, 22.52179, 120, 'gvrid'],
+      ['gv.border', 'Богородица', 41.12767, 22.55154, 150, 'gvborder'],
+      ['gv.wind', 'Ветерен парк Богданци', 41.22600, 22.56000, 400],
+      ['gv.vardar', 'Вардар', 41.17200, 22.52600, 250],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.13887, 22.50332], near: 4000, far: 9000, min: 0.12, grow: 1.6 },
+    sparseFar: 1500,
+    // the Гевгелија plain: fields, orchards and the vineyards of the Гевгелиско-Валандовско wine region
+    vineyards: 250, // m above the map's lowest point (the Вардар at the Greek border): the farmland up to ~300 m
+    vineShare: 0.3,
+    walker: 'pejo',
+    snowLabel: 'weather.hills',
+    refillLabel: 'fire.refill.gevgelija',
+    bestRaceKey: 'skopje.bestRace.gevgelija',
+    banners: { fire: 'Гевгелија е спасена!', roll: 'Поздрав од Гевгелија!' },
   },
   korab: {
     id: 'korab', name: 'Кораб', code: '042', icon: './favicon-korab.svg',

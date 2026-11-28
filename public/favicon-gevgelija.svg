@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Гевгелија, Богданци: a bunch of grapes (the vineyards of the Гевгелија plain) beside a wind turbine (Богданци), over the Вардар -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <g fill="#7a1f1a"><circle cx="30" cy="38" r="7"/><circle cx="44" cy="38" r="7"/><circle cx="37" cy="50" r="7"/><circle cx="23" cy="50" r="7"/><circle cx="51" cy="50" r="7"/><circle cx="30" cy="62" r="7"/><circle cx="44" cy="62" r="7"/><circle cx="37" cy="73" r="7"/></g>
+  <path d="M37 31 Q38 22 46 18" fill="none" stroke="#1f2a44" stroke-width="4" stroke-linecap="round"/>
+  <g stroke="#1f2a44" stroke-linecap="round" fill="none"><path d="M73 80 L75 34" stroke-width="5"/><path d="M75 32 L75 12 M75 32 L92 42 M75 32 L58 42" stroke-width="4"/></g>
+  <path d="M10 88 Q20 83 30 88 T50 88 T70 88 T90 88" fill="none" stroke="#1f2a44" stroke-width="4" stroke-linecap="round"/>
+</svg>

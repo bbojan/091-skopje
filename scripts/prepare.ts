@@ -642,6 +642,53 @@ const PREP: Record<CityName, CityPrep> = {
     maxLevels: 6,
     buildingTags: {},
   },
+  gevgelija: {
+    old: null,
+    square: [41.13900, 22.50330], // the centre of Гевгелија by the town hall and the Централен Парк (OSM has no square there)
+    landmarks: {},
+    models: {},
+    // the 16 turbines of the Богданци wind farm (OSM nodes), modelled by hand (src/gevgelija.ts); the pads keep trees off
+    modelRects: {
+      gvwind1: [41.213380, 22.540152, 14, 10, 0],
+      gvwind2: [41.216023, 22.543205, 14, 10, 0],
+      gvwind3: [41.216090, 22.546467, 14, 10, 0],
+      gvwind4: [41.221413, 22.549297, 14, 10, 0],
+      gvwind5: [41.222410, 22.553628, 14, 10, 0],
+      gvwind6: [41.224197, 22.555407, 14, 10, 0],
+      gvwind7: [41.225903, 22.557529, 14, 10, 0],
+      gvwind8: [41.227898, 22.559328, 14, 10, 0],
+      gvwind9: [41.230013, 22.561017, 14, 10, 0],
+      gvwind10: [41.230652, 22.563911, 14, 10, 0],
+      gvwind11: [41.230346, 22.567416, 14, 10, 0],
+      gvwind12: [41.229600, 22.570928, 14, 10, 0],
+      gvwind13: [41.230866, 22.573402, 14, 10, 0],
+      gvwind14: [41.232237, 22.576317, 14, 10, 0],
+      gvwind15: [41.233772, 22.578820, 14, 10, 0],
+      gvwind16: [41.235070, 22.581315, 14, 10, 0],
+    },
+    placeNames: {},
+    placeIds: {
+      gvrid: 227433408, gvspas: 405710098, gvkiril: 1105065787, gvpark: 841590073,
+      gvbpark: 840074815, gvbatanas: 840074824, gvselemli: 209972757, gvnatanas: 781153480, gvpetar: 1132997153,
+    },
+    placeNodes: {
+      gevgelija: 155946734, gvbogdanci: 417730262, gvnegorci: 540809797, gvbogorod: 540763871, gvborder: 2294293332,
+      gvkonji: 2360747213, gvsloboda: 4751492691, gvbanji: 2411245246,
+    },
+    nodeLL: {
+      155946734: [41.13887, 22.50332], 417730262: [41.20161, 22.57765], 540809797: [41.18346, 22.47964], // Гевгелија, Богданци, Негорци
+      540763871: [41.14042, 22.54929], 2294293332: [41.12767, 22.55154], // Богородица, the border crossing (Евзони on the Greek side)
+      2360747213: [41.14586, 22.50018], 4751492691: [41.15826, 22.50068], // Два Коња, Споменик на слободата
+      2411245246: [41.17179, 22.49073], // Негорски Бањи (the spa's OSM area is not fetched)
+    },
+    tall: [],
+    // no height zone: a `mid` box over the centre of Гевгелија turned its houses into a city of towers; the few blocks
+    // of flats come from OSM's tags and the size guesses
+    mid: [],
+    squareBonus: false,
+    maxLevels: 8,
+    buildingTags: {},
+  },
   probistip: {
     old: null,
     square: [41.99990, 22.17830], // the square in Пробиштип, by the statue of Св. Гаврил Лесновски (OSM has no square there)
