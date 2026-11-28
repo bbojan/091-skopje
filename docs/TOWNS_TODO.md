@@ -8,7 +8,7 @@
 and 043 Демир Капија (developer Ристе Самарџиев). **Built since, not released:** 046 Голо Брдо (2026-11-25, on `develop`), 034 Валандово (2026-11-26, branch
 `city-valandovo`, developer Филип Калковалиев), 033 Виница (2026-11-28, branch `claude/city-vinica-3fcf8e`),
 042 Кораб (2026-11-28, branch `claude/city-korab-3dbf80`; badge and name unconfirmed), 032 Пробиштип (2026-11-28, branch
-`claude/city-probistip-e002cd`).
+`claude/city-probistip-e002cd`), 034 Гевгелија, Богданци (2026-11-28, branch `claude/city-gevgelija-bbf1a8`).
 Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
@@ -24,7 +24,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Валандово, Виница, Кораб and Пробиштип built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Валандово, Виница, Кораб, Пробиштип and Гевгелија built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -33,7 +33,7 @@ towns on it):
 | Велес | 1540 | Велес | | Славна Дебарца | 630 | — |
 | Мариово* | 1460 | — | | Свети Николе | 580 | Свети Николе |
 | Кичево | 1160 | Кичево | | Крива Паланка | 570 | Крива Паланка |
-| Стоби* | 1150 | — | | Гевгелија | 510 | Гевгелија, Богданци |
+| Стоби* | 1150 | — | | ~~Гевгелија~~ built | 510 | Гевгелија, Богданци |
 | Ново Село* | 1060 | — | | ~~Валандово~~ built | 410 | Валандово |
 | Скопска Црна Гора* | 1010 | — | | ~~Пробиштип~~ built | 380 | Пробиштип |
 | Новаци* | 970 | — | | ~~Неготино~~ built | 370 | Неготино |
@@ -116,7 +116,7 @@ its own.
 | Стоби | 093 | 043 | 043 | shares 043 |
 | Неготино ✓ | 095 (?) | 043 | 043 | shares 043; built 2026-11-24 |
 | Дојран ✓ | 093 | 034 | 034 | as now; shares 034 |
-| Гевгелија, Богданци | 093 | 034 | 034 | shares 034 |
+| Гевгелија, Богданци ✓ | 093 | 034 | 034 | shares 034; built 2026-11-28 |
 | Тетово, Гостивар ✓ | **094** | 044 / 042 | **094** | as now |
 | Ростуше, Дебар, Маврово ✓ | 094 / 096 | 042 / 046 | 042 | as now |
 | Кораб ✓ | 094 / 096 | 042 / 046 | 042 | shares 042 with Ростуше; built 2026-11-28 (code and name unconfirmed, chosen during the unattended build: Горна Река's villages are in Маврово и Ростуше, 042) |
@@ -170,7 +170,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 7 | ~~Пробиштип~~ built (2026-11-28, branch `claude/city-probistip-e002cd`) | 380 | Пробиштип | 28 |
 | 8 | ~~Валандово~~ built (2026-11-26, branch `city-valandovo`) | 410 | Валандово | 29 |
 | 9 | ~~Матка*~~ built (2026-11-23, out of order) | 500 | — | 20 |
-| 10 | Гевгелија | 510 | Гевгелија, Богданци | 30 |
+| 10 | ~~Гевгелија~~ built (2026-11-28, branch `claude/city-gevgelija-bbf1a8`) | 510 | Гевгелија, Богданци | 30 |
 | 11 | Крива Паланка | 570 | Крива Паланка | 26 |
 | 12 | Свети Николе | 580 | Свети Николе | 22 |
 | 13 | Славна Дебарца | 630 | — | 27 |
@@ -218,6 +218,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 033 Виница (not released yet) | Блатец, Истибања, Виничко Кале, Пекљани | `vinica` | 41.80, 22.46, 41.945, 22.71 |
 | 042 Кораб (not released yet) | Голем Кораб, Корабски водопад, Горна Река (Жужње, Нистрово, Бродец), Шар Планина | `korab` | 41.725, 20.49, 41.925, 20.72 (the steps past the border cut) |
 | 032 Пробиштип (not released yet) | Злетово, Лесновски манастир, Кочанско Езеро, Пониква | `probistip` | 41.945, 22.062, 42.04, 22.495 |
+| 034 Гевгелија, Богданци (not released yet) | Негорци, Негорски Бањи, Богородица, the Богданци wind farm, the Вардар to the border | `gevgelija` | 41.10, 22.32, 41.25, 22.75 (Дојран's map cut out of the south-east corner) |
 
 ## Planned maps
 
@@ -621,7 +622,15 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
   (Демир Капија's e), e 22.66 (Ново Село's and Дојран's w). About 410 km², 20 m cells.
 - **Landmarks:** Isar near Марвинци, the pomegranate and fig orchards.
 
-### 30. Гевгелија
+### 30. 034 Гевгелија ✓ built (2026-11-28, branch `claude/city-gevgelija-bbf1a8`, not released)
+
+- **Built** unattended: the box as planned, `?city=gevgelija`, UI name „Гевгелија, Богданци“, 41.10–41.25 N, 22.32–22.75 E with
+  Дојран's map (41.15–41.25 N, 22.66–22.75 E) as a `cut`, 20 m cells, 39–1199 m; badge 034 (shared with Дојран, Валандово and
+  Ново Село). Raw OSM from Overpass (maps.mail.ru): 7,425 buildings and 2,847 roads, against a count query of 8,227 − 804 in
+  the cut. Overture adds 10,048 outlines (17,467 buildings, scene 4.28 MB). No height zone (a `mid` box made the centre a city
+  of towers). Refilling over the Вардар. The 16 turbines of the Богданци wind farm hand-built at OSM's nodes (src/gevgelija.ts).
+  Смоквица is on Валандово's map (41.259 N), not this one. Not done: Негорски Бањи's and the border crossing's buildings as
+  models.
 
 - **On it:** Гевгелија, Богданци, Негорци, Смоквица, the Vardar to the Greek border, the Богданци wind farm.
 - **UI name:** Гевгелија, Богданци (the map's two towns, as Охрид, Струга; decided 2026-11-23): `name` in `CITIES`;

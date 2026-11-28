@@ -938,6 +938,24 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    gondola). Not checked: switching memory, flying the F-15 in from a neighbour, firefighting and the race in play, the
    walking cards one by one, night and snow views, phones.
 
+56. **034 Гевгелија, Богданци** (2026-11-28, branch `claude/city-gevgelija-bbf1a8`, not released; 10th in the build order; built unattended):
+   Гевгелија and Богданци, Негорци and Негорски Бањи, the Вардар to the Greek border at Богородица, the Богданци wind farm
+   (docs/TOWNS_TODO.md, 30): 41.10–41.25 N, 22.32–22.75 E, 36.0 × 16.7 km, 20 m cells, 39–1199 m, with Дојран's map
+   (41.15–41.25 N, 22.66–22.75 E) as a `cut` rectangle; edge to edge with Валандово (n), Демир Капија (w) and Дојран. Raw OSM
+   from Overpass (overpass-api.de stalled; maps.mail.ru answered with a few 504 retries): 7,425 buildings and 2,847 roads, the
+   count query 8,227 buildings in the box minus 804 in the cut. Overture adds 10,048 Microsoft footprints (17,467 buildings in
+   the scene, 4.28 MB). **No height zone:** a `mid` box over Гевгелија's centre gave ~500 buildings of 7–9 storeys (a city of
+   towers); without it 5 buildings reach 7–8 storeys. The Greek strip south of the border is in the box (OSM's Greek data).
+   Views of Богданци, the wind farm, Негорски Бањи, the Богородица – Евзони crossing and the Вардар; 14 race rings, seven
+   walking cards (src/i18n-towns15.ts); refilling over the Вардар's water area (7.9 km² in the box). The wind farm's 16
+   turbines (ЕЛЕМ, 2014, 2.3 MW each) are hand-built at OSM's generator nodes (`modelRects` gvwind1–16, src/gevgelija.ts)
+   after the published type (Siemens SWT-2.3-93: hub ~80 m, rotor 93 m), no photos measured; the rotors face north and stand
+   still. Favicon: grapes and a wind turbine over the Вардар. The overview is at the controls' 26 km limit, so a narrow window
+   shows the middle of the map. Checked: typecheck, build (the files in `dist/`), the map, the overview and the wind farm view,
+   no console errors, Skopje pixel check (base commit e633b50 served on the same port: 0 pixels over 2/255 on all nine views).
+   Not checked: the F-15 over the map and in from a neighbour, switching memory, firefighting and the race in play, the
+   walking cards one by one, snow views, phones.
+
 ## Country view (Nov 2026)
 
 - **What:** Macedonia, first in the city menu (a tile as tall as four cities, `.country-tile`), shows the whole country with every map's zone (`src/zones.ts`,
@@ -1218,6 +1236,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Виница | `skopje.bestRace.vinica` | none |
 | Best race time in Кораб | `skopje.bestRace.korab` | none |
 | Best race time in Пробиштип | `skopje.bestRace.probistip` | none |
+| Best race time in Гевгелија | `skopje.bestRace.gevgelija` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.
