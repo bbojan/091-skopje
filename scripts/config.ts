@@ -305,6 +305,14 @@ export const CITIES = {
     files: { raw: 'data/valandovo_raw.json', scene: 'public/valandovo.json', terrainBin: 'public/valandovo-terrain.bin', terrainJson: 'public/valandovo-terrain.json', overture: 'data/valandovo_overture.json' },
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Виница (docs/TOWNS_TODO.md, 32): Виница and Виничко Кале, Блатец, Истибања, the Осоговски foothills to the north and
+  // the hills toward Делчево. Edge to edge with Кочани (w), Каменица (n), Делчево (e) and Радовиш (s)
+  vinica: {
+    bbox: { s: 41.80, w: 22.46, n: 41.945, e: 22.71 },
+    tiles: [5, 3] as [number, number],
+    files: { raw: 'data/vinica_raw.json', scene: 'public/vinica.json', terrainBin: 'public/vinica-terrain.bin', terrainJson: 'public/vinica-terrain.json', overture: 'data/vinica_overture.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
   // Неготино (docs/TOWNS_TODO.md, 5): the town on the Вардар's left bank, its vineyards and the Тиквешко Поле's east
   // end, Пепелиште, Дуброво and Тремник, the Вардар from Криволак down to Демир Капија's gorge. Edge to edge with
   // Кавадарци (w), Демир Капија (s) and Штип (n)

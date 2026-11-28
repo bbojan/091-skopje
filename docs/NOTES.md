@@ -880,6 +880,27 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    replaced by a 4 ms timer). Not checked: flying the F-15 in from Ростуше, firefighting and the race in play, the walking
    cards one by one, night and snow views, phones.
 
+53. **033 Виница** (2026-11-28, branch `claude/city-vinica-3fcf8e`, not released; 4th in the build order; built unattended,
+   the owner not asked): the east end of Кочанска Котлина (docs/TOWNS_TODO.md, 32), box 41.80–41.945 N, 22.46–22.71 E as
+   planned (20.7 × 16.1 km, 20 m cells, 332–1704 m), edge to edge with Кочани (w), Каменица and Пробиштип (n), Делчево
+   (e) and Радовиш (s). Raw OSM from Geofabrik's Macedonian extract of 2026-11-24 (`scripts/pbf2overpass.py`;
+   overpass-api.de answered the count query but the download crawled, 5 of 15 tiles in ~10 minutes): 1,517 of 1,517
+   buildings and 828 of 828 roads (count query). Overture adds 7,547 outlines (9,062 buildings, scene 2.24 MB). A small
+   `mid` zone round the centre (`maxLevels: 6`; the first, larger zone made 113 houses of the centre 8-storey towers);
+   three churches, two petrol stations, the police and Ќазим-бег's house pinned. Refilling over the Брегалница (a line in
+   OSM, widened by `waterLines` as on Кочани's map) and Истибањско Езеро; rice paddies on the low plain (`rice: [0.6, 40]`).
+   Model (`src/vinica.ts`, key `vnkale` in `models`, after the mk Wikipedia article only, no photos): **Виничко Кале**'s
+   ruins on OSM's outline (90 × 140 m): the 3 m defensive wall following the ground with gaps and heights up to 4 m from a
+   fixed seed, one semicircular tower on the south-east side (its real place not checked), rooms along the inside of the
+   two longest sides, the small church's low walls and apse, column bases and capitals round it. No walking collision for
+   the ruins (low walls). Badge **033** (the Badge codes plan, shared with Каменица and Берово), the owner's LinkedIn; snow
+   label „Снег на Плачковица“ (Чупино Брдо, 1725 m, at the south edge); favicon a terracotta icon. Checked: typecheck,
+   build (the files in `dist/`), the views by day, no console errors, switching to Кочани and back (textures 364 → 364,
+   scene objects 21 → 21, geometries 624 → 626 with the streamed ground), the F-15 over the map (country vs map heights:
+   mean 0, max +13 m), Skopje pixel check (0 on all nine views after the last change; the pane was hidden,
+   `requestAnimationFrame` replaced by a 4 ms timer). Not checked: the DEM against EU-DEM, flying the F-15 in from a
+   neighbour, firefighting and the race in play, the walking cards one by one, night and snow views, phones.
+
 ## Country view (Nov 2026)
 
 - **What:** Macedonia, first in the city menu (a tile as tall as four cities, `.country-tile`), shows the whole country with every map's zone (`src/zones.ts`,
@@ -1157,6 +1178,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Неготино | `skopje.bestRace.negotino` | none |
 | Best race time in Демир Капија | `skopje.bestRace.demirkapija` | none |
 | Best race time in Голо Брдо | `skopje.bestRace.golobrdo` | none |
+| Best race time in Виница | `skopje.bestRace.vinica` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.

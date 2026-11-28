@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Виница: a terracotta icon of Виничко Кале (a relief plaque: an arch on two columns over a cross) -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <rect x="20" y="16" width="60" height="70" rx="4" fill="#b8643c"/>
+  <path d="M30 80 V44 Q30 26 50 26 Q70 26 70 44 V80" fill="none" stroke="#f4ede0" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M50 38 V70 M39 50 H61" stroke="#1f2a44" stroke-width="6" stroke-linecap="round"/>
+</svg>
