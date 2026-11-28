@@ -7,7 +7,8 @@
 047 Меџитлија, 031 Кратово (developer Бранко Славков), 092 Штип and 0902 Струмица (developer Калина Јовановска), 043 Неготино
 and 043 Демир Капија (developer Ристе Самарџиев). **Built since, not released:** 046 Голо Брдо (2026-11-25, on `develop`), 034 Валандово (2026-11-26, branch
 `city-valandovo`, developer Филип Калковалиев), 033 Виница (2026-11-28, branch `claude/city-vinica-3fcf8e`),
-042 Кораб (2026-11-28, branch `claude/city-korab-3dbf80`; badge and name unconfirmed).
+042 Кораб (2026-11-28, branch `claude/city-korab-3dbf80`; badge and name unconfirmed), 032 Пробиштип (2026-11-28, branch
+`claude/city-probistip-e002cd`).
 Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
@@ -23,7 +24,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Валандово, Виница and Кораб built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Валандово, Виница, Кораб and Пробиштип built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -34,7 +35,7 @@ towns on it):
 | Кичево | 1160 | Кичево | | Крива Паланка | 570 | Крива Паланка |
 | Стоби* | 1150 | — | | Гевгелија | 510 | Гевгелија, Богданци |
 | Ново Село* | 1060 | — | | ~~Валандово~~ built | 410 | Валандово |
-| Скопска Црна Гора* | 1010 | — | | Пробиштип | 380 | Пробиштип |
+| Скопска Црна Гора* | 1010 | — | | ~~Пробиштип~~ built | 380 | Пробиштип |
 | Новаци* | 970 | — | | ~~Неготино~~ built | 370 | Неготино |
 | Радовиш | 900 | Радовиш | | ~~Кораб*~~ built | 370 | — |
 | ~~Штип~~ built | 820 | Штип | | ~~Виница~~ built | 340 | Виница |
@@ -98,7 +99,7 @@ its own.
 | Кратово ✓ | 0901 | 031 | 031 | shares 031; built 2026-11-24 |
 | Крива Паланка | 0901 | 031 | 031 | shares 031 |
 | Штип ✓ | **092** | 032 | **092** | built 2026-11-24 |
-| Пробиштип | 092 | 032 | 032 | shares 032 |
+| Пробиштип ✓ | 092 | 032 | 032 | shares 032; built 2026-11-28 |
 | Свети Николе | 092 | 032 | 032 | shares 032 |
 | Радовиш | 0902 | 032 | 032 | shares 032 |
 | Струмица ✓ | **0902** | 034 | **0902** | built 2026-11-24 |
@@ -166,7 +167,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 4 | ~~Виница~~ built (2026-11-28, branch `claude/city-vinica-3fcf8e`) | 340 | Виница | 32 |
 | 5 | ~~Неготино~~ built (2026-11-24, branch `negotino`) | 370 | Неготино | 5 |
 | 6 | ~~Кораб*~~ built (2026-11-28, branch `claude/city-korab-3dbf80`) | 370 | — | 18 |
-| 7 | Пробиштип | 380 | Пробиштип | 28 |
+| 7 | ~~Пробиштип~~ built (2026-11-28, branch `claude/city-probistip-e002cd`) | 380 | Пробиштип | 28 |
 | 8 | ~~Валандово~~ built (2026-11-26, branch `city-valandovo`) | 410 | Валандово | 29 |
 | 9 | ~~Матка*~~ built (2026-11-23, out of order) | 500 | — | 20 |
 | 10 | Гевгелија | 510 | Гевгелија, Богданци | 30 |
@@ -216,6 +217,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 034 Валандово (not released yet) | Јосифово, Пиперево, Миравско Езеро | `valandovo` | 41.25, 22.32, 41.38, 22.66 |
 | 033 Виница (not released yet) | Блатец, Истибања, Виничко Кале, Пекљани | `vinica` | 41.80, 22.46, 41.945, 22.71 |
 | 042 Кораб (not released yet) | Голем Кораб, Корабски водопад, Горна Река (Жужње, Нистрово, Бродец), Шар Планина | `korab` | 41.725, 20.49, 41.925, 20.72 (the steps past the border cut) |
+| 032 Пробиштип (not released yet) | Злетово, Лесновски манастир, Кочанско Езеро, Пониква | `probistip` | 41.945, 22.062, 42.04, 22.495 |
 
 ## Planned maps
 
@@ -590,7 +592,15 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
   8 × 2.5 km) is left out. About 630 km², 20 m cells. No overlaps.
 - **Landmarks:** Белчишко Блато, the villages of the plain, Пресека.
 
-### 28. Пробиштип
+### 28. 032 Пробиштип ✓ built (2026-11-28, branch `claude/city-probistip-e002cd`, not released)
+
+- **Built** unattended: the box as planned, `?city=probistip`, 41.945–42.04 N (Кратово's s), 22.062–22.495 E, 20 m cells,
+  388–1628 m; badge 032 (shared with Свети Николе and Радовиш). Raw OSM from Geofabrik's Macedonian extract
+  (`pbf2overpass.py`; Overpass did not answer): 540 buildings, 893 roads. Overture has nothing beyond its copy of the same
+  OSM outlines here (two releases checked), so the map is OSM only and Пробиштип's houses are thin. Refilling over
+  Кочанско Езеро. Лесново's church hand-built (`byzChurch`, src/probistip.ts) after its description. Not done: Злетово's
+  mine buildings beyond OSM, the other monasteries as models.
+
 
 - **On it:** Пробиштип, Злетово, Лесновски манастир, the Злетовска Река; also Кочанско Езеро (Брана Гратче, 41.959–41.967 N,
   22.40–22.42 E), just north of Кочани's map (found while building Кочани, 2026-11-24).
