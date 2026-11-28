@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo', 'vinica'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -1304,6 +1304,84 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.valandovo',
     bestRaceKey: 'skopje.bestRace.valandovo',
     banners: { fire: 'Валандово е спасено!', roll: 'Поздрав од Валандово!' },
+  },
+  vinica: {
+    id: 'vinica', name: 'Виница', code: '033', icon: './favicon-vinica.svg',
+    files: { scene: './vinica.json', terrainBin: './vinica-terrain.bin', terrainJson: './vinica-terrain.json' },
+    sceneBytes: 2.24e6,
+    views: {
+      center: { place: 'vinica', ll: [41.88474, 22.50445], d: 650, polar: 0.8, az: 0.3 },
+      vnkale: { place: 'vkale', ll: [41.87694, 22.50266], d: 320, polar: 0.95, az: 0.2 }, // the hill south-west of the town, the town behind it
+      vnistibanja: { place: 'istlake', ll: [41.93563, 22.51189], d: 950, polar: 1.0, az: 0.3 },
+      vnblatec: { place: 'blatec', ll: [41.83680, 22.57875], d: 1100, polar: 1.15, az: 2.9 }, // from the north, Плачковица behind it
+      vnbregalnica: { ll: [41.90500, 22.48200], d: 1400, polar: 1.0, az: -0.4 }, // the river and the rice paddies west of the town
+      vnistok: { ll: [41.89000, 22.64000], d: 2300, polar: 1.22, az: -1.6 }, // from the west over Драгобраште: Пекљани, Трсино, the hills toward Делчево
+      overview: { ll: [41.87250, 22.58500], d: 23000, polar: 0.72, az: 0 },
+    },
+    districts: [
+      ['Виница', 41.88474, 22.50445], ['Лески', 41.86876, 22.48082, 30], ['Градец', 41.84896, 22.51055, 30],
+      ['Блатец', 41.83680, 22.57875, 30], ['Јакимово', 41.90009, 22.51132, 30], ['Истибања', 41.93031, 22.50120, 30],
+      ['Липец', 41.84151, 22.55269, 30], ['Пекљани', 41.87525, 22.62869, 30], ['Трсино', 41.91168, 22.64867, 30],
+      ['Црн Камен', 41.92266, 22.53683, 30], ['Драгобраште', 41.89541, 22.60326, 30],
+      ['Грљани', 41.94064, 22.61067, 30], ['Виничка Кршла', 41.90961, 22.55517, 30], ['Трстија', 41.93494, 22.64513, 30],
+      ['Плачковица', 41.81500, 22.60000, 150],
+    ],
+    labels: [
+      ['Виничко Кале', 41.87694, 22.50266, 30, 'vkale'],
+      ['Музеј Теракота', 41.88419, 22.50496, 14, 'vmuzej'],
+      ['Св. Архангел Михаил', 41.88212, 22.50547, 12, 'vmihail'],
+      ['Св. Лука', 41.88468, 22.51299, 12, 'vluka'],
+      ['Св. Павле', 41.88454, 22.50502, 10, 'vpavle'],
+      ['Свет Крст', 41.87890, 22.51059, 20, 'vkrst'],
+      ['Горица', 41.89614, 22.48837, 14, 'vgorica'],
+      ['Куќа на Ќазим-бег', 41.88219, 22.50828, 10, 'vkazim'],
+      ['Истибањско Езеро', 41.93563, 22.51189, 10, 'istlake'],
+      ['Чупино Брдо', 41.80793, 22.56069, 30, 'chupino'],
+      ['Киселица', 41.93540, 22.54977, 20],
+      ['Брегалница', 41.90831, 22.48015, 6, undefined, 'river'],
+      ['Виничка Река', 41.87276, 22.51509, 6, undefined, 'river'],
+      ['Пекљанска Река', 41.87599, 22.59351, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Виница', 41.88474, 22.50445, 45, 'vinica'],
+      ['Виничко Кале', 41.87694, 22.50266, 50, 'vkale'],
+      ['Лески', 41.86876, 22.48082, 50],
+      ['Градец', 41.84896, 22.51055, 55],
+      ['Липец', 41.84151, 22.55269, 55],
+      ['Блатец', 41.83680, 22.57875, 55, 'blatec'],
+      ['Пекљани', 41.87525, 22.62869, 55],
+      ['Трсино', 41.91168, 22.64867, 60],
+      ['Драгобраште', 41.89541, 22.60326, 55],
+      ['Виничка Кршла', 41.90961, 22.55517, 55],
+      ['Црн Камен', 41.92266, 22.53683, 55],
+      ['Истибањско Езеро', 41.93563, 22.51189, 45, 'istlake'],
+      ['Истибања', 41.93031, 22.50120, 50, 'istibanja'],
+      ['Јакимово', 41.90009, 22.51132, 50],
+      ['Свет Крст', 41.87890, 22.51059, 50, 'vkrst'],
+    ],
+    spots: [
+      ['vn.town', 'Виница', 41.88474, 22.50445, 70, 'vinica'],
+      ['vn.kale', 'Виничко Кале', 41.87694, 22.50266, 120, 'vkale'],
+      ['vn.icons', 'Музеј Теракота', 41.88419, 22.50496, 40, 'vmuzej'],
+      ['vn.istibanja', 'Истибањско Езеро', 41.93563, 22.51189, 200, 'istlake'],
+      ['vn.blatec', 'Блатец', 41.83680, 22.57875, 200, 'blatec'],
+      ['vn.bregalnica', 'Брегалница', 41.90831, 22.48015, 250],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.88474, 22.50445], near: 3500, far: 8500, min: 0.08, grow: 1.8 },
+    sparseFar: 1500,
+    // the east end of Кочанско Поле: rice paddies on the low plain along the Брегалница west of the town, fields and a few
+    // vineyards above it
+    vineyards: 260, // m above the map's lowest point (332 m, the Брегалница at the west edge)
+    vineShare: 0.08,
+    rice: [0.6, 40],
+    walker: 'pejo',
+    snowLabel: 'weather.plackovica',
+    refillLabel: 'fire.refill.vinica',
+    bestRaceKey: 'skopje.bestRace.vinica',
+    banners: { fire: 'Виница е спасена!', roll: 'Поздрав од Виница!' },
   },
   golobrdo: {
     id: 'golobrdo', name: 'Голо Брдо', code: '046', icon: './favicon-golobrdo.svg',

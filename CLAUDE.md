@@ -42,7 +42,7 @@ npm run country      # the whole country at 100 m → public/country.png/.json (
 | File | Role |
 |---|---|
 | `main.ts` | App shell: renderer, controls, loading (staged build + progress card), city switching (`loadCity` / `unloadWorld` / `switchCity`), views, time of day, flight/race wiring, popups, help, gamepad, adaptive quality |
-| `cities.ts` | The cities (Skopje, Kavadarci, Bitola, Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran, Batinci, Berovo, Tetovo, Makedonski Brod, Resen, Матка, Вевчани, Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
+| `cities.ts` | The cities (Skopje, Kavadarci, Bitola, Ohrid, Rostuše, Prilep, Kruševo, Makedonska Kamenica, Dojran, Batinci, Berovo, Tetovo, Makedonski Brod, Resen, Матка, Вевчани, Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Виница) and what differs per city: data files, camera views, district and landmark labels, race route, walking info spots, paragliders, weather / refill labels; `?city=` in the address |
 | `city.ts` | `computeCitySteps` (generator; OSM+terrain → typed arrays per 1 km chunk) and `assembleCity` (meshes, materials, 3-level LOD, far-ground texture bake). Facade shader (windows, shutters, awnings, cornices, night glow), roof tiles, parapets, trees, parked cars, sheds; Kavadarci's vineyards and Bitola's fields, Кочани's rice paddies (`rice`) (`farmMask`, `VINE_GROUND`: farmland marked by one terrain colour, plots painted by the ground shader; `vineShare` per city: the share of plots that are vineyards) |
 | `terrain.ts` | Heightfield with exact mesh-matching interpolation; chunk/low-res meshes; triangle clipping for draping |
 | `post.ts` | `InkRenderer`: colour + normal/depth passes (one pass in the low tier or with smooth edges off: normals as a second attachment) → composite (ink lines, pairwise AO, cloud shadows, grade, haze) → temporal accumulation of jittered frames (supersampled AA) → output |
@@ -80,6 +80,7 @@ npm run country      # the whole country at 100 m → public/country.png/.json (
 | `negotino.ts` | Неготино (after photos): Неготински манастир Св. Ѓорѓи (three drums, the tiled porch) and its bell tower, Св. Атанасиј Велики (basilica, the bell tower at the south-west corner), ТЕЦ Неготино's chimney (~125 m, banded top, `modelRects`) and its three fuel tanks |
 | `demirkapija.ts` | Демир Капија (after photos and the aerial image): Попова Кула (the stone tower with the tasting room, the arcade wing, the white wing, its lawn), Хотел Вердисо and its pool (OSM outlines in `axisFrame`, a frame along a given heading), Кралица Марија's Вила Марија (caryatids, park, peacocks), the U of the royal cellar, the tank yard between two halls, the amphitheatre (`modelRects`) |
 | `golobrdo.ts` | Голо Брдо (after photos): Xhamia e Allajbegisë in Бурим (cloisonné cube, octagonal drum, tiled dome, minaret, the white front building of the 1990s) and the church of the Преображение in Ербеле (stone nave, concrete porch and bell frame), on their OSM outlines (`models` in `PREP`) |
+| `vinica.ts` | Виница (after the mk Wikipedia description, no photos): the ruins of Виничко Кале on OSM's outline (`vnkale` in `models`): the 3 m defensive wall following the ground with gaps (seeded), a semicircular tower, rooms along the inside, the small church's low walls and apse, column bases |
 | `dojran.ts` | Dojran (after photos): the clock tower, Св. Илија (a basilica), a мандра (reed fishing enclosure, hut on stilts, walkway to the beach) |
 | `bitola.ts` | Bitola (after photos): Саат-кула, Ајдар-кади џамија, Безистен, Св. Димитриј and its bell tower, Хераклеа's theatre and Great Basilica with its mosaic floors (painted canvases), built on their OSM outlines (`models` in `PREP`, `landmarks.models` in the data; the generic buildings left out); walking collision |
 | `river.ts` | Kavadarci, the Луда Мара (after photos): the stone-lined channel through the town between two promenades, cut exactly out of the terrain and draped ground (`cut`), its water, banks and promenades emitted into the draped ground; copings, railing, arched footbridges, road-bridge parapets, cascades, steps, benches, lamps, promenade trees; walking height and collision |
@@ -96,6 +97,7 @@ npm run country      # the whole country at 100 m → public/country.png/.json (
 | `i18n-towns8.ts` | UI texts of Неготино, spread into `STR` after `TOWNS7` |
 | `i18n-towns9.ts` | UI texts of Демир Капија, spread into `STR` after `TOWNS8` |
 | `i18n-towns10.ts` | UI texts of Голо Брдо, spread into `STR` after `TOWNS9` |
+| `i18n-towns12.ts` | UI texts of Виница, spread into `STR` after `TOWNS11` |
 | `i18n-country.ts` | UI texts of the country view, spread into `STR` after `TOWNS10` |
 | `country.ts` | Country view (Macedonia, first in the city menu): all of Macedonia at 100 m from `public/country.png` (heights, land cover, border), its own scene / camera / controls drawn through the same ink renderer (`renderCountry()` in `main.ts`), zones as a canvas overlay, hover, picking by marching the height grid, badges that open a city; the data is loaded once and kept for the visit (`loadCountry`, meant for the F-15 too) |
 | `countryground.ts` | The country's 100 m terrain around a city map while the F-15 flies: one CPU-built grid following the plane (fine near, ~0.7 km cells at 45 km), sunk below the map inside it, the map's own exaggeration; the flight and the rockets use its height beyond the map's edges. While it shows, the ink's normal pass is not clipped to the map (`ink.setClipping`) |
@@ -145,7 +147,9 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
   models yet), 0902 Струмица (`?city=strumica`, v32.0.0, developer Калина Јовановска: Царевите кули, Водоча, Вељуса,
   Струмичко Поле; Overture's outlines for most buildings; no hand-built models yet), 046 Голо Брдо (`?city=golobrdo`,
   built 2026-11-25, not released: the Црн Дрим valley west of Дебар with Пешкопија, almost all Albania, raw file from the
-  Albanian extract; badge and name unconfirmed).
+  Albanian extract; badge and name unconfirmed), 033 Виница (`?city=vinica`, built 2026-11-28, not released: the east end
+  of Кочанска Котлина with Блатец, Истибања and the hills toward Делчево; Overture's outlines for most buildings; Виничко
+  Кале's ruins modelled after its description).
 - The F-15 (v26.0.0) flies from map to map: the next map downloaded ahead, switched at the edge while the jet flies on
   over the country's terrain (`src/hop.ts`, `src/countryground.ts`, `transit` in `main.ts`); every new finished map
   in `src/zones.ts` widens the flight. All of it: "F-15 and flying from map to map" in docs/NOTES.md.

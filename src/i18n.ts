@@ -17,6 +17,7 @@ import { TOWNS8 } from './i18n-towns8.ts';
 import { TOWNS9 } from './i18n-towns9.ts';
 import { TOWNS10 } from './i18n-towns10.ts';
 import { TOWNS11 } from './i18n-towns11.ts';
+import { TOWNS12 } from './i18n-towns12.ts';
 import { COUNTRY } from './i18n-country.ts';
 
 export const LANGS = [
@@ -128,6 +129,7 @@ export const STR = {
     ...TOWNS9.mk,
     ...TOWNS10.mk,
     ...TOWNS11.mk,
+    ...TOWNS12.mk,
     ...COUNTRY.mk,
   },
 
@@ -324,6 +326,7 @@ export const STR = {
     ...TOWNS9.en,
     ...TOWNS10.en,
     ...TOWNS11.en,
+    ...TOWNS12.en,
     ...COUNTRY.en,
   },
 
@@ -520,6 +523,7 @@ export const STR = {
     ...TOWNS9.sr,
     ...TOWNS10.sr,
     ...TOWNS11.sr,
+    ...TOWNS12.sr,
     ...COUNTRY.sr,
   },
 
@@ -716,6 +720,7 @@ export const STR = {
     ...TOWNS9.hr,
     ...TOWNS10.hr,
     ...TOWNS11.hr,
+    ...TOWNS12.hr,
     ...COUNTRY.hr,
   },
 
@@ -912,6 +917,7 @@ export const STR = {
     ...TOWNS9.sl,
     ...TOWNS10.sl,
     ...TOWNS11.sl,
+    ...TOWNS12.sl,
     ...COUNTRY.sl,
   },
 
@@ -1108,6 +1114,7 @@ export const STR = {
     ...TOWNS9.sq,
     ...TOWNS10.sq,
     ...TOWNS11.sq,
+    ...TOWNS12.sq,
     ...COUNTRY.sq,
   },
 };

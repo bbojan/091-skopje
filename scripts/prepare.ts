@@ -642,6 +642,36 @@ const PREP: Record<CityName, CityPrep> = {
     maxLevels: 6,
     buildingTags: {},
   },
+  vinica: {
+    old: null,
+    square: [41.88420, 22.50480], // in front of Општина Виница and the Теракота museum (OSM has no square there)
+    landmarks: {},
+    // modelled by hand after its description (src/vinica.ts): the ruins of Виничко Кале on OSM's outline
+    models: { vnkale: 1109661815 },
+    placeNames: {},
+    placeIds: {
+      vkale: 1109661815, vmihail: 1109661814, vluka: 1112148585, vpavle: 578228529, vkrst: 1110133260, vgorica: 1558604907,
+      vkazim: 1558606822, istlake: 1460298269,
+    },
+    placeNodes: { vinica: 418352424, vmuzej: 1272898175, blatec: 442904499, istibanja: 442904501, chupino: 6565530778 },
+    nodeLL: {
+      418352424: [41.88474, 22.50445], 1272898175: [41.88419, 22.50496], 442904499: [41.83680, 22.57875], // Виница, Музеј Теракота, Блатец
+      442904501: [41.93031, 22.50120], 6565530778: [41.80793, 22.56069], // Истибања, Чупино Брдо
+    },
+    tall: [],
+    // the few blocks of flats round the centre of Виница (the rest of the town is houses of one to three storeys)
+    mid: [[41.8830, 41.8875, 22.4995, 22.5110]],
+    squareBonus: false,
+    maxLevels: 6,
+    // churches, petrol stations, the police and Ќазим-бег's house that the height zone or the guess made into blocks
+    buildingTags: Object.fromEntries([
+      ...[1109661814, 1112148585, 1109755041].map((id) => [id, { 'building:levels': '1', height: '9' }]), // Св. Архангел Михаил, Св. Лука, the church in Јакимово
+      ...[905575137, 905580370].map((id) => [id, { 'building:levels': '1' }]), // Дади Оил, Макпетрол
+      ...[578229353, 1558606822].map((id) => [id, { 'building:levels': '2' }]), // ПС Виница, Куќа на Ќазим-бег
+    ]),
+    // the Брегалница west of the town, a line in OSM, widened for refilling (as on Кочани's map)
+    waterLines: [[907655044, 10]],
+  },
   medzitlija: {
     old: null,
     square: [40.92740, 21.42975], // the paved yard in front of the mosque in Меџитлија (OSM has no square there)

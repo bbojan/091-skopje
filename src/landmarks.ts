@@ -26,6 +26,7 @@ import { createMedzitlija, medzitlijaFootprints } from './medzitlija.ts';
 import { createKratovo, kratovoFootprints } from './kratovo.ts';
 import { createNegotino, negotinoFootprints } from './negotino.ts';
 import { createGolobrdo, golobrdoFootprints } from './golobrdo.ts';
+import { createVinica } from './vinica.ts';
 import { createDemirkapija, demirkapijaFootprints } from './demirkapija.ts';
 import type { BuildingData, CityData, Flat, Pt, Vec3 } from './types.ts';
 
@@ -1070,8 +1071,8 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
   // ---------------- Rostuše: Бигорски манастир, Св. Никола in Mavrovo (rostuse.ts); Prilep (prilep.ts); Kruševo (krusevo.ts);
   // Makedonska Kamenica (kamenica.ts); Dojran (dojran.ts); Batinci (batinci.ts); Berovo (berovo.ts); Tetovo (tetovo.ts);
   // Makedonski Brod (brod.ts); Resen (resen.ts); Матка (matka.ts); Вевчани (vevcani.ts); Кочани (kocani.ts);
-  // Меџитлија (medzitlija.ts); Кратово (kratovo.ts); Демир Капија (demirkapija.ts); Неготино (negotino.ts); Голо Брдо (golobrdo.ts)
-  for (const make of [createRostuse, createPrilep, createKrusevo, createKamenica, createDojran, createBatinci, createBerovo, createTetovo, createBrod, createResen, createMatka, createVevcani, createKocani, createMedzitlija, createKratovo, createDemirkapija, createNegotino, createGolobrdo]) {
+  // Меџитлија (medzitlija.ts); Кратово (kratovo.ts); Демир Капија (demirkapija.ts); Неготино (negotino.ts); Голо Брдо (golobrdo.ts); Виница (vinica.ts)
+  for (const make of [createRostuse, createPrilep, createKrusevo, createKamenica, createDojran, createBatinci, createBerovo, createTetovo, createBrod, createResen, createMatka, createVevcani, createKocani, createMedzitlija, createKratovo, createDemirkapija, createNegotino, createGolobrdo, createVinica]) {
     const t = L.models ? make(data, terrain, clippingPlanes) : null;
     if (t?.group.children.length) { group.add(t.group); nightGlass.push(...t.nightLit); }
   }

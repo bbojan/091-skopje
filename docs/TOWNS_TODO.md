@@ -6,7 +6,7 @@
 045 Македонски Брод, 047 Ресен, 02 Матка, 046 Вевчани. **Released in v32.0.0 (2026-11-24), 23 maps in all:** 0903 Кочани,
 047 Меџитлија, 031 Кратово (developer Бранко Славков), 092 Штип and 0902 Струмица (developer Калина Јовановска), 043 Неготино
 and 043 Демир Капија (developer Ристе Самарџиев). **Built since, not released:** 046 Голо Брдо (2026-11-25, on `develop`), 034 Валандово (2026-11-26, branch
-`city-valandovo`, developer Филип Калковалиев).
+`city-valandovo`, developer Филип Калковалиев), 033 Виница (2026-11-28, branch `claude/city-vinica-3fcf8e`).
 Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
@@ -22,7 +22,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо and Валандово built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Валандово and Виница built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -36,7 +36,7 @@ towns on it):
 | Скопска Црна Гора* | 1010 | — | | Пробиштип | 380 | Пробиштип |
 | Новаци* | 970 | — | | ~~Неготино~~ built | 370 | Неготино |
 | Радовиш | 900 | Радовиш | | Кораб* | 370 | — |
-| ~~Штип~~ built | 820 | Штип | | Виница | 340 | Виница |
+| ~~Штип~~ built | 820 | Штип | | ~~Виница~~ built | 340 | Виница |
 | ~~Демир Капија~~ built | 820 | Демир Капија | | ~~Голо Брдо*~~ built | 280 | — |
 | Демир Хисар | 810 | Демир Хисар | | ~~Меџитлија*~~ built | 300 | — |
 | Делчево | 770 | Делчево | | ~~Кочани~~ built | 190 | Кочани |
@@ -106,7 +106,7 @@ its own.
 | Кочани ✓ | **0903** | 033 | **0903** | built 2026-11-24 |
 | Каменица ✓ | 0903 | 033 | 033 | as now; shares 033 |
 | Берово, Пехчево ✓ | 0903 | 033 | 033 | as now; shares 033 |
-| Виница | 0903 | 033 | 033 | shares 033 |
+| Виница ✓ | 0903 | 033 | 033 | shares 033; built 2026-11-28 |
 | Делчево | 0903 | 033 | 033 | shares 033 |
 | Велес | **093** | 043 | **093** | |
 | Кавадарци ✓ | 093 | 043 | 043 | as now; shares 043 |
@@ -163,7 +163,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 1 | ~~Кочани~~ built (2026-11-24, branch `city-kocani`) | 190 | Кочани | 23 |
 | 2 | ~~Меџитлија*~~ built (2026-11-24, branch `city-medzitlija`) | 300 | — | 17 |
 | 3 | ~~Голо Брдо*~~ built (2026-11-25, on `develop`) | 280 | — | 19 |
-| 4 | Виница | 340 | Виница | 32 |
+| 4 | ~~Виница~~ built (2026-11-28, branch `claude/city-vinica-3fcf8e`) | 340 | Виница | 32 |
 | 5 | ~~Неготино~~ built (2026-11-24, branch `negotino`) | 370 | Неготино | 5 |
 | 6 | Кораб* | 370 | — | 18 |
 | 7 | Пробиштип | 380 | Пробиштип | 28 |
@@ -214,6 +214,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 046 Вевчани | Лабуништа, Подгорци, Белица, Јабланица, Глобочица | `vevcani` | 41.035, 20.47, 41.39, 20.815 (Охрид's map and the steps past the border cut) |
 | 046 Голо Брдо (not released yet) | Пешкопија, Макелари, Острени (Albania) | `golobrdo` | 41.39, 20.40, 41.725, 20.49 |
 | 034 Валандово (not released yet) | Јосифово, Пиперево, Миравско Езеро | `valandovo` | 41.25, 22.32, 41.38, 22.66 |
+| 033 Виница (not released yet) | Блатец, Истибања, Виничко Кале, Пекљани | `vinica` | 41.80, 22.46, 41.945, 22.71 |
 
 ## Planned maps
 
@@ -618,7 +619,13 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
   in OSM), w 22.062 (Кавадарци's and Мариово's e), e 22.32 (Валандово's and Гевгелија's w). About 820 km², 20 m cells.
 - **Landmarks:** the Демир Капија gorge (the Vardar between cliffs), Кожув, Попова Кула.
 
-### 32. Виница
+### 32. 033 Виница ✓ built (2026-11-28, branch `claude/city-vinica-3fcf8e`, not released)
+
+- **Built:** the box as planned, `?city=vinica`, badge 033 (shared with Каменица and Берово), 20 m cells, 332–1704 m. OSM 1,517 of
+  1,517 buildings and 828 of 828 roads (count query; raw file from the Geofabrik extract); Overture adds 7,547 outlines (9,062
+  buildings, scene 2.24 MB). Refilling over the Брегалница (widened line) and Истибањско Езеро; rice paddies along the
+  Брегалница. Виничко Кале modelled after its mk Wikipedia description (ruined walls, a tower, rooms, the small church;
+  `src/vinica.ts`); the town centre is OSM and Overture outlines.
 
 - **On it:** Виница, Виничко Кале (the terracotta icons), Блатец, Истибања, the hills toward Делчево.
 - **Code:** open (phone code 033). `?city=vinica`.
