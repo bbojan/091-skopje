@@ -955,6 +955,30 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    no console errors, Skopje pixel check (base commit e633b50 served on the same port: 0 pixels over 2/255 on all nine views).
    Not checked: the F-15 over the map and in from a neighbour, switching memory, firefighting and the race in play, the
    walking cards one by one, snow views, phones.
+57. **031 Крива Паланка** (2026-11-28, branch `claude/city-krivapalanka-10d12c`, not released; 11th in the build order; built unattended):
+   Крива Паланка, Осоговски манастир above it, the old bazaar, the Крива Река up to the Bulgarian border at Деве Баир,
+   Осогово with Руен (2251 m) and Царев Врв, the villages north to the Serbian border at Голеш (docs/TOWNS_TODO.md, 26):
+   the box 42.125–42.38 N, 22.25–22.60 E (28.8 × 28.4 km), 20 m cells, 547–2241 m, with the planned stepped n edge (about 2 km
+   past the border) as five `cut` rectangles; edge to edge with Кратово (w and the L's corner) and Каменица (s), no overlap.
+   Raw OSM from Geofabrik's Macedonian, Serbian and Bulgarian extracts (`pbf2overpass.py`, 5 min; serbia.osm.pbf and
+   bulgaria.osm.pbf of 2026-11-28 now in the main checkout's data/): 3,537 buildings, 1,374 roads, no Overture. A small `mid`
+   zone over the centre (42.2025–42.2075 N, 22.3325–22.3395 E) gives 57 blocks of 6–7 storeys; without it nothing passed 5.
+   **OSM `width` in centimetres:** three ways carry `width` 700, 800 and 2500, which drew roads kilometres wide across the
+   town (giant slabs in every view); `prepare.ts` now ignores a width over 30 m and keeps the guess. Committed scenes are
+   unchanged (Скопје has none over 30 m); Штип's has four roads of 40–200 m and Прилеп's two of 68 m, fixed on their next
+   `npm run data`. **`waterLines` are not clipped to the map:** the Крива Река's way west of the town runs 40 km on to the
+   Пчиња and drew a strip across the map; only the ways from the town up to Деве Баир are widened. `treeLine` 1200 (~1750 m)
+   keeps Осогово's high pastures bare; fields, no vineyards. Views of Осоговски манастир, the old bazaar, Деве Баир, the
+   Крива Река and Руен; 17 race rings, six walking cards (src/i18n-towns16.ts). Осоговски манастир's two churches are
+   `byzChurch` on their OSM outlines (src/krivapalanka.ts, `kposogovo` / `kpsmall` in `models`): Св. Јоаким Осоговски, the
+   large church of the mid-19th century (cloisonné, a tall drum and four small ones, an arcade along the narthex), and the
+   small, older Рождество на Пресвета Богородица; after descriptions, no photos measured. Ранковце is on Кратово's map
+   (22.117 E), not this one. Favicon: the monastery church on its hill, Осогово behind, the Крива Река below.
+   Checked: typecheck, build (the files in `dist/`), the map in the browser (overview, the town, the monastery, Деве Баир,
+   Руен; no console errors), the F-15's country terrain against the map (mean 0, max 15 m), switching to Скопје and back
+   (textures and scene objects exactly back, geometries +2), Skopje pixel check (base 281d61b served on the same port: 0 on
+   six views, 4–17 px on the overviews, the gondola). Not checked: flying in from a neighbour, firefighting and the race in
+   play, the walking cards one by one, snow views, phones.
 
 ## Country view (Nov 2026)
 
@@ -1237,6 +1261,7 @@ All saved settings are `localStorage` keys starting with `skopje.`, read once at
 | Best race time in Кораб | `skopje.bestRace.korab` | none |
 | Best race time in Пробиштип | `skopje.bestRace.probistip` | none |
 | Best race time in Гевгелија | `skopje.bestRace.gevgelija` | none |
+| Best race time in Крива Паланка | `skopje.bestRace.krivapalanka` | none |
 
 The camera is not in storage: it is in the address bar (`#@lat,lon,distance,tilt°,heading°` or
 a view name), so a reload or a shared link restores it; without a hash the map opens on Плоштад.

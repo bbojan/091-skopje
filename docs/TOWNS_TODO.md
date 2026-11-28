@@ -8,7 +8,8 @@
 and 043 Демир Капија (developer Ристе Самарџиев). **Built since, not released:** 046 Голо Брдо (2026-11-25, on `develop`), 034 Валандово (2026-11-26, branch
 `city-valandovo`, developer Филип Калковалиев), 033 Виница (2026-11-28, branch `claude/city-vinica-3fcf8e`),
 042 Кораб (2026-11-28, branch `claude/city-korab-3dbf80`; badge and name unconfirmed), 032 Пробиштип (2026-11-28, branch
-`claude/city-probistip-e002cd`), 034 Гевгелија, Богданци (2026-11-28, branch `claude/city-gevgelija-bbf1a8`).
+`claude/city-probistip-e002cd`), 034 Гевгелија, Богданци (2026-11-28, branch `claude/city-gevgelija-bbf1a8`), 031 Крива Паланка
+(2026-11-28, branch `claude/city-krivapalanka-10d12c`).
 Details in the first table below.
 
 ![Map extents: done (solid, ✓) and to do (dashed)](towns-map.png)
@@ -24,7 +25,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Валандово, Виница, Кораб, Пробиштип and Гевгелија built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Валандово, Виница, Кораб, Пробиштип, Гевгелија and Крива Паланка built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -32,7 +33,7 @@ towns on it):
 | Куманово | 1620 | Куманово | | ~~Струмица~~ built | 690 | Струмица |
 | Велес | 1540 | Велес | | Славна Дебарца | 630 | — |
 | Мариово* | 1460 | — | | Свети Николе | 580 | Свети Николе |
-| Кичево | 1160 | Кичево | | Крива Паланка | 570 | Крива Паланка |
+| Кичево | 1160 | Кичево | | ~~Крива Паланка~~ built | 570 | Крива Паланка |
 | Стоби* | 1150 | — | | ~~Гевгелија~~ built | 510 | Гевгелија, Богданци |
 | Ново Село* | 1060 | — | | ~~Валандово~~ built | 410 | Валандово |
 | Скопска Црна Гора* | 1010 | — | | ~~Пробиштип~~ built | 380 | Пробиштип |
@@ -97,7 +98,7 @@ its own.
 | Скопска Црна Гора | 091 | 02 | 02 | shares 02 |
 | Куманово | **0901** | 031 | **0901** | |
 | Кратово ✓ | 0901 | 031 | 031 | shares 031; built 2026-11-24 |
-| Крива Паланка | 0901 | 031 | 031 | shares 031 |
+| Крива Паланка ✓ | 0901 | 031 | 031 | shares 031; built 2026-11-28 |
 | Штип ✓ | **092** | 032 | **092** | built 2026-11-24 |
 | Пробиштип ✓ | 092 | 032 | 032 | shares 032; built 2026-11-28 |
 | Свети Николе | 092 | 032 | 032 | shares 032 |
@@ -171,7 +172,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 8 | ~~Валандово~~ built (2026-11-26, branch `city-valandovo`) | 410 | Валандово | 29 |
 | 9 | ~~Матка*~~ built (2026-11-23, out of order) | 500 | — | 20 |
 | 10 | ~~Гевгелија~~ built (2026-11-28, branch `claude/city-gevgelija-bbf1a8`) | 510 | Гевгелија, Богданци | 30 |
-| 11 | Крива Паланка | 570 | Крива Паланка | 26 |
+| 11 | ~~Крива Паланка~~ built (2026-11-28, branch `claude/city-krivapalanka-10d12c`) | 570 | Крива Паланка | 26 |
 | 12 | Свети Николе | 580 | Свети Николе | 22 |
 | 13 | Славна Дебарца | 630 | — | 27 |
 | 14 | ~~Струмица~~ built (2026-11-24) | 690 | Струмица | 4 |
@@ -219,6 +220,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 042 Кораб (not released yet) | Голем Кораб, Корабски водопад, Горна Река (Жужње, Нистрово, Бродец), Шар Планина | `korab` | 41.725, 20.49, 41.925, 20.72 (the steps past the border cut) |
 | 032 Пробиштип (not released yet) | Злетово, Лесновски манастир, Кочанско Езеро, Пониква | `probistip` | 41.945, 22.062, 42.04, 22.495 |
 | 034 Гевгелија, Богданци (not released yet) | Негорци, Негорски Бањи, Богородица, the Богданци wind farm, the Вардар to the border | `gevgelija` | 41.10, 22.32, 41.25, 22.75 (Дојран's map cut out of the south-east corner) |
+| 031 Крива Паланка (not released yet) | Осоговски манастир, the old bazaar, the Крива Река to Деве Баир, Руен, Голеш | `krivapalanka` | 42.125, 22.25, 42.38, 22.60 (the n edge stepping down along the border, five cut rectangles) |
 
 ## Planned maps
 
@@ -572,7 +574,16 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
 - **Landmarks:** Стоби's ruins (theatre, basilicas, mosaics: Хераклеа's theatre and canvases in `bitola.ts` can
   serve), Градско's Vardar bridge.
 
-### 26. Крива Паланка
+### 26. 031 Крива Паланка ✓ built (2026-11-28, branch `claude/city-krivapalanka-10d12c`, not released)
+
+- **Built** unattended: `?city=krivapalanka`, the planned outline: the box 42.125–42.38 N, 22.25–22.60 E with the stepped n edge
+  (five `cut` rectangles, as `SHAPES` in src/zones.ts), 20 m cells, 547–2241 m; badge 031 (shared with Кратово). Edge to edge with
+  Кратово (its L's corner) and Каменица, no overlap (checked on the zones' outlines). Raw OSM from Geofabrik's Macedonian, Serbian
+  and Bulgarian extracts (`pbf2overpass.py`): 3,537 buildings, 1,374 roads; OSM only (the town is mapped well). Refilling over the
+  Крива Река (`waterLines`) east of the town and the reservoir below Деве Баир. Осоговски манастир's two churches hand-built
+  (`byzChurch`, src/krivapalanka.ts) after descriptions. **Ранковце (42.17 N, 22.117 E) is not on this map:** it lies west of
+  22.25, on Кратово's. Not done: the old bazaar's buildings as models, the monastery's konak and bell tower.
+
 
 - **On it:** Крива Паланка, Осоговски манастир, Ранковце, the Крива Река up to the border at Деве Баир.
 - **Code:** open (phone code 031). `?city=krivapalanka`.
