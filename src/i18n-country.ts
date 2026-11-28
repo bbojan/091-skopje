@@ -12,6 +12,8 @@ export const COUNTRY = {
     'country.back': 'Back to the map',
     'country.loading': 'Loading Macedonia…',
     'country.soon': 'coming soon',
+    'country.soonOpen': 'Maps coming soon',
+    'country.soonTitle': 'Coming soon',
   },
   sr: {
     'country.open': 'Македонија: све мапе',
@@ -21,6 +23,8 @@ export const COUNTRY = {
     'country.back': 'Назад на мапу',
     'country.loading': 'Учитава се Македонија…',
     'country.soon': 'ускоро',
+    'country.soonOpen': 'Мапе које долазе ускоро',
+    'country.soonTitle': 'Ускоро',
   },
   hr: {
     'country.open': 'Makedonija: sve karte',
@@ -30,6 +34,8 @@ export const COUNTRY = {
     'country.back': 'Natrag na kartu',
     'country.loading': 'Učitava se Makedonija…',
     'country.soon': 'uskoro',
+    'country.soonOpen': 'Karte koje uskoro dolaze',
+    'country.soonTitle': 'Uskoro',
   },
   sl: {
     'country.open': 'Makedonija: vsi zemljevidi',
@@ -39,6 +45,8 @@ export const COUNTRY = {
     'country.back': 'Nazaj na zemljevid',
     'country.loading': 'Nalaganje Makedonije …',
     'country.soon': 'kmalu',
+    'country.soonOpen': 'Zemljevidi, ki prihajajo kmalu',
+    'country.soonTitle': 'Kmalu',
   },
   sq: {
     'country.open': 'Maqedonia: të gjitha hartat',
@@ -48,5 +56,7 @@ export const COUNTRY = {
     'country.back': 'Kthehu te harta',
     'country.loading': 'Po ngarkohet Maqedonia…',
     'country.soon': 'së shpejti',
+    'country.soonOpen': 'Hartat që vijnë së shpejti',
+    'country.soonTitle': 'Së shpejti',
   },
 };

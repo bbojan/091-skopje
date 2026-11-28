@@ -22,6 +22,7 @@ import { createMapInput, readPad } from './input.ts';
 import { LANGS, lang, t, applyI18n, setLang, onLangChange, type Key } from './i18n.ts';
 import { CITIES, CITY_IDS, cityFromUrl, urlForCity, type CityId, type CitySpec } from './cities.ts';
 import { loadCountry, createCountryView, type CountryView } from './country.ts';
+import { SOON } from './zones.ts';
 import { createCountryGround, type CountryGround } from './countryground.ts';
 import { createRadar, type Radar, type MapState } from './radar.ts';
 import { createPrefetch, lookAhead, mapAt, inMap, type Ahead, type MapFiles } from './hop.ts';
@@ -1786,6 +1787,7 @@ async function openCountry(): Promise<void> {
 function closeCountry(): void {
   if (!countryOpen) return;
   countryOpen = false;
+  setSoon(false);
   document.body.classList.remove('country');
   countryUi.hidden = true;
   if (country) { country.controls.enabled = false; country.setHover(null); }
@@ -1822,8 +1824,30 @@ function takeOffF15(): void {
   if (world.flight.active) applyJet(); else startFlight();
 }
 $('f15-btn').addEventListener('click', () => { setCityMenu(false); takeOffF15(); });
+// the card at the top (Македонија · Избери мапа ▾) opens „Наскоро“: the maps still to come, in the order they will be built;
+// hovering one lights its zone
+const soonHead = $('country-head'), soonBox = $('country-soon'), soonList = $('country-soon-list');
+$('country-soon-n').textContent = String(SOON.length);
+for (const z of SOON) {
+  const li = document.createElement('li');
+  li.textContent = z.name;
+  li.addEventListener('pointerenter', () => country?.setHover(z));
+  li.addEventListener('pointerleave', () => country?.setHover(null));
+  li.addEventListener('click', () => country?.setHover(z)); // touch: a tap lights it
+  soonList.append(li);
+}
+function setSoon(open: boolean): void {
+  soonBox.hidden = !open;
+  soonHead.setAttribute('aria-expanded', String(open));
+  if (!open) country?.setHover(null);
+}
+soonHead.addEventListener('click', () => setSoon(!!soonBox.hidden));
+renderer.domElement.addEventListener('pointerdown', () => { if (!soonBox.hidden) setSoon(false); });
 $('country-close').addEventListener('click', closeCountry);
-addEventListener('keydown', (e) => { if (countryOpen && e.code === 'Escape' && !document.querySelector('dialog[open]')) closeCountry(); });
+addEventListener('keydown', (e) => {
+  if (!countryOpen || e.code !== 'Escape' || document.querySelector('dialog[open]')) return;
+  if (!soonBox.hidden) setSoon(false); else closeCountry();
+});
 // hover and click on the canvas (a click is a press without dragging)
 let czDown: [number, number] | null = null;
 renderer.domElement.addEventListener('pointermove', (e) => { if (countryOpen && country && e.pointerType === 'mouse' && !e.buttons) country.setHover(country.zoneAt(e.clientX, e.clientY)); });

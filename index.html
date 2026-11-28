@@ -172,11 +172,25 @@
       .cz.soon { font-size: 12.5px; font-style: italic; color: var(--indigo); opacity: 0.62; text-shadow: 0 0 3px var(--linen-hi), 0 0 3px var(--linen-hi), 0 0 6px var(--linen-hi); }
       .cz.soon.hover { opacity: 1; }
       .cz.soon.hover::after { content: ' · ' attr(data-soon); }
-      .cz-head { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); text-align: center; padding: 14px 24px 12px; background: var(--linen); color: var(--indigo);
+      .cz-top { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .cz-head { position: relative; display: block; text-align: center; padding: 14px 24px 12px; background: var(--linen); color: var(--indigo); font: inherit; cursor: pointer; pointer-events: auto;
                  border: 1.5px solid var(--indigo); border-radius: 12px; box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); white-space: nowrap; }
       .cz-head::before { content: ''; position: absolute; left: 6px; right: 6px; top: 3px; height: 10px; background: var(--stitch) repeat-x center; }
-      .cz-head h2 { margin: 4px 0 0; font-size: 22px; letter-spacing: 0.04em; }
-      .cz-head p { margin: 2px 0 0; font-size: 13.5px; font-style: italic; color: var(--wine); }
+      .cz-head .h2 { display: block; margin: 4px 0 0; font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+      .cz-head .p { display: block; margin: 2px 0 0; font-size: 13.5px; font-style: italic; color: var(--wine); }
+      .cz-head .caret { display: inline-block; margin-left: 5px; font-style: normal; font-size: 11px; transition: transform 0.15s; }
+      .cz-head[aria-expanded="true"] .caret { transform: rotate(180deg); }
+      .cz-head:hover { background: var(--linen-hi); }
+      .cz-head:focus-visible { outline: 2px solid var(--wine); outline-offset: 2px; }
+      .cz-soon { pointer-events: auto; padding: 10px 16px 12px; background: var(--linen); color: var(--indigo); border: 1.5px solid var(--indigo); border-radius: 12px;
+                 box-shadow: 2px 3px 0 rgba(31, 42, 68, 0.25); max-height: calc(100vh - 150px); overflow: auto; }
+      .cz-soon[hidden] { display: none; }
+      .cz-soon h3 { margin: 0 0 6px; font-size: 15px; text-align: center; color: var(--wine); letter-spacing: 0.04em; }
+      .cz-soon h3 .n { margin-left: 6px; font-size: 12px; font-weight: 700; color: var(--linen-hi); background: var(--indigo); border-radius: 9px; padding: 1px 7px; vertical-align: 1px; }
+      .cz-soon ol { margin: 0; padding: 0 0 0 26px; columns: 2; column-gap: 26px; font-size: 15px; }
+      .cz-soon li { padding: 2px 6px; border-radius: 6px; white-space: nowrap; cursor: default; break-inside: avoid; }
+      .cz-soon li::marker { color: var(--wine); font-size: 12.5px; }
+      .cz-soon li:hover, .cz-soon li.hover { background: var(--linen-hi); }
       .cz-close { position: absolute; right: 18px; top: 18px; width: 40px; height: 40px; border-radius: 50%; pointer-events: auto; cursor: pointer; font: inherit; font-size: 18px; font-weight: 700;
                   background: var(--indigo); color: var(--linen-hi); border: 2px solid var(--linen-hi); box-shadow: 0 0 0 1.5px var(--indigo), 2px 3px 0 rgba(31, 42, 68, 0.4); }
       .cz-close:hover { background: var(--wine); }
@@ -185,7 +199,7 @@
       .cz-load[hidden] { display: none; }
       .cz-load .track { margin-top: 10px; height: 6px; border-radius: 3px; background: rgba(31, 42, 68, 0.15); overflow: hidden; }
       .cz-load .track div { height: 100%; width: 0; background: var(--wine); transition: width 0.2s; }
-      @media (max-width: 560px) { .cz-head { top: auto; bottom: 34px; } .cz.done { font-size: 13px; } }
+      @media (max-width: 560px) { .cz-top { top: auto; bottom: 34px; flex-direction: column-reverse; } .cz-soon { max-height: calc(100vh - 200px); max-width: calc(100vw - 16px); box-sizing: border-box; padding: 8px 10px 10px; } .cz-soon ol { column-gap: 12px; font-size: 14px; } .cz.done { font-size: 13px; } }
 
       /* place labels */
       #labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
@@ -465,7 +479,10 @@
     </div>
     <div id="country-ui" hidden>
       <div id="country-labels"></div>
-      <div class="cz-head"><h2 data-i18n="country.title">Македонија</h2><p data-i18n="country.hint">Избери мапа</p></div>
+      <div class="cz-top">
+        <button class="cz-head" id="country-head" type="button" aria-expanded="false" aria-controls="country-soon" title="Мапи што доаѓаат наскоро" data-i18n-title="country.soonOpen"><span class="h2" data-i18n="country.title">Македонија</span><span class="p"><span data-i18n="country.hint">Избери мапа</span><span class="caret" aria-hidden="true">▾</span></span></button>
+        <div class="cz-soon" id="country-soon" hidden><h3><span data-i18n="country.soonTitle">Наскоро</span><span class="n" id="country-soon-n"></span></h3><ol id="country-soon-list"></ol></div>
+      </div>
       <button class="cz-close" id="country-close" type="button" title="Назад кон мапата" data-i18n-title="country.back" aria-label="Назад кон мапата" data-i18n-aria="country.back">✕</button>
       <div class="cz-load" id="country-load" hidden><span data-i18n="country.loading">Се вчитува Македонија…</span><div class="track"><div id="country-load-bar"></div></div></div>
     </div>

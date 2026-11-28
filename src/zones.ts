@@ -56,3 +56,12 @@ export const ZONES: Zone[] = [...EXISTING, ...PLANNED].map((b) => ({
   ring: outline(b),
   at: LABEL_AT[b[0]] ?? [(b[1] + b[3]) / 2, (b[2] + b[4]) / 2],
 }));
+
+/** A ring's area in km² (lon / lat scaled at the country's latitude). */
+function areaKm2(ring: [number, number][]): number {
+  let a = 0;
+  ring.forEach(([x1, y1], i) => { const [x2, y2] = ring[(i + 1) % ring.length]; a += x1 * y2 - x2 * y1; });
+  return (Math.abs(a) / 2) * 111.32 * 111.32 * Math.cos((41.6 * Math.PI) / 180);
+}
+/** the planned maps, smallest first: the build order of docs/TOWNS_TODO.md (the country view's „Наскоро“ list) */
+export const SOON: Zone[] = ZONES.filter((z) => !z.city).sort((a, b) => areaKm2(a.ring) - areaKm2(b.ring));

@@ -25,7 +25,7 @@ opens through the dev server. With `npm run dev` running:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=1640,1330 --virtual-time-budget=8000 --screenshot=docs/towns-map.png http://localhost:5173/scripts/towns-map.html
 ```
 
-**To do: 20 new maps** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Валандово, Виница, Кораб, Пробиштип, Гевгелија and Крива Паланка built since), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
+**To do: 20 new maps, 13 of them left** (Кочани, Меџитлија, Кратово, Штип, Струмица, Неготино, Демир Капија, Голо Брдо, Валандово, Виница, Кораб, Пробиштип, Гевгелија and Крива Паланка built since; 30 maps finished on 2026-11-28), all edge to edge, no overlaps, the whole country covered. Largest first (km², official
 towns on it):
 
 | Map | ~km² | Towns | | Map | ~km² | Towns |
@@ -192,9 +192,11 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 28 | Велес | 1540 | Велес | 15 |
 | 29 | Куманово | 1620 | Куманово | 6 |
 
-\* working names. Next to build: the first row.
+\* working names. Next to build: the first row not struck through (Свети Николе, 2026-11-28). The country view's
+„Наскоро“ list (click the Македонија card) shows the planned maps in this order, sorted by the area of their zones in
+`src/zones.ts`.
 
-## Finished (16 maps, all on the site)
+## Finished (30 maps: 23 on the site, 7 on `develop` not released yet)
 
 | Map | Also on it | `?city=` | bbox (s, w, n, e) |
 |---|---|---|---|
