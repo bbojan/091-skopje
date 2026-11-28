@@ -128,7 +128,9 @@ controls, ink, city, flight); `setView('center'|'kale'|'park'|'vodno'|'overview'
 - Macedonia, the first item of the city menu (a tile as tall as four cities, 70 % of the row; the drawn ✈ F-15 beside it takes off on the current map in F-15 mode, `takeOffF15()` in `main.ts`), opens the country view (`src/country.ts`): every map's zone on the whole
   country; a finished map's badge opens it. A new map: move it from `PLANNED` to `EXISTING` in `src/zones.ts`.
   The city stays built underneath, so Skopje is pixel-identical after closing it (checked).
-- The badge at the top left (`091 Скопје ▾`) is the city picker (the tab icon follows: `icon` in `CITIES`,
+- The badge at the top left (`091 Скопје ▾`) is the city picker, its order the owner's rule: Скопје, Кавадарци, Охрид,
+  Крушево, Битола, Ростуше first, Голо Брдо last, every other map by population (`MENU_ORDER` / `POPULATION` in
+  `src/cities.ts`; a new map adds its `POPULATION` line) (the tab icon follows: `icon` in `CITIES`,
   `public/favicon-<id>.svg`). The LinkedIn button at the top right names the city's developer (one `.me-main`
   per city, `data-city`; the ▼ menu lists the five developers: Бојан 091, Ристе 043, Бранко 031, Калина 092, Филип 034) and shows only on the map itself, not while flying, driving or walking.
   The round `?` right after the badge opens the help

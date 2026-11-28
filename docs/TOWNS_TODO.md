@@ -196,6 +196,12 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 „Наскоро“ list (click the Македонија card) shows the planned maps in this order, sorted by the area of their zones in
 `src/zones.ts`.
 
+**Data downloaded ahead** (2026-11-28, not in git): every planned map's raw OSM file (`data/<id>_raw.json`, from the
+Geofabrik extracts with `pbf2overpass.py` on the zone's box; ids `svetinikole`, `debarca`, `delcevo`, `demirhisar`, `radovis`,
+`novaci`, `crnagora`, `novoselo`, `stobi`, `kicevo`, `mariovo`, `veles`, `kumanovo`, the five working names provisional),
+`data/greece.osm.pbf`, and the z15 terrain tiles of every zone in `data/terrarium`. A worker uses the raw file when its
+bbox and cuts match the zone, otherwise rebuilds it (NOTES.md item 58).
+
 ## Finished (30 maps: 23 on the site, 7 on `develop` not released yet)
 
 | Map | Also on it | `?city=` | bbox (s, w, n, e) |

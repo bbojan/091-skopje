@@ -980,6 +980,27 @@ day/night) and fun (airplane, ring race). Tagline: „Го добивме 091 С
    six views, 4–17 px on the overviews, the gondola). Not checked: flying in from a neighbour, firefighting and the race in
    play, the walking cards one by one, snow views, phones.
 
+58. **The city menu's order and the country view's „Наскоро“ list** (2026-11-28, on `develop`, not released).
+   **Menu order (the owner's rule):** Скопје, Кавадарци, Охрид, Крушево, Битола, Ростуше first, in this order
+   (`MENU_FIRST`); Голо Брдо at the very bottom (`MENU_LAST`); every other map by the number of people, the most first
+   (`POPULATION`, `MENU_ORDER` in `src/cities.ts`). The count is the towns in the map's name, 2021 census of the settlements
+   (Wikipedia's lists): Тетово, Гостивар 95,990; Прилеп 63,308; Штип 42,000; … Дојран (Нов and Стар) 1,410. Where no 2021
+   figure was found the last one: Вевчани 2,343 (2018), Ростуше 872 and Меџитлија 155 (2002). Голо Брдо counts Пешкопија
+   (14,710, Albania's 2023 census) but sits last anyway. Матка and Кораб have no town: 0, the last before Голо Брдо. A new
+   map adds its `POPULATION` line (a missing one fails the typecheck) and falls into place; it joins `MENU_FIRST` /
+   `MENU_LAST` only if the owner says so. `CITY_IDS` keeps its own order (the menu sorts a copy).
+   **„Наскоро“:** the card at the top of the country view („Македонија · Избери мапа ▾“) is a button that opens the
+   planned maps, numbered in build order (`SOON` in `src/zones.ts`: the planned zones sorted by area, the same order as
+   docs/TOWNS_TODO.md's build table); hovering or tapping one lights its zone. Escape, a click on the map, the card again or
+   closing the view hide it. On phones the card sits at the bottom and the list opens above it (`flex-direction:
+   column-reverse`, at most the screen's width less 16 px). Texts `country.soonOpen` / `country.soonTitle` in 6 languages.
+   Checked in the browser at 800 × 580 and 375 × 700, no console errors.
+   **Data for the 13 planned maps** downloaded ahead (not in git, data/): Geofabrik's Greek extract (`greece.osm.pbf`,
+   344 MB, for Новаци, Мариово and Ново Село), a raw file per map from the extracts (`pbf2overpass.py` on the zone's box,
+   `data/<id>_raw.json`; provisional ids for the working names: `novaci`, `crnagora`, `novoselo`, `stobi`, `mariovo`) and the
+   z15 terrain tiles of every zone in `data/terrarium`. A worker checks the box against its final bbox and cuts; a box
+   that changes needs the raw file rebuilt.
+
 ## Country view (Nov 2026)
 
 - **What:** Macedonia, first in the city menu (a tile as tall as four cities, `.country-tile`), shows the whole country with every map's zone (`src/zones.ts`,
