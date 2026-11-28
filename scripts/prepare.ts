@@ -689,6 +689,41 @@ const PREP: Record<CityName, CityPrep> = {
     maxLevels: 8,
     buildingTags: {},
   },
+  krivapalanka: {
+    old: null,
+    square: [42.20590, 22.33620], // the centre of Крива Паланка by the town hall and the Дом на култура (OSM has no square there)
+    landmarks: {},
+    models: {},
+    placeNames: {},
+    placeIds: {
+      kpbogorodica: 1329164536, kpjoakim: 1329164535, kpdimitrij: 465292251, kpdevebair: 1457360729,
+      kpstadium: 305473448, kpveter: 529211786, kppetka: 1463483923,
+    },
+    placeNodes: {
+      krivapalanka: 371046217, kpmuseum: 2578029313, kpruen: 1696045002, kpcarev: 442887690, kpgoles: 6347077093,
+      kpvodopadi: 9242047771, kpdobrovnica: 473902993, kpkonopnica: 488853584, kptrnovo: 488854003, kpcrcorija: 1921656135,
+      kpuzem: 2024783771, kpkostur: 2024783776, kpkrklja: 2024804501, kpgabar: 2024783769, kpmonument: 473902990,
+      kpgyueshevo: 411266166,
+    },
+    nodeLL: {
+      371046217: [42.20381, 22.33367], 2578029313: [42.20201, 22.33490], // Крива Паланка, the town museum
+      1696045002: [42.15801, 22.51627], 442887690: [42.12617, 22.45210], // Руен (2251 m), Царев Врв (2084 m)
+      6347077093: [42.32646, 22.33151], 9242047771: [42.17633, 22.39643], // the Голеш border crossing, Станечки водопади
+      473902993: [42.27532, 22.32243], 488853584: [42.18121, 22.28651], 488854003: [42.27543, 22.38238], // Добровница, Конопница, Трново
+      1921656135: [42.31457, 22.33419], 2024783771: [42.22212, 22.42440], 2024783776: [42.20571, 22.43700], // Голема Црцорија, Узем, Костур
+      2024804501: [42.21482, 22.39623], 2024783769: [42.25071, 22.26035], 473902990: [42.29161, 22.35080], // Кркља, Габар, the WWII memorial
+      411266166: [42.21880, 22.46045], // Гюешево, the Bulgarian side of Деве Баир
+    },
+    tall: [],
+    // the blocks of flats in the centre of Крива Паланка along the Крива Река (the villages are houses of one or two storeys)
+    mid: [[42.2025, 42.2075, 22.3325, 22.3395]],
+    squareBonus: false,
+    maxLevels: 7,
+    buildingTags: {},
+    // the Крива Река is a line in OSM: widened into a strip of water from the town up toward Деве Баир, for refilling (the
+    // way west of the town, 235341361, runs 40 km on toward the Пчиња and is left out: waterLines are not clipped to the map)
+    waterLines: [[1557884350, 5], [860379208, 5], [860970958, 5], [235315293, 4]],
+  },
   probistip: {
     old: null,
     square: [41.99990, 22.17830], // the square in Пробиштип, by the statue of Св. Гаврил Лесновски (OSM has no square there)
@@ -1398,7 +1433,8 @@ for (const el of raw.elements) {
     const lanes = parseNum(t.lanes);
     if (lanes && w > 6) w = Math.max(w, lanes * 3.2 + 1);
     const width = parseNum(t.width);
-    if (width) w = width;
+    // a width over 30 m is a value in centimetres or the whole road reserve (Крива Паланка: 700, 800, 2500): kept as the guess
+    if (width && width <= 30) w = width;
     out.roads.push({ k: t.highway, w: r1(w), b: t.bridge && t.bridge !== 'no' ? 1 : 0, p: flat(pts) });
     continue;
   }

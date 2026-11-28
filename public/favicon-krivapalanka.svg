@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Крива Паланка: the Осоговски манастир's domed church on its hill, Осогово behind it, the winding Крива Река below -->
+  <rect x="3" y="3" width="94" height="94" rx="14" fill="#f4ede0" stroke="#7a1f1a" stroke-width="6"/>
+  <path d="M8 46 L28 26 L42 38 L60 18 L80 34 L92 26" fill="none" stroke="#1f2a44" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+  <g fill="#7a1f1a"><rect x="30" y="50" width="40" height="18"/><rect x="42" y="40" width="16" height="12"/><path d="M42 41 Q50 30 58 41 Z"/><rect x="49" y="25" width="2" height="9"/><rect x="46" y="27.5" width="8" height="2"/></g>
+  <path d="M10 86 Q22 74 36 82 T62 80 T90 84" fill="none" stroke="#1f2a44" stroke-width="4" stroke-linecap="round"/>
+</svg>
