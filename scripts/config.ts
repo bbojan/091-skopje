@@ -313,6 +313,14 @@ export const CITIES = {
     files: { raw: 'data/vinica_raw.json', scene: 'public/vinica.json', terrainBin: 'public/vinica-terrain.bin', terrainJson: 'public/vinica-terrain.json', overture: 'data/vinica_overture.json' },
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Пробиштип (docs/TOWNS_TODO.md, 28): Пробиштип and Злетово with its mines, Лесновски манастир, the Злетовска Река,
+  // Кочанско Езеро (Брана Гратче). Edge to edge with Кратово (n), Каменица (e), Штип, Кочани and Виница (s), Свети Николе (w)
+  probistip: {
+    bbox: { s: 41.945, w: 22.062, n: 42.04, e: 22.495 },
+    tiles: [6, 2] as [number, number],
+    files: { raw: 'data/probistip_raw.json', scene: 'public/probistip.json', terrainBin: 'public/probistip-terrain.bin', terrainJson: 'public/probistip-terrain.json' },
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
   // Неготино (docs/TOWNS_TODO.md, 5): the town on the Вардар's left bank, its vineyards and the Тиквешко Поле's east
   // end, Пепелиште, Дуброво and Тремник, the Вардар from Криволак down to Демир Капија's gorge. Edge to edge with
   // Кавадарци (w), Демир Капија (s) and Штип (n)

@@ -642,6 +642,33 @@ const PREP: Record<CityName, CityPrep> = {
     maxLevels: 6,
     buildingTags: {},
   },
+  probistip: {
+    old: null,
+    square: [41.99990, 22.17830], // the square in Пробиштип, by the statue of Св. Гаврил Лесновски (OSM has no square there)
+    landmarks: {},
+    // modelled by hand after its description (src/probistip.ts): Лесново's church on its OSM outline
+    models: { lesnovo: 181986741 },
+    placeNames: {},
+    placeIds: { pblesnovo: 181986735, pbmihail: 181986741, pblake: 701902367, pbaqua: 181715932, pbkundino: 1332494089, pbpantelej: 184613907 },
+    placeNodes: {
+      probistip: 418344960, pbzletovo: 418347798, pbdobrevo: 452449665, pbzelengrad: 1875272299, pbponikva: 466248926,
+      pbgavril: 10006874003, pbjastrebnik: 2020405013,
+    },
+    nodeLL: {
+      418344960: [41.99984, 22.17848], 418347798: [41.98830, 22.23473], 452449665: [42.02415, 22.19706], // Пробиштип, Злетово, Добрево
+      1875272299: [42.03291, 22.30860], 466248926: [42.03484, 22.35580], 10006874003: [41.99988, 22.17842], // Зеленград, Пониква, Св. Гаврил
+      2020405013: [42.00456, 22.41801], // Јастребник
+    },
+    tall: [],
+    // the blocks of flats in the centre of Пробиштип (the villages are houses of one or two storeys)
+    mid: [[41.9960, 42.0030, 22.1740, 22.1830]],
+    squareBonus: false,
+    maxLevels: 6,
+    buildingTags: Object.fromEntries([
+      ...[1530704009, 881167086].map((id) => [id, { 'building:levels': '1', height: '9' }]), // Св. Петка, Св. Харалампие
+      ...[1311115945, 1311116818].map((id) => [id, { 'building:levels': '1' }]), // Дади, Макпетрол
+    ]),
+  },
   vinica: {
     old: null,
     square: [41.88420, 22.50480], // in front of Општина Виница and the Теракота museum (OSM has no square there)

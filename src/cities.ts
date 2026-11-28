@@ -5,7 +5,7 @@ import type { Key } from './i18n.ts';
 import type { Vec3 } from './types.ts';
 import type { TreeThin } from './city.ts';
 
-export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo', 'vinica', 'korab'] as const;
+export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo', 'vinica', 'korab', 'probistip'] as const;
 export type CityId = (typeof CITY_IDS)[number];
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
@@ -1384,6 +1384,84 @@ export const CITIES: Record<CityId, CitySpec> = {
     refillLabel: 'fire.refill.vinica',
     bestRaceKey: 'skopje.bestRace.vinica',
     banners: { fire: 'Виница е спасена!', roll: 'Поздрав од Виница!' },
+  },
+  probistip: {
+    id: 'probistip', name: 'Пробиштип', code: '032', icon: './favicon-probistip.svg',
+    files: { scene: './probistip.json', terrainBin: './probistip-terrain.bin', terrainJson: './probistip-terrain.json' },
+    sceneBytes: 0.92e6,
+    views: {
+      center: { place: 'probistip', ll: [41.99984, 22.17848], d: 650, polar: 0.8, az: 0.3 },
+      pblesnovo: { place: 'pblesnovo', ll: [42.01330, 22.22750], d: 300, polar: 0.95, az: 0.4 }, // the monastery's court, Илин врв behind it
+      pbzletovo: { place: 'pbzletovo', ll: [41.98830, 22.23473], d: 750, polar: 1.0, az: 0.3 },
+      pbmine: { ll: [41.98300, 22.17800], d: 1100, polar: 1.0, az: -0.5 }, // the mine's works and the tailings pond south of the town
+      pblake: { place: 'pblake', ll: [41.96300, 22.41000], d: 1100, polar: 1.05, az: 0.1 }, // from the dam up the lake
+      pbosogovo: { place: 'pbponikva', ll: [42.03484, 22.35580], d: 2000, polar: 1.15, az: 0.2 }, // Пониква on Осогово from the south
+      overview: { ll: [41.99250, 22.27850], d: 28000, polar: 0.72, az: 0 },
+    },
+    districts: [
+      ['Пробиштип', 41.99984, 22.17848], ['Злетово', 41.98830, 22.23473, 30], ['Лесново', 42.01405, 22.22921, 30],
+      ['Добрево', 42.02415, 22.19706, 30], ['Древено', 42.00738, 22.21214, 30], ['Турско Рудари', 41.98135, 22.25753, 30],
+      ['Шталковица', 41.99609, 22.28422, 30], ['Ратавица', 41.96783, 22.21742, 30], ['Бунеш', 41.95258, 22.23616, 30],
+      ['Пантелеј', 41.96564, 22.31660, 30], ['Нивичани', 41.95515, 22.33822, 30], ['Стрмош', 41.98197, 22.16270, 30],
+      ['Плешенци', 41.99822, 22.13502, 30], ['Долни Стубол', 41.99927, 22.12186, 30], ['Горно Барбарево', 41.99348, 22.07077, 30],
+      ['Марчино', 42.02486, 22.17704, 30], ['Неокази', 41.96066, 22.19135, 30], ['Дренак', 41.96681, 22.15053, 30],
+      ['Јастребник', 42.00456, 22.41801, 30], ['Костин Дол', 42.02059, 22.45387, 30],
+      ['Осогово', 42.02000, 22.36000, 150],
+    ],
+    labels: [
+      ['Лесновски манастир', 42.01330, 22.22750, 20, 'pblesnovo'],
+      ['Св. Архангел Михаил', 42.01330, 22.22820, 12, 'pbmihail'],
+      ['Св. Гаврил Лесновски', 41.99988, 22.17842, 10, 'pbgavril'],
+      ['Аквапарк', 42.00590, 22.17550, 10, 'pbaqua'],
+      ['Кочанско Езеро', 41.96300, 22.41000, 10, 'pblake'],
+      ['Брана Гратче', 41.95940, 22.40830, 10],
+      ['Кундиско Езеро', 42.03070, 22.15520, 10, 'pbkundino'],
+      ['Св. Пантелејмон', 41.96860, 22.30910, 12, 'pbpantelej'],
+      ['Зеленград', 42.03291, 22.30860, 30, 'pbzelengrad'],
+      ['Пониква', 42.03484, 22.35580, 30, 'pbponikva'],
+      ['Илин врв', 42.01940, 22.22820, 30],
+      ['Јастребничка Чука', 42.00500, 22.40680, 30],
+      ['Злетовица', 41.99260, 22.24210, 6, undefined, 'river'],
+      ['Кочанска Река', 41.95500, 22.41000, 6, undefined, 'river'],
+    ],
+    route: [
+      ['Пробиштип', 41.99984, 22.17848, 45, 'probistip'],
+      ['Марчино', 42.02486, 22.17704, 50],
+      ['Добрево', 42.02415, 22.19706, 50, 'pbdobrevo'],
+      ['Лесновски манастир', 42.01330, 22.22750, 50, 'pblesnovo'],
+      ['Злетово', 41.98830, 22.23473, 50, 'pbzletovo'],
+      ['Турско Рудари', 41.98135, 22.25753, 50],
+      ['Шталковица', 41.99609, 22.28422, 55],
+      ['Зеленград', 42.03291, 22.30860, 60, 'pbzelengrad'],
+      ['Пониква', 42.03484, 22.35580, 60, 'pbponikva'],
+      ['Јастребник', 42.00456, 22.41801, 60, 'pbjastrebnik'],
+      ['Кочанско Езеро', 41.96300, 22.41000, 45, 'pblake'],
+      ['Св. Пантелејмон', 41.96860, 22.30910, 55, 'pbpantelej'],
+      ['Ратавица', 41.96783, 22.21742, 50],
+      ['Неокази', 41.96066, 22.19135, 50],
+      ['Стрмош', 41.98197, 22.16270, 50],
+    ],
+    spots: [
+      ['pb.town', 'Пробиштип', 41.99984, 22.17848, 70, 'probistip'],
+      ['pb.lesnovo', 'Лесновски манастир', 42.01330, 22.22750, 120, 'pblesnovo'],
+      ['pb.zletovo', 'Злетово', 41.98830, 22.23473, 150, 'pbzletovo'],
+      ['pb.mine', 'Рудник Злетово', 41.98300, 22.17800, 250],
+      ['pb.lake', 'Кочанско Езеро', 41.96300, 22.41000, 250, 'pblake'],
+      ['pb.osogovo', 'Пониква', 42.03484, 22.35580, 200, 'pbponikva'],
+    ],
+    gliders: false,
+    buses: false, // no red ЈСП buses: Skopje only
+    terrainExag: 1, // true heights
+    treeThin: { ll: [41.99984, 22.17848], near: 3500, far: 8500, min: 0.1, grow: 1.6 },
+    sparseFar: 1500,
+    // the Злетовица valley and the low hills round Пробиштип: fields and a few vineyards, the Осогово slopes wooded
+    vineyards: 250, // m above the map's lowest point (388 m, the Злетовица at the south edge)
+    vineShare: 0.08,
+    walker: 'pejo',
+    snowLabel: 'weather.osogovo',
+    refillLabel: 'fire.refill.probistip',
+    bestRaceKey: 'skopje.bestRace.probistip',
+    banners: { fire: 'Пробиштип е спасен!', roll: 'Поздрав од Пробиштип!' },
   },
   korab: {
     id: 'korab', name: 'Кораб', code: '042', icon: './favicon-korab.svg',

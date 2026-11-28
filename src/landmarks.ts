@@ -27,6 +27,7 @@ import { createKratovo, kratovoFootprints } from './kratovo.ts';
 import { createNegotino, negotinoFootprints } from './negotino.ts';
 import { createGolobrdo, golobrdoFootprints } from './golobrdo.ts';
 import { createVinica } from './vinica.ts';
+import { createProbistip, probistipFootprints } from './probistip.ts';
 import { createDemirkapija, demirkapijaFootprints } from './demirkapija.ts';
 import type { BuildingData, CityData, Flat, Pt, Vec3 } from './types.ts';
 
@@ -240,6 +241,7 @@ export function landmarkFootprints(data: CityData, terrain: Terrain): BuildingDa
   for (const [r, h] of kamenicaFootprints(data)) add(r, h); // Makedonska Kamenica: Успение
   for (const [r, h] of dojranFootprints(data)) add(r, h); // Dojran: the clock tower, Св. Илија
   for (const [r, h] of batinciFootprints(data)) add(r, h); // Batinci: Марков манастир, the mosque
+  for (const [r, h] of probistipFootprints(data)) add(r, h); // Пробиштип: Лесново's church
   for (const [r, h] of berovoFootprints(data)) add(r, h); // Berovo: the two churches, the bell tower
   for (const [r, h] of tetovoFootprints(data)) add(r, h); // Tetovo: Шарена џамија, Лешок; Gostivar's clock tower
   for (const [r, h] of brodFootprints(data)) add(r, h); // Makedonski Brod: Зрзе
@@ -1071,8 +1073,9 @@ export function createLandmarks({ data, terrain, clippingPlanes }: LandmarkOptio
   // ---------------- Rostuše: Бигорски манастир, Св. Никола in Mavrovo (rostuse.ts); Prilep (prilep.ts); Kruševo (krusevo.ts);
   // Makedonska Kamenica (kamenica.ts); Dojran (dojran.ts); Batinci (batinci.ts); Berovo (berovo.ts); Tetovo (tetovo.ts);
   // Makedonski Brod (brod.ts); Resen (resen.ts); Матка (matka.ts); Вевчани (vevcani.ts); Кочани (kocani.ts);
-  // Меџитлија (medzitlija.ts); Кратово (kratovo.ts); Демир Капија (demirkapija.ts); Неготино (negotino.ts); Голо Брдо (golobrdo.ts); Виница (vinica.ts)
-  for (const make of [createRostuse, createPrilep, createKrusevo, createKamenica, createDojran, createBatinci, createBerovo, createTetovo, createBrod, createResen, createMatka, createVevcani, createKocani, createMedzitlija, createKratovo, createDemirkapija, createNegotino, createGolobrdo, createVinica]) {
+  // Меџитлија (medzitlija.ts); Кратово (kratovo.ts); Демир Капија (demirkapija.ts); Неготино (negotino.ts); Голо Брдо (golobrdo.ts); Виница (vinica.ts);
+  // Пробиштип (probistip.ts)
+  for (const make of [createRostuse, createPrilep, createKrusevo, createKamenica, createDojran, createBatinci, createBerovo, createTetovo, createBrod, createResen, createMatka, createVevcani, createKocani, createMedzitlija, createKratovo, createDemirkapija, createNegotino, createGolobrdo, createVinica, createProbistip]) {
     const t = L.models ? make(data, terrain, clippingPlanes) : null;
     if (t?.group.children.length) { group.add(t.group); nightGlass.push(...t.nightLit); }
   }
