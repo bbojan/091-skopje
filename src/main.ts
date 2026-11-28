@@ -1211,6 +1211,43 @@ $('shot').addEventListener('click', () => {
   a.click();
 });
 
+// ---------------- compass (top right): the needle shows north as the view turns; on the map a click turns
+// the view back to north (same distance and tilt), walking turns the view, the bus turns to face north; flight hides it
+const compassEl = $('compass'), compassNeedle = $('compass-needle');
+// where it sits: top right beside the LinkedIn button on the map, in the top chip row while walking or in the bus
+const compassHome = compassEl.parentElement!, walkTop = document.querySelector<HTMLElement>('#walkhud .fly-top')!, flyTop = document.querySelector<HTMLElement>('#flyhud .fly-top')!;
+let compassDeg = NaN;
+let toNorth = false; // turning the map view back to north
+const fwd = new THREE.Vector3(), camUp = new THREE.Vector3();
+function updateCompass(host: HTMLElement = compassHome): void {
+  if (compassEl.parentElement !== host) host.prepend(compassEl);
+  camera.updateMatrixWorld();
+  camera.getWorldDirection(fwd);
+  // looking (almost) straight down: the screen's up decides the heading
+  if (Math.hypot(fwd.x, fwd.z) < 0.15) fwd.copy(camUp.setFromMatrixColumn(camera.matrixWorld, 1));
+  const heading = Math.atan2(fwd.x, -fwd.z); // 0 = north (-z), east positive
+  const d = Math.round(-deg(heading) * 10) / 10;
+  if (d === compassDeg) return;
+  compassDeg = d;
+  compassNeedle.style.transform = `rotate(${d}deg)`;
+}
+/** one frame of the turn back to north (map only), before controls.update() */
+function turnToNorth(dt: number): void {
+  const off = camera.position.clone().sub(controls.target), sph = new THREE.Spherical().setFromVector3(off);
+  const theta = Math.abs(sph.theta) < 0.002 ? 0 : sph.theta * Math.exp(-dt * 9);
+  sph.theta = theta;
+  camera.position.copy(controls.target).add(off.setFromSpherical(sph));
+  camDirty = true;
+  if (theta === 0) toNorth = false;
+}
+compassEl.addEventListener('click', () => {
+  if (!world) return;
+  if (world.walk.active) world.walk.faceNorth(); // walking: the view turns to north
+  else if (world.drive.active) world.drive.faceNorth(); // the bus turns to face north
+  else if (!world.flight.active) toNorth = true;
+});
+renderer.domElement.addEventListener('pointerdown', () => (toNorth = false)); // the visitor takes over
+
 // ---------------- airplane mode
 const flyHud = $('flyhud');
 const flyStats = $('fly-stats'), flyWarn = $('fly-warn');
@@ -1882,6 +1919,7 @@ renderer.setAnimationLoop(() => {
     return;
   }
   if (transit) { transitFrame(dt); return; } // the F-15 flies on while the next map builds
+  if (toNorth) { if (world && !world.flight.active && !world.drive.active && !world.walk.active) turnToNorth(dt); else toNorth = false; }
   controls.update();
   if (!world) return; // set at the end of loading: everything exists
   const { flight, drive, walk, game, terrain, city, traffic, clouds, birds, gliders, precip, landmarks, labels } = world;
@@ -1987,6 +2025,7 @@ renderer.setAnimationLoop(() => {
     landmarks.update(dt);
     precip.update(dt, camera, controls.target);
     labels.update(camera, controls.target);
+    updateCompass(walkTop);
     ink.render(scene, camera, true);
     return;
   }
@@ -2005,6 +2044,7 @@ renderer.setAnimationLoop(() => {
     gliders.update(dt);
     landmarks.update(dt);
     precip.update(dt, camera, controls.target);
+    updateCompass(flyTop);
     ink.render(scene, camera, true);
     return;
   }
@@ -2121,6 +2161,7 @@ renderer.setAnimationLoop(() => {
     precip.update(dt, camera, controls.target);
   }
   labels.update(camera, controls.target);
+  updateCompass();
   if (!live && ink.converged) return; // static & fully supersampled: idle
   ink.render(scene, camera, live);
 });

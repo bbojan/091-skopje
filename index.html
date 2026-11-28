@@ -136,7 +136,8 @@
       .title { background: rgba(251, 246, 238, 0.88); border: 1.5px solid var(--ink); border-radius: 14px; padding: 8px 14px 9px; box-shadow: 3px 3px 0 rgba(75, 52, 40, 0.35); }
       /* LinkedIn split button: the name opens the city's developer (Skopje: Bojan, Kavadarci, Negotino and Demir Kapija: Riste, Kratovo: Branko, Štip and Strumica: Kalina), the ▾ both;
          only on the map itself: hidden while flying, driving or walking */
-      .me { position: fixed; right: 18px; top: 18px; display: inline-flex; align-items: stretch; border-radius: 999px;
+      .topright { position: fixed; right: 18px; top: 18px; display: flex; align-items: center; gap: 10px; z-index: 10; }
+      .me { position: relative; display: inline-flex; align-items: stretch; border-radius: 999px;
             background: #2b1d16; color: #fff8ec; font-size: 14px; font-weight: 700; letter-spacing: 0.01em;
             border: 2px solid #fff8ec; box-shadow: 0 0 0 1.5px #2b1d16, 3px 4px 0 rgba(43, 29, 22, 0.45); z-index: 10; }
       .me-main { display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px 9px 15px; color: inherit; text-decoration: none; border-radius: 999px 0 0 999px; }
@@ -146,6 +147,19 @@
       .me-main:focus-visible, .me-more:focus-visible { outline: 2px solid #fff8ec; outline-offset: -4px; }
       .me svg { width: 17px; height: 17px; fill: currentColor; }
       body.flying .me, body.walking .me { display: none; }
+      /* compass (top right, left of the LinkedIn button): turns with the view; a click on the map turns back to north */
+      .compass { position: relative; flex: none; width: 44px; height: 44px; padding: 0; border-radius: 50%; z-index: 6; cursor: pointer; font: inherit;
+                 background: var(--linen-hi); border: 1.5px solid var(--indigo); box-shadow: 1.5px 1.5px 0 rgba(31, 42, 68, 0.3); }
+      .compass:hover { background: #fff; }
+      .compass:focus-visible { outline: 2px solid var(--wine); outline-offset: 2px; }
+      .compass .needle { position: absolute; inset: 0; display: block; }
+      .compass svg { position: absolute; left: 50%; top: 50%; width: 13px; height: 24px; transform: translate(-50%, -50%); }
+      .compass b { position: absolute; left: 50%; top: 1px; transform: translateX(-50%); font-size: 9px; line-height: 1; color: var(--wine); }
+      body.flying:not(.driving) .compass, body.country .compass { display: none; }
+      /* walking, bus: first in the top chip row, chip-sized */
+      .fly-top .compass { width: 34px; height: 34px; box-shadow: 2px 2px 0 rgba(75, 52, 40, 0.35); border-color: var(--ink); }
+      .fly-top .compass svg { width: 11px; height: 20px; }
+      .fly-top .compass b { font-size: 8px; }
       .city-menu.me-menu { left: auto; right: -2px; min-width: 0; letter-spacing: 0; }
       .city-menu.me-menu a { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; color: var(--indigo); background: var(--linen-hi); white-space: nowrap;
                              border: 1.5px solid var(--indigo); border-radius: 6px; padding: 7px 14px 7px 10px; text-decoration: none; }
@@ -395,7 +409,10 @@
         .title .city-name .more { display: block; font-size: 14px; font-weight: 600; line-height: 1.2; white-space: nowrap; }
         .title .city-name .sep { display: none; }
         .city-menu { width: max-content; max-width: calc(100vw - 24px); }
-        .me { right: 12px; top: 12px; height: 40px; box-sizing: border-box; }
+        /* phones: the compass under the LinkedIn button (a long city name needs the row) */
+        .topright { right: 12px; top: 12px; gap: 8px; flex-direction: column-reverse; align-items: flex-end; }
+        .me { height: 40px; box-sizing: border-box; }
+        .compass { width: 40px; height: 40px; }
         .me-main { padding: 0 8px 0 11px; }
         .me-more { padding: 0 10px 0 7px; }
         .me-name { display: none; }
@@ -708,6 +725,12 @@
         <p class="foot" data-city="resen"><a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener">Overture Maps Foundation</a> · Microsoft Building Footprints (ODbL)</p>      <p class="version" id="app-version"></p>
       </div>
     </dialog>
+    <!-- top right: the compass left of the LinkedIn button (walking, bus: moved into the top chip row by main.ts) -->
+    <div class="topright">
+    <!-- compass: the needle points north; a click turns the view (walking: the view, the bus: the bus) back to north -->
+    <button class="compass" id="compass" title="Сврти кон север" aria-label="Сврти кон север" data-i18n-title="a.north" data-i18n-aria="a.north">
+      <span class="needle" id="compass-needle"><svg viewBox="0 0 24 44" aria-hidden="true"><path d="M12 2 L18 22 L6 22 Z" fill="#7a1f1a"/><path d="M12 42 L18 22 L6 22 Z" fill="#1f2a44"/><circle cx="12" cy="22" r="2" fill="#fbf6ee"/></svg><b>N</b></span>
+    </button>
     <div class="me">
       <a class="me-main" data-city="skopje" href="https://www.linkedin.com/in/bojanb/" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
@@ -842,6 +865,7 @@
         <a role="menuitem" href="https://www.linkedin.com/in/kalina-jovanovska-468281304/" target="_blank" rel="noopener"><span class="code">092</span><span data-i18n="me.kalina">Калина Јовановска</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg></a>
         <a role="menuitem" href="https://www.linkedin.com/in/filip-kalkovaliev-26a189109/" target="_blank" rel="noopener"><span class="code">034</span><span data-i18n="me.filip">Филип Калковалиев</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg></a>
       </div>
+    </div>
     </div>
     <div class="bar">
       <button class="pop-toggle" id="places-toggle" aria-expanded="false" aria-controls="places" data-i18n="bar.places">📍 Места</button>

@@ -468,7 +468,7 @@ export function createWalk(o: WalkOptions) {
 
   const st = {
     active: false, char: 'pejo' as CharName, view: 'third' as ViewName,
-    pos: new THREE.Vector3(), yaw: 0, camYaw: 0, pitch: 0.35, speed: 0, phase: 0,
+    pos: new THREE.Vector3(), yaw: 0, camYaw: 0, pitch: 0.35, speed: 0, phase: 0, north: false, // north: the view turning to north (the compass)
     run: false, invert: false, wag: 0, bark: 0, oro: null as null | { x: number; z: number },
     ride: null as null | { t: number; dir: 1 | -1 },
     comp: new THREE.Vector3(), compYaw: 0, compPhase: 0,
@@ -499,7 +499,7 @@ export function createWalk(o: WalkOptions) {
     let x = at.x, z = at.z;
     for (let r = 0; r < 200 && !free(x, z); r += 4) { x = at.x + Math.cos(r) * r; z = at.z + Math.sin(r) * r; }
     st.pos.set(x, ground(x, z), z);
-    Object.assign(st, { active: true, yaw: camYaw, camYaw, pitch: 0.35, speed: 0, ride: null, oro: null });
+    Object.assign(st, { active: true, yaw: camYaw, camYaw, pitch: 0.35, speed: 0, ride: null, oro: null, north: false });
     st.comp.set(x - Math.sin(camYaw) * 2.5, 0, z + Math.cos(camYaw) * 2.5);
     showModels();
     update(0);
@@ -613,6 +613,12 @@ export function createWalk(o: WalkOptions) {
     st.wag = Math.max(0, st.wag - dt); st.bark = Math.max(0, st.bark - dt);
     // look: mouse / touch drag (pixels) and right stick (already scaled by dt)
     st.camYaw += look.x * 0.0028;
+    if (look.x !== 0) st.north = false; // the visitor looks around: the turn to north stops
+    if (st.north) {
+      const a = Math.atan2(Math.sin(st.camYaw), Math.cos(st.camYaw));
+      st.camYaw = Math.abs(a) < 0.003 ? 0 : a * Math.exp(-dt * 9);
+      if (st.camYaw === 0) st.north = false;
+    }
     st.pitch = THREE.MathUtils.clamp(st.pitch + look.y * 0.0028 * (st.invert ? -1 : 1), st.view === 'first' ? -1.2 : -0.15, 1.25);
     look.set(0, 0);
     const spec = SPEC[st.char], rig = rigs[st.char];
@@ -695,6 +701,8 @@ export function createWalk(o: WalkOptions) {
     rigs, start, stop, update, input, stick, look, action, act, info, setCharacter, setView,
     setInvertY(v: boolean): void { st.invert = v; },
     setRun(v: boolean): void { st.run = v; },
+    /** the compass: turn the view to north (the walker keeps going where the keys say) */
+    faceNorth(): void { st.north = true; },
     get running(): boolean { return st.run; },
     get active(): boolean { return st.active; },
     get pos(): THREE.Vector3 { return st.pos; },

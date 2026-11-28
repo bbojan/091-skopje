@@ -115,7 +115,7 @@ export function createDrive({ scene, camera, terrain, bounds, roads, signal }: D
   scene.add(bus);
   const index = roadIndex(roads);
 
-  const st = { active: false, pos: new THREE.Vector3(), yaw: 0, speed: 0 };
+  const st = { active: false, pos: new THREE.Vector3(), yaw: 0, speed: 0, north: false }; // north: turning to face north (the compass)
   const input = { left: 0, right: 0, up: 0, down: 0, boost: false }; // same shape as the plane's (shared HUD buttons)
   const pad = { turn: 0, throttle: 0 };
   const camPos = new THREE.Vector3(), look = new THREE.Vector3(), want = new THREE.Vector3();
@@ -142,7 +142,7 @@ export function createDrive({ scene, camera, terrain, bounds, roads, signal }: D
     // drive along the road, in the direction closest to where the camera was looking
     let yaw = Math.atan2(r.tx, -r.tz);
     if (Math.cos(yaw - preferYaw) < 0) yaw += Math.PI;
-    Object.assign(st, { active: true, yaw, speed: 0 });
+    Object.assign(st, { active: true, yaw, speed: 0, north: false });
     st.pos.set(r.x, terrain.at(r.x, r.z) + 1, r.z);
     bus.visible = true;
     camPos.set(st.pos.x - Math.sin(yaw) * 42, st.pos.y + 16, st.pos.z + Math.cos(yaw) * 42);
@@ -165,6 +165,13 @@ export function createDrive({ scene, camera, terrain, bounds, roads, signal }: D
     else if (throttle < 0) st.speed += (st.speed > 0.2 ? BRAKE : ACCEL * 0.6) * throttle * dt;
     else st.speed -= Math.sign(st.speed) * Math.min(Math.abs(st.speed), DRAG * dt);
     st.speed = THREE.MathUtils.clamp(st.speed, -MAX_REVERSE, MAX_SPEED);
+    // the compass: the bus turns to face north (on the spot too) until the driver steers
+    if (steer !== 0) st.north = false;
+    if (st.north) {
+      const a = Math.atan2(Math.sin(st.yaw), Math.cos(st.yaw));
+      st.yaw = Math.abs(a) < 0.003 ? 0 : a * Math.exp(-dt * 4);
+      if (st.yaw === 0) st.north = false;
+    }
     // steering needs speed; reversing turns the other way
     st.yaw += steer * STEER * dt * Math.min(1, Math.abs(st.speed) / 4) * Math.sign(st.speed || 1);
     const fx = Math.sin(st.yaw), fz = -Math.cos(st.yaw);
@@ -209,6 +216,8 @@ export function createDrive({ scene, camera, terrain, bounds, roads, signal }: D
 
   return {
     bus, start, stop, update, input, pad,
+    /** the compass: turn the bus to face north */
+    faceNorth(): void { st.north = true; },
     get active(): boolean { return st.active; },
     get pos(): THREE.Vector3 { return st.pos; },
     get kmh(): number { return Math.round(Math.abs(st.speed) * 3.6); },
