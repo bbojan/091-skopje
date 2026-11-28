@@ -149,7 +149,7 @@ that reproduces the old behaviour for Skopje.
 
 ## 5. The city in the app: `src/cities.ts`
 
-Add the id to `CITY_IDS` and an entry to `CITIES` (`CitySpec` documents the fields):
+Add the id to `CITY_IDS`, its people to `POPULATION` (the towns in the map's name, 2021 census; it places the map in the city menu, largest first) and an entry to `CITIES` (`CitySpec` documents the fields):
 
 - `name` (Macedonian, map data) and `code` (the badge); `icon`: the browser tab's icon, an SVG in
   `public/` (`./favicon-<id>.svg`: the town's coat of arms or flag), switched with the city.
@@ -390,7 +390,7 @@ Shortcuts and fixes that came out of the third city; reuse them before writing n
 - [ ] `npm run download -- <id>`, totals checked against a count query
 - [ ] `npm run terrain -- <id>`
 - [ ] `scripts/prepare.ts`: `PREP.<id>`; `npm run data -- <id>`; heights tuned by histogram and eye
-- [ ] `src/cities.ts`: `CITY_IDS`, `CITIES.<id>`
+- [ ] `src/cities.ts`: `CITY_IDS`, `POPULATION`, `CITIES.<id>`
 - [ ] `index.html`: places buttons, help paragraphs, the `body:not(.city-<id>)` CSS rule, a
       `.me-main` LinkedIn link with `data-city="<id>"` (the developer shown for the city)
 - [ ] `public/favicon-<id>.svg` and `icon` in `CITIES.<id>`

@@ -7,6 +7,18 @@ import type { TreeThin } from './city.ts';
 
 export const CITY_IDS = ['skopje', 'kavadarci', 'rostuse', 'ohrid', 'bitola', 'krusevo', 'prilep', 'dojran', 'berovo', 'tetovo', 'resen', 'brod', 'kamenica', 'kocani', 'medzitlija', 'golobrdo', 'kratovo', 'negotino', 'stip', 'strumica', 'vevcani', 'batinci', 'matka', 'demirkapija', 'valandovo', 'vinica', 'korab', 'probistip', 'gevgelija', 'krivapalanka'] as const;
 export type CityId = (typeof CITY_IDS)[number];
+
+/** People living on each map, for the order of the city menu (largest first): the towns in the map's name, 2021 census
+ *  of the settlements (Wikipedia's lists, 2026-11-28). Villages where no 2021 figure was found: their last one (Вевчани
+ *  2018, Ростуше and Меџитлија 2002). Голо Брдо: Пешкопија (Albania, 2023). Кораб and Матка have no town: 0, last.
+ *  A new map needs its line here (a missing one fails the typecheck). */
+export const POPULATION: Record<CityId, number> = {
+  skopje: 526502, tetovo: 63176 + 32814, bitola: 69287, prilep: 63308, ohrid: 38818 + 15009, stip: 42000, strumica: 33825,
+  kavadarci: 32038, kocani: 24632, gevgelija: 15156 + 5244, golobrdo: 14710, krivapalanka: 13481, rostuse: 11735 + 872 + 212,
+  negotino: 12488, probistip: 9760, vinica: 8584, berovo: 5850 + 2471, resen: 7904, batinci: 7267, kratovo: 5401,
+  kamenica: 4368, krusevo: 4104, valandovo: 3671, brod: 3643, demirkapija: 2643, vevcani: 2343, dojran: 997 + 413,
+  medzitlija: 155, korab: 0, matka: 0,
+};
 export const DEFAULT_CITY: CityId = 'skopje';
 export const isCityId = (s: string | null | undefined): s is CityId => !!s && (CITY_IDS as readonly string[]).includes(s);
 

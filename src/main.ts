@@ -20,7 +20,7 @@ import { createSound } from './sound.ts';
 import { createLabels } from './labels.ts';
 import { createMapInput, readPad } from './input.ts';
 import { LANGS, lang, t, applyI18n, setLang, onLangChange, type Key } from './i18n.ts';
-import { CITIES, CITY_IDS, cityFromUrl, urlForCity, type CityId, type CitySpec } from './cities.ts';
+import { CITIES, CITY_IDS, POPULATION, cityFromUrl, urlForCity, type CityId, type CitySpec } from './cities.ts';
 import { loadCountry, createCountryView, type CountryView } from './country.ts';
 import { SOON } from './zones.ts';
 import { createCountryGround, type CountryGround } from './countryground.ts';
@@ -786,7 +786,7 @@ const cityBtn = $('city-btn'), cityMenu = $('city-menu');
 const cityList = document.createElement('div');
 cityList.className = 'city-list';
 cityMenu.append(cityList);
-for (const id of CITY_IDS) {
+for (const id of [...CITY_IDS].sort((a, b) => POPULATION[b] - POPULATION[a])) { // the most people first
   const spec = CITIES[id];
   const b = document.createElement('button');
   b.type = 'button';
