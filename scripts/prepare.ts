@@ -106,6 +106,8 @@ const PREP: Record<CityName, CityPrep> = {
     old: { s: 41.9995, n: 42.0048, w: 21.4342, e: 21.4425 }, // Old Bazaar (Čaršija)
     square: [41.9961, 21.4316], // Macedonia Square
     landmarks: { stoneBridge: 411079115, fountain: 176160189, porta: 239422349 },
+    // modelled by hand after descriptions (src/skopje.ts): the three galleons on the Вардар, Кула АЕК on Водно
+    models: { galija1: 1321594000, galija2: 1213928129, galija3: 1213928128, aekTower: 1178638147 },
     placeNames: {
       square: 'Плоштад Македонија', porta: 'Порта Македонија', park: 'Градски парк', zoo: 'Зоолошка градина Скопје',
       arena: 'Национална арена Тодор Проески', bazaar: 'Стара скопска чаршија', kale: 'Скопско кале',
