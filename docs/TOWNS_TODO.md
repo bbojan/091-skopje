@@ -28,7 +28,7 @@ towns on it):
 | Map | ~km² | Towns | | Map | ~km² | Towns |
 |---|---|---|---|---|---|---|
 | Куманово | 1620 | Куманово | | ~~Струмица~~ built | 690 | Струмица |
-| Велес | 1540 | Велес | | Дебарца | 630 | — |
+| Велес | 1540 | Велес | | Славна Дебарца | 630 | — |
 | Мариово* | 1460 | — | | Свети Николе | 580 | Свети Николе |
 | Кичево | 1160 | Кичево | | Крива Паланка | 570 | Крива Паланка |
 | Стоби* | 1150 | — | | Гевгелија | 510 | Гевгелија, Богданци |
@@ -51,7 +51,7 @@ terrain stays the full rectangle and every OSM feature in the cut rectangles is 
 in `scripts/config.ts`, `cutOsm()` in `scripts/osm.ts`, used by `prepare.ts` and `terrain.ts`; first used by Матка:
 points and buildings with a corner inside are dropped, roads and rivers split at the edge, areas clipped; download
 tiles wholly inside a cut are skipped), so the corner shows bare relief, as outside a map. The cuts so far:
-Дебарца (Охрид's corner), Мариово (Кавадарци's), Вевчани (all of Охрид's
+Славна Дебарца (Охрид's corner), Мариово (Кавадарци's), Вевчани (all of Охрид's
 map: Вевчани is an L around its north-west; built: Охрид's map and the stepped border edge cut), Делчево (Берово's and Радовиш's), Радовиш (Делчево's), Кратово (Крива Паланка's), Новаци (Меџитлија's south-east strip, 40.85–40.955 N, 21.40–21.47 E).
 Гевгелија (Дојран's). Велес, Матка (built: Скопје's and Брод's corners cut), Кичево, Демир Хисар, Стоби, Скопска Црна Гора, Крива Паланка, Делчево, Мариово, Вевчани, Кораб,
 Куманово and Ново Село are not rectangles with one corner cut but outlines that go around several maps
@@ -123,7 +123,7 @@ its own.
 | Охрид, Струга ✓ | **096** | 046 | **096** | as now |
 | Ресен ✓ | 096 | 047 | 047 | as now; shares 047 |
 | Вевчани ✓ | 096 | 046 | 046 | as now; shares 046 |
-| Дебарца | 096 | 046 | 046 | shares 046 |
+| Славна Дебарца | 096 | 046 | 046 | shares 046 |
 | Голо Брдо ✓ | 096 | 046 | 046 | shares 046; built 2026-11-25 (code and name unconfirmed, chosen during the unattended build) |
 | Битола ✓ | **097** | 047 | **097** | as now |
 | Демир Хисар | 097 | 047 | 047 | shares 047 |
@@ -135,7 +135,7 @@ its own.
 
 **Shared codes:** 02 Матка, Батинци, Скопска Црна Гора · 031 Кратово, Крива Паланка · 032 Пробиштип, Свети Николе,
 Радовиш · 033 Каменица, Берово, Виница, Делчево · 034 Дојран, Гевгелија, Валандово, Ново Село · 043 Кавадарци,
-Неготино, Демир Капија, Стоби · 046 Вевчани, Дебарца, Голо Брдо (and Кораб with 046) · 047 Ресен, Демир Хисар,
+Неготино, Демир Капија, Стоби · 046 Вевчани, Славна Дебарца, Голо Брдо (and Кораб with 046) · 047 Ресен, Демир Хисар,
 Новаци, Меџитлија · 048 Крушево, Мариово. Codes of one map only: the 11 old codes, 042 Ростуше (unless Кораб
 takes it), 045 Брод.
 
@@ -149,7 +149,7 @@ Municipality seats placed on the maps from memory: check them.
 
 **To check (owner):** Неготино 095 (next to Кавадарци's 093 it looks like a typo); the maps the old list does not
 name were given their area town's code (Каменица, Батинци, Матка, Скопска Црна Гора, Ново Село, Демир Капија,
-Стоби, Новаци, Меџитлија, Дебарца, Голо Брдо, Мариово, Богданци). Прилеп 098 / Крушево 048 are on the site
+Стоби, Новаци, Меџитлија, Славна Дебарца, Голо Брдо, Мариово, Богданци). Прилеп 098 / Крушево 048 are on the site
 (2026-11-23). A new map takes its code from this table (`code` in `CITIES`).
 
 ## Build order: quick wins first
@@ -172,7 +172,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 | 10 | Гевгелија | 510 | Гевгелија, Богданци | 30 |
 | 11 | Крива Паланка | 570 | Крива Паланка | 26 |
 | 12 | Свети Николе | 580 | Свети Николе | 22 |
-| 13 | Дебарца | 630 | — | 27 |
+| 13 | Славна Дебарца | 630 | — | 27 |
 | 14 | ~~Струмица~~ built (2026-11-24) | 690 | Струмица | 4 |
 | 15 | ~~Вевчани~~ built (2026-11-23, out of order) | 690 | — | 12 |
 | 16 | ~~Кратово~~ built (2026-11-24, branch `city-kratovo`, out of order) | 790 | Кратово | 2 |
@@ -354,7 +354,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 - **Code:** open (phone code 045). `?city=kicevo`.
 - **Extent:** w 20.815 (Ростуше's e), e 21.12 (Брод's w), n 41.725 (Тетово's s), s ~41.36 (Пресека, the pass to
   Охрид: check in OSM). The first Кичево map reached down to Ресен; on 2026-11-23 the owner split its south part off
-  as Дебарца (27). The same day it took the west of Пелагонија (21, dropped): an outline (`SHAPES`) that also runs
+  as Славна Дебарца (27). The same day it took the west of Пелагонија (21, dropped): an outline (`SHAPES`) that also runs
   under Брод (41.405–41.45 N, 21.12–21.31 E: over Крушево to its e side) and down Крушево's w side
   (41.33–41.405 N, 21.12–21.19 E). Its rectangle would be 41.33–41.725 N, 20.815–21.31 E. About 1160 km²,
   20 m cells. No overlaps.
@@ -365,7 +365,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 - **On it:** Демир Хисар, Слепче monastery, Смилево, the hills down to Битола's map, the edge of Пелагонија
   between Крушево and Прилеп (Кривогаштани, Житоше, Ропотово).
 - **Code:** open (phone code 047). `?city=demirhisar`.
-- **Extent:** **edge to edge** (decided with the owner on 2026-11-23): w 21.12 (Дебарца's e), e 21.40 (Битола's e and
+- **Extent:** **edge to edge** (decided with the owner on 2026-11-23): w 21.12 (Славна Дебарца's e), e 21.40 (Битола's e and
   Новаци's w; first 21.49, trimmed so the two do not overlap), n 41.33 (Крушево's s), s 41.085 (Битола's n).
   Ресен's north-east corner (41.085–41.13 N, 21.12–21.165 E) is left out. Later on 2026-11-23 it took the east of
   Пелагонија (21, dropped): north of Новаци it reaches 21.49 (Прилеп's w) and up to 41.45 (Брод's s) east of Крушево
@@ -386,7 +386,7 @@ bigger than its area suggests (dense villages: Тетово is 1100 km² and 16 
 - **On it:** Вевчани (springs, the old village), Лабуништа, Подгорци, the
   Albanian side as far as Ростуше's map reaches.
 - **Code:** open (phone code 046). `?city=vevcani`.
-- **Extent:** **edge to edge** (decided with the owner on 2026-11-23): n 41.39 (Ростуше's s), e 20.815 (Кичево's and Дебарца's w),
+- **Extent:** **edge to edge** (decided with the owner on 2026-11-23): n 41.39 (Ростуше's s), e 20.815 (Кичево's and Славна Дебарца's w),
   w 20.40 (Голо Брдо's w; first 20.49, moved so the border west of Вевчани is surely inside), s 40.885 (Охрид's s: extended down west of Охрид, the Albanian shore of the lake).
   **Cut corner:** Охрид's map (40.885–41.205 N, 20.615–20.815 E) is left out, so the map is an L: about 35 × 21 km
   above Охрид and an 18 km wide strip down its west side. 20 m cells. No overlaps.
@@ -566,7 +566,7 @@ to Демир Хисар (11), the strip above Прилеп to Стоби (25), 
   Bulgaria): n steps down from 42.38 (west) to 42.16, and east of 22.60 nothing is left above Каменица.
 - **Landmarks:** Осоговски манастир above the town, the old bazaar, the Деве Баир crossing.
 
-### 27. Дебарца
+### 27. Славна Дебарца (named by the owner on 2026-11-28; the municipality is Дебарца, the id stays `debarca`)
 
 - **On it:** Дебарца: Белчишта, Слатино, Издеглавје, Белчишко Блато, the road from Пресека down toward Охрид;
   the mountains south-east to Ресен's map. Требеништа (20.79 E), in the municipality too, is just west of 20.815,
