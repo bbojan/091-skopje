@@ -305,6 +305,18 @@ export const CITIES = {
     files: { raw: 'data/valandovo_raw.json', scene: 'public/valandovo.json', terrainBin: 'public/valandovo-terrain.bin', terrainJson: 'public/valandovo-terrain.json', overture: 'data/valandovo_overture.json' },
     terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
   },
+  // Гевгелија (docs/TOWNS_TODO.md, 30): Гевгелија and Богданци, Негорци and Негорски Бањи, Смоквица, the Вардар to the
+  // Greek border at Богородица, the Богданци wind farm. Edge to edge with Валандово (n), Демир Капија (w) and Дојран (the
+  // cut corner in the south-east); the strip south of Дојран's map reaches e to 22.75
+  gevgelija: {
+    bbox: { s: 41.10, w: 22.32, n: 41.25, e: 22.75 },
+    tiles: [6, 3] as [number, number],
+    files: { raw: 'data/gevgelija_raw.json', scene: 'public/gevgelija.json', terrainBin: 'public/gevgelija-terrain.bin', terrainJson: 'public/gevgelija-terrain.json', overture: 'data/gevgelija_overture.json' },
+    cut: [
+      { s: 41.15, w: 22.66, n: 41.25, e: 22.75 }, // Дојран
+    ],
+    terrain: { cell: 20, smooth: 1, flatWater: true, waterPad: 30, rivers: { river: [6, 2], stream: [2.5, 1.2], canal: [2, 1] }, points: [] } as TerrainSpec,
+  },
   // Виница (docs/TOWNS_TODO.md, 32): Виница and Виничко Кале, Блатец, Истибања, the Осоговски foothills to the north and
   // the hills toward Делчево. Edge to edge with Кочани (w), Каменица (n), Делчево (e) and Радовиш (s)
   vinica: {
