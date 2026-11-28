@@ -693,7 +693,8 @@ const PREP: Record<CityName, CityPrep> = {
     old: null,
     square: [42.20590, 22.33620], // the centre of Крива Паланка by the town hall and the Дом на култура (OSM has no square there)
     landmarks: {},
-    models: {},
+    // modelled by hand after descriptions (src/krivapalanka.ts): Осоговски манастир's two churches on their OSM outlines
+    models: { kposogovo: 1329164535, kpsmall: 1329164536 },
     placeNames: {},
     placeIds: {
       kpbogorodica: 1329164536, kpjoakim: 1329164535, kpdimitrij: 465292251, kpdevebair: 1457360729,

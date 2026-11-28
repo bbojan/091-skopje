@@ -1469,7 +1469,7 @@ export const CITIES: Record<CityId, CitySpec> = {
     sceneBytes: 2.1e6,
     views: {
       center: { place: 'krivapalanka', ll: [42.20381, 22.33367], d: 650, polar: 0.82, az: 0.3 },
-      kposogovo: { place: 'kpbogorodica', ll: [42.20887, 22.36230], d: 320, polar: 0.95, az: 0.5 }, // the monastery on its hill above the town
+      kposogovo: { place: 'kpjoakim', ll: [42.20863, 22.36231], d: 320, polar: 0.95, az: 0.5 }, // the monastery on its hill above the town
       kpbazaar: { ll: [42.20280, 22.33450], d: 330, polar: 0.9, az: -0.3 }, // the old bazaar by the Крива Река and Св. Димитриј
       kpdevebair: { place: 'kpdevebair', ll: [42.22049, 22.45876], d: 600, polar: 0.95, az: -0.4 }, // the crossing, Гюешево past it
       kpreka: { ll: [42.20000, 22.39000], d: 2600, polar: 1.05, az: -1.3 }, // up the Крива Река from the town toward Деве Баир
@@ -1488,8 +1488,8 @@ export const CITIES: Record<CityId, CitySpec> = {
     ],
     labels: [
       ['Осоговски манастир', 42.20950, 22.36301, 20, 'kpbogorodica'],
-      ['Рождество на Пресвета Богородица', 42.20887, 22.36230, 12, 'kpbogorodica'],
-      ['Св. Јоаким Осоговски', 42.20875, 22.36234, 10, 'kpjoakim'],
+      ['Св. Јоаким Осоговски', 42.20863, 22.36231, 12, 'kpjoakim'],
+      ['Рождество на Пресвета Богородица', 42.20883, 22.36237, 10, 'kpbogorodica'],
       ['Св. Димитриј', 42.20227, 22.33567, 12, 'kpdimitrij'],
       ['Стара чаршија', 42.20280, 22.33450, 8],
       ['Градски музеј', 42.20201, 22.33490, 8, 'kpmuseum'],
